@@ -1,0 +1,8 @@
+# eslint校验忽略文件
+iconfont
+node_modules
+dist
+public
+
+packages/*/es
+packages/*/node_modules

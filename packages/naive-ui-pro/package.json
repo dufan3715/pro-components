@@ -1,0 +1,25 @@
+{
+  "name": "@sq/naive-ui-pro",
+  "version": "1.0.0",
+  "description": "二次封装naive ui组件",
+  "module": "es/index.mjs",
+  "files": ["es"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/your-component-library.git"
+  },
+  "scripts": {
+    "build": "vue-tsc && vite build"
+  },
+  "keywords": ["vue", "naive ui", "form components"],
+  "author": "",
+  "license": "MIT",
+  "private": false,
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "naive-ui": "^2.34.4",
+    "vue": "^3.3.4"
+  }
+}
