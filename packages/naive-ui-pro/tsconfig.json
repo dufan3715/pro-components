@@ -3,6 +3,5 @@
   "compilerOptions": {
     "baseUrl": ".",
     "types": ["naive-ui/volar"]
-  },
-  "include": ["**/*.ts", "**/*.js", "**/*.tsx", "**/*.vue"]
+  }
 }

@@ -132,7 +132,7 @@ importers:
 
   examples:
     dependencies:
-      '@sq/naive-ui-pro':
+      '@qin-ui/naive-ui-pro':
         specifier: workspace:^
         version: link:../packages/naive-ui-pro
 

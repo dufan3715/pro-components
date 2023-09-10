@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProForm, useForm } from '@sq/naive-ui-pro/es';
+import { ProForm, useForm } from '@qin-ui/naive-ui-pro/es';
 
 const form = useForm({}, [
   { label: '用户名', key: 'username', component: 'input' },
