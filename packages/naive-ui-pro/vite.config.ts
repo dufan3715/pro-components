@@ -20,7 +20,7 @@ export default defineConfig({
       output: {
         dir: 'es',
         inlineDynamicImports: true,
-        intro: 'import "./index.css";',
+        intro: 'import "./style.css";',
       },
     },
   },
