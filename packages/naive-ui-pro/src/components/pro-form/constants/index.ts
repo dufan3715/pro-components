@@ -1,26 +1,56 @@
 import { InjectionKey, Ref } from 'vue';
+import {
+  NCascader,
+  NCheckboxGroup,
+  NDatePicker,
+  NInput,
+  NInputNumber,
+  NRadioGroup,
+  NSelect,
+  NSlider,
+  NSwitch,
+  NTimePicker,
+  NTransfer,
+  NTreeSelect,
+} from 'naive-ui';
 import type {
+  ComponentMap,
   RuleType,
-  AsyncImportComponentMap,
   UpdateFormData,
   UpdateRefs,
   UseCommand,
 } from '../types';
 
 // prettier-ignore
-export const asyncImportComponentMap: AsyncImportComponentMap = {
-  'input': () => import('naive-ui/es/input/src/Input'),
-  'input-number': () => import('naive-ui/es/input-number/src/InputNumber'),
-  'select': () => import('naive-ui/es/select/src/Select'),
-  'cascader': () => import('naive-ui/es/cascader/src/Cascader'),
-  'date-picker': () => import('naive-ui/es/date-picker/src/DatePicker'),
-  'time-picker': () => import('naive-ui/es/time-picker/src/TimePicker'),
-  'checkbox-group': () => import('naive-ui/es/checkbox/src/CheckboxGroup'),
-  'radio-group': () => import('naive-ui/es/radio/src/RadioGroup'),
-  'switch': () => import('naive-ui/es/switch/src/Switch'),
-  'slider': () => import('naive-ui/es/slider/src/Slider'),
-  'tree-select': () => import('naive-ui/es/tree-select/src/TreeSelect'),
-  'transfer': () => import('naive-ui/es/transfer/src/Transfer'),
+// export const asyncImportComponentMap: AsyncImportComponentMap = {
+//   'input': () => import('naive-ui/es/input/src/Input'),
+//   'input-number': () => import('naive-ui/es/input-number/src/InputNumber'),
+//   'select': () => import('naive-ui/es/select/src/Select'),
+//   'cascader': () => import('naive-ui/es/cascader/src/Cascader'),
+//   'date-picker': () => import('naive-ui/es/date-picker/src/DatePicker'),
+//   'time-picker': () => import('naive-ui/es/time-picker/src/TimePicker'),
+//   'checkbox-group': () => import('naive-ui/es/checkbox/src/CheckboxGroup'),
+//   'radio-group': () => import('naive-ui/es/radio/src/RadioGroup'),
+//   'switch': () => import('naive-ui/es/switch/src/Switch'),
+//   'slider': () => import('naive-ui/es/slider/src/Slider'),
+//   'tree-select': () => import('naive-ui/es/tree-select/src/TreeSelect'),
+//   'transfer': () => import('naive-ui/es/transfer/src/Transfer'),
+// }
+
+// prettier-ignore
+export const componentMap: ComponentMap = {
+  'input': NInput,
+  'input-number': NInputNumber,
+  'select': NSelect,
+  'cascader': NCascader,
+  'date-picker': NDatePicker,
+  'time-picker': NTimePicker,
+  'checkbox-group': NCheckboxGroup,
+  'radio-group': NRadioGroup,
+  'switch': NSwitch,
+  'slider': NSlider,
+  'tree-select': NTreeSelect,
+  'transfer': NTransfer,
 }
 
 // inject keys

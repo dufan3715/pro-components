@@ -1,8 +1,10 @@
 {
   "name": "@qin-ui/naive-ui-pro",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "二次封装naive ui组件",
-  "module": "es/index.mjs",
+  "type": "module",
+  "main": "",
+  "module": "es/index.js",
   "types": "es/index.d.ts",
   "files": [
     "es"
@@ -30,6 +32,6 @@
   "bugs": {
     "url": "https://github.com/dufan3715/pro-components/issues"
   },
-  "main": "",
-  "devDependencies": {}
+  "devDependencies": {},
+  "dependencies": {}
 }

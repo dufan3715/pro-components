@@ -11,7 +11,7 @@ export default defineConfig({
     outDir: 'es',
     minify: false,
     lib: {
-      entry: resolve(__dirname, './src/main.ts'),
+      entry: resolve(__dirname, './src/index.ts'),
       formats: ['es'],
       fileName: 'index',
     },
@@ -20,6 +20,7 @@ export default defineConfig({
       output: {
         dir: 'es',
         inlineDynamicImports: true,
+        intro: 'import "./index.css";',
       },
     },
   },

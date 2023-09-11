@@ -2,7 +2,6 @@
 <script lang="ts" setup>
 import {
   computed,
-  defineAsyncComponent,
   h,
   inject,
   isVNode,
@@ -18,7 +17,7 @@ import { NCheckbox, NRadio, NSpace } from 'naive-ui';
 import type { Field, BaseFieldAttrs, CommandTrigger } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import {
-  asyncImportComponentMap,
+  componentMap,
   COMMAND,
   UPDATE_REFS,
   FORM_DATA,
@@ -165,8 +164,8 @@ const mergedAttrs = computed(() => {
 
 const is = computed(() => {
   return typeof props.component === 'string' &&
-    Object.hasOwn(asyncImportComponentMap, props.component)
-    ? defineAsyncComponent(asyncImportComponentMap[props.component])
+    Object.hasOwn(componentMap, props.component)
+    ? componentMap[props.component]
     : props.component;
 });
 

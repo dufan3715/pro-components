@@ -25,6 +25,7 @@ import type {
   Ref,
   defineComponent,
   FunctionalComponent,
+  Component,
 } from 'vue';
 
 export type FormData = Record<string, any>;
@@ -157,6 +158,11 @@ export type FormRef = Partial<FormInst> & { refs: Refs };
 export type AsyncImportComponentMap = Record<
   Exclude<Field['component'], RenderComponentType | undefined>,
   AsyncComponentLoader
+>;
+
+export type ComponentMap = Record<
+  Exclude<Field['component'], RenderComponentType | undefined>,
+  Component
 >;
 
 // components/Field
