@@ -137,7 +137,7 @@ export type FieldType = {
   'custom': { component?: RenderComponentType } & Record<string, any>;
 };
 export type Field = FieldType[keyof FieldType] &
-  FormItemProps &
+  Omit<FormItemProps, 'label'> &
   GridItemProps &
   Common;
 export type Fields = Array<Field>;
