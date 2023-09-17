@@ -22,6 +22,7 @@ import {
   UPDATE_REFS,
   FORM_DATA,
   UPDATE_FORM_DATA,
+  initComponentPropsMap,
 } from '../../constants';
 
 type Props = {
@@ -88,78 +89,31 @@ const rewriteMethod = (methodName: CommandTrigger) => {
 };
 
 const mergedAttrs = computed(() => {
-  const { componentStyle, type } = attrs as any;
-  const overrides = { clearable: true, style: { minWidth: '120px' } };
-  switch (componentType.value) {
-    case undefined:
-      Object.assign(overrides, attrs, rewriteMethod('onUpdateValue'));
-      break;
+  const { type } = attrs as any;
+  const baseProps = { clearable: true };
+  const compType = componentType.value;
+  let componentProps = compType ? initComponentPropsMap[compType] : {};
+  const methods = { ...rewriteMethod('onUpdateValue') };
+  switch (compType) {
     case 'input':
-      Object.assign(overrides, {
-        maxlength: 100,
-        ...(type === 'textarea'
-          ? {
-              maxlength: 200,
-              autosize: { minRows: 3, maxRows: 6 },
-              showCount: true,
-            }
-          : {}),
-        ...attrs,
-        ...rewriteMethod('onBlur'),
-        ...rewriteMethod('onFocus'),
-        ...rewriteMethod('onUpdateValue'),
-      });
+      componentProps = (componentProps as any)[type ?? 'text'];
+      Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
       break;
     case 'input-number':
-      Object.assign(overrides, {
-        max: 10 ** 15 - 0.01,
-        min: -(10 ** 15 + 0.01),
-        showButton: false,
-        style: { width: '100%', ...componentStyle },
-        ...attrs,
-        ...rewriteMethod('onBlur'),
-        ...rewriteMethod('onFocus'),
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'select':
-      Object.assign(overrides, {
-        ...attrs,
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'cascader':
-      Object.assign(overrides, {
-        ...attrs,
-        ...rewriteMethod('onUpdateValue'),
-      });
+      Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
       break;
     case 'date-picker':
-      Object.assign(overrides, {
-        format: 'yyyy-MM-dd',
-        valueFormat: 'yyyy-MM-dd',
-        ...(type && ['datetimerange', 'daterange'].includes(type)
-          ? { defaultTime: ['00:00:00', '23:59:59'] }
-          : {}),
-        style: { width: '100%', ...componentStyle },
-        ...attrs,
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'time-picker':
-      Object.assign(overrides, {
-        style: { width: '100%', ...componentStyle },
-        ...attrs,
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'radio-group':
-      Object.assign(overrides, attrs, { ...rewriteMethod('onUpdateValue') });
+      componentProps = (componentProps as any)[type ?? 'date'];
       break;
     default:
       break;
   }
-  return overrides;
+  return {
+    ...baseProps,
+    ...componentProps,
+    ...attrs,
+    ...methods,
+  };
 });
 
 const is = computed(() => {
@@ -189,8 +143,8 @@ onMounted(() => {
       v-bind="mergedAttrs"
       :ref="setComponentRef"
       v-model:value="value"
-      :class="attrs.componentClassName"
       :style="attrs.componentStyle"
+      :class="attrs.componentClassName"
       :path="props.path"
       class="field-component">
       <template v-for="(slot, name) in slots" #[name]>
@@ -214,7 +168,11 @@ onMounted(() => {
           v-bind="option" />
       </NSpace>
       <div
-        v-if="mergedAttrs.clearable && ![null, undefined].includes(value)"
+        v-if="
+          !attrs.disabled &&
+          mergedAttrs.clearable &&
+          ![null, undefined].includes(value)
+        "
         class="clear-icon"
         @click="value = undefined">
         🅧
@@ -226,6 +184,7 @@ onMounted(() => {
 <style scoped lang="less">
 .field-component {
   width: 100%;
+  min-width: 120px;
 
   &:hover {
     .clear-icon {

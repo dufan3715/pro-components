@@ -50,7 +50,13 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "cSpell.words": [
+    "daterange",
+    "datetime",
+    "datetimerange",
     "lintstagedrc",
-    "vnode"
+    "maxlength",
+    "quarterrange",
+    "vnode",
+    "yearrange"
   ]
 }

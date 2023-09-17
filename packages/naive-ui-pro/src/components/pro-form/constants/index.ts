@@ -88,3 +88,48 @@ export const FunctionRegexp = /^\s*function\s*\w*\s*\([^)]*\)\s*{([\s\S]*)}/g;
  */
 export const ArrowFunctionRegexp =
   /^\s*(?:\([^)]*\)|\w+)\s*=>\s*\(?({[\s\S]*}|[^;]*)\)?/g;
+
+export const initComponentPropsMap = {
+  input: {
+    text: { maxlength: 100 },
+    textarea: {
+      maxlength: 200,
+      autosize: { minRows: 3, maxRows: 6 },
+      showCount: true,
+    },
+    password: { maxlength: 100 },
+  },
+  'input-number': {
+    max: 10 ** 15 - 1,
+    min: -(10 ** 15 + 1),
+    showButton: false,
+  },
+  select: {},
+  cascader: {},
+  'date-picker': {
+    date: {
+      format: 'yyyy-MM-dd',
+      valueFormat: 'yyyy-MM-dd',
+    },
+    datetime: {},
+    datetimerange: {
+      defaultTime: ['00:00:00', '23:59:59'],
+    },
+    daterange: {
+      defaultTime: ['00:00:00', '23:59:59'],
+    },
+    month: {},
+    monthrange: {},
+    year: {},
+    yearrange: {},
+    quarter: {},
+    quarterrange: {},
+  },
+  'time-picker': {},
+  'checkbox-group': {},
+  'radio-group': {},
+  switch: {},
+  slider: {},
+  'tree-select': {},
+  transfer: {},
+};
