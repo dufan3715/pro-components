@@ -25,7 +25,7 @@ const customItemPropsKeys = [
 ] as const;
 
 defineOptions({
-  name: 'BaseFormItem',
+  name: 'BaseFormItems',
 });
 
 type Props = {
@@ -69,11 +69,11 @@ const proFormPropKeys = computed<ProFormPropKeys>(() => {
 });
 
 const withDefault = (field: Field): any => {
-  const baseFormItemProps = pick(field, [
+  const baseFormItemsProps = pick(field, [
     ...formItemPropKeys,
     ...customItemPropsKeys,
   ]);
-  delete baseFormItemProps.className;
+  delete baseFormItemsProps.className;
   const defaultProps = {
     first: true,
   };
@@ -88,7 +88,7 @@ const withDefault = (field: Field): any => {
   }
   return {
     ...defaultProps,
-    ...baseFormItemProps,
+    ...baseFormItemsProps,
     label: undefined,
     container: undefined,
   };
@@ -143,11 +143,11 @@ const withDefaultGridItem = memoize((field: Field) => {
             :style="field.style"
             :path="getPath(field.key)">
             <template v-if="field.fields">
-              <BaseFormItem
+              <BaseFormItems
                 :grid="field.grid ?? props.grid"
                 :fields="field.fields"
                 :path="getPath(field.key)">
-              </BaseFormItem>
+              </BaseFormItems>
             </template>
             <template v-else-if="!field.component">
               missing "component" prop

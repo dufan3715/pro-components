@@ -17,13 +17,13 @@ import { NCheckbox, NRadio, NSpace } from 'naive-ui';
 import type { Field, BaseFieldAttrs, CommandTrigger } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import {
-  componentMap,
+  COMPONENT_MAP,
   COMMAND,
   UPDATE_REFS,
   FORM_DATA,
   UPDATE_FORM_DATA,
-  initComponentPropsMap,
 } from '../../constants';
+import { useInitProps } from '../../hooks';
 
 type Props = {
   component: Field['component'];
@@ -46,6 +46,7 @@ const formData = inject(FORM_DATA);
 const updateFormData = inject(UPDATE_FORM_DATA);
 const updateRefs = inject(UPDATE_REFS);
 const command = inject(COMMAND);
+const { getInitProps } = useInitProps();
 
 const value = computed({
   get() {
@@ -89,37 +90,29 @@ const rewriteMethod = (methodName: CommandTrigger) => {
 };
 
 const mergedAttrs = computed(() => {
-  const { type } = attrs as any;
-  const baseProps = { clearable: true };
   const compType = componentType.value;
-  let componentProps = compType ? initComponentPropsMap[compType] : {};
+  const initProps = getInitProps({
+    component: compType as any,
+    type: attrs.type,
+  });
   const methods = { ...rewriteMethod('onUpdateValue') };
   switch (compType) {
     case 'input':
-      componentProps = (componentProps as any)[type ?? 'text'];
       Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
       break;
     case 'input-number':
       Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
       break;
-    case 'date-picker':
-      componentProps = (componentProps as any)[type ?? 'date'];
-      break;
     default:
       break;
   }
-  return {
-    ...baseProps,
-    ...componentProps,
-    ...attrs,
-    ...methods,
-  };
+  return { ...initProps, ...attrs, ...methods };
 });
 
 const is = computed(() => {
   return typeof props.component === 'string' &&
-    Object.hasOwn(componentMap, props.component)
-    ? componentMap[props.component]
+    Object.hasOwn(COMPONENT_MAP, props.component)
+    ? COMPONENT_MAP[props.component]
     : props.component;
 });
 
@@ -167,16 +160,6 @@ onMounted(() => {
           :key="index"
           v-bind="option" />
       </NSpace>
-      <div
-        v-if="
-          !attrs.disabled &&
-          mergedAttrs.clearable &&
-          ![null, undefined].includes(value)
-        "
-        class="clear-icon"
-        @click="value = undefined">
-        🅧
-      </div>
     </component>
   </ContainerFragment>
 </template>
@@ -185,27 +168,5 @@ onMounted(() => {
 .field-component {
   width: 100%;
   min-width: 120px;
-
-  &:hover {
-    .clear-icon {
-      display: block;
-    }
-  }
-}
-
-.clear-icon {
-  position: absolute;
-  top: 50%;
-  right: 9px;
-  z-index: 999;
-  display: none;
-  margin-top: -12px;
-  color: #bbb;
-  font-size: 15px;
-  cursor: pointer;
-
-  &:hover {
-    color: #aaa;
-  }
 }
 </style>

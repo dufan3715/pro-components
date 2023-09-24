@@ -1,3 +1,4 @@
+/* eslint-disable dot-notation */
 import { InjectionKey, Ref } from 'vue';
 import {
   NCascader,
@@ -38,7 +39,7 @@ import type {
 // }
 
 // prettier-ignore
-export const componentMap: ComponentMap = {
+export const COMPONENT_MAP: ComponentMap = {
   'input': NInput,
   'input-number': NInputNumber,
   'select': NSelect,
@@ -66,7 +67,7 @@ export const COMMAND = Symbol('command') as InjectionKey<
 >;
 
 // enum
-export const ruleTypeMap = new Map<RuleType, string>([
+export const RULE_TYPE_MAP = new Map<RuleType, string>([
   ['value', '字段赋值'],
   ['hidden', '字段隐藏/显示'],
   ['disabled', '字段禁用/启用'],
@@ -83,53 +84,67 @@ export const ruleTypeMap = new Map<RuleType, string>([
  * @description js函数声明字符串正则
  */
 export const FunctionRegexp = /^\s*function\s*\w*\s*\([^)]*\)\s*{([\s\S]*)}/g;
+
 /**
  * @description js箭头函数字符串正则
  */
 export const ArrowFunctionRegexp =
   /^\s*(?:\([^)]*\)|\w+)\s*=>\s*\(?({[\s\S]*}|[^;]*)\)?/g;
 
-export const initComponentPropsMap = {
-  input: {
-    text: { maxlength: 100 },
-    textarea: {
-      maxlength: 200,
-      autosize: { minRows: 3, maxRows: 6 },
-      showCount: true,
-    },
-    password: { maxlength: 100 },
-  },
-  'input-number': {
-    max: 10 ** 15 - 1,
-    min: -(10 ** 15 + 1),
-    showButton: false,
-  },
-  select: {},
-  cascader: {},
-  'date-picker': {
-    date: {
-      format: 'yyyy-MM-dd',
-      valueFormat: 'yyyy-MM-dd',
-    },
-    datetime: {},
-    datetimerange: {
-      defaultTime: ['00:00:00', '23:59:59'],
-    },
-    daterange: {
-      defaultTime: ['00:00:00', '23:59:59'],
-    },
-    month: {},
-    monthrange: {},
-    year: {},
-    yearrange: {},
-    quarter: {},
-    quarterrange: {},
-  },
-  'time-picker': {},
-  'checkbox-group': {},
-  'radio-group': {},
-  switch: {},
-  slider: {},
-  'tree-select': {},
-  transfer: {},
+/* 初始化组件配置inject keys */
+// prettier-ignore
+export const INJECT_COMPONENT_PROPS_KEYS = {
+  'input': Symbol(''),
+  'input.text': Symbol(''),
+  'input.textarea': Symbol(''),
+  'input.password': Symbol(''),
+  'input-number': Symbol(''),
+  'select': Symbol(''),
+  'cascader': Symbol(''),
+  'date-picker': Symbol(''),
+  'date-picker.date': Symbol(''),
+  'date-picker.daterange': Symbol(''),
+  'date-picker.datetime': Symbol(''),
+  'date-picker.datetimerange': Symbol(''),
+  'date-picker.month': Symbol(''),
+  'date-picker.monthrange': Symbol(''),
+  'date-picker.year': Symbol(''),
+  'date-picker.yearrange': Symbol(''),
+  'date-picker.quarter': Symbol(''),
+  'date-picker.quarterrange': Symbol(''),
+  'time-picker': Symbol(''),
+  'checkbox-group': Symbol(''),
+  'radio-group': Symbol(''),
+  'switch': Symbol(''),
+  'slider': Symbol(''),
+  'tree-select': Symbol(''),
+  'transfer': Symbol(''),
 };
+
+const PROPS_KEYS = INJECT_COMPONENT_PROPS_KEYS;
+// prettier-ignore
+export const INIT_COMPONENT_PROPS_MAP = new Map([
+  [PROPS_KEYS['input'], { maxlength: 100, clearable: true }],
+  [PROPS_KEYS['input.textarea'], { maxlength: 200, autosize: { minRows: 3, maxRows: 6 }, showCount: true, clearable: true }],
+  [PROPS_KEYS['input.password'], { maxlength: 100, clearable: true }],
+  [PROPS_KEYS['input-number'], { max: 10 ** 15 - 1, min: -(10 ** 15 + 1), showButton: false, clearable: true }],
+  [PROPS_KEYS['select'], { clearable: true }],
+  [PROPS_KEYS['cascader'], { clearable: true }],
+  [PROPS_KEYS['date-picker'], { format: 'yyyy-MM-dd', valueFormat: 'yyyy-MM-dd', clearable: true }],
+  [PROPS_KEYS['date-picker.daterange'], { defaultTime: ['00:00:00', '23:59:59'], clearable: true }],
+  [PROPS_KEYS['date-picker.datetime'], { clearable: true }],
+  [PROPS_KEYS['date-picker.datetimerange'], { defaultTime: ['00:00:00', '23:59:59'], clearable: true }],
+  [PROPS_KEYS['date-picker.month'], { clearable: true }],
+  [PROPS_KEYS['date-picker.monthrange'], { clearable: true }],
+  [PROPS_KEYS['date-picker.year'], { clearable: true }],
+  [PROPS_KEYS['date-picker.yearrange'], { clearable: true }],
+  [PROPS_KEYS['date-picker.quarter'], { clearable: true }],
+  [PROPS_KEYS['date-picker.quarterrange'], { clearable: true }],
+  [PROPS_KEYS['time-picker'], { clearable: true }],
+  [PROPS_KEYS['checkbox-group'], { clearable: true }],
+  [PROPS_KEYS['radio-group'], {}],
+  [PROPS_KEYS['switch'], {}],
+  [PROPS_KEYS['slider'], {}],
+  [PROPS_KEYS['tree-select'], {}],
+  [PROPS_KEYS['transfer'], {}],
+]);

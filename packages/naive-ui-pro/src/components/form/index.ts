@@ -1,11 +1,9 @@
 import BaseForm from './components/BaseForm/index.vue';
-import { withInstall } from '../../install';
 
-export const ProForm = withInstall(BaseForm);
-export default ProForm;
+export default BaseForm;
 
 // instance
-export type ProFormInstance = InstanceType<typeof ProForm>;
+export type ProFormInstance = InstanceType<typeof BaseForm>;
 
 // components
 export * from './components';

@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import { NForm, type FormProps } from 'naive-ui';
 import { computed, provide, shallowReactive } from 'vue';
-import { BaseFormItem } from '..';
+import { BaseFormItems } from '..';
 import {
   COMMAND,
   UPDATE_FORM_DATA,
@@ -104,7 +104,7 @@ defineExpose<FormRef>(exposed);
 
 <template>
   <n-form :model="_formData">
-    <BaseFormItem :fields="_fields" :grid="props.grid" />
+    <BaseFormItems :fields="_fields" :grid="props.grid" />
   </n-form>
 </template>
 

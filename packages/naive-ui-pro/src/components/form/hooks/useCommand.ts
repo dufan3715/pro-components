@@ -14,7 +14,7 @@ import {
   Refs,
 } from '../types';
 import { isFunctionString } from '../utils';
-import { ruleTypeMap } from '../constants';
+import { RULE_TYPE_MAP } from '../constants';
 
 const tool = {
   round,
@@ -174,7 +174,7 @@ async function runRules(rules: Logic['rules'], baseParam: ProParam) {
     ]);
     logQueue.push([
       [`逻辑${ruleIndex + 1}操作类型： `, ['blue', 'indent4']],
-      [`${ruleTypeMap.get(type)}`, ['gray']],
+      [`${RULE_TYPE_MAP.get(type)}`, ['gray']],
     ]);
     logQueue.push([
       [`逻辑${ruleIndex + 1}变更字段： `, ['blue', 'indent4', 'mb10']],
