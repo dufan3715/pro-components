@@ -4,10 +4,9 @@ import type { RenderComponentType } from '../../types';
 
 type Props = {
   component?: RenderComponentType | ReturnType<typeof defineComponent>;
-  path?: string;
 };
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 defineOptions({
   name: 'ContainerFragment',
@@ -15,7 +14,7 @@ defineOptions({
 </script>
 
 <template>
-  <component :is="props.component" v-if="props.component" :path="props.path">
+  <component :is="component" v-if="component" v-bind="$attrs">
     <slot />
   </component>
   <slot v-else />

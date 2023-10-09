@@ -17,10 +17,7 @@ const useInitProps = () => {
 
   const getInitProps = (field: Field): Record<string, any> => {
     const { component, type = '' } = field as any;
-    if (
-      typeof component === 'string' &&
-      Object.hasOwn(COMPONENT_MAP, component)
-    ) {
+    if (COMPONENT_MAP.has(component)) {
       const k = `${component}${type}` as keyof typeof PROPS_KEYS;
       return initPropsMap.get(PROPS_KEYS[k]) || {};
     }

@@ -104,8 +104,6 @@ defineExpose<FormRef>(exposed);
 
 <template>
   <n-form :model="_formData">
-    <BaseFormItems :fields="_fields" :grid="props.grid" />
+    <BaseFormItems :fields="_fields" :grid="grid" />
   </n-form>
 </template>
-
-<style scoped lang="less"></style>

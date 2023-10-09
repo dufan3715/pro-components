@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars, no-param-reassign */
 import { ref } from 'vue';
 import { get, set } from 'lodash-es';
 import type { FormData, GetFormData, SetFormData, UseFormData } from '../types';

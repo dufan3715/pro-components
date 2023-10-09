@@ -13,7 +13,7 @@ import {
   watch,
 } from 'vue';
 import { get } from 'lodash-es';
-import { NCheckbox, NRadio, NSpace } from 'naive-ui';
+import { NCheckbox, NRadio } from 'naive-ui';
 import type { Field, BaseFieldAttrs, CommandTrigger } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import {
@@ -110,10 +110,7 @@ const mergedAttrs = computed(() => {
 });
 
 const is = computed(() => {
-  return typeof props.component === 'string' &&
-    Object.hasOwn(COMPONENT_MAP, props.component)
-    ? COMPONENT_MAP[props.component]
-    : props.component;
+  return COMPONENT_MAP.get(props.component as any) ?? props.component;
 });
 
 const setComponentRef = (el: any) => {
@@ -129,7 +126,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <ContainerFragment :component="attrs.componentContainer" :path="props.path">
+  <ContainerFragment :component="attrs.componentContainer" :path="path">
     <component
       :is="is"
       :key="forceUpdateKey"
@@ -138,28 +135,30 @@ onMounted(() => {
       v-model:value="value"
       :style="attrs.componentStyle"
       :class="attrs.componentClassName"
-      :path="props.path"
+      :path="path"
       class="field-component">
-      <template v-for="(slot, name) in slots" #[name]>
+      <template v-for="(slot, name) in slots" :key="name" #[name]>
         <slot :name="name"></slot>
       </template>
 
-      <template v-for="slot in attrs.slots || []" :key="slot.name" #[slot.name]>
-        <SlotComponent v-bind="slot" :path="props.path" />
+      <template v-for="(slot, name) in attrs.slots" :key="name" #[name]>
+        <SlotComponent
+          v-if="name !== 'label'"
+          v-bind="{ path }"
+          :component="slot" />
       </template>
 
-      <NSpace
+      <template
         v-if="
           componentType &&
-          ['checkbox-group', 'radio-group'].includes(componentType as string) &&
-          !attrs.slots?.find(slot => slot.name === 'default')
+          ['checkbox-group', 'radio-group'].includes(componentType as string)
         ">
         <component
           :is="componentType === 'checkbox-group' ? NCheckbox : NRadio"
           v-for="(option, index) of (attrs as any).options || []"
           :key="index"
           v-bind="option" />
-      </NSpace>
+      </template>
     </component>
   </ContainerFragment>
 </template>

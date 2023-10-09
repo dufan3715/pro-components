@@ -1,4 +1,4 @@
-/* eslint-disable no-use-before-define, no-unused-vars, no-redeclare */
+/* eslint-disable no-use-before-define, no-unused-vars */
 import type {
   GridItemProps,
   FormItemProps,
@@ -21,11 +21,9 @@ import { VNode } from 'vue';
 import type {
   CSSProperties,
   DeepReadonly,
-  AsyncComponentLoader,
   Ref,
   defineComponent,
   FunctionalComponent,
-  Component,
 } from 'vue';
 
 export type FormData = Record<string, any>;
@@ -51,14 +49,13 @@ export type SlotComponentType =
   | VNode
   | FunctionalComponent<{ path?: string }>;
 
+type FormItemSlots = {
+  label: SlotComponentType;
+};
+
 export type ContainerComponent =
   | FunctionalComponent<{ path?: string }>
   | ReturnType<typeof defineComponent>;
-
-export type Slot = {
-  name: string;
-  component: SlotComponentType;
-};
 
 type Option = {
   label: string;
@@ -78,7 +75,7 @@ interface Common {
   /** 中文名称 */
   label?: SlotComponentType;
   /** 插槽，可包含formItem插槽和component插槽 */
-  slots?: Array<Slot>;
+  slots?: Record<'label', SlotComponentType>;
   /** 网格布局属性 */
   grid?: Grid;
   /** 子字段 */
@@ -101,36 +98,56 @@ interface Common {
   componentContainer?: ContainerComponent;
 }
 
+/* 插槽类型 */
+type FieldSlot<T extends string> = Record<'label' | T, SlotComponentType>;
+// prettier-ignore
+type InputSlots = FieldSlot<'clear-icon' | 'count' | 'password-invisible-icon' | 'password-visible-icon' | 'prefix' | 'separator' | 'suffix'>
+// prettier-ignore
+type InputNumberSlots = FieldSlot<'add-icon' | 'minus-icon' | 'prefix' | 'suffix'>
+// prettier-ignore
+type SelectSlots = FieldSlot<'action' | 'arrow' | 'empty'>
+// prettier-ignore
+type CascaderSlots = FieldSlot<'action' | 'arrow' | 'empty' | 'not-found'>
+// prettier-ignore
+type DatePickerSlots = FieldSlot<'date-icon' | 'footer' | 'next-month' | 'next-year' | 'prev-month' | 'prev-year' | 'separator'>
+// prettier-ignore
+type TimePickerSlots = FieldSlot<'icon'>
+// prettier-ignore
+type CheckboxGroupSlots = FieldSlot<'default'>
+// prettier-ignore
+type SwitchSlots = FieldSlot<'checked' | 'checked-icon' | 'icon' | 'unchecked' | 'unchecked-icon'>
+// prettier-ignore
+type SliderSlots = FieldSlot<'thumb'>
+// prettier-ignore
+type TreeSelectSlots = FieldSlot<'action' | 'arrow' | 'empty'>
+
 /**
  * @type {FieldType} 字段类型集合
  */
 // prettier-ignore
 export type FieldType = {
   /** 文本框 */
-  'input': { component: 'input' } & InputProps;
+  'input': { component: 'input', slots?: InputSlots } & InputProps;
   /** 数字文本框 */
-  'input-number': { component: 'input-number' } & InputNumberProps;
+  'input-number': { component: 'input-number', slots?: InputNumberSlots } & InputNumberProps;
   /** 下拉选择器 */
-  'select': { component: 'select' } & SelectProps;
+  'select': { component: 'select', slots?: SelectSlots } & SelectProps;
   /** 级联选择器 */
-  'cascader': { component: 'cascader' } & CascaderProps;
+  'cascader': { component: 'cascader', slots?: CascaderSlots } & CascaderProps;
   /** 日期选择器 */
-  'date-picker': { component: 'date-picker' } & DatePickerProps;
+  'date-picker': { component: 'date-picker', slots?: DatePickerSlots } & DatePickerProps;
   /** 时间选择器 */
-  'time-picker': { component: 'time-picker' } & TimePickerProps;
+  'time-picker': { component: 'time-picker', slots?: TimePickerSlots } & TimePickerProps;
   /** 复选框组 */
-  'checkbox-group': {
-    component: 'checkbox-group';
-    options: Options;
-  } & CheckboxGroupProps;
+  'checkbox-group': { component: 'checkbox-group'; options?: Options, slots?: CheckboxGroupSlots } & CheckboxGroupProps;
   /** 单选框组 */
-  'radio-group': { component: 'radio-group'; options: Options } & RadioGroupProps;
+  'radio-group': { component: 'radio-group'; options?: Options } & RadioGroupProps;
   /** 开关 */
-  'switch': { component: 'switch' } & SwitchProps;
+  'switch': { component: 'switch', slots?: SwitchSlots } & SwitchProps;
   /** 滑块 */
-  'slider': { component: 'slider' } & SliderProps;
+  'slider': { component: 'slider', slots?: SliderSlots } & SliderProps;
   /** 树形选择器 */
-  'tree-select': { component: 'tree-select' } & TreeSelectProps;
+  'tree-select': { component: 'tree-select', slots?: TreeSelectSlots } & TreeSelectProps;
   /** 穿梭框 */
   'transfer': { component: 'transfer' } & TransferProps;
   /** 自定义组件 */
@@ -141,6 +158,11 @@ export type Field = FieldType[keyof FieldType] &
   GridItemProps &
   Common;
 export type Fields = Array<Field>;
+
+export type BaseComponentStringName = Exclude<
+  Field['component'],
+  RenderComponentType | undefined
+>;
 
 // components/ProForm
 export type UpdateFormData = (path: string, value: any) => void;
@@ -155,15 +177,6 @@ export type SetFormData = (
   value: any | ((preValue: DeepReadonly<any>) => any)
 ) => void;
 export type FormRef = Partial<FormInst> & { refs: Refs };
-export type AsyncImportComponentMap = Record<
-  Exclude<Field['component'], RenderComponentType | undefined>,
-  AsyncComponentLoader
->;
-
-export type ComponentMap = Record<
-  Exclude<Field['component'], RenderComponentType | undefined>,
-  Component
->;
 
 // components/Field
 type FieldAttrsType = {

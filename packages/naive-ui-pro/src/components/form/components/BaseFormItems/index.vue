@@ -124,15 +124,15 @@ const withDefaultGridItem = memoize((field: Field) => {
 
 <template>
   <ContainerFragment
-    :component="props.grid ? NGrid : undefined"
-    v-bind="props.grid ? withDefaultGrid : undefined">
+    :component="grid ? NGrid : undefined"
+    v-bind="grid ? withDefaultGrid : undefined">
     <template
       v-for="(field, index) of fields"
       :key="getPath(field.key) || index">
       <component
-        :is="props.grid ? NGridItem : ContainerFragment"
+        :is="grid ? NGridItem : ContainerFragment"
         v-if="field && !field.hidden"
-        v-bind="props.grid ? withDefaultGridItem(field) : undefined">
+        v-bind="grid ? withDefaultGridItem(field) : undefined">
         <ContainerFragment
           :component="field.container"
           :path="getPath(field.key)">
@@ -144,7 +144,7 @@ const withDefaultGridItem = memoize((field: Field) => {
             :path="getPath(field.key)">
             <template v-if="field.fields">
               <BaseFormItems
-                :grid="field.grid ?? props.grid"
+                :grid="field.grid ?? grid"
                 :fields="field.fields"
                 :path="getPath(field.key)">
               </BaseFormItems>
@@ -158,10 +158,10 @@ const withDefaultGridItem = memoize((field: Field) => {
                 :label="field.label"
                 :path="getPath(field.key)" />
             </template>
-            <template #label>
+            <template v-if="field.slots?.label ?? field.label" #label>
               <SlotComponent
-                :component="field.label"
-                :path="getPath(field.key)" />
+                :component="((field.slots?.label ?? field.label) as any )"
+                v-bind="{ path: getPath(field.key) }" />
             </template>
           </NFormItem>
         </ContainerFragment>
