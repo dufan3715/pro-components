@@ -22,6 +22,7 @@ import {
   UPDATE_FORM_DATA,
   FORM_ITEM_SLOT_KEYS,
 } from '../../constants';
+import { useInitProps } from '../../hooks';
 
 type Props = {
   component: Field['component'];
@@ -44,6 +45,7 @@ const formData = inject(FORM_DATA);
 const updateFormData = inject(UPDATE_FORM_DATA);
 const updateRefs = inject(UPDATE_REFS);
 const command = inject(COMMAND);
+const { getInitProps } = useInitProps();
 
 const value = computed({
   get() {
@@ -85,78 +87,23 @@ const rewriteMethod = (methodName: CommandTrigger) => {
 };
 
 const mergedAttrs = computed(() => {
-  const { componentStyle, type } = attrs as any;
-  const overrides = { allowClear: true, style: { minWidth: '120px' } };
-  switch (componentType.value) {
-    case undefined:
-      Object.assign(overrides, attrs, rewriteMethod('onUpdateValue'));
-      break;
+  const compType = componentType.value;
+  const initProps = getInitProps({
+    component: compType as any,
+    type: attrs.type,
+  });
+  const methods = { ...rewriteMethod('onUpdateValue') };
+  switch (compType) {
     case 'input':
-      Object.assign(overrides, {
-        maxlength: 100,
-        ...(type === 'textarea'
-          ? {
-              maxlength: 200,
-              autosize: { minRows: 3, maxRows: 6 },
-              showCount: true,
-            }
-          : {}),
-        ...attrs,
-        ...rewriteMethod('onBlur'),
-        ...rewriteMethod('onFocus'),
-        ...rewriteMethod('onUpdateValue'),
-      });
+      Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
       break;
     case 'input-number':
-      Object.assign(overrides, {
-        max: 10 ** 15 - 0.01,
-        min: -(10 ** 15 + 0.01),
-        showButton: false,
-        style: { width: '100%', ...componentStyle },
-        ...attrs,
-        ...rewriteMethod('onBlur'),
-        ...rewriteMethod('onFocus'),
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'select':
-      Object.assign(overrides, {
-        ...attrs,
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'cascader':
-      Object.assign(overrides, {
-        ...attrs,
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'date-picker':
-      Object.assign(overrides, {
-        format: 'yyyy-MM-dd',
-        valueFormat: 'yyyy-MM-dd',
-        ...(type && ['datetimerange', 'daterange'].includes(type)
-          ? { defaultTime: ['00:00:00', '23:59:59'] }
-          : {}),
-        style: { width: '100%', ...componentStyle },
-        ...attrs,
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'time-picker':
-      Object.assign(overrides, {
-        style: { width: '100%', ...componentStyle },
-        ...attrs,
-        ...rewriteMethod('onUpdateValue'),
-      });
-      break;
-    case 'radio-group':
-      Object.assign(overrides, attrs, { ...rewriteMethod('onUpdateValue') });
+      Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
       break;
     default:
       break;
   }
-  return overrides;
+  return { ...initProps, ...attrs, ...methods };
 });
 
 const is = computed(() => {
