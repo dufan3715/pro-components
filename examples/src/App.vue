@@ -4,7 +4,9 @@ import {
   useForm,
   ProComponentProvider,
   type ComponentVars,
-} from '@qin-ui/naive-ui-pro/es';
+  type ProFormInstance,
+} from '@qin-ui/antd-vue-pro';
+import { onMounted, ref } from 'vue';
 
 const form = useForm({}, [
   { label: '用户名', key: 'username', component: 'input' },
@@ -15,17 +17,23 @@ const form = useForm({}, [
 const componentVars: ComponentVars = {
   proFormField: {
     input: { maxlength: 100 },
-    'input.textarea': { maxlength: 1000 },
+    textarea: { maxlength: 1000 },
     'input-number': { max: 9 },
   },
 };
+
+const proFormRef = ref<ProFormInstance | null>(null);
+
+onMounted(() => {
+  proFormRef.value?.clearValidate();
+});
 </script>
 
 <template>
   <h1>hello world</h1>
 
   <ProComponentProvider :component-vars="componentVars">
-    <ProForm :form="form" />
+    <ProForm ref="proFormRef" :form="form" />
   </ProComponentProvider>
 
   <pre>{{ form.formData }}</pre>

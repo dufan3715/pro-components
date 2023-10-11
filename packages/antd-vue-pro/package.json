@@ -1,0 +1,36 @@
+{
+  "name": "@qin-ui/antd-vue-pro",
+  "version": "1.0.0",
+  "description": "二次封装antd vue组件",
+  "type": "module",
+  "main": "",
+  "module": "es/index.js",
+  "types": "es/index.d.ts",
+  "files": [
+    "es"
+  ],
+  "homepage": "https://github.com/dufan3715/pro-components.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dufan3715/pro-components.git"
+  },
+  "scripts": {
+    "build": "vue-tsc && vite build"
+  },
+  "keywords": [
+    "vue",
+    "ant-design-vue",
+    "antd-vue-pro",
+    "form components"
+  ],
+  "author": "dufan3715",
+  "license": "MIT",
+  "private": false,
+  "peerDependencies": {
+    "ant-design-vue": "^4.0.3",
+    "vue": "^3.3.4"
+  },
+  "bugs": {
+    "url": "https://github.com/dufan3715/pro-components/issues"
+  }
+}

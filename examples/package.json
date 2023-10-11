@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@qin-ui/antd-vue-pro": "workspace:^",
     "@qin-ui/naive-ui-pro": "workspace:^"
   }
 }
