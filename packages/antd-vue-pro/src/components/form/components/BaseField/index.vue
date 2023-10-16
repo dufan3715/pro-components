@@ -151,6 +151,6 @@ onMounted(() => {
 <style scoped lang="less">
 .field-component {
   width: 100%;
-  min-width: 400px;
+  min-width: 120px;
 }
 </style>

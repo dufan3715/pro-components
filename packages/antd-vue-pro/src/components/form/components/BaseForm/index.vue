@@ -1,8 +1,8 @@
 <!-- eslint-disable no-unused-vars, no-underscore-dangle -->
 <script lang="ts" setup>
 import { Form as AForm, FormProps as AFormProps } from 'ant-design-vue';
-import { computed, provide, shallowReactive } from 'vue';
-import { FormExpose } from 'ant-design-vue/es/form/Form';
+import { ref, computed, provide, shallowReactive, onMounted } from 'vue';
+import { FormExpose, FormInstance } from 'ant-design-vue/es/form/Form';
 import { BaseFormItem } from '..';
 import {
   COMMAND,
@@ -103,6 +103,11 @@ const command = computed(() => {
     : null;
 });
 
+const formInstanceRef = ref<FormInstance | null>(null);
+onMounted(() => {
+  Object.assign(exposed, formInstanceRef.value);
+});
+
 provide(FORM_DATA, _formData);
 provide(UPDATE_FORM_DATA, updateFormData);
 provide(UPDATE_REFS, updateRefs);
@@ -112,7 +117,8 @@ defineExpose<Expose>(exposed);
 </script>
 
 <template>
-  <AForm :model="_formData">
+  <AForm ref="formInstanceRef" :model="_formData">
     <BaseFormItem :fields="_fields" :grid="grid" />
+    <slot />
   </AForm>
 </template>

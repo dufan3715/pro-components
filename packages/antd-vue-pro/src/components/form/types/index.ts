@@ -23,8 +23,8 @@ import type {
   CSSProperties,
   DeepReadonly,
   Ref,
-  defineComponent,
   FunctionalComponent,
+  DefineComponent,
 } from 'vue';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
 
@@ -53,7 +53,7 @@ export type SlotComponentType =
 
 export type ContainerComponent =
   | FunctionalComponent<{ path?: string }>
-  | ReturnType<typeof defineComponent>;
+  | DefineComponent<{ path?: string }, object, any>;
 
 export type Slot = {
   name: string;

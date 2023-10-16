@@ -138,6 +138,7 @@ const withDefaultGridItem = memoize((field: Field) => {
             :ref="(el: any) => setFormItemRef(el, field)"
             :class="field.className"
             :style="field.style"
+            :name="getPath(field.key)"
             :path="getPath(field.key)">
             <template v-if="field.fields">
               <BaseFormItem
