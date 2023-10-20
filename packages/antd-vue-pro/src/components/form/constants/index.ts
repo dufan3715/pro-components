@@ -36,6 +36,7 @@ export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
   ['select', Select],
   ['cascader', Cascader],
   ['date-picker', DatePicker],
+  ['range-picker', DatePicker],
   ['time-picker', TimePicker],
   ['checkbox-group', CheckboxGroup],
   ['radio-group', RadioGroup],

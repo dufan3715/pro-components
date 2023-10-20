@@ -134,14 +134,20 @@ onMounted(() => {
       :style="attrs.componentStyle"
       :path="path"
       class="field-component">
-      <template v-for="(slot, name) in $slots" :key="name" #[name]>
-        <slot :name="name"></slot>
+      <template v-if="COMPONENT_MAP.has(component as any)">
+        <template v-for="(slot, name) in $slots" :key="name">
+          <slot :name="name"></slot>
+        </template>
       </template>
 
-      <template v-for="(slot, name) in attrs.slots" :key="name" #[name]>
+      <template
+        v-for="(slot, name) in attrs.slots"
+        :key="name"
+        #[name]="scoped">
         <SlotComponent
           v-if="!FORM_ITEM_SLOT_KEYS.includes(name)"
-          v-bind="{ path }"
+          :path="path"
+          v-bind="scoped"
           :component="slot" />
       </template>
     </component>
