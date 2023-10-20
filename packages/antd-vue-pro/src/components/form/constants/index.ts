@@ -15,6 +15,7 @@ import {
   TimePicker,
   Transfer,
   TreeSelect,
+  RangePicker,
 } from 'ant-design-vue';
 import type {
   BaseComponentStringName,
@@ -36,7 +37,7 @@ export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
   ['select', Select],
   ['cascader', Cascader],
   ['date-picker', DatePicker],
-  ['range-picker', DatePicker],
+  ['range-picker', RangePicker],
   ['time-picker', TimePicker],
   ['checkbox-group', CheckboxGroup],
   ['radio-group', RadioGroup],

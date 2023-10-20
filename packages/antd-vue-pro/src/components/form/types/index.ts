@@ -26,6 +26,7 @@ import type {
   FunctionalComponent,
   DefineComponent,
 } from 'vue';
+import { type RangePickerProps } from 'ant-design-vue/es/date-picker';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
 
 export type FormData = Record<string, any>;
@@ -114,6 +115,8 @@ type CascaderSlots = FieldSlot<'clearIcon' | 'expandIcon' | 'maxTagPlaceholder' 
 // prettier-ignore
 type DatePickerSlots = FieldSlot<'dateRender' | 'renderExtraFooter' | 'separator' | 'monthCellRender'>
 // prettier-ignore
+type RangePickerSlots = FieldSlot<'dateRender' | 'renderExtraFooter' | 'separator'>
+// prettier-ignore
 type TimePickerSlots = FieldSlot<'clearIcon' | 'renderExtraFooter' | 'suffixIcon'>
 // prettier-ignore
 type SwitchSlots = FieldSlot<'checkedChildren' | 'unCheckedChildren'>
@@ -144,7 +147,7 @@ export type FieldType = {
   /** 日期选择器 */
   'date-picker': { component: 'date-picker', slots?: DatePickerSlots } & DatePickerProps;
   /** 日期选择器-范围 */
-  'range-picker': { component: 'range-picker', slots?: DatePickerSlots } & DatePickerProps;
+  'range-picker': { component: 'range-picker', slots?: RangePickerSlots } & RangePickerProps;
   /** 时间选择器 */
   'time-picker': { component: 'time-picker', slots?: TimePickerSlots } & TimePickerProps;
   /** 复选框组 */
