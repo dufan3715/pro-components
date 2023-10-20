@@ -1,21 +1,20 @@
 <script lang="ts" setup>
-import { defineComponent } from 'vue';
-import type { RenderComponentType } from '../../types';
+import type { ContainerComponent } from '../../types';
 
 type Props = {
-  component?: RenderComponentType | ReturnType<typeof defineComponent>;
-  path?: string;
+  component?: ContainerComponent | any;
 };
 
 defineProps<Props>();
 
 defineOptions({
   name: 'ContainerFragment',
+  inheritAttrs: false,
 });
 </script>
 
 <template>
-  <component :is="component" v-if="component" :path="path">
+  <component :is="component" v-if="component" v-bind="$attrs">
     <slot />
   </component>
   <slot v-else />

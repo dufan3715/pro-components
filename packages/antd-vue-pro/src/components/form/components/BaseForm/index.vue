@@ -26,7 +26,7 @@ interface FormProps extends AFormProps {
   scrollToFirstError?: boolean | Record<string, any>;
 }
 
-interface Props extends FormProps {
+interface Props extends /* @vue-ignore */ FormProps {
   form?: Form;
   formData?: FormData;
   fields?: Fields;
