@@ -18,8 +18,8 @@ import type {
   TextAreaProps,
   Select,
 } from 'ant-design-vue';
-import { VNode } from 'vue';
 import type {
+  VNode,
   CSSProperties,
   DeepReadonly,
   Ref,
@@ -74,7 +74,9 @@ interface Common {
   /** 中文名称 */
   label?: SlotComponentType;
   /** 插槽，可包含formItem插槽和component插槽 */
-  slots?: Record<(typeof FORM_ITEM_SLOT_KEYS)[number], SlotComponentType>;
+  slots?: Partial<
+    Record<(typeof FORM_ITEM_SLOT_KEYS)[number], SlotComponentType>
+  >;
   /** 网格布局属性 */
   grid?: Grid;
   /** 子字段 */
@@ -98,7 +100,7 @@ interface Common {
 }
 
 /* 插槽类型 */
-type FieldSlot<T extends string> = Record<'label' | T, SlotComponentType>;
+type FieldSlot<T extends string> = Partial<Record<T, SlotComponentType>>;
 // prettier-ignore
 type InputSlots = FieldSlot<'addonAfter' | 'addonBefore' | 'clearIcon' | 'prefix' | 'suffix'>
 // prettier-ignore

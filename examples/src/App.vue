@@ -36,6 +36,13 @@ const CodeContainer: Field['componentContainer'] = (p, ctx) => {
 
 const initFields: Fields = [
   {
+    label: '登记所在地（省/市/县、区）',
+    key: '登记所在地（省/市/县、区）',
+    component: 'cascader',
+    slots: {},
+    options: [],
+  },
+  {
     label: '用户名',
     key: 'username',
     component: 'input',

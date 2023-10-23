@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "二次封装antd vue组件",
   "type": "module",
   "main": "",
@@ -27,7 +27,7 @@
   "license": "MIT",
   "private": false,
   "peerDependencies": {
-    "ant-design-vue": "^4.0.3",
+    "ant-design-vue": "^4.0.6",
     "vue": "^3.3.4"
   },
   "bugs": {
