@@ -159,7 +159,7 @@ const withDefaultGridItem = memoize((field: Field) => {
             <template v-for="(slot, name) in field.slots" :key="name" #[name]>
               <SlotComponent
                 v-if="FORM_ITEM_SLOT_KEYS.includes(name)"
-                v-bind="{ path }"
+                v-bind="{ path: getPath(field.key) }"
                 :component="slot" />
             </template>
           </FormItem>

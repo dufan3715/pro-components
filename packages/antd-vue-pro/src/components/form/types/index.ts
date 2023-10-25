@@ -49,9 +49,14 @@ export type RenderComponentType =
   | FunctionalComponent<RenderProps>
   | DefineComponent<RenderProps>;
 
-export type SlotComponentType = string | VNode | FunctionalComponent;
+export type SlotComponentType =
+  | string
+  | VNode
+  | FunctionalComponent<Pick<RenderProps, 'path'>>;
 
-export type ContainerComponent = FunctionalComponent | DefineComponent;
+export type ContainerComponent =
+  | FunctionalComponent<Pick<RenderProps, 'path'>>
+  | DefineComponent<Pick<RenderProps, 'path'>>;
 
 export type Slot = {
   name: string;
