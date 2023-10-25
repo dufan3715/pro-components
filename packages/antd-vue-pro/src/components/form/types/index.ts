@@ -45,7 +45,9 @@ type RenderProps = {
  * @description 自定义组件
  * @example (renderProps, ctx) => h('div', ctx.attrs)
  */
-export type RenderComponentType = FunctionalComponent<RenderProps>;
+export type RenderComponentType =
+  | FunctionalComponent<RenderProps>
+  | DefineComponent<RenderProps>;
 
 export type SlotComponentType = string | VNode | FunctionalComponent;
 

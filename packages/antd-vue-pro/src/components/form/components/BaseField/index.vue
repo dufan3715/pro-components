@@ -134,11 +134,6 @@ onMounted(() => {
       :style="attrs.componentStyle"
       :path="path"
       class="field-component">
-      <template v-if="!COMPONENT_MAP.has(component as any)" #default>
-        <template v-for="(slot, name) in $slots" :key="name">
-          <slot :name="name"></slot>
-        </template>
-      </template>
       <template
         v-for="(slot, name) in attrs.slots"
         :key="name"
