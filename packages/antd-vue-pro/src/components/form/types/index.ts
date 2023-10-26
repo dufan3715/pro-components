@@ -255,6 +255,8 @@ export type UseFormData = (initFormData: FormData) => {
   getFormData: GetFormData;
   /** 设置指定字段数据路径的值 */
   setFormData: SetFormData;
+  /** 当前正在编辑的字段path */
+  activePath: Ref<string | null>;
 };
 
 export type Form = ReturnType<UseFields> & ReturnType<UseFormData>;
