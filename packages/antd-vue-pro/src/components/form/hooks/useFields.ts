@@ -30,7 +30,7 @@ const generateFieldMap = (
       path = field.key || '';
     }
     const fieldPath = `${preFieldPath || ''}[${index}]`;
-    if (path) {
+    if (path && !fieldMap[path]) {
       fieldMap[path] = { field, fieldPath };
     }
     if (field.fields) {

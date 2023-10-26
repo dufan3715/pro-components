@@ -113,7 +113,7 @@ const PROPS_KEYS = INJECT_COMPONENT_PROPS_KEYS;
 // prettier-ignore
 export const INIT_COMPONENT_PROPS_MAP = new Map([
   [PROPS_KEYS.input, { maxlength: 100, allowClear: true }],
-  [PROPS_KEYS.textarea, { maxlength: 200, autosize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true }],
+  [PROPS_KEYS.textarea, { maxlength: 200, autoSize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true }],
   [PROPS_KEYS['input-password'], { maxlength: 100, allowClear: true }],
   [PROPS_KEYS['input-number'], { max: 10 ** 15 - 1, min: -(10 ** 15 + 1), controls: false, allowClear: true }],
   [PROPS_KEYS.select, { allowClear: true }],
