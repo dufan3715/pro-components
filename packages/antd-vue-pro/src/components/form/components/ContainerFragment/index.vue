@@ -2,7 +2,7 @@
 import type { ContainerComponent } from '../../types';
 
 type Props = {
-  component?: ContainerComponent | any;
+  component?: ContainerComponent;
 };
 
 defineProps<Props>();

@@ -18,45 +18,32 @@ import type {
   TextAreaProps,
   Select,
 } from 'ant-design-vue';
-import type {
-  VNode,
-  CSSProperties,
-  DeepReadonly,
-  Ref,
-  FunctionalComponent,
-  DefineComponent,
-} from 'vue';
+import type { CSSProperties, DeepReadonly, Ref, Component } from 'vue';
 import { type RangePickerProps } from 'ant-design-vue/es/date-picker';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
 
-export type FormData = Record<string, any>;
+export type FormData = { [key: string]: any };
+
 export type Refs = {
   formItemRefs: Record<string, any>;
   fieldRefs: Record<string, any>;
 };
 
-type RenderProps = {
-  path: string;
+type DefaultProps = { path?: string; [key: string]: any };
+
+type VModelProps = {
   value: unknown;
   'onUpdate:value': (val: unknown) => void;
-  [key: string]: any;
 };
 /**
  * @description 自定义组件
- * @example (renderProps, ctx) => h('div', ctx.attrs)
+ * @example (p, ctx) => h('div', ctx.attrs)
  */
-export type RenderComponentType =
-  | FunctionalComponent<RenderProps>
-  | DefineComponent<RenderProps>;
+export type RenderComponentType = Component<VModelProps & DefaultProps>;
 
-export type SlotComponentType =
-  | string
-  | VNode
-  | FunctionalComponent<Pick<RenderProps, 'path'>>;
+export type SlotComponentType = string | Component<DefaultProps>;
 
-export type ContainerComponent =
-  | FunctionalComponent<Pick<RenderProps, 'path'>>
-  | DefineComponent<Pick<RenderProps, 'path'>>;
+export type ContainerComponent = Component<DefaultProps>;
 
 export type Slot = {
   name: string;
@@ -75,9 +62,9 @@ export type Grid = boolean | GridProps;
 /**
  * @type {Object} Common - 公共字段类型
  */
-interface Common {
+interface Common<D extends FormData = FormData> {
   /** 标识key */
-  key?: string;
+  key?: keyof D & string;
   /** 中文名称 */
   label?: SlotComponentType;
   /** 插槽，可包含formItem插槽和component插槽 */
@@ -169,11 +156,12 @@ export type FieldType = {
   /** 自定义组件 */
   'custom': { component?: RenderComponentType } & Record<string, any>;
 };
-export type Field = FieldType[keyof FieldType] &
-  Omit<FormItemProps, 'label'> &
-  GridItemProps &
-  Common;
-export type Fields = Array<Field>;
+export type Field<D extends FormData = FormData> =
+  | FieldType[keyof FieldType] &
+      Omit<FormItemProps, 'label'> &
+      GridItemProps &
+      Common<D>;
+export type Fields<D extends FormData = FormData> = Array<Field<D>>;
 
 export type BaseComponentStringName = Exclude<
   Field['component'],
@@ -187,9 +175,9 @@ export type UpdateRefs = (
   childRef: Record<string, any>,
   type: keyof Refs
 ) => void;
-export type GetFormData = (path: string) => DeepReadonly<any>;
+export type GetFormData = (path?: string) => DeepReadonly<any>;
 export type SetFormData = (
-  path: string,
+  path: string | undefined,
   value: any | ((preValue: DeepReadonly<any>) => any)
 ) => void;
 
@@ -208,16 +196,16 @@ type FieldAttrsType = {
 export type BaseFieldAttrs = FieldAttrsType[keyof FieldAttrsType];
 
 // hooks/useFields
-export type GetField = (path: string) => Field | undefined;
+export type GetField = (path?: string) => Field | undefined;
 export type SetField = (
-  path: string,
+  path: string | undefined,
   field: Field | ((preField: ReturnType<GetField>) => Field)
 ) => void;
-export type DeleteField = (path: string) => void;
-export type GetFieldPath = (path: string) => string | undefined;
-export type AppendField = (path: string, field: Field) => void;
-export type PrependField = (path: string, field: Field) => void;
-export type GetParentField = (path: string) => Field | undefined;
+export type DeleteField = (path?: string) => void;
+export type GetFieldPath = (path?: string) => string | undefined;
+export type AppendField = (path: string | undefined, field: Field) => void;
+export type PrependField = (path: string | undefined, field: Field) => void;
+export type GetParentField = (path?: string) => Field | undefined;
 
 /**
  * @description useFields hook
@@ -248,9 +236,11 @@ export type UseFields = (initFields: Fields) => {
  * @param {array} initFormData - 初始化表单数据
  * @returns {Object}
  */
-export type UseFormData = (initFormData: FormData) => {
+export type UseFormData<D extends FormData = FormData> = (
+  initFormData: Partial<D>
+) => {
   /** 表单数据Ref */
-  formData: Ref<FormData>;
+  formData: Ref<D | FormData>;
   /** 获取指定字段数据路径的值 */
   getFormData: GetFormData;
   /** 设置指定字段数据路径的值 */
@@ -259,12 +249,13 @@ export type UseFormData = (initFormData: FormData) => {
   activePath: Ref<string | null>;
 };
 
-export type Form = ReturnType<UseFields> & ReturnType<UseFormData>;
+export type Form<D extends FormData = FormData> = ReturnType<UseFormData<D>> &
+  ReturnType<UseFields>;
 
-export type UseForm = <T extends FormData>(
-  initFormData?: T,
-  initFields?: Fields
-) => Form;
+export type UseForm<T extends FormData = FormData> = <D extends T = T>(
+  initFormData?: Partial<D>,
+  initFields?: Fields<D>
+) => Form<D>;
 
 // hooks/useCommand
 export type UseCommand = (param: { refs: Refs; form: Form }) => {

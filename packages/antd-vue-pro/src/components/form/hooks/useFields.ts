@@ -34,7 +34,12 @@ const generateFieldMap = (
       fieldMap[path] = { field, fieldPath };
     }
     if (field.fields) {
-      generateFieldMap(field.fields, path, `${fieldPath}.fields`, fieldMap);
+      generateFieldMap(
+        field.fields,
+        path as string,
+        `${fieldPath}.fields`,
+        fieldMap
+      );
     }
   });
   return fieldMap;

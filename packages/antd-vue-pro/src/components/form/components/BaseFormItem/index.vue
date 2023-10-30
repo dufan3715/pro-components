@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { memoize, omit, pick } from 'lodash-es';
+import { memoize, omit, pick, toPath } from 'lodash-es';
 import {
   type ColProps as GridItemProps,
   type RowProps as GridProps,
@@ -138,7 +138,7 @@ const withDefaultGridItem = memoize((field: Field) => {
             :ref="(el: any) => setFormItemRef(el, field)"
             :class="field.className"
             :style="field.style"
-            :name="getPath(field.key)"
+            :name="path ? toPath(getPath(field.key)) : getPath(field.key)"
             :path="getPath(field.key)">
             <template v-if="field.fields">
               <BaseFormItem

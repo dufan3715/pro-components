@@ -1,14 +1,15 @@
 /* eslint-disable no-unused-vars, no-param-reassign */
 import { ref } from 'vue';
 import { get, set } from 'lodash-es';
-import type { FormData, GetFormData, SetFormData, UseFormData } from '../types';
+import type { GetFormData, SetFormData, UseFormData } from '../types';
 
-const useFormData: UseFormData = (initFormData: FormData) => {
+const useFormData: UseFormData = initFormData => {
   const formData = ref(initFormData);
 
   const activePath = ref<string | null>(null);
 
   const getFormData: GetFormData = path => {
+    if (!path) return undefined;
     return get(formData.value, path);
   };
 
