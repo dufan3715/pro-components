@@ -20,6 +20,7 @@ import {
 import type {
   BaseComponentStringName,
   RuleType,
+  SetActivePath,
   UpdateFormData,
   UpdateRefs,
   UseCommand,
@@ -58,6 +59,9 @@ export const UPDATE_REFS = Symbol('updateRefs') as InjectionKey<UpdateRefs>;
 export const COMMAND = Symbol('command') as InjectionKey<
   Ref<ReturnType<UseCommand> | null>
 >;
+export const UPDATE_ACTIVE_PATH = Symbol(
+  'setActivePath'
+) as InjectionKey<SetActivePath>;
 
 // enum
 export const RULE_TYPE_MAP = new Map<RuleType, string>([

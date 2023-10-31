@@ -6,7 +6,11 @@ import type { GetFormData, SetFormData, UseFormData } from '../types';
 const useFormData: UseFormData = initFormData => {
   const formData = ref(initFormData);
 
-  const activePath = ref<string | null>(null);
+  const activePath = ref<string>();
+
+  const setActivePath = (path?: string) => {
+    activePath.value = path;
+  };
 
   const getFormData: GetFormData = path => {
     if (!path) return undefined;
@@ -16,14 +20,12 @@ const useFormData: UseFormData = initFormData => {
   const setFormData: SetFormData = (path, value) => {
     let newValue = value;
     if (path) {
-      activePath.value = path;
       if (typeof value === 'function') {
         const preValue = getFormData(path);
         newValue = value(preValue);
       }
       set(formData.value, path, newValue);
     } else {
-      activePath.value = null;
       if (typeof value === 'function') {
         const preValue = formData.value;
         newValue = value(preValue);
@@ -32,7 +34,7 @@ const useFormData: UseFormData = initFormData => {
     }
   };
 
-  return { formData, getFormData, setFormData, activePath };
+  return { formData, getFormData, setFormData, activePath, setActivePath };
 };
 
 export default useFormData;

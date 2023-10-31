@@ -32,8 +32,8 @@ export type Refs = {
 type DefaultProps = { path?: string; [key: string]: any };
 
 type VModelProps = {
-  value: unknown;
-  'onUpdate:value': (val: unknown) => void;
+  value?: unknown;
+  'onUpdate:value'?: (val: unknown) => void;
 };
 /**
  * @description 自定义组件
@@ -180,6 +180,7 @@ export type SetFormData = (
   path: string | undefined,
   value: any | ((preValue: DeepReadonly<any>) => any)
 ) => void;
+export type SetActivePath = (path: string | undefined) => void;
 
 // components/Field
 type FieldAttrsType = {
@@ -246,7 +247,9 @@ export type UseFormData<D extends FormData = FormData> = (
   /** 设置指定字段数据路径的值 */
   setFormData: SetFormData;
   /** 当前正在编辑的字段path */
-  activePath: Ref<string | null>;
+  activePath: Ref<string | undefined>;
+  /** 设置当前正在编辑的字段path */
+  setActivePath: SetActivePath;
 };
 
 export type Form<D extends FormData = FormData> = ReturnType<UseFormData<D>> &

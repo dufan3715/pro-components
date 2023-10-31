@@ -9,6 +9,7 @@ import {
   UPDATE_FORM_DATA,
   UPDATE_REFS,
   FORM_DATA,
+  UPDATE_ACTIVE_PATH,
 } from '../../constants';
 import { useCommand } from '../../hooks';
 import type {
@@ -19,6 +20,7 @@ import type {
   Fields,
   Grid,
   Form,
+  SetActivePath,
 } from '../../types';
 
 // ?? 打包时dts插件抛异常 https://github.com/microsoft/TypeScript/issues/47663
@@ -32,6 +34,7 @@ interface Props extends /* @vue-ignore */ FormProps {
   fields?: Fields;
   grid?: Grid;
   autoCommandDisabled?: boolean;
+  activePath?: string;
 }
 
 interface Expose extends FormExpose {
@@ -48,10 +51,12 @@ const props = withDefaults(defineProps<Props>(), {
   fields: () => [],
   grid: false,
   autoCommandDisabled: false,
+  activePath: undefined,
 });
 
 type Emits = {
   'update:formData': [val: FormData];
+  'update:activePath': [val: string | undefined];
 };
 const emit = defineEmits<Emits>();
 
@@ -64,6 +69,14 @@ const updateRefs: UpdateRefs = (path, childRef, type) => {
   refs[type][path] = childRef;
 };
 const exposed: Expose = shallowReactive({ refs } as any);
+
+const updateActivePath: SetActivePath = (path?: string) => {
+  if (props.form) {
+    props.form.setActivePath(path);
+  } else {
+    emit('update:activePath', path);
+  }
+};
 
 const _formData = computed(() =>
   props.form ? props.form.formData.value : props.formData
@@ -88,6 +101,7 @@ const updateFormData: UpdateFormData = (value, path) => {
     );
     emit('update:formData', newFormData);
   }
+  updateActivePath(path);
 };
 
 const _fields = computed(() =>
@@ -112,6 +126,7 @@ provide(FORM_DATA, _formData);
 provide(UPDATE_FORM_DATA, updateFormData);
 provide(UPDATE_REFS, updateRefs);
 provide(COMMAND, command);
+provide(UPDATE_ACTIVE_PATH, updateActivePath);
 
 defineExpose<Expose>(exposed);
 </script>

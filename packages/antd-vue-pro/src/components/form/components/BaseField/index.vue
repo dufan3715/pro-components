@@ -21,6 +21,7 @@ import {
   FORM_DATA,
   UPDATE_FORM_DATA,
   FORM_ITEM_SLOT_KEYS,
+  UPDATE_ACTIVE_PATH,
 } from '../../constants';
 import { useInitProps } from '../../hooks';
 
@@ -45,6 +46,7 @@ const formData = inject(FORM_DATA);
 const updateFormData = inject(UPDATE_FORM_DATA);
 const updateRefs = inject(UPDATE_REFS);
 const command = inject(COMMAND);
+const updateActivePath = inject(UPDATE_ACTIVE_PATH);
 const { getInitProps } = useInitProps();
 
 const value = computed({
@@ -86,6 +88,13 @@ const rewriteMethod = (methodName: CommandTrigger) => {
   return {};
 };
 
+const modelName = computed(() => {
+  if (componentType.value === 'switch') {
+    return 'checked';
+  }
+  return 'value';
+});
+
 const mergedAttrs = computed(() => {
   const compType = componentType.value;
   const initProps = getInitProps({
@@ -103,7 +112,7 @@ const mergedAttrs = computed(() => {
     default:
       break;
   }
-  return { ...initProps, ...attrs, ...methods };
+  return { ...initProps, ...attrs, ...methods, onFocus: undefined };
 });
 
 const is = computed(() => {
@@ -120,6 +129,11 @@ onMounted(() => {
     command?.value?.run(props.path, 'onInit');
   }
 });
+
+function handleFocus(...args: any) {
+  updateActivePath?.(props.path);
+  (mergedAttrs.value.onFocus as any)?.(...args);
+}
 </script>
 
 <template>
@@ -129,11 +143,12 @@ onMounted(() => {
       :key="forceUpdateKey"
       v-bind="mergedAttrs"
       :ref="setComponentRef"
-      v-model:value="value"
+      v-model:[modelName]="value"
       :class="attrs.componentClassName"
       :style="attrs.componentStyle"
       :path="path"
-      class="field-component">
+      class="field-component"
+      @focus="handleFocus">
       <template
         v-for="(slot, name) in attrs.slots"
         :key="name"
