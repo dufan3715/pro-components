@@ -72,19 +72,19 @@ const exposed: Expose = shallowReactive({ refs } as any);
 
 const updateActivePath: SetActivePath = (path?: string) => {
   if (props.form) {
-    props.form.setActivePath(path);
+    props.form?.setActivePath(path);
   } else {
     emit('update:activePath', path);
   }
 };
 
 const _formData = computed(() =>
-  props.form ? props.form.formData.value : props.formData
+  props.form ? props.form?.formData.value : props.formData
 );
 
 const updateFormData: UpdateFormData = (value, path) => {
   if (props.form) {
-    props.form.setFormData?.(path, value);
+    props.form?.setFormData(path, value);
   } else {
     const keys = path.split('.');
     const newFormData = keys.reduce(
@@ -105,7 +105,7 @@ const updateFormData: UpdateFormData = (value, path) => {
 };
 
 const _fields = computed(() =>
-  props.form ? props.form.fields.value : props.fields
+  props.form ? props.form?.fields.value : props.fields
 );
 
 const command = computed(() => {
