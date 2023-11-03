@@ -72,7 +72,7 @@ const exposed: Expose = shallowReactive({ refs } as any);
 
 const updateActivePath: SetActivePath = (path?: string) => {
   if (props.form) {
-    props.form?.setActivePath(path);
+    props.form?.setActivePath?.(path);
   } else {
     emit('update:activePath', path);
   }
