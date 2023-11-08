@@ -14,7 +14,6 @@ import {
   unref,
   useSlots,
   useAttrs,
-  onBeforeUnmount,
   inject,
 } from 'vue';
 import { ContainerFragment, type ContainerComponent } from '../../form';
@@ -31,7 +30,7 @@ import type {
   Columns,
   ParamCache,
 } from '../types';
-import { INJECT_COMPONENT_PROPS_KEYS } from '../constants';
+import { PRO_TABLE_INJECT_COMPONENT_PROPS_KEYS } from '../constants';
 
 defineOptions({
   name: 'ProTable',
@@ -74,6 +73,28 @@ const props = withDefaults(defineProps<Props>(), {
   paramCache: undefined,
 });
 
+const injectProps = inject<Record<string, any>>(
+  PRO_TABLE_INJECT_COMPONENT_PROPS_KEYS.table
+);
+
+const cache = props.paramCache ?? injectProps?.paramCache;
+
+const size = ref(unref(props.size));
+
+const attrs: TableProps = useAttrs();
+// prettier-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const { table = {} } = props
+const {
+  columns,
+  dataSource,
+  pagination,
+  setPagination,
+  checkedColumns,
+  searchParam,
+  setSearchParam,
+} = table as ReturnType<UseTable<D>>;
+
 type Emits = {
   search: [
     param: TableType['searchParam'] &
@@ -81,6 +102,7 @@ type Emits = {
   ];
 };
 const emit = defineEmits<Emits>();
+
 const search = () => {
   const { current, pageSize } = props.table?.pagination.value || {};
   emit('search', {
@@ -88,13 +110,10 @@ const search = () => {
     current,
     pageSize,
   });
-};
-
-const searchPage1st = () => {
-  if (props.table) {
-    props.table?.setPagination({ ...props.table.pagination.value, current: 1 });
-    search();
-  }
+  cache?.set({
+    pagination: unref(pagination),
+    searchParam: unref(searchParam),
+  });
 };
 
 const reset = () => {
@@ -117,24 +136,6 @@ const form = {
   setField: props.table?.setSearchField,
 };
 
-const size = ref(unref(props.size));
-
-const attrs: TableProps = useAttrs();
-// prettier-ignore
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { table = {} } = props
-const {
-  columns,
-  dataSource,
-  pagination,
-  setPagination,
-  checkedColumns,
-  searchParam,
-  setSearchParam,
-} = table as ReturnType<UseTable<D>>;
-
-const cache = props.paramCache ?? inject(INJECT_COMPONENT_PROPS_KEYS.table);
-
 if (cache) {
   setPagination({
     ...unref(pagination),
@@ -144,14 +145,14 @@ if (cache) {
     ...unref(searchParam),
     ...unref(cache.get()?.searchParam ?? {}),
   });
-  onBeforeUnmount(() => {
-    cache?.set({
-      ...(cache?.get() || {}),
-      pagination: unref(pagination),
-      searchParam: unref(searchParam),
-    });
-  });
 }
+
+const searchPage1st = () => {
+  if (props.table) {
+    props.table?.setPagination({ ...props.table.pagination.value, current: 1 });
+    search();
+  }
+};
 
 const onPaginationChange = () => {
   nextTick(() => search());

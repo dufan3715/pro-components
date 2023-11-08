@@ -14,7 +14,15 @@ const componentsName = fs
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), dts({ rollupTypes: true })],
+  plugins: [
+    vue({
+      script: {
+        defineModel: true,
+        propsDestructure: true,
+      },
+    }),
+    dts({ rollupTypes: true }),
+  ],
   build: {
     target: 'modules',
     outDir: 'es',
