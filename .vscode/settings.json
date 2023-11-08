@@ -57,6 +57,7 @@
     "lintstagedrc",
     "maxlength",
     "quarterrange",
+    "unref",
     "vnode",
     "yearrange"
   ]

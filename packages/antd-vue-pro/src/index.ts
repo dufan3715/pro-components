@@ -1,8 +1,10 @@
 import type { App, Plugin } from 'vue';
-import BaseForm from './components/form';
+import Form from './components/form';
+import Table from './components/table';
 import ComponentProvider from './components/component-provider';
 
 export * from './components/form';
+export * from './components/table';
 export * from './components/component-provider';
 
 type SFCWithInstall<T> = T & Plugin;
@@ -14,12 +16,13 @@ const withInstall = <T>(comp: T) => {
   return comp as SFCWithInstall<T>;
 };
 
-const ProForm = withInstall(BaseForm);
+const ProForm = withInstall(Form);
+const ProTable = withInstall(Table);
 const ProComponentProvider = withInstall(ComponentProvider);
 
-export { ProForm, ProComponentProvider };
+export { ProForm, ProTable, ProComponentProvider };
 
-const components = [ProForm, ProComponentProvider];
+const components = [ProForm, ProTable, ProComponentProvider];
 
 export default {
   install(app: import('vue').App) {

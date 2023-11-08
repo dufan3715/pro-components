@@ -122,7 +122,7 @@ export const INIT_COMPONENT_PROPS_MAP = new Map([
   [PROPS_KEYS['input-password'], { maxlength: 100, allowClear: true, placeholder: '请输入' }],
   [PROPS_KEYS['input-number'], { max: 10 ** 15 - 1, min: -(10 ** 15 + 1), controls: false, allowClear: true, placeholder: '请输入' }],
   [PROPS_KEYS.select, { allowClear: true, placeholder: '请选择' }],
-  [PROPS_KEYS.cascader, { allowClear: true }],
+  [PROPS_KEYS.cascader, { allowClear: true, placeholder: '请选择' }],
   [PROPS_KEYS['date-picker'], { allowClear: true }],
   [PROPS_KEYS['date-picker.week'], { allowClear: true }],
   [PROPS_KEYS['date-picker.month'], { allowClear: true }],

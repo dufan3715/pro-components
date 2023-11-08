@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "二次封装antd vue组件",
   "type": "module",
   "main": "",
@@ -32,5 +32,11 @@
   },
   "bugs": {
     "url": "https://github.com/dufan3715/pro-components/issues"
+  },
+  "devDependencies": {
+    "vue-component-type-helpers": "^1.8.22"
+  },
+  "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1"
   }
 }
