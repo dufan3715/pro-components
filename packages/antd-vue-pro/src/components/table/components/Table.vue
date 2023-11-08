@@ -110,10 +110,11 @@ const search = () => {
     current,
     pageSize,
   });
-  cache?.set({
+  cache?.set((pre = {}) => ({
+    ...pre,
     pagination: unref(pagination),
     searchParam: unref(searchParam),
-  });
+  }));
 };
 
 const reset = () => {
