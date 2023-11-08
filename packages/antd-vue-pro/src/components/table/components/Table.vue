@@ -1,3 +1,4 @@
+<!-- eslint-disable no-unused-vars -->
 <script lang="ts" setup generic="D extends Record<string, any>">
 import {
   PaginationProps,
@@ -14,6 +15,7 @@ import {
   useSlots,
   useAttrs,
   onBeforeUnmount,
+  inject,
 } from 'vue';
 import { ContainerFragment, type ContainerComponent } from '../../form';
 import {
@@ -23,7 +25,13 @@ import {
   DefaultControlContainer,
   DefaultTableContainer,
 } from '.';
-import type { Table as TableType, UseTable, Columns } from '../types';
+import type {
+  Table as TableType,
+  UseTable,
+  Columns,
+  ParamCache,
+} from '../types';
+import { INJECT_COMPONENT_PROPS_KEYS } from '../constants';
 
 defineOptions({
   name: 'ProTable',
@@ -52,8 +60,7 @@ interface Props extends /* @vue-ignore */ TableProps {
   // 表格区域包裹容器
   tableContainer?: ContainerComponent | any;
   // 分页查询参数缓存对象
-  // eslint-disable-next-line no-unused-vars
-  pageCache?: { get(): any; set(val: Record<string, any>): void };
+  paramCache?: ParamCache;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -64,7 +71,7 @@ const props = withDefaults(defineProps<Props>(), {
   searchContainer: DefaultSearchContainer,
   controlContainer: DefaultControlContainer,
   tableContainer: DefaultTableContainer,
-  pageCache: undefined,
+  paramCache: undefined,
 });
 
 type Emits = {
@@ -126,17 +133,20 @@ const {
   setSearchParam,
 } = table as ReturnType<UseTable<D>>;
 
-if (props.pageCache) {
+const cache = props.paramCache ?? inject(INJECT_COMPONENT_PROPS_KEYS.table);
+
+if (cache) {
   setPagination({
     ...unref(pagination),
-    ...unref(props.pageCache.get()?.pagination ?? {}),
+    ...unref(cache.get()?.pagination ?? {}),
   });
   setSearchParam(undefined, {
     ...unref(searchParam),
-    ...unref(props.pageCache.get()?.searchParam ?? {}),
+    ...unref(cache.get()?.searchParam ?? {}),
   });
   onBeforeUnmount(() => {
-    props.pageCache?.set({
+    cache?.set({
+      ...(cache?.get() || {}),
       pagination: unref(pagination),
       searchParam: unref(searchParam),
     });

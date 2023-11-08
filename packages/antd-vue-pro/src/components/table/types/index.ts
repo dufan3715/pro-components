@@ -31,3 +31,8 @@ export type UseTable<T extends Data = Data> = <D extends T = T>(
   setPagination: (val: PaginationProps) => void;
   resetQueryParams: () => void;
 };
+
+export type ParamCache = {
+  get(): any;
+  set(val: Data | ((v: Data) => Data)): void;
+};
