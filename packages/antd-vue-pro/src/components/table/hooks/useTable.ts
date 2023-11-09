@@ -1,5 +1,6 @@
 import { PaginationProps } from 'ant-design-vue';
-import { ref } from 'vue';
+import { ref, unref } from 'vue';
+import { cloneDeep } from 'lodash-es';
 import { useForm } from '../../form/hooks';
 import { UseTable } from '../types';
 
@@ -9,10 +10,13 @@ const useTable = (({
   columns: initColumns = [],
   dataSource: initDataSource = [],
   checkedColumns: initCheckedColumns = undefined,
-  pagination: initPagination = {},
-  searchParam: initSearchParam = getDefaultPagination(),
+  pagination: initPagination = getDefaultPagination(),
+  searchParam: initSearchParam = {},
   searchFields: initSearchFields = [],
 }) => {
+  // eslint-disable-next-line no-underscore-dangle
+  const _initSearchParam = cloneDeep(unref(initSearchParam));
+
   // 表格columns
   const columns = ref(initColumns);
 
@@ -60,7 +64,7 @@ const useTable = (({
   // 重置分页查询参数
   const resetQueryParams = () => {
     setPagination(getDefaultPagination());
-    setSearchParam(undefined, {});
+    setSearchParam(undefined, _initSearchParam);
   };
 
   return {
