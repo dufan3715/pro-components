@@ -115,22 +115,25 @@ export const INJECT_COMPONENT_PROPS_KEYS = {
 
 const PROPS_KEYS = INJECT_COMPONENT_PROPS_KEYS;
 
+const getPopupContainer = (triggerNode: any) =>
+  triggerNode.closest('.ant-form');
+
 // prettier-ignore
 export const INIT_COMPONENT_PROPS_MAP = new Map([
   [PROPS_KEYS.input, { maxlength: 100, allowClear: true, placeholder: '请输入' }],
   [PROPS_KEYS.textarea, { maxlength: 200, autoSize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true, placeholder: '请输入' }],
   [PROPS_KEYS['input-password'], { maxlength: 100, allowClear: true, placeholder: '请输入' }],
   [PROPS_KEYS['input-number'], { max: 10 ** 15 - 1, min: -(10 ** 15 + 1), controls: false, allowClear: true, placeholder: '请输入' }],
-  [PROPS_KEYS.select, { allowClear: true, placeholder: '请选择' }],
-  [PROPS_KEYS.cascader, { allowClear: true, placeholder: '请选择' }],
-  [PROPS_KEYS['date-picker'], { allowClear: true }],
-  [PROPS_KEYS['date-picker.week'], { allowClear: true }],
-  [PROPS_KEYS['date-picker.month'], { allowClear: true }],
-  [PROPS_KEYS['date-picker.year'], { allowClear: true }],
-  [PROPS_KEYS['date-picker.quarter'], { allowClear: true }],
-  [PROPS_KEYS['time-picker'], { allowClear: true }],
-  [PROPS_KEYS['range-picker'], { allowClear: true }],
-  [PROPS_KEYS['checkbox-group'], { allowClear: true }],
+  [PROPS_KEYS.select, { allowClear: true, placeholder: '请选择', getPopupContainer }],
+  [PROPS_KEYS.cascader, { allowClear: true, placeholder: '请选择', getPopupContainer }],
+  [PROPS_KEYS['date-picker'], { allowClear: true, getPopupContainer }],
+  [PROPS_KEYS['date-picker.week'], { allowClear: true, getPopupContainer }],
+  [PROPS_KEYS['date-picker.month'], { allowClear: true, getPopupContainer }],
+  [PROPS_KEYS['date-picker.year'], { allowClear: true, getPopupContainer }],
+  [PROPS_KEYS['date-picker.quarter'], { allowClear: true, getPopupContainer }],
+  [PROPS_KEYS['time-picker'], { allowClear: true, getPopupContainer }],
+  [PROPS_KEYS['range-picker'], { allowClear: true, getPopupContainer }],
+  [PROPS_KEYS['checkbox-group'], { allowClear: true, getPopupContainer }],
   [PROPS_KEYS['radio-group'], {}],
   [PROPS_KEYS.switch, {}],
   [PROPS_KEYS.slider, {}],
