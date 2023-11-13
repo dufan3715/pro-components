@@ -12,6 +12,7 @@ import {
   watch,
 } from 'vue';
 import { get } from 'lodash-es';
+import { useInjectDisabled } from 'ant-design-vue/es/config-provider/DisabledContext';
 import type { Field, BaseFieldAttrs, CommandTrigger } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import {
@@ -95,6 +96,8 @@ const modelName = computed(() => {
   return 'value';
 });
 
+const formDisabled = useInjectDisabled();
+
 const mergedAttrs = computed(() => {
   const compType = componentType.value;
   const initProps = getInitProps({
@@ -112,7 +115,13 @@ const mergedAttrs = computed(() => {
     default:
       break;
   }
-  return { ...initProps, ...attrs, ...methods, onFocus: undefined };
+  return {
+    ...initProps,
+    ...attrs,
+    ...methods,
+    onFocus: undefined,
+    disabled: attrs.disabled ?? formDisabled.value ?? initProps.disabled,
+  };
 });
 
 const is = computed(() => {
