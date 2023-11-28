@@ -10,10 +10,14 @@ import {
 } from 'ant-design-vue';
 import { formItemProps } from 'ant-design-vue/es/form';
 import { rowProps as gridItemProps } from 'ant-design-vue/es/grid/Row';
-import { computed, inject } from 'vue';
+import { computed, inject, provide } from 'vue';
 import type { Field, Fields, Grid } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
-import { UPDATE_REFS, FORM_ITEM_SLOT_KEYS } from '../../constants';
+import {
+  UPDATE_REFS,
+  FORM_ITEM_SLOT_KEYS,
+  PARENT_DISABLED,
+} from '../../constants';
 
 const formItemPropKeys = Object.keys(formItemProps());
 const gridItemPropKeys = Object.keys(gridItemProps());
@@ -35,6 +39,7 @@ type Props = {
   grid?: Grid;
   fields: Fields;
   path?: string;
+  disabled?: boolean;
 };
 
 type ProFormPropKeys = Array<
@@ -44,6 +49,8 @@ type ProFormPropKeys = Array<
 >;
 
 const props = defineProps<Props>();
+
+provide(PARENT_DISABLED, props.disabled);
 
 const updateRefs = inject(UPDATE_REFS);
 
@@ -144,7 +151,8 @@ const withDefaultGridItem = memoize((field: Field) => {
               <BaseFormItem
                 :grid="field.grid ?? grid"
                 :fields="field.fields"
-                :path="getPath(field.key)">
+                :path="getPath(field.key)"
+                :disabled="field.disabled">
               </BaseFormItem>
             </template>
             <template v-else-if="!field.component">

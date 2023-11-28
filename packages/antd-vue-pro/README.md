@@ -2,7 +2,7 @@
 
 - [x] pro-component-provider
 - [x] pro-form
-- [ ] pro-table
+- [x] pro-table
 
 #### 安装
 

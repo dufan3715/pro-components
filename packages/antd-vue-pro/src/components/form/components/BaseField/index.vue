@@ -23,6 +23,7 @@ import {
   UPDATE_FORM_DATA,
   FORM_ITEM_SLOT_KEYS,
   UPDATE_ACTIVE_PATH,
+  PARENT_DISABLED,
 } from '../../constants';
 import { useInitProps } from '../../hooks';
 
@@ -48,6 +49,7 @@ const updateFormData = inject(UPDATE_FORM_DATA);
 const updateRefs = inject(UPDATE_REFS);
 const command = inject(COMMAND);
 const updateActivePath = inject(UPDATE_ACTIVE_PATH);
+const parentDisabled = inject(PARENT_DISABLED);
 const { getInitProps } = useInitProps();
 
 const value = computed({
@@ -120,7 +122,11 @@ const mergedAttrs = computed(() => {
     ...attrs,
     ...methods,
     onFocus: undefined,
-    disabled: attrs.disabled ?? formDisabled.value ?? initProps.disabled,
+    disabled:
+      attrs.disabled ??
+      parentDisabled ??
+      formDisabled.value ??
+      initProps.disabled,
   };
 });
 

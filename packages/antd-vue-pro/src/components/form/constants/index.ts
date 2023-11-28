@@ -62,6 +62,9 @@ export const COMMAND = Symbol('command') as InjectionKey<
 export const UPDATE_ACTIVE_PATH = Symbol(
   'setActivePath'
 ) as InjectionKey<SetActivePath>;
+export const PARENT_DISABLED = Symbol(
+  'parentDisabled'
+) as InjectionKey<boolean>;
 
 // enum
 export const RULE_TYPE_MAP = new Map<RuleType, string>([
