@@ -169,12 +169,12 @@ const mergeTableProps = computed<TableProps>(() => {
       })
     ),
     dataSource: attrs.dataSource ?? dataSource?.value,
-    pagination: {
+    pagination: attrs.pagination ?? {
       showTotal: total => `共 ${total} 条`,
       showSizeChanger: true,
       pageSizeOptions: ['10', '20', '30', '40', '50', '100', '400'],
       showQuickJumper: true,
-      ...(attrs.pagination ?? pagination?.value),
+      ...pagination?.value,
       'onUpdate:current': onPaginationChange,
       'onUpdate:pageSize': onPaginationChange,
     },
