@@ -123,7 +123,10 @@ defineExpose<Expose>(exposed);
 
 <template>
   <AForm ref="formInstanceRef" :model="_formData">
-    <BaseFormItem :fields="_fields" :grid="grid" />
+    <BaseFormItem
+      :fields="_fields"
+      :grid="grid"
+      :disabled="($attrs.disabled as boolean)" />
     <slot />
   </AForm>
 </template>

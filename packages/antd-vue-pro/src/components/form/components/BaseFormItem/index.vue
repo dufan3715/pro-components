@@ -10,14 +10,11 @@ import {
 } from 'ant-design-vue';
 import { formItemProps } from 'ant-design-vue/es/form';
 import { rowProps as gridItemProps } from 'ant-design-vue/es/grid/Row';
-import { computed, inject, provide } from 'vue';
+import { computed, inject, ref } from 'vue';
+import { useProviderDisabled } from 'ant-design-vue/es/config-provider/DisabledContext';
 import type { Field, Fields, Grid } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
-import {
-  UPDATE_REFS,
-  FORM_ITEM_SLOT_KEYS,
-  PARENT_DISABLED,
-} from '../../constants';
+import { UPDATE_REFS, FORM_ITEM_SLOT_KEYS } from '../../constants';
 
 const formItemPropKeys = Object.keys(formItemProps());
 const gridItemPropKeys = Object.keys(gridItemProps());
@@ -48,9 +45,13 @@ type ProFormPropKeys = Array<
   | (typeof customItemPropsKeys)[number]
 >;
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  grid: undefined,
+  path: undefined,
+  disabled: undefined,
+});
 
-provide(PARENT_DISABLED, props.disabled);
+useProviderDisabled(ref(props.disabled));
 
 const updateRefs = inject(UPDATE_REFS);
 
