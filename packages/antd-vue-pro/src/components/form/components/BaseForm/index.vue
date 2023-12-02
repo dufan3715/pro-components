@@ -3,6 +3,7 @@
 import { Form as AForm, FormProps as AFormProps } from 'ant-design-vue';
 import { ref, computed, provide, shallowReactive, onMounted } from 'vue';
 import { FormExpose, FormInstance } from 'ant-design-vue/es/form/Form';
+import { cloneDeep, set } from 'lodash-es';
 import { BaseFormItem } from '..';
 import {
   COMMAND,
@@ -82,23 +83,12 @@ const _formData = computed(() =>
   props.form ? props.form?.formData.value : props.formData
 );
 
-const updateFormData: UpdateFormData = (value, path) => {
+const updateFormData: UpdateFormData = (path, value) => {
   if (props.form) {
     props.form?.setFormData(path, value);
   } else {
-    const keys = path.split('.');
-    const newFormData = keys.reduce(
-      ({ preData, cb }: any, key: string, index: number, arr: Fields) => {
-        if (index === arr.length - 1) {
-          return cb({ ...preData, [key]: value }) as any;
-        }
-        return {
-          preData: preData[key] || {},
-          cb: (data: FormData) => cb({ ...preData, [key]: data }),
-        };
-      },
-      { preData: props.formData, cb: (data: FormData) => data }
-    );
+    const newFormData = cloneDeep(_formData);
+    set(newFormData, path, value);
     emit('update:formData', newFormData);
   }
   updateActivePath(path);

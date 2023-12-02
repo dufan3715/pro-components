@@ -57,7 +57,7 @@ const value = computed({
     return get(formData?.value, props.path);
   },
   set(val) {
-    updateFormData?.(val, props.path);
+    updateFormData?.(props.path, val);
   },
 });
 
