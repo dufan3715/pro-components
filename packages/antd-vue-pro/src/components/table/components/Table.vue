@@ -15,6 +15,7 @@ import {
   useSlots,
   useAttrs,
   inject,
+  onMounted,
 } from 'vue';
 import { ContainerFragment, type ContainerComponent } from '../../form';
 import {
@@ -60,6 +61,8 @@ interface Props extends /* @vue-ignore */ TableProps {
   tableContainer?: ContainerComponent | any;
   // 分页查询参数缓存对象
   paramCache?: ParamCache;
+  // onMounted 时立即触发一次search事件
+  immediateSearch?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -71,6 +74,7 @@ const props = withDefaults(defineProps<Props>(), {
   controlContainer: DefaultControlContainer,
   tableContainer: DefaultTableContainer,
   paramCache: undefined,
+  immediateSearch: false,
 });
 
 const injectProps = inject<Record<string, any>>(
@@ -208,6 +212,12 @@ const visibleColumns = computed(() => {
     list = [indexColumn, ...list];
   }
   return list;
+});
+
+onMounted(() => {
+  if (props.immediateSearch) {
+    search();
+  }
 });
 </script>
 
