@@ -62,15 +62,17 @@ const useFields: UseFields = initFields => {
     return fieldMap.value[path]?.fieldPath;
   };
 
-  const setField: SetField = (path, field) => {
+  const setField: SetField = (path, field, updateType = 'merge') => {
     const fieldPath = getFieldPath(path);
     if (!fieldPath) return;
     let value = field;
+    const preField = getField(path);
     if (typeof field === 'function') {
-      const preField = getField(path);
       value = field(preField);
     }
-    set(fields.value, fieldPath, value);
+    const newField =
+      updateType === 'rewrite' ? value : { ...preField, ...value };
+    set(fields.value, fieldPath, newField);
   };
 
   function findFieldIndex(path: string): number {

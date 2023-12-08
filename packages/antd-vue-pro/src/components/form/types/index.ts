@@ -200,7 +200,8 @@ export type BaseFieldAttrs = FieldAttrsType[keyof FieldAttrsType];
 export type GetField = (path?: string) => Field | undefined;
 export type SetField = (
   path: string | undefined,
-  field: Field | ((preField: ReturnType<GetField>) => Field)
+  field: Field | ((preField: ReturnType<GetField>) => Field),
+  updateType?: 'rewrite' | 'merge'
 ) => void;
 export type DeleteField = (path?: string) => void;
 export type GetFieldPath = (path?: string) => string | undefined;
