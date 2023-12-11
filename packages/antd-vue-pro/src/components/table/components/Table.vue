@@ -95,7 +95,7 @@ const {
   dataSource,
   pagination,
   setPagination,
-  checkedColumns,
+  showColumnKeys,
   searchParam,
   setSearchParam,
 } = table as ReturnType<UseTable<D>>;
@@ -206,7 +206,7 @@ const visibleColumns = computed(() => {
   } else {
     list =
       mergeTableProps.value.columns?.filter(
-        item => item.key && checkedColumns.value.includes(item.key as any)
+        item => item.key && showColumnKeys.value.includes(item.key as any)
       ) || [];
   }
   if (props.addIndexColumn) {

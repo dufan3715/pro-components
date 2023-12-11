@@ -14,7 +14,7 @@ export type Columns<D extends Data = Data> = Array<Column<D>>;
 export type Table<D extends Data = Data> = {
   dataSource: Array<D>;
   columns: Columns<D>;
-  checkedColumns: Array<keyof D & string>;
+  showColumnKeys: Array<keyof D & string>;
   searchParam: Partial<D & Record<string, any>>;
   searchFields: Fields<Partial<D>>;
   pagination: PaginationProps;
@@ -27,7 +27,7 @@ export type UseTable<T extends Data = Data> = <D extends T = T>(
 } & {
   setSearchParam: SetFormData;
   setSearchField: SetField;
-  setCheckedColumns: (val: Array<string>) => void;
+  setShowColumnKeys: (val: Array<string>) => void;
   setPagination: (val: PaginationProps) => void;
   resetQueryParams: () => void;
 };

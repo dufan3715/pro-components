@@ -52,10 +52,10 @@ const checkColumnsVisible = ref(false);
 
 const checkedColumns = computed({
   get() {
-    return props.table?.checkedColumns.value || [];
+    return props.table?.showColumnKeys.value || [];
   },
   set(val) {
-    props.table?.setCheckedColumns(val || []);
+    props.table?.setShowColumnKeys(val || []);
   },
 });
 

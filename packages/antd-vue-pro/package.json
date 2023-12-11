@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "1.0.36",
+  "version": "1.0.37",
   "description": "二次封装antd vue组件",
   "type": "module",
   "main": "",

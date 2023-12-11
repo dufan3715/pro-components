@@ -9,7 +9,7 @@ const getDefaultPagination = () => ({ current: 1, pageSize: 10, total: 0 });
 const useTable = (({
   columns: initColumns = [],
   dataSource: initDataSource = [],
-  checkedColumns: initCheckedColumns = undefined,
+  showColumnKeys: initShowColumnKeys = undefined,
   pagination: initPagination = getDefaultPagination(),
   searchParam: initSearchParam = {},
   searchFields: initSearchFields = [],
@@ -24,22 +24,22 @@ const useTable = (({
   const dataSource = ref(initDataSource);
 
   // 选中的列
-  const checkedColumns = ref(
-    initCheckedColumns ??
+  const showColumnKeys = ref(
+    initShowColumnKeys ??
       columns.value.map(
         (item: any, index) => item.key ?? item.dataIndex?.toString() ?? index
       )
   );
 
   watch(columns, val => {
-    checkedColumns.value = val.map(
+    showColumnKeys.value = val.map(
       (item: any, index) => item.key ?? item.dataIndex?.toString() ?? index
     );
   });
 
   // 修改选中的列
-  const setCheckedColumns = (val: Array<string>) => {
-    checkedColumns.value = val;
+  const setShowColumnKeys = (val: Array<string>) => {
+    showColumnKeys.value = val;
   };
 
   // 分页参数
@@ -77,12 +77,12 @@ const useTable = (({
     columns,
     dataSource,
     pagination,
-    checkedColumns,
+    showColumnKeys,
     searchParam,
     setSearchParam,
     searchFields,
     setSearchField,
-    setCheckedColumns,
+    setShowColumnKeys,
     setPagination,
     resetQueryParams,
   };
