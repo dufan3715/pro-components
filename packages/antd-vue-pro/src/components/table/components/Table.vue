@@ -59,10 +59,8 @@ interface Props extends /* @vue-ignore */ TableProps {
   controlContainer?: ContainerComponent | any;
   // 表格区域包裹容器
   tableContainer?: ContainerComponent | any;
-  // 分页查询参数缓存对象
-  paramCache?: ParamCache;
-  // 禁用参数缓存
-  disabledParamCache?: boolean;
+  // 分页查询参数缓存对象, 传null则禁用参数缓存
+  paramCache?: ParamCache | null;
   // onMounted 时立即触发一次search事件
   immediateSearch?: boolean;
 }
@@ -76,7 +74,6 @@ const props = withDefaults(defineProps<Props>(), {
   controlContainer: DefaultControlContainer,
   tableContainer: DefaultTableContainer,
   paramCache: undefined,
-  disabledParamCache: false,
   immediateSearch: false,
 });
 
@@ -84,9 +81,8 @@ const injectProps = inject<Record<string, any>>(
   PRO_TABLE_INJECT_COMPONENT_PROPS_KEYS.table
 );
 
-const cache = props.disabledParamCache
-  ? undefined
-  : props.paramCache ?? injectProps?.paramCache;
+const cache =
+  props.paramCache === undefined ? injectProps?.paramCache : props.paramCache;
 
 const size = ref(unref(props.size));
 

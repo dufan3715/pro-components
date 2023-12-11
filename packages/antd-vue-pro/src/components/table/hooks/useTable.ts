@@ -1,5 +1,5 @@
 import { PaginationProps } from 'ant-design-vue';
-import { ref, unref } from 'vue';
+import { ref, unref, watch } from 'vue';
 import { cloneDeep } from 'lodash-es';
 import { useForm } from '../../form/hooks';
 import { UseTable } from '../types';
@@ -30,6 +30,12 @@ const useTable = (({
         (item: any, index) => item.key ?? item.dataIndex?.toString() ?? index
       )
   );
+
+  watch(columns, val => {
+    checkedColumns.value = val.map(
+      (item: any, index) => item.key ?? item.dataIndex?.toString() ?? index
+    );
+  });
 
   // 修改选中的列
   const setCheckedColumns = (val: Array<string>) => {
