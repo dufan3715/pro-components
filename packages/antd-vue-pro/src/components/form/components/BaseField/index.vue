@@ -141,7 +141,7 @@ onMounted(() => {
 
 function handleFocus(...args: any) {
   updateActivePath?.(props.path);
-  (mergedAttrs.value.onFocus as any)?.(...args);
+  (attrs as any).onFocus?.(...args);
 }
 </script>
 
