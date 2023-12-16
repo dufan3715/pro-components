@@ -152,7 +152,7 @@ function handleFocus(...args: any) {
       :key="forceUpdateKey"
       v-bind="mergedAttrs"
       :ref="setComponentRef"
-      v-model:[modelName]="value"
+      v-model:[modelName].trim="value"
       :class="attrs.componentClassName"
       :style="attrs.componentStyle"
       :path="path"
