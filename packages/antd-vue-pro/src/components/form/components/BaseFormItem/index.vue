@@ -86,7 +86,7 @@ const withDefault = (field: Field): any => {
   ]);
   delete baseFormItemProps.className;
   const defaultProps = {
-    first: true,
+    validateFirst: true,
   };
   if (field.fields) {
     Object.assign(defaultProps, {
