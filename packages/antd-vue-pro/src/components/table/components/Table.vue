@@ -5,7 +5,7 @@ import {
   Table,
   TableProps as ATableProps,
 } from 'ant-design-vue';
-import { omit } from 'lodash-es';
+import { cloneDeep, omit } from 'lodash-es';
 import { ColumnsType, ColumnType } from 'ant-design-vue/es/table';
 import {
   computed,
@@ -82,7 +82,9 @@ const injectProps = inject<Record<string, any>>(
 );
 
 const cache =
-  props.paramCache === undefined ? injectProps?.paramCache : props.paramCache;
+  props.paramCache === null
+    ? null
+    : props.paramCache ?? injectProps?.paramCache;
 
 const size = ref(unref(props.size));
 
@@ -115,11 +117,13 @@ const search = () => {
     current,
     pageSize,
   });
-  cache?.set((pre = {}) => ({
-    ...pre,
-    pagination: unref(pagination),
-    searchParam: unref(searchParam),
-  }));
+  cache?.set((pre = {}) =>
+    cloneDeep({
+      ...pre,
+      pagination: unref(pagination),
+      searchParam: unref(searchParam),
+    })
+  );
 };
 
 const reset = () => {
@@ -229,6 +233,7 @@ onMounted(() => {
       <SearchForm
         v-else
         :form="(form as any)"
+        :cache="cache"
         @search="searchPage1st"
         @reset="reset" />
     </ContainerFragment>
