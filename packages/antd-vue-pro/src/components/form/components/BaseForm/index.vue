@@ -3,7 +3,8 @@
 import { Form as AForm, FormProps as AFormProps } from 'ant-design-vue';
 import { ref, computed, provide, shallowReactive, onMounted } from 'vue';
 import { FormExpose, FormInstance } from 'ant-design-vue/es/form/Form';
-import { cloneDeep, set } from 'lodash-es';
+import { cloneDeep, omit, set } from 'lodash-es';
+import { useInjectProps, INJECT_KEYS } from 'src/components/component-provider';
 import { BaseFormItem } from '..';
 import {
   COMMAND,
@@ -54,6 +55,9 @@ const props = withDefaults(defineProps<Props>(), {
   autoCommandDisabled: false,
   activePath: undefined,
 });
+
+const injectProps = useInjectProps(INJECT_KEYS['pro-form']);
+const injectAttrs = omit(injectProps, Object.keys(props));
 
 type Emits = {
   'update:formData': [val: FormData];
@@ -122,7 +126,10 @@ defineExpose<Expose>(exposed);
 </script>
 
 <template>
-  <AForm ref="formInstanceRef" :model="_formData">
+  <AForm
+    ref="formInstanceRef"
+    :model="_formData"
+    v-bind="{ ...injectAttrs, ...$attrs }">
     <BaseFormItem
       :fields="_fields"
       :grid="grid"

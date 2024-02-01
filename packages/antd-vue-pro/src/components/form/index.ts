@@ -4,6 +4,7 @@ export default BaseForm;
 
 // instance
 export type ProFormInstance = InstanceType<typeof BaseForm>;
+export type ProFormProps = ProFormInstance['$props'];
 
 // components
 export * from './components';

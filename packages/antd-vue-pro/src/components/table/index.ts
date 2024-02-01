@@ -6,9 +6,6 @@ export default BaseTable;
 // instance
 export type ProTableInstance = ComponentExposed<typeof BaseTable>;
 
-// constants
-export * from './constants';
-
 // type.d
 export * from './types';
 

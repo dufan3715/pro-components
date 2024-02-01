@@ -14,9 +14,9 @@ import {
   unref,
   useSlots,
   useAttrs,
-  inject,
   onMounted,
 } from 'vue';
+import { INJECT_KEYS, useInjectProps } from 'src/components/component-provider';
 import { ContainerFragment, type ContainerComponent } from '../../form';
 import {
   SearchForm,
@@ -31,7 +31,6 @@ import type {
   Columns,
   ParamCache,
 } from '../types';
-import { PRO_TABLE_INJECT_COMPONENT_PROPS_KEYS } from '../constants';
 
 defineOptions({
   name: 'ProTable',
@@ -77,16 +76,15 @@ const props = withDefaults(defineProps<Props>(), {
   immediateSearch: false,
 });
 
-const injectProps = inject<Record<string, any>>(
-  PRO_TABLE_INJECT_COMPONENT_PROPS_KEYS.table
-);
+const injectProps = useInjectProps(INJECT_KEYS['pro-table']);
+const injectAttrs = omit(injectProps, Object.keys(props));
 
 const cache =
   props.paramCache === null
     ? null
     : props.paramCache ?? injectProps?.paramCache;
 
-const size = ref(unref(props.size));
+const size = ref(unref(props.size ?? injectProps.size));
 
 const attrs: TableProps = useAttrs();
 // prettier-ignore
@@ -170,6 +168,7 @@ const onPaginationChange = () => {
 
 const mergeTableProps = computed<TableProps>(() => {
   return {
+    ...injectAttrs,
     ...attrs,
     columns: (attrs.columns ?? columns?.value ?? []).map(
       (item: any, index) => ({
@@ -213,14 +212,14 @@ const visibleColumns = computed(() => {
         item => item.key && showColumnKeys.value.includes(item.key as any)
       ) || [];
   }
-  if (props.addIndexColumn) {
+  if (props.addIndexColumn ?? injectProps.addIndexColumn) {
     list = [indexColumn, ...list];
   }
   return list;
 });
 
 onMounted(() => {
-  if (props.immediateSearch) {
+  if (props.immediateSearch ?? injectProps.immediateSearch) {
     search();
   }
 });

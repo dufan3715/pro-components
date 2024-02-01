@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { provide } from 'vue';
 import { ComponentVars } from '../types';
-import { INJECT_COMPONENT_PROPS_KEYS as formInjectKeys } from '../../form';
-import { PRO_TABLE_INJECT_COMPONENT_PROPS_KEYS as tableInjectKeys } from '../../table';
+import { useProviderProps } from '../hooks';
+import { INJECT_KEYS } from '../constants';
 
 type Props = {
   componentVars: ComponentVars;
@@ -11,16 +10,9 @@ type Props = {
 const props = defineProps<Props>();
 
 if (props.componentVars) {
-  Object.values(props.componentVars).forEach(item => {
-    const injectKeys: Record<string, any> = {
-      ...formInjectKeys,
-      ...tableInjectKeys,
-    };
-    Object.entries(item).forEach(([key, value]) => {
-      if (Object.hasOwn(injectKeys, key)) {
-        provide(injectKeys[key], value);
-      }
-    });
+  Object.entries(props.componentVars).forEach(([key, val]) => {
+    const injectKey = INJECT_KEYS[key as keyof ComponentVars];
+    useProviderProps(injectKey, val);
   });
 }
 </script>
