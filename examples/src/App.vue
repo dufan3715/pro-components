@@ -7,7 +7,7 @@ import {
   type ProFormInstance,
   type Field,
   type Fields,
-} from '@qin-ui/antd-vue-pro';
+} from '@qin-ui/antd-vue-pro/src';
 import { h, ref } from 'vue';
 
 const proFormRef = ref<ProFormInstance | null>(null);
@@ -58,6 +58,7 @@ const initFields: Fields = [
       { min: 4, message: '密码最小长度为5个字符' },
       { max: 18, message: '密码最大长度为18个字符' },
     ],
+    valueFormatter: val => val?.trim(),
   },
   {
     label: '验证码',
@@ -71,11 +72,9 @@ const initFields: Fields = [
 const form = useForm({}, initFields);
 
 const componentVars: ComponentVars = {
-  proFormField: {
-    input: { maxlength: 50 },
-    textarea: { maxlength: 1000 },
-    'input-number': { max: 10 ** 12 - 1 },
-  },
+  input: { maxlength: 50, valueFormatter: val => val?.trim() },
+  textarea: { maxlength: 1000, valueFormatter: val => val?.trim() },
+  'input-number': { max: 10 ** 12 - 1 },
 };
 
 const submit = () => {

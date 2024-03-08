@@ -16,7 +16,7 @@ import {
   useAttrs,
   onMounted,
 } from 'vue';
-import { INJECT_KEYS, useInjectProps } from 'src/components/component-provider';
+import { INJECT_KEYS, useInjectProps } from '../../component-provider';
 import { ContainerFragment, type ContainerComponent } from '../../form';
 import {
   SearchForm,

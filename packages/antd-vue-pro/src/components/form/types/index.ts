@@ -62,7 +62,7 @@ export type Grid = boolean | GridProps;
 /**
  * @type {Object} Common - 公共字段类型
  */
-interface Common<D extends FormData = FormData> {
+export interface Common<D extends FormData = FormData> {
   /** 标识key */
   key?: keyof D & string;
   /** 中文名称 */
@@ -91,6 +91,11 @@ interface Common<D extends FormData = FormData> {
   componentClassName?: string;
   /** component容器包裹组件 */
   componentContainer?: ContainerComponent;
+  /**
+   * 值处理函数，onUpdateValue前执行，函数返回值将作为更新值, 例如
+   * @example (val) => val?.trim()
+   */
+  valueFormatter?: (val: any) => any;
 }
 
 /* 插槽类型 */

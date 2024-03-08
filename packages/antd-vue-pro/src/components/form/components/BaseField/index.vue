@@ -55,6 +55,12 @@ const value = computed({
     return get(formData?.value, props.path);
   },
   set(val) {
+    // eslint-disable-next-line no-use-before-define
+    const { valueFormatter } = mergedAttrs.value as any;
+    if (valueFormatter && typeof valueFormatter === 'function') {
+      updateFormData?.(props.path, valueFormatter(val));
+      return;
+    }
     updateFormData?.(props.path, val);
   },
 });
@@ -152,7 +158,7 @@ function handleFocus(...args: any) {
       :key="forceUpdateKey"
       v-bind="mergedAttrs"
       :ref="setComponentRef"
-      v-model:[modelName].trim="value"
+      v-model:[modelName]="value"
       :class="attrs.componentClassName"
       :style="attrs.componentStyle"
       :path="path"

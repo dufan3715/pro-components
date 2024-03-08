@@ -4,7 +4,7 @@ import { Form as AForm, FormProps as AFormProps } from 'ant-design-vue';
 import { ref, computed, provide, shallowReactive, onMounted } from 'vue';
 import { FormExpose, FormInstance } from 'ant-design-vue/es/form/Form';
 import { cloneDeep, omit, set } from 'lodash-es';
-import { useInjectProps, INJECT_KEYS } from 'src/components/component-provider';
+import { useInjectProps, INJECT_KEYS } from '../../../component-provider';
 import { BaseFormItem } from '..';
 import {
   COMMAND,

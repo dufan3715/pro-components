@@ -153,7 +153,9 @@ ant-design-vue ui组件库form组件的二次封装
       /** 中文名称 */
       label?: SlotComponentType;
       /** 插槽，可包含formItem插槽和component插槽 */
-      slots?: Record<(typeof FORM_ITEM_SLOT_KEYS)[number], SlotComponentType>;
+      slots?: Partial<
+        Record<(typeof FORM_ITEM_SLOT_KEYS)[number], SlotComponentType>
+      >;
       /** 网格布局属性 */
       grid?: Grid;
       /** 子字段 */
@@ -174,6 +176,11 @@ ant-design-vue ui组件库form组件的二次封装
       componentClassName?: string;
       /** component容器包裹组件 */
       componentContainer?: ContainerComponent;
+      /**
+       * 值处理函数，onUpdateValue前执行，函数返回值将作为更新值
+       * @example (val) => val?.trim()
+       */
+      valueFormatter?: (val: any) => any;
     }
     ```
 
@@ -222,11 +229,15 @@ ant-design-vue ui组件库form组件的二次封装
    */
   type UseFormData = (initFormData: FormData) => {
     /** 表单数据Ref */
-    formData: Ref<FormData>;
+    formData: Ref<D | FormData>;
     /** 获取指定字段数据路径的值 */
     getFormData: GetFormData;
     /** 设置指定字段数据路径的值 */
     setFormData: SetFormData;
+    /** 当前正在编辑的字段path */
+    activePath: Ref<string | undefined>;
+    /** 设置当前正在编辑的字段path */
+    setActivePath: SetActivePath;
   };
   ```
 
@@ -244,7 +255,7 @@ import {
   type ProFormInstance,
   type Field,
   type Fields,
-} from '@qin-ui/antd-vue-pro';
+} from '@qin-ui/antd-vue-pro/src';
 import { h, ref } from 'vue';
 
 const proFormRef = ref<ProFormInstance | null>(null);
@@ -273,10 +284,16 @@ const CodeContainer: Field['componentContainer'] = (p, ctx) => {
 
 const initFields: Fields = [
   {
+    label: '登记所在地（省/市/县、区）',
+    key: '登记所在地（省/市/县、区）',
+    component: 'cascader',
+    slots: {},
+    options: [],
+  },
+  {
     label: '用户名',
     key: 'username',
     component: 'input',
-    maxlength: 20,
     rules: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   },
   {
@@ -289,6 +306,7 @@ const initFields: Fields = [
       { min: 4, message: '密码最小长度为5个字符' },
       { max: 18, message: '密码最大长度为18个字符' },
     ],
+    valueFormatter: val => val?.trim()
   },
   {
     label: '验证码',
@@ -302,11 +320,9 @@ const initFields: Fields = [
 const form = useForm({}, initFields);
 
 const componentVars: ComponentVars = {
-  proFormField: {
-    input: { maxlength: 50 },
-    textarea: { maxlength: 1000 },
-    'input-number': { max: 10 ** 12 - 1 },
-  },
+  input: { maxlength: 50, valueFormatter: val => val?.trim() },
+  textarea: { maxlength: 1000, valueFormatter: val => val?.trim() },
+  'input-number': { max: 10 ** 12 - 1 },
 };
 
 const submit = () => {
