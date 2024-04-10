@@ -1,3 +1,4 @@
+import { BaseFormItem } from './components';
 import BaseForm from './components/BaseForm/index.vue';
 
 export default BaseForm;
@@ -5,6 +6,8 @@ export default BaseForm;
 // instance
 export type ProFormInstance = InstanceType<typeof BaseForm>;
 export type ProFormProps = ProFormInstance['$props'];
+
+export type ProFormItemProps = InstanceType<typeof BaseFormItem>['$props'];
 
 // components
 export * from './components';

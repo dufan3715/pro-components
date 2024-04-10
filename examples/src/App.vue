@@ -7,7 +7,7 @@ import {
   type ProFormInstance,
   type Field,
   type Fields,
-} from '@qin-ui/antd-vue-pro/src';
+} from '@qin-ui/antd-vue-pro/es';
 import { h, ref } from 'vue';
 
 const proFormRef = ref<ProFormInstance | null>(null);
