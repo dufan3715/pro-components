@@ -1,11 +1,11 @@
 import {
+  CascaderProps,
   CheckboxGroupProps,
   DatePickerProps,
-  FormItemProps,
-  FormProps,
   InputNumberProps,
   InputProps,
   RadioGroupProps,
+  SelectProps,
   SliderProps,
   SwitchProps,
   TableProps,
@@ -14,40 +14,41 @@ import {
   TransferProps,
   TreeSelectProps,
 } from 'ant-design-vue';
+// import inputProps from 'ant-design-vue/es/input/inputProps';
 import {
-  MonthPickerProps,
+  // MonthPickerProps,
   RangePickerProps,
-  WeekPickerProps,
+  // WeekPickerProps,
 } from 'ant-design-vue/es/date-picker';
-import { CascaderProps } from 'ant-design-vue/es/vc-cascader';
-import { SelectProps } from 'ant-design-vue/es/vc-select';
-import { Common } from '../../form';
+import { Common, ProFormProps, ProFormItemProps } from '../../form';
+
+type AnyProps<T extends Record<string, any>> = Record<keyof T, any> & Common;
 
 // prettier-ignore
 export type ComponentVars = Partial<{
   'pro-table': Partial<TableProps>;
-  'pro-form': Partial<FormProps>;
-  'pro-form-item': Partial<FormItemProps>;
+  'pro-form': Partial<ProFormProps>;
+  'pro-form-item': Partial<ProFormItemProps>;
   // field
-  'input': Partial<InputProps & Common>;
-  'textarea': Partial<TextAreaProps & Common>;
-  'input-password': Partial<InputProps & Common>;
-  'input-search': Partial<InputProps & Common>;
-  'input-number': Partial<InputNumberProps & Common>;
-  'select': Partial<SelectProps & Common>;
-  'cascader': Partial<CascaderProps & Common>;
-  'date-picker': Partial<DatePickerProps & Common>;
-  'date-picker.date': Partial<DatePickerProps & Common>;
-  'date-picker.week': Partial<WeekPickerProps & Common>;
-  'date-picker.month': Partial<MonthPickerProps & Common>;
-  'date-picker.year': Partial<DatePickerProps & Common>;
-  'date-picker.quarter': Partial<DatePickerProps & Common>;
-  'range-picker': Partial<RangePickerProps & Common>;
-  'time-picker': Partial<TimePickerProps & Common>;
-  'checkbox-group': Partial<CheckboxGroupProps & Common>;
-  'radio-group': Partial<RadioGroupProps & Common>;
-  'switch': Partial<SwitchProps & Common>;
-  'slider': Partial<SliderProps & Common>;
-  'tree-select': Partial<TreeSelectProps & Common>;
-  'transfer': Partial<TransferProps & Common>;
+  'input': Partial<AnyProps<InputProps>>;
+  'textarea': Partial<AnyProps<TextAreaProps>>;
+  'input-password': Partial<AnyProps<InputProps>>;
+  'input-search': Partial<AnyProps<InputProps>>;
+  'input-number': Partial<AnyProps<InputNumberProps>>;
+  'select': Partial<AnyProps<SelectProps>>;
+  'cascader': Partial<AnyProps<CascaderProps>>;
+  'date-picker': Partial<AnyProps<DatePickerProps>>;
+  'date-picker.date': Partial<AnyProps<DatePickerProps>>;
+  'date-picker.week': Partial<AnyProps</* WeekPickerProps */DatePickerProps>>;
+  'date-picker.month': Partial<AnyProps</* MonthPickerProps */DatePickerProps>>;
+  'date-picker.year': Partial<AnyProps<DatePickerProps>>;
+  'date-picker.quarter': Partial<AnyProps<DatePickerProps>>;
+  'range-picker': Partial<AnyProps<RangePickerProps>>;
+  'time-picker': Partial<AnyProps<TimePickerProps>>;
+  'checkbox-group': Partial<AnyProps<CheckboxGroupProps>>;
+  'radio-group': Partial<AnyProps<RadioGroupProps>>;
+  'switch': Partial<AnyProps<SwitchProps>>;
+  'slider': Partial<AnyProps<SliderProps>>;
+  'tree-select': Partial<AnyProps<TreeSelectProps>>;
+  'transfer': Partial<AnyProps<TransferProps>>;
 }>;
