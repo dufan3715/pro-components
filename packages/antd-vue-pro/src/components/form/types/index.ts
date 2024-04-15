@@ -18,7 +18,7 @@ import type {
   TextAreaProps,
   Select,
 } from 'ant-design-vue';
-import type { CSSProperties, DeepReadonly, Ref, Component } from 'vue';
+import type { CSSProperties, DeepReadonly, Ref, Component, Raw } from 'vue';
 import { type RangePickerProps } from 'ant-design-vue/es/date-picker';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
 
@@ -159,7 +159,7 @@ export type FieldType = {
   /** 穿梭框 */
   'transfer': { component: 'transfer' } & TransferProps;
   /** 自定义组件 */
-  'custom': { component?: RenderComponentType } & Record<string, any>;
+  'custom': { component?: RenderComponentType | Raw<RenderComponentType>} & Record<string, any>;
 };
 export type Field<D extends FormData = FormData> =
   | FieldType[keyof FieldType] &
