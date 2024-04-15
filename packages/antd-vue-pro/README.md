@@ -10,6 +10,8 @@
 npm i @qin-ui/antd-vue-pro
 ```
 
+> 注意：从v1.0.x 升级至 v1.1.x 版本有api优化调整，主要涉及到pro-component-provider组件component-vars的参数扁平化，版本升级时需注意
+
 
 
 #### 1. pro-component-provider
