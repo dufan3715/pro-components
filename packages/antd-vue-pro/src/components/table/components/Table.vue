@@ -149,7 +149,7 @@ if (cache) {
     ...unref(pagination),
     ...unref(cache.get()?.pagination ?? {}),
   });
-  setSearchParam(undefined, {
+  setSearchParam({
     ...unref(searchParam),
     ...unref(cache.get()?.searchParam ?? {}),
   });

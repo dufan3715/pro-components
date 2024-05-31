@@ -181,10 +181,10 @@ export type UpdateRefs = (
   type: keyof Refs
 ) => void;
 export type GetFormData = (path?: string) => DeepReadonly<any>;
-export type SetFormData = (
-  path: string | undefined,
-  value: any | ((preValue: DeepReadonly<any>) => any)
-) => void;
+export type SetFormData = {
+  (path: string, value: any | ((preValue: DeepReadonly<any>) => any)): void;
+  (value: any | ((preValue: DeepReadonly<any>) => any)): void;
+};
 export type SetActivePath = (path: string | undefined) => void;
 
 // components/Field

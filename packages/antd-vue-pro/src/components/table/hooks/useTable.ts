@@ -70,7 +70,7 @@ const useTable = (({
   // 重置分页查询参数
   const resetQueryParams = () => {
     setPagination(getDefaultPagination());
-    setSearchParam(undefined, cloneDeep(_initSearchParam));
+    setSearchParam(cloneDeep(_initSearchParam));
   };
 
   return {

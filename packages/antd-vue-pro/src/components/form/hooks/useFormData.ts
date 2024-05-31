@@ -17,20 +17,26 @@ const useFormData: UseFormData = initFormData => {
     return get(formData.value, path);
   };
 
-  const setFormData: SetFormData = (path, value) => {
-    let newValue = value;
+  const setFormData: SetFormData = (...args: any[]) => {
+    let path;
+    let value;
+    if (args.length === 2) {
+      [path, value] = args;
+    } else {
+      [value] = args;
+    }
     if (path) {
       if (typeof value === 'function') {
         const preValue = getFormData(path);
-        newValue = value(preValue);
+        value = value(preValue);
       }
-      set(formData.value, path, newValue);
+      set(formData.value, path, value);
     } else {
       if (typeof value === 'function') {
         const preValue = formData.value;
-        newValue = value(preValue);
+        value = value(preValue);
       }
-      formData.value = newValue;
+      formData.value = value;
     }
   };
 
