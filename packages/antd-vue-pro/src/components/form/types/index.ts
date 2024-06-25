@@ -96,6 +96,10 @@ export interface Common<D extends FormData = FormData> {
    * @example (val) => val?.trim()
    */
   valueFormatter?: (val: any) => any;
+  /** 以data-form-item-开头的属性将会被渲染至formItem的dom节点 */
+  [key: `data-form-item-${string}`]: string;
+  /** 以data-component-开头的属性将会被渲染至component的dom节点 */
+  [key: `data-component-${string}`]: string;
 }
 
 /* 插槽类型 */

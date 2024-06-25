@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { memoize, omit, pick, toPath } from 'lodash-es';
+import { memoize, omitBy, pick, pickBy, toPath } from 'lodash-es';
 import {
   type ColProps as GridItemProps,
   type RowProps as GridProps,
@@ -56,13 +56,7 @@ useProviderDisabled(ref(props.disabled));
 const updateRefs = inject(UPDATE_REFS);
 
 const getPath = (fieldKey: Field['key']) => {
-  if (props.path) {
-    if (fieldKey) {
-      return `${props.path}.${fieldKey}`;
-    }
-    return props.path;
-  }
-  return fieldKey || '';
+  return [props.path, fieldKey].filter(Boolean).join('.');
 };
 
 const setFormItemRef = (el: any, field: Field) => {
@@ -80,49 +74,43 @@ const proFormPropKeys = computed<ProFormPropKeys>(() => {
 });
 
 const withDefault = (field: Field): any => {
-  const baseFormItemProps = pick(field, [
-    ...formItemPropKeys,
-    ...customItemPropsKeys,
-  ]);
-  delete baseFormItemProps.className;
+  const baseFormItemProps = pickBy(
+    field as any,
+    (v, k) => formItemPropKeys.includes(k) || k.startsWith('data-form-item')
+  );
   const defaultProps = {
     validateFirst: true,
+    showFeedback: !field.fields,
   };
-  if (field.fields) {
-    Object.assign(defaultProps, {
-      showFeedback: false,
-    });
-  }
   return {
     ...defaultProps,
     ...baseFormItemProps,
-    container: undefined,
   };
 };
 
 const omitFormItemProps = memoize((field: Field) => {
-  return omit(field, proFormPropKeys.value);
+  return omitBy(
+    field as any,
+    (v, k) =>
+      proFormPropKeys.value.includes(k as any) || k.startsWith('data-form-item')
+  );
 });
 
-const defaultGrid: GridProps = {
-  gutter: 24,
-};
 const withDefaultGrid = computed(() => {
   if (props.grid) {
-    if (typeof props.grid === 'boolean') {
-      return defaultGrid;
-    }
-    return { ...defaultGrid, ...props.grid };
+    const defaultGrid: GridProps = { gutter: 24 };
+    return props.grid === true
+      ? defaultGrid
+      : { ...defaultGrid, ...props.grid };
   }
-  return undefined;
+  return props.grid;
 });
 
 const withDefaultGridItem = memoize((field: Field) => {
-  const defaultSpan = field.fields ? 24 : 8;
-  const fieldGridItemProps = pick(field, gridItemPropKeys);
+  const fieldGridItemProps = pick(field as any, gridItemPropKeys);
   return {
+    span: field.fields ? 24 : 8,
     ...fieldGridItemProps,
-    span: field.span ?? defaultSpan,
   };
 });
 </script>
@@ -130,7 +118,7 @@ const withDefaultGridItem = memoize((field: Field) => {
 <template>
   <ContainerFragment
     :component="grid ? AGrid : undefined"
-    v-bind="grid ? withDefaultGrid : undefined">
+    v-bind="withDefaultGrid">
     <template
       v-for="(field, index) of fields"
       :key="getPath(field.key) || index">

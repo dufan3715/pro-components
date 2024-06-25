@@ -127,6 +127,7 @@ const mergedAttrs = computed(() => {
     ...methods,
     onFocus: undefined,
     disabled: attrs.disabled ?? parentDisabled.value ?? initProps.disabled,
+    slots: undefined,
   };
 });
 
