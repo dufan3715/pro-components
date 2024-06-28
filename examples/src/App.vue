@@ -1,16 +1,14 @@
+<!-- eslint-disable no-use-before-define -->
 <script lang="ts" setup>
 import {
   ProForm,
   useForm,
   ProComponentProvider,
   type ComponentVars,
-  type ProFormInstance,
   type Field,
   type Fields,
 } from '@qin-ui/antd-vue-pro/es';
-import { h, ref } from 'vue';
-
-const proFormRef = ref<ProFormInstance | null>(null);
+import { h } from 'vue';
 
 const CodeContainer: Field['componentContainer'] = (p, ctx) => {
   return h(
@@ -70,6 +68,7 @@ const initFields: Fields = [
 ];
 
 const form = useForm({}, initFields);
+const { formRef: proFormRef } = form;
 
 const componentVars: ComponentVars = {
   input: { maxlength: 50, valueFormatter: val => val?.trim() },

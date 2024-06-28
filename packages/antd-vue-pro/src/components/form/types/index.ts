@@ -21,6 +21,7 @@ import type {
 import type { CSSProperties, DeepReadonly, Ref, Component, Raw } from 'vue';
 import { type RangePickerProps } from 'ant-design-vue/es/date-picker';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
+import { ProFormInstance } from '..';
 
 export type FormData = { [key: string]: any };
 
@@ -262,8 +263,18 @@ export type UseFormData<D extends FormData = FormData> = (
   setActivePath: SetActivePath;
 };
 
+/**
+ * @description useFormRef hook
+ * @returns {Object}
+ */
+export type UseFormRef = () => {
+  /** 表单组件实例引用Ref */
+  formRef: Ref<ProFormInstance | undefined>;
+};
+
 export type Form<D extends FormData = FormData> = ReturnType<UseFormData<D>> &
-  ReturnType<UseFields>;
+  ReturnType<UseFields> &
+  ReturnType<UseFormRef>;
 
 export type UseForm<T extends FormData = FormData> = <D extends T = T>(
   initFormData?: Partial<D>,

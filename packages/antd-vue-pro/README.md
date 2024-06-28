@@ -188,10 +188,10 @@ ant-design-vue ui组件库form组件的二次封装
 
 + UseForm
 
-  自定义hook，由两个hook（useFormData、useFields）内聚产生。接收两个参数（initFormData, initFields）返回一个对象
+  自定义hook，由数个hook（useFormData、useFields、useFormRef）内聚产生。接收两个参数（initFormData, initFields）返回一个对象
 
   ```typescript
-  type Form = ReturnType<UseFields> & ReturnType<UseFormData>;
+  type Form = ReturnType<UseFields> & ReturnType<UseFormData> & ReturnType<UseFormRef>;
   
   type UseForm = <T extends FormData>(
     initFormData?: T,
@@ -254,13 +254,10 @@ import {
   useForm,
   ProComponentProvider,
   type ComponentVars,
-  type ProFormInstance,
   type Field,
   type Fields,
 } from '@qin-ui/antd-vue-pro/src';
 import { h, ref } from 'vue';
-
-const proFormRef = ref<ProFormInstance | null>(null);
 
 const CodeContainer: Field['componentContainer'] = (p, ctx) => {
   return h(
@@ -320,6 +317,7 @@ const initFields: Fields = [
 ];
 
 const form = useForm({}, initFields);
+const { formRef: proFormRef } = form
 
 const componentVars: ComponentVars = {
   input: { maxlength: 50, valueFormatter: val => val?.trim() },
