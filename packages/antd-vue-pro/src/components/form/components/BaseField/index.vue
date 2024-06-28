@@ -180,7 +180,7 @@ function handleFocus(...args: any) {
 </template>
 
 <style scoped lang="less">
-.field-component {
+.field-component:not(.ant-switch) {
   width: 100%;
   min-width: 120px;
 }
