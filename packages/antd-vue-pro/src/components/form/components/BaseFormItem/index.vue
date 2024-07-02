@@ -73,14 +73,14 @@ const proFormPropKeys = computed<ProFormPropKeys>(() => {
   ] as ProFormPropKeys;
 });
 
-const withDefault = (field: Field): any => {
+const withDefault = (field: Field): Field => {
   const baseFormItemProps = pickBy(
     field as any,
     (v, k) => formItemPropKeys.includes(k) || k.startsWith('data-form-item')
   );
   const defaultProps = {
     validateFirst: true,
-    hideFeedback: field.fields,
+    hideFeedback: !!field.fields,
   };
   return {
     ...defaultProps,
