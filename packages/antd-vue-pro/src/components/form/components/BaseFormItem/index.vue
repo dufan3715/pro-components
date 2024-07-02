@@ -26,6 +26,7 @@ const customItemPropsKeys = [
   'className',
   'hidden',
   'container',
+  'hideFeedback',
 ] as const;
 
 defineOptions({
@@ -80,7 +81,6 @@ const withDefault = (field: Field): Field => {
   );
   const defaultProps = {
     validateFirst: true,
-    hideFeedback: !!field.fields,
   };
   return {
     ...defaultProps,
@@ -134,6 +134,7 @@ const withDefaultGridItem = memoize((field: Field) => {
             :ref="(el: any) => setFormItemRef(el, field)"
             :class="field.className"
             :style="field.style"
+            :hide-feedback="field.hideFeedback"
             :name="path ? toPath(getPath(field.key)) : getPath(field.key)"
             :path="getPath(field.key)">
             <template v-if="field.fields">
@@ -165,10 +166,8 @@ const withDefaultGridItem = memoize((field: Field) => {
     </template>
   </ContainerFragment>
 </template>
-<style scoped lang="less">
-:deep {
-  .ant-form-item > [hideFeedback='true'] {
-    margin-bottom: 0;
-  }
+<style lang="less">
+.ant-form-item:has(> [hide-feedback='true']) {
+  margin-bottom: 0;
 }
 </style>
