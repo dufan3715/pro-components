@@ -80,7 +80,7 @@ const withDefault = (field: Field): any => {
   );
   const defaultProps = {
     validateFirst: true,
-    showFeedback: !field.fields,
+    hideFeedback: field.fields,
   };
   return {
     ...defaultProps,
@@ -165,3 +165,10 @@ const withDefaultGridItem = memoize((field: Field) => {
     </template>
   </ContainerFragment>
 </template>
+<style scoped lang="less">
+:deep {
+  .ant-form-item > [hideFeedback='true'] {
+    margin-bottom: 0;
+  }
+}
+</style>
