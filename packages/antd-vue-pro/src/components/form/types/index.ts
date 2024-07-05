@@ -32,9 +32,9 @@ export type Refs = {
 
 type DefaultProps = { path?: string; [key: string]: any };
 
-type VModelProps = {
-  value?: unknown;
-  'onUpdate:value'?: (val: unknown) => void;
+type VModelProps<T = any> = {
+  value?: T;
+  'onUpdate:value'?: (val: T) => void;
 };
 /**
  * @description 自定义组件
@@ -97,7 +97,7 @@ export interface Common<D extends FormData = FormData> {
    * @example (val) => val?.trim()
    */
   valueFormatter?: (val: any) => any;
-  /** 是否隐藏校验错误信息 */
+  /** 是否隐藏校验错误信息（需要浏览器支持has选择器） */
   hideFeedback?: boolean;
   /** 以data-form-item-开头的属性将会被渲染至formItem的dom节点 */
   [key: `data-form-item-${string}`]: string;

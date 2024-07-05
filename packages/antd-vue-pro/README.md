@@ -183,6 +183,12 @@ ant-design-vue ui组件库form组件的二次封装
        * @example (val) => val?.trim()
        */
       valueFormatter?: (val: any) => any;
+      /** 是否隐藏校验错误信息（需要浏览器支持has选择器） */
+      hideFeedback?: boolean;
+      /** 以data-form-item-开头的属性将会被渲染至formItem的dom节点 */
+      [key: `data-form-item-${string}`]: string;
+      /** 以data-component-开头的属性将会被渲染至component的dom节点 */
+      [key: `data-component-${string}`]: string;
     }
     ```
 
@@ -240,6 +246,15 @@ ant-design-vue ui组件库form组件的二次封装
     activePath: Ref<string | undefined>;
     /** 设置当前正在编辑的字段path */
     setActivePath: SetActivePath;
+  };
+
+  /**
+   * @description useFormRef hook
+   * @returns {Object}
+   */
+  type UseFormRef = () => {
+    /** 表单组件实例引用Ref */
+    formRef: Ref<ProFormInstance | undefined>;
   };
   ```
 
