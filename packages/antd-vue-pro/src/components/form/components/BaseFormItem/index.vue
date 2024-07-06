@@ -9,7 +9,7 @@ import {
   Col as AGridItem,
 } from 'ant-design-vue';
 import { formItemProps } from 'ant-design-vue/es/form';
-import { rowProps as gridItemProps } from 'ant-design-vue/es/grid/Row';
+import { colProps as gridItemProps } from 'ant-design-vue/es/grid/Col';
 import { computed, inject, ref } from 'vue';
 import { useProviderDisabled } from 'ant-design-vue/es/config-provider/DisabledContext';
 import type { Field, Fields, Grid } from '../../types';

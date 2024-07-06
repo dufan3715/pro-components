@@ -87,6 +87,10 @@ const _formData = computed(() =>
   props.form ? props.form?.formData.value : props.formData
 );
 
+const _fields = computed(() =>
+  props.form ? props.form?.fields.value : props.fields
+);
+
 const updateFormData: UpdateFormData = (path, value) => {
   if (props.form) {
     props.form?.setFormData(path, value);
@@ -97,10 +101,6 @@ const updateFormData: UpdateFormData = (path, value) => {
   }
   updateActivePath(path);
 };
-
-const _fields = computed(() =>
-  props.form ? props.form?.fields.value : props.fields
-);
 
 const command = computed(() => {
   return props.form && !props.autoCommandDisabled

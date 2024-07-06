@@ -1,8 +1,8 @@
 /* eslint-disable no-use-before-define, no-unused-vars, no-redeclare */
 import type {
-  ColProps as GridItemProps,
   FormItemProps,
   RowProps as GridProps,
+  ColProps as GridItemProps,
   InputProps,
   InputNumberProps,
   SelectProps,
