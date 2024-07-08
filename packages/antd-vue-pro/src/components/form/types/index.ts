@@ -46,9 +46,8 @@ export type SlotComponentType = string | Component<DefaultProps>;
 
 export type ContainerComponent = Component<DefaultProps>;
 
-export type Slot = {
-  name: string;
-  component: SlotComponentType;
+export type Slots = {
+  [name: string]: SlotComponentType;
 };
 
 type Option = {
@@ -127,6 +126,8 @@ type SwitchSlots = FieldSlot<'checkedChildren' | 'unCheckedChildren'>
 type SliderSlots = FieldSlot<'mark'>
 // prettier-ignore
 type TreeSelectSlots = FieldSlot<'maxTagPlaceholder' | 'notFoundContent' | 'placeholder' | 'searchPlaceholder' | 'suffixIcon' |'tagRender' | 'title'>
+// prettier-ignore
+type TransferSlots = FieldSlot<'footer' | 'render'>
 
 /**
  * @type {FieldType} 字段类型集合
@@ -164,9 +165,9 @@ export type FieldType = {
   /** 树形选择器 */
   'tree-select': { component: 'tree-select', slots?: TreeSelectSlots } & TreeSelectProps;
   /** 穿梭框 */
-  'transfer': { component: 'transfer' } & TransferProps;
+  'transfer': { component: 'transfer', slots?: TransferSlots } & TransferProps;
   /** 自定义组件 */
-  'custom': { component?: RenderComponentType | Raw<RenderComponentType>} & Record<string, any>;
+  'custom': { component?: RenderComponentType | Raw<RenderComponentType>, slots?: Slots } & Record<string, any>;
 };
 export type Field<D extends FormData = FormData> =
   | FieldType[keyof FieldType] &
