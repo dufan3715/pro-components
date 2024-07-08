@@ -26,7 +26,8 @@ import type {
   UseCommand,
 } from '../types';
 
-export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help'] as const;
+// prettier-ignore
+export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help', 'tooltip'] as const;
 
 // prettier-ignore
 export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([

@@ -170,7 +170,7 @@ function handleFocus(...args: any) {
         :key="name"
         #[name]="scoped">
         <SlotComponent
-          v-if="!FORM_ITEM_SLOT_KEYS.includes(name)"
+          v-if="!FORM_ITEM_SLOT_KEYS.includes(name as any)"
           :path="path"
           v-bind="scoped"
           :component="slot" />
