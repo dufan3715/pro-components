@@ -17,6 +17,7 @@ import type {
   TransferProps,
   TextAreaProps,
   Select,
+  FormItemInstance,
 } from 'ant-design-vue';
 import type { CSSProperties, DeepReadonly, Ref, Component, Raw } from 'vue';
 import { type RangePickerProps } from 'ant-design-vue/es/date-picker';
@@ -24,11 +25,6 @@ import { FORM_ITEM_SLOT_KEYS } from '../constants';
 import { ProFormInstance } from '..';
 
 export type FormData = { [key: string]: any };
-
-export type Refs = {
-  formItemRefs: Record<string, any>;
-  fieldRefs: Record<string, any>;
-};
 
 type DefaultProps = { path?: string; [key: string]: any };
 
@@ -182,12 +178,20 @@ export type BaseComponentStringName = Exclude<
 >;
 
 // components/ProForm
+export type Refs = {
+  formItemRefs: Record<string, FormItemInstance>;
+  fieldRefs: Record<string, any>;
+};
 export type UpdateFormData = (path: string, value: any) => void;
 export type UpdateRefs = (
+  type: keyof Refs,
   path: string,
-  childRef: Record<string, any>,
-  type: keyof Refs
+  childRef: Record<string, any>
 ) => void;
+export type GetRef = {
+  (type: 'formItemRefs', path: string): FormItemInstance;
+  (type: 'fieldRefs', path: string): any;
+};
 export type GetFormData = (path?: string) => DeepReadonly<any>;
 export type SetFormData = {
   (path: string, value: any | ((preValue: DeepReadonly<any>) => any)): void;

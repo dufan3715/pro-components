@@ -23,6 +23,7 @@ import {
   UPDATE_FORM_DATA,
   FORM_ITEM_SLOT_KEYS,
   UPDATE_ACTIVE_PATH,
+  GET_REF,
 } from '../../constants';
 import { useInitProps } from '../../hooks';
 
@@ -46,9 +47,17 @@ const props = withDefaults(defineProps<Props>(), {
 const formData = inject(FORM_DATA);
 const updateFormData = inject(UPDATE_FORM_DATA);
 const updateRefs = inject(UPDATE_REFS);
+const getRef = inject(GET_REF);
 const command = inject(COMMAND);
 const updateActivePath = inject(UPDATE_ACTIVE_PATH);
 const { getInitProps } = useInitProps();
+
+const triggerRefChange = () => {
+  if (typeof props.component === 'string' && COMPONENT_MAP.has(props.component))
+    return;
+  const formItemRef = getRef?.('formItemRefs', props.path);
+  formItemRef?.onFieldChange();
+};
 
 const value = computed({
   get() {
@@ -62,6 +71,7 @@ const value = computed({
       return;
     }
     updateFormData?.(props.path, val);
+    triggerRefChange();
   },
 });
 
@@ -137,7 +147,7 @@ const is = computed(() => {
 
 const setComponentRef = (el: any) => {
   if (!el) return;
-  updateRefs?.(props.path, el, 'fieldRefs');
+  updateRefs?.('fieldRefs', props.path, el);
 };
 
 onMounted(() => {

@@ -236,10 +236,10 @@ async function runRules(rules: Logic['rules'], baseParam: ProParam) {
         form.setField(path, preField => ({ ...preField, ...value }));
         break;
       case 'validate':
-        refs.formItemRefs[path]?.validate();
+        // refs.formItemRefs[path]?.validate();
         break;
       case 'clearValidate':
-        refs.formItemRefs[path]?.restoreValidation();
+        // refs.formItemRefs[path]?.restoreValidation();
         break;
       case 'message':
         message.info(value);

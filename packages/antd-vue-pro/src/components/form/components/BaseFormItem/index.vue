@@ -63,7 +63,7 @@ const getPath = (fieldKey: Field['key']) => {
 const setFormItemRef = (el: any, field: Field) => {
   if (!el) return;
   const path = getPath(field.key);
-  updateRefs?.(path, el, 'formItemRefs');
+  updateRefs?.('formItemRefs', path, el);
 };
 
 const proFormPropKeys = computed<ProFormPropKeys>(() => {

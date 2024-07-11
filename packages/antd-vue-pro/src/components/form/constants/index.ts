@@ -19,6 +19,7 @@ import {
 } from 'ant-design-vue';
 import type {
   BaseComponentStringName,
+  GetRef,
   RuleType,
   SetActivePath,
   UpdateFormData,
@@ -57,6 +58,7 @@ export const UPDATE_FORM_DATA = Symbol(
   'updateFormData'
 ) as InjectionKey<UpdateFormData>;
 export const UPDATE_REFS = Symbol('updateRefs') as InjectionKey<UpdateRefs>;
+export const GET_REF = Symbol('getRef') as InjectionKey<GetRef>;
 export const COMMAND = Symbol('command') as InjectionKey<
   Ref<ReturnType<UseCommand> | null>
 >;
