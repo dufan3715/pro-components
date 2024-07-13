@@ -10,7 +10,7 @@ import {
 } from 'ant-design-vue';
 import { formItemProps } from 'ant-design-vue/es/form';
 import { colProps as gridItemProps } from 'ant-design-vue/es/grid/Col';
-import { computed, inject, ref } from 'vue';
+import { computed, inject } from 'vue';
 import { useProviderDisabled } from 'ant-design-vue/es/config-provider/DisabledContext';
 import type { Field, Fields, Grid } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
@@ -52,7 +52,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: undefined,
 });
 
-useProviderDisabled(ref(props.disabled));
+useProviderDisabled(computed(() => props.disabled));
 
 const updateRefs = inject(UPDATE_REFS);
 
