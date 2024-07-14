@@ -226,8 +226,8 @@ ant-design-vue ui组件库form组件的二次封装
     appendField: AppendField;
     /** 在指定字段数据路径的字段配置前插入新的字段配置 */
     prependField: PrependField;
-    /** 获取指定字段数据路径的字段所在分组字段的配置 */
-    getParentField: GetParentField;
+    /** 获取指定字段数据路径的字段所在字段分组 */
+    getParentFields: GetParentFields;
   };
   
   /**
