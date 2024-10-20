@@ -191,13 +191,13 @@ async function runRules(rules: Logic['rules'], baseParam: ProParam) {
         break;
       }
       case 'hidden':
-        form.setField(path, preField => ({ ...preField, hidden: value }));
+        form.setField(path, { hidden: value });
         break;
       case 'disabled':
-        form.setField(path, preField => ({ ...preField, disabled: value }));
+        form.setField(path, { disabled: value });
         break;
       case 'options':
-        form.setField(path, preField => ({ ...preField, options: value }));
+        form.setField(path, { options: value });
         break;
       case 'validateRule': {
         const validateRule: Rule[] = [];

@@ -26,6 +26,29 @@ import { ProFormInstance } from '..';
 
 export type FormData = { [key: string]: any };
 
+type KnownKeys<T> = {
+  [K in keyof T as string extends K
+    ? never
+    : number extends K
+    ? never
+    : K]: T[K];
+};
+
+type FlattenKeys<T> = T extends FormData
+  ? keyof KnownKeys<T> | FlattenKeys<T[keyof KnownKeys<T>]>
+  : never;
+
+type AllowKey<D extends FormData> = Exclude<
+  FlattenKeys<D> | (string & Record<never, never>),
+  number | symbol
+>;
+
+type ExtendWithAny<D> = D extends object
+  ? {
+      [K in keyof D]: ExtendWithAny<D[K]>;
+    } & { [key: string]: any }
+  : D;
+
 type DefaultProps = { path?: string; [key: string]: any };
 
 type VModelProps<T = any> = {
@@ -58,9 +81,9 @@ export type Grid = boolean | GridProps;
 /**
  * @type {Object} Common - 公共字段类型
  */
-export interface Common<D extends FormData = FormData> {
+export interface Common<D extends FormData = object> {
   /** 标识key */
-  key?: keyof D & string;
+  key?: AllowKey<D>;
   /** 中文名称 */
   label?: SlotComponentType;
   /** 插槽，可包含formItem插槽和component插槽 */
@@ -70,7 +93,7 @@ export interface Common<D extends FormData = FormData> {
   /** 网格布局属性 */
   grid?: Grid;
   /** 子字段 */
-  fields?: Array<Field>;
+  fields?: Fields<D>;
   /** 是否隐藏 */
   hidden?: boolean;
   /** 自动化指令 */
@@ -165,12 +188,13 @@ export type FieldType = {
   /** 自定义组件 */
   'custom': { component?: RenderComponentType | Raw<RenderComponentType>, slots?: Slots } & Record<string, any>;
 };
-export type Field<D extends FormData = FormData> =
-  | FieldType[keyof FieldType] &
-      Omit<FormItemProps, 'label'> &
-      GridItemProps &
-      Common<D>;
-export type Fields<D extends FormData = FormData> = Array<Field<D>>;
+
+export type Field<D extends FormData = object> = FieldType[keyof FieldType] &
+  Omit<FormItemProps, 'label'> &
+  GridItemProps &
+  Common<D>;
+
+export type Fields<D extends FormData = object> = Array<Field<D>>;
 
 export type BaseComponentStringName = Exclude<
   Field['component'],
@@ -231,9 +255,9 @@ export type GetParentFields = (path?: string) => Field | undefined;
  * @param {Fields} initFields - 初始化表单字段
  * @returns {Object} form
  */
-export type UseFields = (initFields: Fields) => {
+export type UseFields<D extends FormData = object> = (initFields: Fields) => {
   /** 表单字段Ref */
-  fields: Ref<Fields>;
+  fields: Ref<Fields<D>>;
   /** 获取指定字段数据路径的字段配置 */
   getField: GetField;
   /** 设置指定字段数据路径的字段配置 */
@@ -255,11 +279,11 @@ export type UseFields = (initFields: Fields) => {
  * @param {array} initFormData - 初始化表单数据
  * @returns {Object}
  */
-export type UseFormData<D extends FormData = FormData> = (
+export type UseFormData<D extends FormData = object> = (
   initFormData: Partial<D>
 ) => {
   /** 表单数据Ref */
-  formData: Ref<D | FormData>;
+  formData: Ref<ExtendWithAny<D>>;
   /** 获取指定字段数据路径的值 */
   getFormData: GetFormData;
   /** 设置指定字段数据路径的值 */
@@ -279,11 +303,11 @@ export type UseFormRef = () => {
   formRef: Ref<ProFormInstance | undefined>;
 };
 
-export type Form<D extends FormData = FormData> = ReturnType<UseFormData<D>> &
-  ReturnType<UseFields> &
+export type Form<D extends FormData = object> = ReturnType<UseFormData<D>> &
+  ReturnType<UseFields<D>> &
   ReturnType<UseFormRef>;
 
-export type UseForm<T extends FormData = FormData> = <D extends T = T>(
+export type UseForm = <D extends FormData = object>(
   initFormData?: Partial<D>,
   initFields?: Fields<D>
 ) => Form<D>;

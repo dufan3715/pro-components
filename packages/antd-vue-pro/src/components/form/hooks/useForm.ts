@@ -4,11 +4,11 @@ import useFields from './useFields';
 import useFormData from './useFormData';
 import useFormRef from './useFormRef';
 
-const useForm: UseForm = (initFormData = {}, initFields = []) => {
+const useForm: UseForm = ((initFormData = {}, initFields = []) => {
   return {
     ...useFormData(initFormData),
     ...useFields(initFields),
     ...useFormRef(),
   };
-};
+}) as any;
 export default useForm;

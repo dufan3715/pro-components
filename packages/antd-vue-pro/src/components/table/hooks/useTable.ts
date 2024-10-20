@@ -6,7 +6,7 @@ import { UseTable } from '../types';
 
 const getDefaultPagination = () => ({ current: 1, pageSize: 10, total: 0 });
 
-const useTable = (({
+const useTable: UseTable = (({
   columns: initColumns = [],
   dataSource: initDataSource = [],
   showColumnKeys: initShowColumnKeys = undefined,
@@ -43,7 +43,7 @@ const useTable = (({
   };
 
   // 分页参数
-  const pagination = ref(initPagination);
+  const pagination = ref<PaginationProps>(initPagination);
 
   // 修改分页参数
   const setPagination = (val: PaginationProps) => {
@@ -51,7 +51,7 @@ const useTable = (({
   };
 
   const { formData, fields, setFormData, setField } = useForm(
-    initSearchParam as any,
+    initSearchParam,
     initSearchFields
   );
 
@@ -86,6 +86,6 @@ const useTable = (({
     setPagination,
     resetQueryParams,
   };
-}) as UseTable;
+}) as any;
 
 export default useTable;

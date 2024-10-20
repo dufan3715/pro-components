@@ -56,7 +56,7 @@ useProviderDisabled(computed(() => props.disabled));
 
 const updateRefs = inject(UPDATE_REFS);
 
-const getPath = (fieldKey: Field['key']) => {
+const getPath = (fieldKey?: string) => {
   return [props.path, fieldKey].filter(Boolean).join('.');
 };
 
@@ -76,7 +76,7 @@ const proFormPropKeys = computed<ProFormPropKeys>(() => {
 
 const withDefault = (field: Field): Field => {
   const baseFormItemProps = pickBy(
-    field as any,
+    field,
     (v, k) => formItemPropKeys.includes(k) || k.startsWith('data-form-item')
   );
   const defaultProps = {
@@ -90,7 +90,7 @@ const withDefault = (field: Field): Field => {
 
 const omitFormItemProps = memoize((field: Field) => {
   return omitBy(
-    field as any,
+    field,
     (v, k) =>
       proFormPropKeys.value.includes(k as any) || k.startsWith('data-form-item')
   );

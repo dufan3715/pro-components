@@ -27,7 +27,7 @@ const components = [ProForm, ProTable, ProComponentProvider];
 export default {
   install(app: import('vue').App) {
     components.forEach(component => {
-      app.component(component.name, component);
+      app.component(component.name!, component);
     });
   },
 };
