@@ -22,7 +22,7 @@ const ProComponentProvider = withInstall(ComponentProvider);
 
 export { ProForm, ProTable, ProComponentProvider };
 
-const components = [ProForm, ProTable, ProComponentProvider];
+const components = [ProForm, ProTable as any, ProComponentProvider];
 
 export default {
   install(app: import('vue').App) {

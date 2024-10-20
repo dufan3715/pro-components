@@ -318,27 +318,27 @@ export type UseCommand = (param: { refs: Refs; form: Form }) => {
 };
 
 /**
- * @type {string} RuleType - 逻辑规则类型
- * @ value - 字段赋值
- * @ hidden - 字段隐藏/显示
- * @ disabled - 字段禁用/启用
- * @ options - 字段选项枚举变更
- * @ validateRule - 字段校验规则变更
- * @ fieldMergeOverrides - 字段配置
- * @ validate - 字段触发校验
- * @ clearValidate - 字段触发清除校验
- * @ message - 字段触发提示
+ * @type {string} ActionType - 逻辑规则类型
+ * @ setValue - 字段赋值
+ * @ setHidden - 字段隐藏/显示
+ * @ setDisabled - 字段禁用/启用
+ * @ setOptions - 字段选项枚举变更
+ * @ setRules - 字段校验规则变更
+ * @ setField - 字段配置变更
+ * @ triggerValidate - 触发字段校验
+ * @ triggerClearValidate - 触发清除字段校验
+ * @ triggerMessage - 触发字段提示
  */
-export type RuleType =
-  | 'value'
-  | 'hidden'
-  | 'disabled'
-  | 'options'
-  | 'validateRule'
-  | 'fieldMergeOverrides'
-  | 'validate'
-  | 'clearValidate'
-  | 'message';
+export type ActionType =
+  | 'setValue'
+  | 'setHidden'
+  | 'setDisabled'
+  | 'setOptions'
+  | 'setRules'
+  | 'setField'
+  | 'triggerValidate'
+  | 'triggerClearValidate'
+  | 'triggerMessage';
 
 /**
  * @type {string} Expression - 表达式字符串 需要是一个js表达式字符串或者一个函数字符串，表达式的执行结果或者函数的返回值将作为结果返回
@@ -358,15 +358,15 @@ export type Condition = {
 };
 
 /**
- * @type {object} Rule - 逻辑运行规则
+ * @type {object} Action - 逻辑运行规则
  * @property {string} path - 字段路径
- * @property {RuleType} type - 逻辑规则类型
+ * @property {ActionType} type - 逻辑规则类型
  * @property {Expression} expression - 表达式对象
  * @property {boolean} [disabled] - 是否禁用
  */
-export type Rule = {
+export type Action = {
   path: string;
-  type: RuleType;
+  type: ActionType;
   expression: Expression;
   disabled?: boolean;
 };
@@ -378,7 +378,7 @@ export type Logic = {
   /** 逻辑执行条件 */
   conditions: Array<Condition>;
   /** 逻辑规则集合 */
-  rules: Array<Rule>;
+  actions: Array<Action>;
   /** 是否禁用 */
   disabled?: boolean;
 };
@@ -406,7 +406,7 @@ export type Commands = Array<Command>;
 /**
  * @type {string} CommandTrigger - 指令触发方式
  */
-export type CommandTrigger = 'onInit' | 'onUpdateValue' | 'onBlur' | 'onFocus';
+export type CommandTrigger = 'onWatch' | 'onUpdateValue' | 'onBlur' | 'onFocus';
 
 /**
  * @type {Object<CommandTrigger, Commands>} AutoCommand - 自动化指令

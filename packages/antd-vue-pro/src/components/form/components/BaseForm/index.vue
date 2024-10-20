@@ -110,10 +110,7 @@ const updateFormData: UpdateFormData = (path, value) => {
 
 const command = computed(() => {
   return props.form && !props.autoCommandDisabled
-    ? useCommand({
-        refs: exposed.refs,
-        form: props.form,
-      })
+    ? useCommand({ refs: exposed.refs, form: props.form })
     : null;
 });
 

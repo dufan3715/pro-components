@@ -154,7 +154,7 @@ async function validateConditions(
 }
 
 /** 运行逻辑规则 */
-async function runRules(rules: Logic['rules'], baseParam: ProParam) {
+async function runRules(rules: Logic['actions'], baseParam: ProParam) {
   const { form, run, refs, message, logQueue } = baseParam;
   logQueue.push([[`逻辑执行规则： `, ['purple', 'indent2']]]);
   for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex += 1) {
@@ -185,21 +185,21 @@ async function runRules(rules: Logic['rules'], baseParam: ProParam) {
       [`${path}`, ['gray']],
     ]);
     switch (type) {
-      case 'value': {
+      case 'setValue': {
         form.setFormData(path, value);
         nextTick(() => run(path, 'onUpdateValue'));
         break;
       }
-      case 'hidden':
+      case 'setHidden':
         form.setField(path, { hidden: value });
         break;
-      case 'disabled':
+      case 'setDisabled':
         form.setField(path, { disabled: value });
         break;
-      case 'options':
+      case 'setOptions':
         form.setField(path, { options: value });
         break;
-      case 'validateRule': {
+      case 'setRules': {
         const validateRule: Rule[] = [];
         for (
           let validateRuleIndex = 0;
@@ -232,16 +232,16 @@ async function runRules(rules: Logic['rules'], baseParam: ProParam) {
         form.setField(path, preField => ({ ...preField, rule: validateRule }));
         break;
       }
-      case 'fieldMergeOverrides':
+      case 'setField':
         form.setField(path, preField => ({ ...preField, ...value }));
         break;
-      case 'validate':
+      case 'triggerValidate':
         // refs.formItemRefs[path]?.validate();
         break;
-      case 'clearValidate':
+      case 'triggerClearValidate':
         // refs.formItemRefs[path]?.restoreValidation();
         break;
-      case 'message':
+      case 'triggerMessage':
         message.info(value);
         break;
       default: {
@@ -287,8 +287,8 @@ const runCommands: RunCommands = async ({ path, trigger, ...baseParam }) => {
 
     for (let logicIndex = 0; logicIndex < logics.length; logicIndex += 1) {
       const logic = logics[logicIndex];
-      const { conditions, rules } = logic;
-      if (conditions.length === 0 || rules.length === 0) return;
+      const { conditions, actions } = logic;
+      if (conditions.length === 0 || actions.length === 0) return;
       logQueue.push([
         [`逻辑${logicIndex + 1}：`, ['large', 'purple']],
         [`${path}`, ['large', 'red']],
@@ -300,7 +300,7 @@ const runCommands: RunCommands = async ({ path, trigger, ...baseParam }) => {
       if (logic.disabled) return;
       const conditionsValid = await validateConditions(conditions, baseParam);
       if (conditionsValid) {
-        await runRules(rules, baseParam);
+        await runRules(actions, baseParam);
       }
     }
     logQueue.push([

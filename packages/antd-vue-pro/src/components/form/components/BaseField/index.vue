@@ -6,7 +6,6 @@ import {
   inject,
   isVNode,
   nextTick,
-  onMounted,
   ref,
   useAttrs,
   watch,
@@ -28,7 +27,7 @@ import {
 import { useInitProps } from '../../hooks';
 
 type Props = {
-  component: Field['component'];
+  component?: Field['component'];
   path?: string;
   label?: Field['label'];
 };
@@ -123,8 +122,6 @@ const mergedAttrs = computed(() => {
   const methods = { ...rewriteMethod('onUpdateValue') };
   switch (compType) {
     case 'input':
-      Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
-      break;
     case 'input-number':
       Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
       break;
@@ -149,12 +146,6 @@ const setComponentRef = (el: any) => {
   if (!el) return;
   updateRefs?.('fieldRefs', props.path, el);
 };
-
-onMounted(() => {
-  if (attrs.autoCommand && attrs.autoCommand?.onInit?.length > 0) {
-    command?.value?.run(props.path, 'onInit');
-  }
-});
 
 function handleFocus(...args: any) {
   updateActivePath?.(props.path);

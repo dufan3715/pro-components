@@ -7,15 +7,7 @@ import {
 } from 'ant-design-vue';
 import { cloneDeep, omit } from 'lodash-es';
 import { ColumnsType, ColumnType } from 'ant-design-vue/es/table';
-import {
-  computed,
-  nextTick,
-  ref,
-  unref,
-  useSlots,
-  useAttrs,
-  onMounted,
-} from 'vue';
+import { computed, nextTick, ref, unref, useAttrs, onMounted } from 'vue';
 import { INJECT_KEYS, useInjectProps } from '../../component-provider';
 import { ContainerFragment, type ContainerComponent } from '../../form';
 import {
@@ -87,9 +79,7 @@ const cache =
 const size = ref(unref(props.size ?? injectProps.size));
 
 const attrs: TableProps = useAttrs();
-// prettier-ignore
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { table = {} } = props
+const { table = {} } = props;
 const {
   columns,
   dataSource,
@@ -131,11 +121,16 @@ const reset = () => {
   });
 };
 
-const customSlotNames = ['search', 'buttons', 'table'];
 type TableInstance = InstanceType<typeof Table>;
 type TableSlots = TableInstance['$slots'];
-const slots = useSlots();
-const tableSlots = omit(slots, customSlotNames) as TableSlots;
+type CustomSlots = {
+  search(): any;
+  buttons(): any;
+  table(): any;
+};
+const slots = defineSlots<CustomSlots & TableSlots>();
+
+const tableSlots = omit(slots, ['search', 'buttons', 'table']);
 
 const form = {
   formData: props.table?.searchParam || {},
@@ -180,7 +175,7 @@ const mergeTableProps = computed<TableProps>(() => {
     pagination: attrs.pagination ?? {
       showTotal: total => `共 ${total} 条`,
       showSizeChanger: true,
-      pageSizeOptions: ['10', '20', '30', '40', '50', '100', '400'],
+      pageSizeOptions: ['10', '20', '30', '40', '50', '100'],
       showQuickJumper: true,
       ...pagination?.value,
       'onUpdate:current': onPaginationChange,
