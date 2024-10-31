@@ -117,6 +117,11 @@ const command = computed(() => {
 const formInstanceRef = ref<FormInstance | null>(null);
 onMounted(() => {
   Object.assign(exposed, formInstanceRef.value);
+  if (props.form) {
+    if (props.form.setFormRef && !props.form.formRef?.value) {
+      props.form.setFormRef(exposed);
+    }
+  }
 });
 
 provide(FORM_DATA, _formData);

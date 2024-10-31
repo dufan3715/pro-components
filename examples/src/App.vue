@@ -17,7 +17,7 @@ const CodeContainer: Field['componentContainer'] = (p, ctx) => {
       style: { display: 'flex', alignItems: 'center' },
     },
     [
-      ctx.slots.default?.(),
+      ctx.slots.default?.() as any,
       h(
         'a',
         {

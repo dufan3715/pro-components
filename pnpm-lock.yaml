@@ -153,10 +153,6 @@ importers:
       vue:
         specifier: ^3.3.4
         version: 3.5.12(typescript@5.2.2)
-    devDependencies:
-      vue-component-type-helpers:
-        specifier: ^1.8.22
-        version: 1.8.22
 
   packages/naive-ui-pro:
     dependencies:
@@ -3911,9 +3907,6 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  vue-component-type-helpers@1.8.22:
-    resolution: {integrity: sha512-LK3wJHs3vJxHG292C8cnsRusgyC5SEZDCzDCD01mdE/AoREFMl2tzLRuzwyuEsOIz13tqgBcnvysN3Lxsa14Fw==}
-
   vue-eslint-parser@9.3.2:
     resolution: {integrity: sha512-q7tWyCVaV9f8iQyIA5Mkj/S6AoJ9KBN8IeUSf3XEmBrOtxOZnfTg5s4KClbZBCK3GtnT/+RyCLZyDHuZwTuBjg==}
     engines: {node: ^14.17.0 || >=16.0.0}
@@ -7143,7 +7136,7 @@ snapshots:
     dependencies:
       htmlparser2: 3.10.1
       postcss: 7.0.39
-      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
+      postcss-syntax: 0.36.2(postcss-html@0.36.0)(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
 
   postcss-html@1.5.0:
     dependencies:
@@ -7156,7 +7149,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.23.2
       postcss: 7.0.39
-      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
+      postcss-syntax: 0.36.2(postcss-html@0.36.0)(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
     transitivePeerDependencies:
       - supports-color
 
@@ -7171,7 +7164,7 @@ snapshots:
   postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39):
     dependencies:
       postcss: 7.0.39
-      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
+      postcss-syntax: 0.36.2(postcss-html@0.36.0)(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
       remark: 10.0.1
       unist-util-find-all-after: 1.0.5
 
@@ -7223,7 +7216,7 @@ snapshots:
     dependencies:
       postcss: 8.4.31
 
-  postcss-syntax@0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39):
+  postcss-syntax@0.36.2(postcss-html@0.36.0)(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39):
     dependencies:
       postcss: 7.0.39
     optionalDependencies:
@@ -7930,7 +7923,7 @@ snapshots:
       postcss-sass: 0.3.5
       postcss-scss: 2.1.1
       postcss-selector-parser: 3.1.2
-      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
+      postcss-syntax: 0.36.2(postcss-html@0.36.0)(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.5.0)(postcss-less@6.0.0(postcss@8.4.31))(postcss@8.4.31))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
       postcss-value-parser: 3.3.1
       resolve-from: 4.0.0
       signal-exit: 3.0.7
@@ -8264,8 +8257,6 @@ snapshots:
     dependencies:
       evtd: 0.2.4
       vue: 3.3.8(typescript@5.2.2)
-
-  vue-component-type-helpers@1.8.22: {}
 
   vue-eslint-parser@9.3.2(eslint@8.53.0):
     dependencies:

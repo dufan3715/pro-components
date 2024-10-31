@@ -5,7 +5,11 @@ import { type UseFormRef } from '../types';
 const useFormRef: UseFormRef = () => {
   const formRef = ref<ProFormInstance>();
 
-  return { formRef };
+  const setFormRef = (val: ProFormInstance) => {
+    formRef.value = val;
+  };
+
+  return { formRef, setFormRef };
 };
 
 export default useFormRef;

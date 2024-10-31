@@ -34,14 +34,25 @@ type KnownKeys<T> = {
     : K]: T[K];
 };
 
-type FlattenKeys<T> = T extends FormData
-  ? keyof KnownKeys<T> | FlattenKeys<T[keyof KnownKeys<T>]>
-  : never;
+type FlattenKeys<T, P extends string = ''> = T extends FormData
+  ? {
+      [K in keyof KnownKeys<T>]: K extends string
+        ? KnownKeys<T>[K] extends any[]
+          ? `${P}${K}` | K
+          : `${P}${K}` | K | FlattenKeys<T[K], `${P}${K}.`> extends infer U
+          ? U extends `${infer V}.`
+            ? V
+            : U
+          : never
+        : never;
+    }[keyof KnownKeys<T>]
+  : P;
 
-type AllowKey<D extends FormData> = Exclude<
-  FlattenKeys<D> | (string & Record<never, never>),
-  number | symbol
->;
+type AllowKey<D extends FormData> =
+  | FlattenKeys<D>
+  | (string & Record<never, never>);
+
+type Path<D extends FormData = FormData> = AllowKey<D>;
 
 type ExtendWithAny<D> = D extends object
   ? {
@@ -81,7 +92,7 @@ export type Grid = boolean | GridProps;
 /**
  * @type {Object} Common - 公共字段类型
  */
-export interface Common<D extends FormData = object> {
+export interface Common<D extends FormData = FormData> {
   /** 标识key */
   key?: AllowKey<D>;
   /** 中文名称 */
@@ -189,12 +200,12 @@ export type FieldType = {
   'custom': { component?: RenderComponentType | Raw<RenderComponentType>, slots?: Slots } & Record<string, any>;
 };
 
-export type Field<D extends FormData = object> = FieldType[keyof FieldType] &
+export type Field<D extends FormData = FormData> = FieldType[keyof FieldType] &
   Omit<FormItemProps, 'label'> &
   GridItemProps &
   Common<D>;
 
-export type Fields<D extends FormData = object> = Array<Field<D>>;
+export type Fields<D extends FormData = FormData> = Array<Field<D>>;
 
 export type BaseComponentStringName = Exclude<
   Field['component'],
@@ -216,12 +227,19 @@ export type GetRef = {
   (type: 'formItemRefs', path: string): FormItemInstance;
   (type: 'fieldRefs', path: string): any;
 };
-export type GetFormData = (path?: string) => DeepReadonly<any>;
-export type SetFormData = {
-  (path: string, value: any | ((preValue: DeepReadonly<any>) => any)): void;
-  (value: any | ((preValue: DeepReadonly<any>) => any)): void;
+
+export type GetFormData<D extends FormData = FormData> = (
+  path?: Path<D>
+) => DeepReadonly<any>;
+export type SetFormData<D extends FormData = FormData> = {
+  (path: Path<D>, value: any | ((preValue: DeepReadonly<any>) => any)): void;
+  (
+    value: Partial<D> | ((preValue: DeepReadonly<Partial<D>>) => Partial<D>)
+  ): void;
 };
-export type SetActivePath = (path: string | undefined) => void;
+export type SetActivePath<D extends FormData = FormData> = (
+  path: Path<D> | undefined
+) => void;
 
 // components/Field
 type FieldAttrsType = {
@@ -238,40 +256,54 @@ type FieldAttrsType = {
 export type BaseFieldAttrs = FieldAttrsType[keyof FieldAttrsType];
 
 // hooks/useFields
-export type GetField = (path?: string) => Field | undefined;
-export type SetField = (
-  path: string | undefined,
-  field: Field | ((preField: ReturnType<GetField>) => Field),
+export type GetField<D extends FormData = FormData> = (
+  path?: Path<D>
+) => Field<D> | undefined;
+export type SetField<D extends FormData = FormData> = (
+  path: Path<D> | undefined,
+  field: Field<D> | ((preField: ReturnType<GetField<D>>) => Field<D>),
   updateType?: 'rewrite' | 'merge'
 ) => void;
-export type DeleteField = (path?: string) => void;
-export type GetFieldPath = (path?: string) => string | undefined;
-export type AppendField = (path: string | undefined, field: Field) => void;
-export type PrependField = (path: string | undefined, field: Field) => void;
-export type GetParentFields = (path?: string) => Field | undefined;
+export type DeleteField<D extends FormData = FormData> = (
+  path?: Path<D>
+) => void;
+export type GetFieldPath<D extends FormData = FormData> = (
+  path?: Path<D>
+) => string | undefined;
+export type AppendField<D extends FormData = FormData> = (
+  path: Path<D> | undefined,
+  field: Field<D>
+) => void;
+export type PrependField<D extends FormData = FormData> = (
+  path: Path<D> | undefined,
+  field: Field<D>
+) => void;
+export type GetParentFields<D extends FormData = FormData> = (
+  path?: Path<D>
+) => Field<D> | undefined;
 
 /**
  * @description useFields hook
  * @param {Fields} initFields - 初始化表单字段
  * @returns {Object} form
  */
-export type UseFields<D extends FormData = object> = (initFields: Fields) => {
+export type UseFields<D extends FormData = FormData> = (initFields: Fields) => {
   /** 表单字段Ref */
   fields: Ref<Fields<D>>;
   /** 获取指定字段数据路径的字段配置 */
-  getField: GetField;
+  getField: GetField<D>;
   /** 设置指定字段数据路径的字段配置 */
-  setField: SetField;
+  setField: SetField<D>;
   /** 删除指定字段数据路径的字段配置 */
-  deleteField: DeleteField;
+  deleteField: DeleteField<D>;
   /** 根据字段数据路径获取字段配置路径 */
-  getFieldPath: GetFieldPath;
+  getFieldPath: GetFieldPath<D>;
   /** 在指定字段数据路径的字段配置后添加新的字段配置 */
-  appendField: AppendField;
+  appendField: AppendField<D>;
   /** 在指定字段数据路径的字段配置前插入新的字段配置 */
-  prependField: PrependField;
+  prependField: PrependField<D>;
   /** 获取指定字段数据路径的字段所在字段分组 */
-  getParentFields: GetParentFields;
+  getParentFields: GetParentFields<D>;
 };
 
 /**
@@ -279,19 +311,19 @@ export type UseFields<D extends FormData = object> = (initFields: Fields) => {
  * @param {array} initFormData - 初始化表单数据
  * @returns {Object}
  */
-export type UseFormData<D extends FormData = object> = (
-  initFormData: Partial<D>
+export type UseFormData<D extends FormData = FormData> = (
+  initFormData: Partial<ExtendWithAny<D>>
 ) => {
   /** 表单数据Ref */
   formData: Ref<ExtendWithAny<D>>;
   /** 获取指定字段数据路径的值 */
-  getFormData: GetFormData;
+  getFormData: GetFormData<D>;
   /** 设置指定字段数据路径的值 */
-  setFormData: SetFormData;
+  setFormData: SetFormData<D>;
   /** 当前正在编辑的字段path */
-  activePath: Ref<string | undefined>;
+  activePath: Ref<Path<D> | undefined>;
   /** 设置当前正在编辑的字段path */
-  setActivePath: SetActivePath;
+  setActivePath: SetActivePath<D>;
 };
 
 /**
@@ -301,14 +333,16 @@ export type UseFormData<D extends FormData = object> = (
 export type UseFormRef = () => {
   /** 表单组件实例引用Ref */
   formRef: Ref<ProFormInstance | undefined>;
+  /** 更新实例引用Ref */
+  setFormRef: (ref: any) => void;
 };
 
-export type Form<D extends FormData = object> = ReturnType<UseFormData<D>> &
+export type Form<D extends FormData = FormData> = ReturnType<UseFormData<D>> &
   ReturnType<UseFields<D>> &
   ReturnType<UseFormRef>;
 
-export type UseForm = <D extends FormData = object>(
-  initFormData?: Partial<D>,
+export type UseForm = <D extends FormData = FormData>(
+  initFormData?: Partial<ExtendWithAny<D>>,
   initFields?: Fields<D>
 ) => Form<D>;
 

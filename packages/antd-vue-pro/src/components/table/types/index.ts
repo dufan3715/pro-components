@@ -4,9 +4,12 @@ import type { ColumnType } from 'ant-design-vue/es/table';
 import { Ref } from 'vue';
 import { Fields, SetField, SetFormData } from '../../form/types';
 
-type Data = Record<string, any>;
+type Data = { [key: string]: any };
 interface Column<D extends Data = Data> extends Omit<ColumnType, 'dataIndex'> {
-  dataIndex: keyof D & string;
+  dataIndex: Exclude<
+    keyof D | (string & Record<never, never>),
+    number | symbol
+  >;
 }
 
 export type Columns<D extends Data = Data> = Array<Column<D>>;
@@ -14,13 +17,13 @@ export type Columns<D extends Data = Data> = Array<Column<D>>;
 export type Table<D extends Data = Data> = {
   dataSource: Array<D>;
   columns: Columns<D>;
-  showColumnKeys: Array<keyof D & string>;
+  showColumnKeys: Array<string>;
   searchParam: Partial<D & Record<string, any>>;
   searchFields: Fields<Partial<D>>;
   pagination: PaginationProps;
 };
 
-export type UseTable<T extends Data = Data> = <D extends T = T>(
+export type UseTable = <D extends Data = Data>(
   init: Partial<Table<D>>
 ) => {
   [k in keyof Table<D>]: Ref<Table<D>[k]>;

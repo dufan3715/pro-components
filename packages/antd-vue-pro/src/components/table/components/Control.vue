@@ -1,7 +1,4 @@
-<script
-  lang="ts"
-  setup
-  generic="D extends Record<string, any>, K extends Extract<keyof D, string>">
+<script lang="ts" setup>
 import {
   MenuDivider,
   Dropdown,
@@ -16,8 +13,8 @@ import { computed, ref, watch } from 'vue';
 import type { UseTable, Columns } from '../types';
 
 type Props = {
-  columns: Columns<D>;
-  table?: ReturnType<UseTable<D>>;
+  columns: Columns;
+  table?: ReturnType<UseTable>;
 };
 const props = withDefaults(defineProps<Props>(), {
   table: undefined,
@@ -44,8 +41,8 @@ const checkedColumnsOptions = computed<Array<{ label: string; value: string }>>(
       ?.filter(item => item.key && item.title)
       .map(item => ({
         label: item.title,
-        value: item.key,
-      })) as any
+        value: item.key as string,
+      }))
 );
 
 const checkColumnsVisible = ref(false);
@@ -61,12 +58,12 @@ const checkedColumns = computed({
 
 const onCheckAllChange = (e: any) => {
   checkedColumns.value = e.target.checked
-    ? checkedColumnsOptions.value.map(item => item.value as K)
+    ? checkedColumnsOptions.value.map(item => item.value)
     : [];
   indeterminate.value = false;
 };
 
-const checkColumnsMenuItemClick = (val: K) => {
+const checkColumnsMenuItemClick = (val: string) => {
   if (checkedColumns.value.includes(val)) {
     checkedColumns.value = checkedColumns.value.filter(item => item !== val);
   } else {
@@ -121,8 +118,8 @@ watch(
             <MenuItem
               v-for="item of checkedColumnsOptions"
               :key="item.value"
-              @click="checkColumnsMenuItemClick(item.value as K)">
-              <Checkbox :checked="checkedColumns.includes(item.value as K)">
+              @click="checkColumnsMenuItemClick(item.value)">
+              <Checkbox :checked="checkedColumns.includes(item.value)">
                 <div @click.stop>{{ item.label }}</div>
               </Checkbox>
             </MenuItem>

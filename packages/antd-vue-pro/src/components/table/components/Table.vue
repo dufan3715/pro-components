@@ -1,5 +1,5 @@
 <!-- eslint-disable no-unused-vars -->
-<script lang="ts" setup generic="D extends Record<string, any>">
+<script lang="ts" setup>
 import {
   PaginationProps,
   Table,
@@ -7,7 +7,15 @@ import {
 } from 'ant-design-vue';
 import { cloneDeep, omit } from 'lodash-es';
 import { ColumnsType, ColumnType } from 'ant-design-vue/es/table';
-import { computed, nextTick, ref, unref, useAttrs, onMounted } from 'vue';
+import {
+  computed,
+  nextTick,
+  ref,
+  unref,
+  useAttrs,
+  onMounted,
+  CSSProperties,
+} from 'vue';
 import { INJECT_KEYS, useInjectProps } from '../../component-provider';
 import { ContainerFragment, type ContainerComponent } from '../../form';
 import {
@@ -37,7 +45,7 @@ interface TableProps extends ATableProps {
 
 interface Props extends /* @vue-ignore */ TableProps {
   // 列表表格对象，useTable hook
-  table?: ReturnType<UseTable<D>>;
+  table?: ReturnType<UseTable>;
   // 是否在首列插入index列
   addIndexColumn?: boolean;
   // 是否展示搜索区域
@@ -45,11 +53,11 @@ interface Props extends /* @vue-ignore */ TableProps {
   // 是否展示表格设置控制按钮
   showControl?: boolean;
   // 搜索区域包裹容器
-  searchContainer?: ContainerComponent | any;
+  searchContainer?: ContainerComponent;
   // 按钮控制区域包裹容器
-  controlContainer?: ContainerComponent | any;
+  controlContainer?: ContainerComponent;
   // 表格区域包裹容器
-  tableContainer?: ContainerComponent | any;
+  tableContainer?: ContainerComponent;
   // 分页查询参数缓存对象, 传null则禁用参数缓存
   paramCache?: ParamCache | null;
   // onMounted 时立即触发一次search事件
@@ -88,7 +96,7 @@ const {
   showColumnKeys,
   searchParam,
   setSearchParam,
-} = table as ReturnType<UseTable<D>>;
+} = table as ReturnType<UseTable>;
 
 type Emits = {
   search: [
@@ -190,7 +198,7 @@ const mergeTableProps = computed<TableProps>(() => {
   };
 });
 
-const indexColumn: ColumnType<D> = {
+const indexColumn: ColumnType = {
   title: '序号',
   dataIndex: 'index',
   width: 80,
@@ -198,13 +206,13 @@ const indexColumn: ColumnType<D> = {
 };
 
 const visibleColumns = computed(() => {
-  let list = <ColumnsType<D>>[];
+  let list = <ColumnsType>[];
   if (!props.table) {
     list = mergeTableProps?.value.columns || [];
   } else {
     list =
       mergeTableProps.value.columns?.filter(
-        item => item.key && showColumnKeys.value.includes(item.key as any)
+        item => item.key && showColumnKeys.value.includes(item.key as string)
       ) || [];
   }
   if (props.addIndexColumn ?? injectProps.addIndexColumn) {
@@ -221,7 +229,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="pro-table" :style="($attrs.style as any)">
+  <div class="pro-table" :style="($attrs.style as CSSProperties)">
     <ContainerFragment v-if="showSearch" :component="searchContainer">
       <slot v-if="Object.hasOwn($slots, 'search')" name="search" />
       <SearchForm
@@ -232,7 +240,9 @@ onMounted(() => {
         @reset="reset" />
     </ContainerFragment>
 
-    <ContainerFragment v-if="showControl" :component="controlContainer">
+    <ContainerFragment
+      v-if="showControl || Object.hasOwn($slots, 'buttons')"
+      :component="controlContainer">
       <div v-if="Object.hasOwn($slots, 'buttons')" style="flex: 1">
         <slot name="buttons" />
       </div>
@@ -241,7 +251,7 @@ onMounted(() => {
         v-if="showControl"
         v-model:size="size"
         style="align-self: flex-end"
-        :columns="mergeTableProps.columns as Columns<D>"
+        :columns="mergeTableProps.columns as Columns"
         :table="table" />
     </ContainerFragment>
 
