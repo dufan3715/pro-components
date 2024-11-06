@@ -231,13 +231,13 @@ onMounted(() => {
 <template>
   <div class="pro-table" :style="($attrs.style as CSSProperties)">
     <ContainerFragment v-if="showSearch" :component="searchContainer">
-      <slot v-if="Object.hasOwn($slots, 'search')" name="search" />
-      <SearchForm
-        v-else
-        :form="(form as any)"
-        :cache="cache"
-        @search="searchPage1st"
-        @reset="reset" />
+      <slot name="search">
+        <SearchForm
+          :form="(form as any)"
+          :cache="cache"
+          @search="searchPage1st"
+          @reset="reset" />
+      </slot>
     </ContainerFragment>
 
     <ContainerFragment
@@ -256,20 +256,20 @@ onMounted(() => {
     </ContainerFragment>
 
     <ContainerFragment :component="tableContainer">
-      <slot v-if="Object.hasOwn($slots, 'table')" name="table" />
-      <Table
-        v-else
-        v-bind="mergeTableProps"
-        :columns="visibleColumns"
-        class="base-table"
-        :size="size">
-        <template
-          v-for="(slot, name) of tableSlots"
-          :key="name"
-          #[name]="scoped">
-          <slot :name="name" v-bind="scoped" />
-        </template>
-      </Table>
+      <slot name="table">
+        <Table
+          v-bind="mergeTableProps"
+          :columns="visibleColumns"
+          class="base-table"
+          :size="size">
+          <template
+            v-for="(slot, name) of tableSlots"
+            :key="name"
+            #[name]="scoped">
+            <slot :name="name" v-bind="scoped" />
+          </template>
+        </Table>
+      </slot>
     </ContainerFragment>
   </div>
 </template>

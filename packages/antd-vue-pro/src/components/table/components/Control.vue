@@ -40,7 +40,7 @@ const checkedColumnsOptions = computed<Array<{ label: string; value: string }>>(
     props.columns
       ?.filter(item => item.key && item.title)
       .map(item => ({
-        label: item.title,
+        label: item.title as string,
         value: item.key as string,
       }))
 );

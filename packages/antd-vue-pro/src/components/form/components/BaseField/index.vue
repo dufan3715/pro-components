@@ -10,7 +10,7 @@ import {
   useAttrs,
   watch,
 } from 'vue';
-import { get } from 'lodash-es';
+import { get, omit } from 'lodash-es';
 import { useInjectDisabled } from 'ant-design-vue/es/config-provider/DisabledContext';
 import type { Field, BaseFieldAttrs, CommandTrigger } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
@@ -154,11 +154,11 @@ function handleFocus(...args: any) {
 </script>
 
 <template>
-  <ContainerFragment :component="attrs.componentContainer" :path="path">
+  <ContainerFragment :component="mergedAttrs.componentContainer" :path="path">
     <component
       :is="is"
       :key="forceUpdateKey"
-      v-bind="mergedAttrs"
+      v-bind="omit(mergedAttrs, 'componentContainer')"
       :ref="setComponentRef"
       v-model:[modelName]="value"
       :class="attrs.componentClassName"
