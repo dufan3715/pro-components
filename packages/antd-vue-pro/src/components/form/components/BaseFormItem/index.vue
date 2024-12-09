@@ -56,13 +56,14 @@ useProviderDisabled(computed(() => props.disabled));
 
 const updateRefs = inject(UPDATE_REFS);
 
-const getPath = (fieldKey?: string) => {
-  return [props.path, fieldKey].filter(Boolean).join('.');
+const getPath = (field?: Field) => {
+  const path = field?.name ?? [props.path, field?.key].filter(Boolean);
+  return toPath(path).join('.');
 };
 
 const setFormItemRef = (el: any, field: Field) => {
   if (!el) return;
-  const path = getPath(field.key);
+  const path = getPath(field);
   updateRefs?.('formItemRefs', path, el);
 };
 
@@ -119,29 +120,25 @@ const withDefaultGridItem = memoize((field: Field) => {
   <ContainerFragment
     :component="grid ? AGrid : undefined"
     v-bind="withDefaultGrid">
-    <template
-      v-for="(field, index) of fields"
-      :key="getPath(field.key) || index">
-      <component
-        :is="grid ? AGridItem : ContainerFragment"
+    <template v-for="(field, index) of fields" :key="getPath(field) || index">
+      <ContainerFragment
         v-if="field && !field.hidden"
-        v-bind="grid ? withDefaultGridItem(field) : undefined">
-        <ContainerFragment
-          :component="field.container"
-          :path="getPath(field.key)">
+        :component="grid ? AGridItem : undefined"
+        v-bind="withDefaultGridItem(field)">
+        <ContainerFragment :component="field.container" :path="getPath(field)">
           <FormItem
             v-bind="withDefault(field)"
             :ref="(el: any) => setFormItemRef(el, field)"
             :class="field.className"
             :style="field.style"
             :hide-feedback="field.hideFeedback"
-            :name="path ? toPath(getPath(field.key)) : getPath(field.key)"
-            :path="getPath(field.key)">
+            :name="toPath(getPath(field))"
+            :path="getPath(field)">
             <template v-if="field.fields">
               <BaseFormItem
                 :grid="field.grid ?? grid"
                 :fields="field.fields"
-                :path="getPath(field.key)"
+                :path="getPath(field)"
                 :disabled="field.disabled">
               </BaseFormItem>
             </template>
@@ -152,17 +149,21 @@ const withDefaultGridItem = memoize((field: Field) => {
               <BaseField
                 v-bind="omitFormItemProps(field)"
                 :label="field.label"
-                :path="getPath(field.key)" />
+                :path="getPath(field)" />
             </template>
-            <template v-for="(slot, name) in field.slots" :key="name" #[name]>
+            <template
+              v-for="(slot, name) in field.slots"
+              :key="name"
+              #[name]="scoped">
               <SlotComponent
                 v-if="FORM_ITEM_SLOT_KEYS.includes(name)"
-                v-bind="{ path: getPath(field.key) }"
-                :component="slot" />
+                :path="getPath(field)"
+                :component="slot"
+                v-bind="scoped" />
             </template>
           </FormItem>
         </ContainerFragment>
-      </component>
+      </ContainerFragment>
     </template>
   </ContainerFragment>
 </template>

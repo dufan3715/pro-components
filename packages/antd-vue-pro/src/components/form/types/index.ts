@@ -74,7 +74,7 @@ export type RenderComponentType = Component<VModelProps & DefaultProps>;
 
 export type SlotComponentType = string | Component<DefaultProps>;
 
-export type ContainerComponent = Component<DefaultProps>;
+export type ContainerComponent = Component<DefaultProps> | null;
 
 export type Slots = {
   [name: string]: SlotComponentType;

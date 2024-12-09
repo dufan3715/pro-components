@@ -36,28 +36,20 @@ const useFields: UseFields = initFields => {
     if (!path) return false;
     for (let i = 0; i < fieldList.length; i += 1) {
       const field = fieldList[i];
-      const { key = '' } = field;
-      const concatPath = `${parentPath}${parentPath && key ? '.' : ''}${key}`;
+      const { name, key = '' } = field;
+      const concatPath =
+        name ?? `${parentPath}${parentPath && key ? '.' : ''}${key}`;
       const selfPath = toPath(concatPath).join('.');
-      // eslint-disable-next-line no-continue
-      if (!parsedPath.startsWith(selfPath)) continue;
+      if (parsedPath.includes('.') && !parsedPath.startsWith(selfPath))
+        // eslint-disable-next-line no-continue
+        continue;
       const fieldPath = `${parentFieldPath}[${i}]`;
       if (selfPath && selfPath === parsedPath) {
         updater({ field, fieldIndex: i, parentFields: fieldList, fieldPath });
         return true;
       }
-      // eslint-disable-next-line prettier/prettier
-      if (
-        field.fields &&
-        updateField(
-          path,
-          updater,
-          field.fields,
-          selfPath,
-          `${fieldPath}.fields`,
-          parsedPath
-        )
-      ) {
+      // prettier-ignore
+      if (field.fields && updateField(path, updater, field.fields, selfPath, `${fieldPath}.fields`, parsedPath)) {
         return true;
       }
     }
