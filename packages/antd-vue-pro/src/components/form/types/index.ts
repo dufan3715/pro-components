@@ -256,31 +256,54 @@ type FieldAttrsType = {
 export type BaseFieldAttrs = FieldAttrsType[keyof FieldAttrsType];
 
 // hooks/useFields
+export type FindBy<D extends FormData = FormData> = (
+  field: Readonly<Field<D>>
+) => boolean;
+
+export type UpdateFieldOptions = {
+  /**
+   * 更新所有符合条件的字段，默认false（仅更新第一个）
+   */
+  all?: boolean;
+};
+
 export type GetField<D extends FormData = FormData> = (
   path?: Path<D>
-) => Field<D> | undefined;
+) => Readonly<Field<D>> | undefined;
+
 export type SetField<D extends FormData = FormData> = (
-  path: Path<D> | undefined,
-  field: Field<D> | ((preField: ReturnType<GetField<D>>) => Field<D>),
-  updateType?: 'rewrite' | 'merge'
+  path: Path<D> | FindBy<D> | undefined,
+  field: Field<D> | ((preField: Readonly<Field<D>>) => Field<D>),
+  options?: {
+    /**
+     * 更新方式 rewrite替换重写，merge合并(默认)
+     */
+    updateType?: 'rewrite' | 'merge';
+  } & UpdateFieldOptions
 ) => void;
+
 export type DeleteField<D extends FormData = FormData> = (
-  path?: Path<D>
+  path: Path<D>,
+  options?: UpdateFieldOptions
 ) => void;
+
 export type GetFieldPath<D extends FormData = FormData> = (
-  path?: Path<D>
+  path: Path<D>
 ) => string | undefined;
+
 export type AppendField<D extends FormData = FormData> = (
   path: Path<D> | undefined,
   field: Field<D>
 ) => void;
+
 export type PrependField<D extends FormData = FormData> = (
   path: Path<D> | undefined,
   field: Field<D>
 ) => void;
+
 export type GetParentFields<D extends FormData = FormData> = (
-  path?: Path<D>
-) => Field<D> | undefined;
+  path: Path<D>
+) => Fields<D> | undefined;
 
 /**
  * @description useFields hook
@@ -294,7 +317,7 @@ export type UseFields<D extends FormData = FormData> = (initFields: Fields) => {
   getField: GetField<D>;
   /** 设置指定字段数据路径的字段配置 */
   setField: SetField<D>;
-  /** 删除指定字段数据路径的字段配置 */
+  /** 删除指定字段数据路径的字段配置, 或许你更应该使用setField(path, { hidden: true })来隐藏字段 */
   deleteField: DeleteField<D>;
   /** 根据字段数据路径获取字段配置路径 */
   getFieldPath: GetFieldPath<D>;

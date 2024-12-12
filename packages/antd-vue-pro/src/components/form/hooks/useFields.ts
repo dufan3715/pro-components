@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { ref } from 'vue';
+import { ref, shallowReadonly } from 'vue';
 import { toPath } from 'lodash-es';
 import type {
   Field,
@@ -12,10 +12,12 @@ import type {
   AppendField,
   PrependField,
   GetParentFields,
+  FindBy,
+  UpdateFieldOptions,
 } from '../types';
 
 type UpdaterParam = {
-  field: Field;
+  field: Readonly<Field>;
   fieldIndex: number;
   parentFields: Fields;
   fieldPath: string;
@@ -26,31 +28,45 @@ const useFields: UseFields = initFields => {
   const fields = ref(initFields);
 
   const updateField = (
-    path: string,
+    path: string | FindBy,
     updater: Updater,
+    options?: UpdateFieldOptions,
     fieldList: Fields = fields.value as any,
     parentPath = '',
     parentFieldPath = '',
-    parsedPath = toPath(path).join('.')
+    parsedPath = typeof path === 'function' ? '' : toPath(path).join('.')
   ): boolean => {
     if (!path) return false;
+    const { all = false } = options || {};
+
     for (let i = 0; i < fieldList.length; i += 1) {
       const field = fieldList[i];
-      const { name, key = '' } = field;
-      const concatPath =
-        name ?? `${parentPath}${parentPath && key ? '.' : ''}${key}`;
-      const selfPath = toPath(concatPath).join('.');
-      if (parsedPath.includes('.') && !parsedPath.startsWith(selfPath))
-        // eslint-disable-next-line no-continue
-        continue;
       const fieldPath = `${parentFieldPath}[${i}]`;
-      if (selfPath && selfPath === parsedPath) {
-        updater({ field, fieldIndex: i, parentFields: fieldList, fieldPath });
-        return true;
+      let found = false;
+      let selfPath = '';
+      if (typeof path === 'function') {
+        found = path(shallowReadonly(field));
+      } else {
+        const { name, key = '' } = field;
+        const concatPath =
+          name ?? `${parentPath}${parentPath && key ? '.' : ''}${key}`;
+        selfPath = toPath(concatPath).join('.');
+        found = !!selfPath && selfPath === parsedPath;
       }
+
+      if (found) {
+        updater({ field, fieldIndex: i, parentFields: fieldList, fieldPath });
+        if (!all) return true;
+      }
+
+      if (parsedPath.includes('.') && !parsedPath.startsWith(selfPath)) {
+        // eslint-disable-next-line no-continue
+        if (!all) continue;
+      }
+
       // prettier-ignore
-      if (field.fields && updateField(path, updater, field.fields, selfPath, `${fieldPath}.fields`, parsedPath)) {
-        return true;
+      if (field.fields && updateField(path, updater, options, field.fields, selfPath, `${fieldPath}.fields`, parsedPath)) {
+        if (!all) return true;
       }
     }
     return false;
@@ -65,28 +81,35 @@ const useFields: UseFields = initFields => {
     return res;
   };
 
-  const setField: SetField = (path, field, updateType = 'merge') => {
-    if (!path) return;
-    updateField(path, ({ field: preField, fieldIndex, parentFields }) => {
-      let value = field;
-      if (typeof field === 'function') {
-        value = field(preField);
-      }
-      const newField =
-        updateType === 'rewrite' ? value : { ...preField, ...value };
-      // eslint-disable-next-line no-param-reassign
-      parentFields[fieldIndex] = newField as Field;
-    });
+  const setField: SetField = (path, field, options) => {
+    if (!path || !field) return;
+    const { updateType = 'merge', ...rest } = options || {};
+    updateField(
+      path,
+      ({ field: preField, fieldIndex, parentFields }) => {
+        let value = field;
+        if (typeof field === 'function') {
+          value = field(preField);
+        }
+        if (!value) return;
+        const newField =
+          updateType === 'rewrite' ? value : { ...preField, ...value };
+        // eslint-disable-next-line no-param-reassign
+        parentFields[fieldIndex] = newField as Field;
+      },
+      rest
+    );
   };
 
-  /**
-   * @description 删除字段，或许你更应该使用setField(path, { hidden: true })来隐藏字段
-   */
-  const deleteField: DeleteField = path => {
+  const deleteField: DeleteField = (path, options) => {
     if (!path) return;
-    updateField(path, ({ fieldIndex, parentFields }) => {
-      parentFields.splice(fieldIndex, 1);
-    });
+    updateField(
+      path,
+      ({ fieldIndex, parentFields }) => {
+        parentFields.splice(fieldIndex, 1);
+      },
+      options
+    );
   };
 
   const addField = (
@@ -94,6 +117,7 @@ const useFields: UseFields = initFields => {
     field: Field,
     placement: 'before' | 'after'
   ): void => {
+    if (!field) return;
     if (path) {
       updateField(path, ({ fieldIndex, parentFields }) => {
         const index = placement === 'after' ? fieldIndex + 1 : fieldIndex;
