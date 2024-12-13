@@ -1,13 +1,15 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "1.1.17",
+  "version": "1.1.18",
   "description": "二次封装antd vue组件",
   "type": "module",
-  "main": "",
+  "main": "es/index.js",
   "module": "es/index.js",
   "types": "es/index.d.ts",
   "files": [
-    "es"
+    "es",
+    "README.md",
+    "LICENSE"
   ],
   "homepage": "https://github.com/dufan3715/pro-components.git",
   "repository": {
@@ -17,12 +19,6 @@
   "scripts": {
     "build": "vue-tsc && vite build"
   },
-  "keywords": [
-    "vue",
-    "ant-design-vue",
-    "antd-vue-pro",
-    "form components"
-  ],
   "author": "dufan3715",
   "license": "MIT",
   "private": false,
@@ -35,8 +31,29 @@
   },
   "devDependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@types/lodash-es": "^4.17.12",
     "ant-design-vue": "^4.2.5",
     "lodash-es": "^4.17.21",
     "vue": "^3.5.12"
-  }
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": [
+    "vue",
+    "antd",
+    "ant-design-vue",
+    "antd-vue-pro",
+    "pro-components",
+    "ui",
+    "form",
+    "table",
+    "pro-form",
+    "pro-table"
+  ]
 }

@@ -213,21 +213,7 @@ export type BaseComponentStringName = Exclude<
 >;
 
 // components/ProForm
-export type Refs = {
-  formItemRefs: Record<string, FormItemInstance>;
-  fieldRefs: Record<string, any>;
-};
 export type UpdateFormData = (path: string, value: any) => void;
-export type UpdateRefs = (
-  type: keyof Refs,
-  path: string,
-  childRef: Record<string, any>
-) => void;
-export type GetRef = {
-  (type: 'formItemRefs', path: string): FormItemInstance;
-  (type: 'fieldRefs', path: string): any;
-};
-
 export type GetFormData<D extends FormData = FormData> = (
   path?: Path<D>
 ) => DeepReadonly<any>;
@@ -267,9 +253,14 @@ export type UpdateFieldOptions = {
   all?: boolean;
 };
 
+export type WithRefGetter<T> = T & {
+  getFormItemRef?: () => FormItemInstance;
+  getComponentRef?: () => any;
+};
+
 export type GetField<D extends FormData = FormData> = (
   path?: Path<D>
-) => Readonly<Field<D>> | undefined;
+) => Readonly<WithRefGetter<Field<D>>> | undefined;
 
 export type SetField<D extends FormData = FormData> = (
   path: Path<D> | FindBy<D> | undefined,
@@ -370,7 +361,7 @@ export type UseForm = <D extends FormData = FormData>(
 ) => Form<D>;
 
 // hooks/useCommand
-export type UseCommand = (param: { refs: Refs; form: Form }) => {
+export type UseCommand = (form: Form) => {
   run: (path: string, trigger: CommandTrigger) => void;
 };
 

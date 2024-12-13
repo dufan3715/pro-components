@@ -17,12 +17,10 @@ import { ContainerFragment, SlotComponent } from '..';
 import {
   COMPONENT_MAP,
   COMMAND,
-  UPDATE_REFS,
   FORM_DATA,
   UPDATE_FORM_DATA,
   FORM_ITEM_SLOT_KEYS,
   UPDATE_ACTIVE_PATH,
-  GET_REF,
 } from '../../constants';
 import { useInitProps } from '../../hooks';
 
@@ -43,19 +41,28 @@ const props = withDefaults(defineProps<Props>(), {
   getFormItemRef: undefined,
 });
 
+type Emits = {
+  setComponentRef: [el: any];
+  fieldChange: [];
+  fieldBlur: [];
+};
+const emit = defineEmits<Emits>();
+
 const formData = inject(FORM_DATA);
 const updateFormData = inject(UPDATE_FORM_DATA);
-const updateRefs = inject(UPDATE_REFS);
-const getRef = inject(GET_REF);
 const command = inject(COMMAND);
 const updateActivePath = inject(UPDATE_ACTIVE_PATH);
 const { getInitProps } = useInitProps();
 
-const triggerRefChange = () => {
+const componentRef = ref<any>();
+const componentMounted = () => {
+  emit('setComponentRef', componentRef.value);
+};
+
+const triggerFormItemChange = () => {
   if (typeof props.component === 'string' && COMPONENT_MAP.has(props.component))
     return;
-  const formItemRef = getRef?.('formItemRefs', props.path);
-  formItemRef?.onFieldChange();
+  emit('fieldChange');
 };
 
 const value = computed({
@@ -70,7 +77,7 @@ const value = computed({
       return;
     }
     updateFormData?.(props.path, val);
-    triggerRefChange();
+    triggerFormItemChange();
   },
 });
 
@@ -142,11 +149,6 @@ const is = computed(() => {
   return COMPONENT_MAP.get(props.component as any) ?? props.component;
 });
 
-const setComponentRef = (el: any) => {
-  if (!el) return;
-  updateRefs?.('fieldRefs', props.path, el);
-};
-
 function handleFocus(...args: any) {
   updateActivePath?.(props.path);
   (attrs as any).onFocus?.(...args);
@@ -159,12 +161,13 @@ function handleFocus(...args: any) {
       :is="is"
       :key="forceUpdateKey"
       v-bind="omit(mergedAttrs, 'componentContainer')"
-      :ref="setComponentRef"
+      ref="componentRef"
       v-model:[modelName]="value"
       :class="attrs.componentClassName"
       :style="attrs.componentStyle"
       :path="path"
       class="field-component"
+      @vue:mounted="componentMounted"
       @focus="handleFocus">
       <template
         v-for="(slot, name) in attrs.slots"

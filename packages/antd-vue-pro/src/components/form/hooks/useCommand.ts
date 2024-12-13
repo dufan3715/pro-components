@@ -11,7 +11,6 @@ import {
   CommandTrigger,
   UseCommand,
   Expression,
-  Refs,
 } from '../types';
 import { isFunctionString } from '../utils';
 import { RULE_TYPE_MAP } from '../constants';
@@ -47,7 +46,6 @@ type LogQueue = Array<Array<LogParam>>;
 type ProParam = {
   form: Form;
   run: ReturnType<UseCommand>['run'];
-  refs: Refs;
   message: MessageApi;
   logQueue: LogQueue;
 };
@@ -155,7 +153,7 @@ async function validateConditions(
 
 /** 运行逻辑规则 */
 async function runRules(rules: Logic['actions'], baseParam: ProParam) {
-  const { form, run, refs, message, logQueue } = baseParam;
+  const { form, run, message, logQueue } = baseParam;
   logQueue.push([[`逻辑执行规则： `, ['purple', 'indent2']]]);
   for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex += 1) {
     const rule = rules[ruleIndex];
@@ -236,10 +234,8 @@ async function runRules(rules: Logic['actions'], baseParam: ProParam) {
         form.setField(path, preField => ({ ...preField, ...value }));
         break;
       case 'triggerValidate':
-        // refs.formItemRefs[path]?.validate();
         break;
       case 'triggerClearValidate':
-        // refs.formItemRefs[path]?.restoreValidation();
         break;
       case 'triggerMessage':
         message.info(value);
@@ -309,7 +305,7 @@ const runCommands: RunCommands = async ({ path, trigger, ...baseParam }) => {
   }
 };
 
-const useCommand: UseCommand = ({ refs, form }) => {
+const useCommand: UseCommand = form => {
   let message: any;
   try {
     message = m;
@@ -325,7 +321,6 @@ const useCommand: UseCommand = ({ refs, form }) => {
       path,
       trigger,
       form,
-      refs,
       message,
       run,
       logQueue,

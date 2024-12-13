@@ -8,13 +8,13 @@ import {
   Row as AGrid,
   Col as AGridItem,
 } from 'ant-design-vue';
-import { formItemProps } from 'ant-design-vue/es/form';
+import { FormItemInstance, formItemProps } from 'ant-design-vue/es/form';
 import { colProps as gridItemProps } from 'ant-design-vue/es/grid/Col';
-import { computed, inject } from 'vue';
+import { computed, ref } from 'vue';
 import { useProviderDisabled } from 'ant-design-vue/es/config-provider/DisabledContext';
-import type { Field, Fields, Grid } from '../../types';
+import type { Field, Fields, Grid, WithRefGetter } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
-import { UPDATE_REFS, FORM_ITEM_SLOT_KEYS } from '../../constants';
+import { FORM_ITEM_SLOT_KEYS } from '../../constants';
 
 const formItemPropKeys = Object.keys(formItemProps());
 const gridItemPropKeys = Object.keys(gridItemProps());
@@ -54,17 +54,23 @@ const props = withDefaults(defineProps<Props>(), {
 
 useProviderDisabled(computed(() => props.disabled));
 
-const updateRefs = inject(UPDATE_REFS);
-
 const getPath = (field?: Field) => {
   const path = field?.name ?? [props.path, field?.key].filter(Boolean);
   return toPath(path).join('.');
 };
 
+const formItemRefs = ref<FormItemInstance[]>();
+
 const setFormItemRef = (el: any, field: Field) => {
   if (!el) return;
-  const path = getPath(field);
-  updateRefs?.('formItemRefs', path, el);
+  if ((field as WithRefGetter<Field>).getFormItemRef?.() === el) return;
+  Object.assign(field, { getFormItemRef: () => el });
+};
+
+const setComponentRef = (el: any, field: Field) => {
+  if (!el) return;
+  if ((field as WithRefGetter<Field>).getComponentRef?.() === el) return;
+  Object.assign(field, { getComponentRef: () => el });
 };
 
 const proFormPropKeys = computed<ProFormPropKeys>(() => {
@@ -128,12 +134,13 @@ const withDefaultGridItem = memoize((field: Field) => {
         <ContainerFragment :component="field.container" :path="getPath(field)">
           <FormItem
             v-bind="withDefault(field)"
-            :ref="(el: any) => setFormItemRef(el, field)"
+            ref="formItemRefs"
             :class="field.className"
             :style="field.style"
             :hide-feedback="field.hideFeedback"
             :name="toPath(getPath(field))"
-            :path="getPath(field)">
+            :path="getPath(field)"
+            @vue:mounted="() => setFormItemRef(formItemRefs?.[index], field)">
             <template v-if="field.fields">
               <BaseFormItem
                 :grid="field.grid ?? grid"
@@ -149,7 +156,10 @@ const withDefaultGridItem = memoize((field: Field) => {
               <BaseField
                 v-bind="omitFormItemProps(field)"
                 :label="field.label"
-                :path="getPath(field)" />
+                :path="getPath(field)"
+                @set-component-ref="(el: any) => setComponentRef(el, field)"
+                @field-change="() => formItemRefs?.[index].onFieldChange()"
+                @field-blur="() => formItemRefs?.[index].onFieldBlur()" />
             </template>
             <template
               v-for="(slot, name) in field.slots"

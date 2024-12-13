@@ -16,14 +16,11 @@
     "clean": "rm -rf node_modules **/*/node_modules"
   },
   "dependencies": {
-    "glob": "^10.3.10",
-    "lodash-es": "^4.17.21",
     "vue": "^3.4.38"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.5",
     "@commitlint/config-conventional": "^17.6.5",
-    "@types/lodash-es": "^4.17.9",
     "@types/rollup-plugin-visualizer": "^4.2.1",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",

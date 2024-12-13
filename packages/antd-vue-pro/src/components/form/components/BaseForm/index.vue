@@ -1,7 +1,7 @@
 <!-- eslint-disable no-unused-vars, no-underscore-dangle -->
 <script lang="ts" setup>
 import { Form as AForm, FormProps as AFormProps } from 'ant-design-vue';
-import { ref, computed, provide, shallowReactive, onMounted } from 'vue';
+import { ref, computed, provide, onMounted, shallowReactive } from 'vue';
 import { FormExpose, FormInstance } from 'ant-design-vue/es/form/Form';
 import { cloneDeep, omit, set } from 'lodash-es';
 import { useInjectProps, INJECT_KEYS } from '../../../component-provider';
@@ -9,22 +9,17 @@ import { BaseFormItem } from '..';
 import {
   COMMAND,
   UPDATE_FORM_DATA,
-  UPDATE_REFS,
   FORM_DATA,
   UPDATE_ACTIVE_PATH,
-  GET_REF,
 } from '../../constants';
 import { useCommand } from '../../hooks';
 import type {
   FormData,
-  Refs,
   UpdateFormData,
-  UpdateRefs,
   Fields,
   Grid,
   Form,
   SetActivePath,
-  GetRef,
 } from '../../types';
 
 // ?? 打包时dts插件抛异常 https://github.com/microsoft/TypeScript/issues/47663
@@ -39,11 +34,6 @@ interface Props extends /* @vue-ignore */ FormProps {
   grid?: Grid;
   autoCommandDisabled?: boolean;
   activePath?: string;
-}
-
-interface Expose extends FormExpose {
-  refs: Refs;
-  getRef: GetRef;
 }
 
 defineOptions({
@@ -67,19 +57,6 @@ type Emits = {
   'update:activePath': [val: string | undefined];
 };
 const emit = defineEmits<Emits>();
-
-const refs: Refs = {
-  formItemRefs: {},
-  fieldRefs: {},
-};
-const updateRefs: UpdateRefs = (type, path, childRef) => {
-  if (!path) return;
-  refs[type][path] = childRef;
-};
-const getRef: GetRef = (type, path) => {
-  return refs[type][path];
-};
-const exposed: Expose = shallowReactive({ refs, getRef } as any);
 
 const updateActivePath: SetActivePath = (path?: string) => {
   if (props.form) {
@@ -110,9 +87,11 @@ const updateFormData: UpdateFormData = (path, value) => {
 
 const command = computed(() => {
   return props.form && !props.autoCommandDisabled
-    ? useCommand({ refs: exposed.refs, form: props.form })
+    ? useCommand(props.form)
     : null;
 });
+
+const exposed: FormExpose = shallowReactive({} as any);
 
 const formInstanceRef = ref<FormInstance | null>(null);
 onMounted(() => {
@@ -126,12 +105,10 @@ onMounted(() => {
 
 provide(FORM_DATA, _formData);
 provide(UPDATE_FORM_DATA, updateFormData);
-provide(UPDATE_REFS, updateRefs);
-provide(GET_REF, getRef);
 provide(COMMAND, command);
 provide(UPDATE_ACTIVE_PATH, updateActivePath);
 
-defineExpose<Expose>(exposed);
+defineExpose<FormExpose>(exposed);
 </script>
 
 <template>

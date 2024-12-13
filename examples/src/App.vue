@@ -7,7 +7,7 @@ import {
   type ComponentVars,
   type Field,
   type Fields,
-} from '@qin-ui/antd-vue-pro/es';
+} from '@qin-ui/antd-vue-pro';
 import { h } from 'vue';
 
 const CodeContainer: Field['componentContainer'] = (p, ctx) => {
@@ -81,6 +81,11 @@ const submit = () => {
     console.log(form.formData.value);
   });
 };
+
+const test = () => {
+  console.log('proFormRef.value: ', proFormRef.value);
+  console.log('form: ', form);
+};
 </script>
 
 <template>
@@ -92,6 +97,7 @@ const submit = () => {
     </ProComponentProvider>
 
     <button @click="submit">提交</button>
+    <button @click="test">测试</button>
 
     <pre>{{ form.formData }}</pre>
   </div>
