@@ -15,6 +15,7 @@ import {
   useAttrs,
   onMounted,
   CSSProperties,
+  toValue,
 } from 'vue';
 import { INJECT_KEYS, useInjectProps } from '../../component-provider';
 import { ContainerFragment, type ContainerComponent } from '../../form';
@@ -25,12 +26,7 @@ import {
   DefaultControlContainer,
   DefaultTableContainer,
 } from '.';
-import type {
-  Table as TableType,
-  UseTable,
-  Columns,
-  ParamCache,
-} from '../types';
+import type { Table as TableType, UseTable, ParamCache } from '../types';
 
 defineOptions({
   name: 'ProTable',
@@ -48,8 +44,6 @@ interface Props extends /* @vue-ignore */ TableProps {
   table?: ReturnType<UseTable>;
   // 是否在首列插入index列
   addIndexColumn?: boolean;
-  // 是否展示搜索区域
-  showSearch?: boolean;
   // 是否展示表格设置控制按钮
   showControl?: boolean;
   // 搜索区域包裹容器
@@ -62,18 +56,27 @@ interface Props extends /* @vue-ignore */ TableProps {
   paramCache?: ParamCache | null;
   // onMounted 时立即触发一次search事件
   immediateSearch?: boolean;
+  // 搜索栏查询字段表单配置
+  searchFormConfig?: {
+    // 布局 网格 ｜ 行内
+    layout?: 'grid' | 'inline';
+    // 网格布局时默认展开行数量
+    minExpandRows?: number;
+    // 网格布局时默认展开状态
+    defaultExpandStatus?: boolean;
+  };
 }
 
 const props = withDefaults(defineProps<Props>(), {
   table: undefined,
   addIndexColumn: true,
-  showSearch: true,
   showControl: true,
   searchContainer: DefaultSearchContainer,
   controlContainer: DefaultControlContainer,
   tableContainer: DefaultTableContainer,
   paramCache: undefined,
   immediateSearch: false,
+  searchFormConfig: undefined,
 });
 
 const injectProps = useInjectProps(INJECT_KEYS['pro-table']);
@@ -85,6 +88,13 @@ const cache =
     : props.paramCache ?? injectProps?.paramCache;
 
 const size = ref(unref(props.size ?? injectProps.size));
+
+const showControl = props.showControl ?? injectProps.showControl;
+
+const searchFormConfig = {
+  ...injectProps.searchFormConfig,
+  ...props.searchFormConfig,
+};
 
 const attrs: TableProps = useAttrs();
 const { table = {} } = props;
@@ -221,6 +231,8 @@ const visibleColumns = computed(() => {
   return list;
 });
 
+const showSearch = computed(() => toValue(form.fields).length > 0);
+
 onMounted(() => {
   if (props.immediateSearch ?? injectProps.immediateSearch) {
     search();
@@ -235,6 +247,7 @@ onMounted(() => {
         <SearchForm
           :form="(form as any)"
           :cache="cache"
+          v-bind="searchFormConfig"
           @search="searchPage1st"
           @reset="reset" />
       </slot>
@@ -250,8 +263,7 @@ onMounted(() => {
       <Control
         v-if="showControl"
         v-model:size="size"
-        style="align-self: flex-end"
-        :columns="mergeTableProps.columns as Columns"
+        :columns="(mergeTableProps as any).columns"
         :table="table" />
     </ContainerFragment>
 

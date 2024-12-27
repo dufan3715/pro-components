@@ -21,12 +21,13 @@ import {
   // WeekPickerProps,
 } from 'ant-design-vue/es/date-picker';
 import { Common, ProFormProps, ProFormItemProps } from '../../form';
+import { ProTableProps } from '../../table';
 
 type AnyProps<T extends Record<string, any>> = Record<keyof T, any> & Common;
 
 // prettier-ignore
 export type ComponentVars = Partial<{
-  'pro-table': Partial<TableProps>;
+  'pro-table': Partial<TableProps & Pick<ProTableProps, 'showControl' | 'searchFormConfig' | 'paramCache'>>;
   'pro-form': Partial<ProFormProps>;
   'pro-form-item': Partial<ProFormItemProps>;
   // field

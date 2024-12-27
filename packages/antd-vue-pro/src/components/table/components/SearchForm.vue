@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { Button } from 'ant-design-vue';
+import { Space, Button, FormProps } from 'ant-design-vue';
 import { DownOutlined } from '@ant-design/icons-vue';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { get } from 'lodash-es';
 import ProForm, { type ProFormInstance, type UseForm } from '../../form';
 
@@ -12,9 +12,16 @@ defineOptions({
 
 type Props = {
   form: ReturnType<UseForm>;
+  layout?: 'grid' | 'inline';
+  minExpandRows?: number;
+  defaultExpandStatus?: boolean;
 };
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  layout: 'grid',
+  minExpandRows: 1,
+  defaultExpandStatus: false,
+});
 
 type Emits = {
   search: [];
@@ -22,8 +29,11 @@ type Emits = {
 };
 const emit = defineEmits<Emits>();
 
-let initProFormHeight = 'unset';
-const HEIGHT_THRESHOLD = 32;
+let proFormHeight = 'unset';
+let collapseHeight = 0;
+const rowGap = 16;
+const columnGap = 24;
+
 const showExpandToggle = ref(false);
 
 const proFormRef = ref<ProFormInstance | null>();
@@ -48,7 +58,7 @@ const setInitExpandStatus = () => {
               : undefined;
             return ![null, undefined].includes(searchFieldValue);
           }
-          return false;
+          return props.defaultExpandStatus;
         });
         observer.disconnect();
       },
@@ -61,64 +71,69 @@ const setInitExpandStatus = () => {
 };
 
 onMounted(() => {
-  const proFormEl = proFormRef.value?.$el;
-  const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
-  initProFormHeight = height;
-  showExpandToggle.value = height > HEIGHT_THRESHOLD;
-  setInitExpandStatus();
+  if (props.layout === 'grid') {
+    const proFormEl = proFormRef.value?.$el;
+    const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
+    proFormHeight = height;
+    const rowHeight = proFormEl
+      .querySelector('.ant-form-item')
+      ?.getBoundingClientRect?.()?.height;
+    collapseHeight =
+      props.minExpandRows * rowHeight + (props.minExpandRows - 1) * rowGap;
+    showExpandToggle.value = height > collapseHeight;
+    if (showExpandToggle.value) {
+      setInitExpandStatus();
+    }
+  }
 });
+
+const layoutProps = computed<FormProps>(() =>
+  props.layout === 'grid'
+    ? {
+        grid: { gutter: [columnGap, rowGap], style: { flex: 1 } },
+        style: {
+          display: 'flex',
+          gap: '24px',
+          overflow: 'hidden',
+          height: `${expandStatus.value ? proFormHeight : collapseHeight}px`,
+        },
+      }
+    : {
+        layout: 'inline',
+        style: { gap: `${rowGap}px ${columnGap}px` },
+      }
+);
 </script>
 
 <template>
-  <div class="search">
-    <ProForm
-      ref="proFormRef"
-      :form="form"
-      :grid="{ gutter: [24, 16] }"
-      :style="{
-        overflow: 'hidden',
-        height: `${expandStatus ? initProFormHeight : HEIGHT_THRESHOLD}px`,
-      }"
-      class="pro-form expand-transition"></ProForm>
-    <div class="buttons">
+  <ProForm
+    ref="proFormRef"
+    :form="form"
+    v-bind="layoutProps"
+    class="pro-form expand-transition">
+    <Space align="start">
       <Button @click="emit('reset')">重置</Button>
       <Button type="primary" @click="emit('search')">查询</Button>
-      <Button
-        v-if="showExpandToggle"
-        style="padding-left: 8px"
-        type="link"
-        @click="expand">
+      <Button v-if="showExpandToggle" type="link" @click="expand">
         {{ expandStatus ? '收起' : '展开' }}
         <DownOutlined
           class="expand-transition"
           :style="{ transform: `rotate(${expandStatus ? -180 : 0}deg)` }" />
       </Button>
-    </div>
-  </div>
+    </Space>
+  </ProForm>
 </template>
 
 <style scoped lang="less">
-.search {
-  display: flex;
-  gap: 24px;
-
-  .pro-form {
-    flex: 1;
-
-    :deep {
-      .ant-form-item {
-        margin-bottom: 0;
-      }
+.pro-form {
+  :deep {
+    .ant-form-item {
+      margin: 0;
     }
   }
+}
 
-  .buttons {
-    display: flex;
-    gap: 8px;
-  }
-
-  .expand-transition {
-    transition: all 0.25s;
-  }
+.expand-transition {
+  transition: all 0.25s;
 }
 </style>
