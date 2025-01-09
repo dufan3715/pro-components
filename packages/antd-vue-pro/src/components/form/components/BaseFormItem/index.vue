@@ -158,8 +158,8 @@ const withDefaultGridItem = memoize((field: Field) => {
                 :label="field.label"
                 :path="getPath(field)"
                 @set-component-ref="(el: any) => setComponentRef(el, field)"
-                @field-change="() => formItemRefs?.[index].onFieldChange()"
-                @field-blur="() => formItemRefs?.[index].onFieldBlur()" />
+                @field-change="() => formItemRefs?.[index]?.onFieldChange?.()"
+                @field-blur="() => formItemRefs?.[index]?.onFieldBlur?.()" />
             </template>
             <template
               v-for="(slot, name) in field.slots"
