@@ -90,10 +90,12 @@ onMounted(() => {
 const layoutProps = computed<FormProps>(() =>
   props.layout === 'grid'
     ? {
-        grid: { gutter: [columnGap, rowGap], style: { flex: 1 } },
+        grid: {
+          gutter: [columnGap, rowGap],
+          style: { flex: 1, marginRight: '12px' },
+        },
         style: {
           display: 'flex',
-          gap: '24px',
           overflow: 'hidden',
           height: `${expandStatus.value ? proFormHeight : collapseHeight}px`,
         },
