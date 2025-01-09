@@ -126,9 +126,10 @@ const withDefaultGridItem = memoize((field: Field) => {
   <ContainerFragment
     :component="grid ? AGrid : undefined"
     v-bind="withDefaultGrid">
-    <template v-for="(field, index) of fields" :key="getPath(field) || index">
+    <template
+      v-for="(field, index) of fields?.filter(i => i && !i.hidden)"
+      :key="getPath(field) || index">
       <ContainerFragment
-        v-if="field && !field.hidden"
         :component="grid ? AGridItem : undefined"
         v-bind="withDefaultGridItem(field)">
         <ContainerFragment :component="field.container" :path="getPath(field)">
