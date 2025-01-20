@@ -1,22 +1,12 @@
 <!-- eslint-disable no-nested-ternary -->
 <script lang="ts" setup>
-import {
-  computed,
-  h,
-  inject,
-  isVNode,
-  nextTick,
-  ref,
-  useAttrs,
-  watch,
-} from 'vue';
+import { computed, h, inject, isVNode, ref, useAttrs } from 'vue';
 import { get, omit } from 'lodash-es';
 import { useInjectDisabled } from 'ant-design-vue/es/config-provider/DisabledContext';
-import type { Field, BaseFieldAttrs, CommandTrigger } from '../../types';
+import type { Field, BaseFieldAttrs } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import {
   COMPONENT_MAP,
-  COMMAND,
   FORM_DATA,
   UPDATE_FORM_DATA,
   FORM_ITEM_SLOT_KEYS,
@@ -24,21 +14,18 @@ import {
 } from '../../constants';
 import { useInitProps } from '../../hooks';
 
-type Props = {
-  component?: Field['component'];
-  path?: string;
-  label?: Field['label'];
-};
-
 defineOptions({
   name: 'BaseField',
 });
 
+type Props = {
+  component?: Field['component'];
+  path?: string;
+};
+
 const props = withDefaults(defineProps<Props>(), {
   component: () => h('div', 'Missing required prop: "component"'),
   path: '',
-  label: '',
-  getFormItemRef: undefined,
 });
 
 type Emits = {
@@ -50,7 +37,6 @@ const emit = defineEmits<Emits>();
 
 const formData = inject(FORM_DATA);
 const updateFormData = inject(UPDATE_FORM_DATA);
-const command = inject(COMMAND);
 const updateActivePath = inject(UPDATE_ACTIVE_PATH);
 const { getInitProps } = useInitProps();
 
@@ -81,14 +67,6 @@ const value = computed({
   },
 });
 
-const forceUpdateKey = ref(0);
-
-watch(value, (val: any, oldVal: any) => {
-  if (val === undefined && oldVal) {
-    forceUpdateKey.value += 1;
-  }
-});
-
 const attrs: BaseFieldAttrs = useAttrs();
 
 const componentType = computed(() =>
@@ -96,20 +74,6 @@ const componentType = computed(() =>
     ? undefined
     : props.component
 );
-
-const rewriteMethod = (methodName: CommandTrigger) => {
-  if (attrs.autoCommand && attrs.autoCommand?.[methodName]?.length > 0) {
-    return {
-      [methodName]: (...args: any) => {
-        (attrs as any)[methodName]?.(...args);
-        nextTick(() => {
-          command?.value?.run(props.path, methodName);
-        });
-      },
-    };
-  }
-  return {};
-};
 
 const modelName = computed(() => {
   if (componentType.value === 'switch') {
@@ -126,19 +90,9 @@ const mergedAttrs = computed(() => {
     component: compType as any,
     type: attrs.type,
   });
-  const methods = { ...rewriteMethod('onUpdateValue') };
-  switch (compType) {
-    case 'input':
-    case 'input-number':
-      Object.assign(methods, rewriteMethod('onBlur'), rewriteMethod('onFocus'));
-      break;
-    default:
-      break;
-  }
   return {
     ...initProps,
     ...attrs,
-    ...methods,
     onFocus: undefined,
     disabled: attrs.disabled ?? parentDisabled.value ?? initProps.disabled,
     slots: undefined,
@@ -159,7 +113,6 @@ function handleFocus(...args: any) {
   <ContainerFragment :component="mergedAttrs.componentContainer" :path="path">
     <component
       :is="is"
-      :key="forceUpdateKey"
       v-bind="omit(mergedAttrs, 'componentContainer')"
       ref="componentRef"
       v-model:[modelName]="value"

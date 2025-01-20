@@ -115,7 +115,9 @@ const layoutProps = computed<FormProps>(() =>
     class="pro-form expand-transition">
     <Space align="start">
       <Button @click="emit('reset')">重置</Button>
-      <Button type="primary" @click="emit('search')">查询</Button>
+      <Button type="primary" html-type="submit" @click="emit('search')">
+        查询
+      </Button>
       <Button v-if="showExpandToggle" type="link" @click="expand">
         {{ expandStatus ? '收起' : '展开' }}
         <DownOutlined

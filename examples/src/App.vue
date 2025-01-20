@@ -1,13 +1,16 @@
 <!-- eslint-disable no-use-before-define -->
 <script lang="ts" setup>
 import {
+  ProTable,
+  useTable,
   ProForm,
   useForm,
   ProComponentProvider,
   type ComponentVars,
   type Field,
   type Fields,
-} from '@qin-ui/antd-vue-pro';
+} from '@qin-ui/antd-vue-pro/src';
+import { Card, Button, Space } from 'ant-design-vue';
 import { h } from 'vue';
 
 const CodeContainer: Field['componentContainer'] = (p, ctx) => {
@@ -32,19 +35,24 @@ const CodeContainer: Field['componentContainer'] = (p, ctx) => {
   );
 };
 
-const initFields: Fields = [
-  {
-    label: '登记所在地（省/市/县、区）',
-    key: '登记所在地（省/市/县、区）',
-    component: 'cascader',
-    slots: {},
-    options: [],
-  },
+type Data = {
+  username: string;
+  age: number;
+  password: string;
+  code: number;
+};
+
+const getInitFields = (): Fields<Data> => [
   {
     label: '用户名',
     key: 'username',
     component: 'input',
     rules: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  },
+  {
+    label: '年龄',
+    key: 'age',
+    component: 'input-number',
   },
   {
     label: '密码',
@@ -67,8 +75,8 @@ const initFields: Fields = [
   },
 ];
 
-const form = useForm({}, initFields);
-const { formRef: proFormRef } = form;
+const form = useForm<Data>({}, getInitFields());
+const { formRef } = form;
 
 const componentVars: ComponentVars = {
   input: { maxlength: 50, valueFormatter: val => val?.trim() },
@@ -76,31 +84,59 @@ const componentVars: ComponentVars = {
   'input-number': { max: 10 ** 12 - 1 },
 };
 
+const table = useTable({
+  searchFields: [
+    { key: 'a', label: 'a', component: 'input' },
+    { key: 'b', label: 'b', component: 'input' },
+    { key: 'c', label: 'c', component: 'input' },
+  ],
+});
+
 const submit = () => {
-  proFormRef.value?.validate().then(() => {
+  formRef.value?.validate().then(() => {
     console.log(form.formData.value);
   });
 };
 
-const test = () => {
-  console.log('proFormRef.value: ', proFormRef.value);
-  console.log('form: ', form);
+const search = (param: any) => {
+  console.log('param: ', param);
 };
 </script>
 
 <template>
-  <div style="max-width: 500px; margin: 0 auto">
-    <h1>hello world</h1>
+  <div>
+    <h1>@qin-ui/antd-vue-pro</h1>
 
     <ProComponentProvider :component-vars="componentVars">
-      <ProForm ref="proFormRef" :form="form" />
+      <Space direction="vertical" :size="24">
+        <div>{{ componentVars }}</div>
+
+        <Space>
+          <Card title="ProForm">
+            <ProForm ref="formRef" :form="form">
+              <Button type="primary" html-type="submit" @click="submit">
+                提交
+              </Button>
+            </ProForm>
+          </Card>
+          <pre>{{ form.formData }}</pre>
+        </Space>
+
+        <Space>
+          <Card title="ProTable">
+            <ProTable :table="table" @change="search" @search="search" />
+          </Card>
+          <pre>{{ table.searchParam }}</pre>
+        </Space>
+      </Space>
     </ProComponentProvider>
-
-    <button @click="submit">提交</button>
-    <button @click="test">测试</button>
-
-    <pre>{{ form.formData }}</pre>
   </div>
 </template>
 
-<style scoped lang="less"></style>
+<style lang="less">
+html {
+  width: 100%;
+  height: 100%;
+  background-color: #f6f7f8;
+}
+</style>

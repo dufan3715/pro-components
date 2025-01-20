@@ -156,7 +156,6 @@ const withDefaultGridItem = memoize((field: Field) => {
             <template v-else>
               <BaseField
                 v-bind="omitFormItemProps(field)"
-                :label="field.label"
                 :path="getPath(field)"
                 @set-component-ref="(el: any) => setComponentRef(el, field)"
                 @field-change="() => formItemRefs?.[index]?.onFieldChange?.()"

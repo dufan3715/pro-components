@@ -1,4 +1,4 @@
-import { Component, InjectionKey, Ref } from 'vue';
+import { Component, InjectionKey } from 'vue';
 import {
   Cascader,
   CheckboxGroup,
@@ -19,10 +19,8 @@ import {
 } from 'ant-design-vue';
 import type {
   BaseComponentStringName,
-  ActionType,
   SetActivePath,
   UpdateFormData,
-  UseCommand,
 } from '../types';
 
 // prettier-ignore
@@ -49,39 +47,8 @@ export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
 ])
 
 // inject keys
-export const FORM_DATA = Symbol('formData') as InjectionKey<
-  Record<string, any>
->;
-export const UPDATE_FORM_DATA = Symbol(
-  'updateFormData'
-) as InjectionKey<UpdateFormData>;
-export const COMMAND = Symbol('command') as InjectionKey<
-  Ref<ReturnType<UseCommand> | null>
->;
-export const UPDATE_ACTIVE_PATH = Symbol(
-  'setActivePath'
-) as InjectionKey<SetActivePath>;
-
-// enum
-export const RULE_TYPE_MAP = new Map<ActionType, string>([
-  ['setValue', '字段赋值'],
-  ['setHidden', '字段隐藏/显示'],
-  ['setDisabled', '字段禁用/启用'],
-  ['setOptions', '字段选项枚举变更'],
-  ['setRules', '字段校验规则变更'],
-  ['setField', '字段配置变更'],
-  ['triggerValidate', '字段触发校验'],
-  ['triggerClearValidate', '字段触发清除校验'],
-  ['triggerMessage', '字段触发提示'],
-]);
-
-// regexp
-/**
- * @description js函数声明字符串正则
- */
-export const FunctionRegexp = /^\s*function\s*\w*\s*\([^)]*\)\s*{([\s\S]*)}/g;
-/**
- * @description js箭头函数字符串正则
- */
-export const ArrowFunctionRegexp =
-  /^\s*(?:\([^)]*\)|\w+)\s*=>\s*\(?({[\s\S]*}|[^;]*)\)?/g;
+export const FORM_DATA: InjectionKey<Record<string, any>> = Symbol('formData');
+export const UPDATE_FORM_DATA: InjectionKey<UpdateFormData> =
+  Symbol('updateFormData');
+export const UPDATE_ACTIVE_PATH: InjectionKey<SetActivePath> =
+  Symbol('setActivePath');

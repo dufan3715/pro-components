@@ -39,24 +39,19 @@ ant-design-vue ui组件库form组件的二次封装
   | 参数名                                | 说明                                                         | 类型                                                         | 默认值 |
   | ------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------ |
   | form                                  | proform useForm返回对象，传递此参数后formData和fields参数将失效（推荐使用配套hook） | Form                                                         |        |
-  | formData                              | 表单数据（推荐使用form）                                     | object                                                       |        |
-  | fields                                | 表单字段（推荐使用form）                                     | Fields                                                       |        |
   | grid                                  | 是否启用栅格布局                                             | boolean \| GridProps同[antdv Grid的RowProps](https://antdv.com/components/grid-cn/#api) |        |
-  | autoCommandDisabled                   | 是否禁用字段规则                                             | boolean                                                      | false  |
   | 继承ant-design-vue form组件的所有参数 | [查看文档](https://antdv.com/components/form-cn#api)         | ...                                                          |        |
 
 - Emits
 
   | 事件参数名                            | 说明                                                 | 类型                  | 默认值 |
   | ------------------------------------- | ---------------------------------------------------- | --------------------- | ------ |
-  | update:formData                       | 更新props.formData表单数据（推荐使用form）           | (val: object) => void |        |
   | 继承ant-design-vue form组件的所有事件 | [查看文档](https://antdv.com/components/form-cn#api) | ...                   |        |
 
 + Expose
 
   | 参数名                                | 说明                                                    | 类型 | 默认值 |
   | ------------------------------------- | ------------------------------------------------------- | ---- | ------ |
-  | refs                                  | 组件暴露的所有ref集合，包含formItems的ref以及field的ref | Refs |        |
   | 继承ant-design-vue form组件的所有方法 | [查看文档](https://antdv.com/components/form-cn#api)    | ...  |        |
 
 
@@ -164,8 +159,6 @@ ant-design-vue ui组件库form组件的二次封装
       fields?: Array<Field>;
       /** 是否隐藏 */
       hidden?: boolean;
-      /** 自动化指令 */
-      autoCommand?: AutoCommand;
       /** formItem样式属性 */
       style?: CSSProperties;
       /** formItem样式类名 */

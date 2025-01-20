@@ -175,10 +175,6 @@ const searchPage1st = () => {
   }
 };
 
-const onPaginationChange = () => {
-  nextTick(() => search());
-};
-
 const mergeTableProps = computed<TableProps>(() => {
   return {
     ...injectAttrs,
@@ -196,12 +192,11 @@ const mergeTableProps = computed<TableProps>(() => {
       pageSizeOptions: ['10', '20', '30', '40', '50', '100'],
       showQuickJumper: true,
       ...pagination?.value,
-      'onUpdate:current': onPaginationChange,
-      'onUpdate:pageSize': onPaginationChange,
     },
     onChange: table
       ? (...args) => {
           setPagination(args[0]);
+          search();
           (attrs.onChange as TableProps['onChange'])?.(...args);
         }
       : attrs.onChange,

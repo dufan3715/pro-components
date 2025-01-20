@@ -107,8 +107,6 @@ export interface Common<D extends FormData = FormData> {
   fields?: Fields<D>;
   /** 是否隐藏 */
   hidden?: boolean;
-  /** 自动化指令 */
-  autoCommand?: AutoCommand;
   /** formItem样式属性 */
   style?: CSSProperties;
   /** formItem样式类名 */
@@ -232,11 +230,7 @@ type FieldAttrsType = {
   [key in keyof FieldType]: FieldType[key] &
     Pick<
       Common,
-      | 'slots'
-      | 'componentStyle'
-      | 'componentClassName'
-      | 'componentContainer'
-      | 'autoCommand'
+      'slots' | 'componentStyle' | 'componentClassName' | 'componentContainer'
     >;
 };
 export type BaseFieldAttrs = FieldAttrsType[keyof FieldAttrsType];
@@ -359,104 +353,3 @@ export type UseForm = <D extends FormData = FormData>(
   initFormData?: Partial<ExtendWithAny<D>>,
   initFields?: Fields<D>
 ) => Form<D>;
-
-// hooks/useCommand
-export type UseCommand = (form: Form) => {
-  run: (path: string, trigger: CommandTrigger) => void;
-};
-
-/**
- * @type {string} ActionType - 逻辑规则类型
- * @ setValue - 字段赋值
- * @ setHidden - 字段隐藏/显示
- * @ setDisabled - 字段禁用/启用
- * @ setOptions - 字段选项枚举变更
- * @ setRules - 字段校验规则变更
- * @ setField - 字段配置变更
- * @ triggerValidate - 触发字段校验
- * @ triggerClearValidate - 触发清除字段校验
- * @ triggerMessage - 触发字段提示
- */
-export type ActionType =
-  | 'setValue'
-  | 'setHidden'
-  | 'setDisabled'
-  | 'setOptions'
-  | 'setRules'
-  | 'setField'
-  | 'triggerValidate'
-  | 'triggerClearValidate'
-  | 'triggerMessage';
-
-/**
- * @type {string} Expression - 表达式字符串 需要是一个js表达式字符串或者一个函数字符串，表达式的执行结果或者函数的返回值将作为结果返回
- */
-export type Expression = string;
-
-/**
- * @type {object} Condition - 逻辑执行条件
- */
-export type Condition = {
-  /** 条件关系 与 ｜ 或 */
-  type: 'AND' | 'OR';
-  /** 表达式 */
-  expression: Expression;
-  /** 是否禁用 */
-  disabled?: boolean;
-};
-
-/**
- * @type {object} Action - 逻辑运行规则
- * @property {string} path - 字段路径
- * @property {ActionType} type - 逻辑规则类型
- * @property {Expression} expression - 表达式对象
- * @property {boolean} [disabled] - 是否禁用
- */
-export type Action = {
-  path: string;
-  type: ActionType;
-  expression: Expression;
-  disabled?: boolean;
-};
-
-/**
- * @type {object} Logic - 逻辑运行规则
- */
-export type Logic = {
-  /** 逻辑执行条件 */
-  conditions: Array<Condition>;
-  /** 逻辑规则集合 */
-  actions: Array<Action>;
-  /** 是否禁用 */
-  disabled?: boolean;
-};
-
-export type Logics = Array<Logic>;
-
-/**
- * @type {object} Command - 指令
- */
-export type Command = {
-  /** 指令编号 */
-  no: number;
-  /** 指令名称 */
-  name: string;
-  /** 指令描述 */
-  description: string;
-  /** 指令逻辑 */
-  logics: Logics;
-  /** 是否禁用 */
-  disabled?: boolean;
-};
-
-export type Commands = Array<Command>;
-
-/**
- * @type {string} CommandTrigger - 指令触发方式
- */
-export type CommandTrigger = 'onWatch' | 'onUpdateValue' | 'onBlur' | 'onFocus';
-
-/**
- * @type {Object<CommandTrigger, Commands>} AutoCommand - 自动化指令
- */
-export type AutoCommand = Record<CommandTrigger, Commands>;

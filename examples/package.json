@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@qin-ui/antd-vue-pro": "workspace:^",
-    "@qin-ui/naive-ui-pro": "workspace:^"
+    "@qin-ui/naive-ui-pro": "workspace:^",
+    "ant-design-vue": "^4.2.5"
   }
 }
