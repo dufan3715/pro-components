@@ -2,7 +2,7 @@
 import { PaginationProps } from 'ant-design-vue';
 import type { ColumnType } from 'ant-design-vue/es/table';
 import { Ref } from 'vue';
-import { Fields, SetField, SetFormData } from '../../form/types';
+import { Fields, GetField, SetField, SetFormData } from '../../form/types';
 
 type Data = { [key: string]: any };
 interface Column<D extends Data = Data> extends Omit<ColumnType, 'dataIndex'> {
@@ -30,6 +30,7 @@ export type UseTable = <D extends Data = Data>(
 } & {
   setSearchParam: SetFormData;
   setSearchField: SetField;
+  getSearchField: GetField;
   setShowColumnKeys: (val: Array<string>) => void;
   setPagination: (val: PaginationProps) => void;
   resetQueryParams: () => void;

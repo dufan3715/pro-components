@@ -50,7 +50,7 @@ const useTable: UseTable = (({
     pagination.value = val;
   };
 
-  const { formData, fields, setFormData, setField } = useForm(
+  const { formData, fields, setFormData, setField, getField } = useForm(
     initSearchParam,
     initSearchFields
   );
@@ -67,6 +67,9 @@ const useTable: UseTable = (({
   // 修改查询字段
   const setSearchField = setField;
 
+  // 获取查询字段
+  const getSearchField = getField;
+
   // 重置分页查询参数
   const resetQueryParams = () => {
     setPagination(getDefaultPagination());
@@ -82,6 +85,7 @@ const useTable: UseTable = (({
     setSearchParam,
     searchFields,
     setSearchField,
+    getSearchField,
     setShowColumnKeys,
     setPagination,
     resetQueryParams,
