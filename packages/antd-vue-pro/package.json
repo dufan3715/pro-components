@@ -3,9 +3,15 @@
   "version": "1.1.23",
   "description": "二次封装antd vue组件",
   "type": "module",
-  "main": "es/index.js",
   "module": "es/index.js",
   "types": "es/index.d.ts",
+  "main": "es/index.js",
+  "exports": {
+    ".": {
+      "import": "./es/index.js",
+      "types": "./es/index.d.ts"
+    }
+  },
   "files": [
     "es",
     "README.md",
@@ -23,8 +29,11 @@
   "license": "MIT",
   "private": false,
   "peerDependencies": {
-    "ant-design-vue": "^4.0.6",
-    "vue": "^3.5.0"
+    "@ant-design/icons-vue": "^7.0.1",
+    "ant-design-vue": "^4.2.5",
+    "lodash-es": "^4.17.21",
+    "vue": "^3.5.12",
+    "vue-types": "^6.0.0"
   },
   "bugs": {
     "url": "https://github.com/dufan3715/pro-components/issues"
@@ -32,9 +41,7 @@
   "devDependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "@types/lodash-es": "^4.17.12",
-    "ant-design-vue": "^4.2.5",
-    "lodash-es": "^4.17.21",
-    "vue": "^3.5.12"
+    "lodash-es": "^4.17.21"
   },
   "sideEffects": false,
   "publishConfig": {

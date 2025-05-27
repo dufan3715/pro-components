@@ -6,7 +6,7 @@ import { UseTable } from '../types';
 
 const getDefaultPagination = () => ({ current: 1, pageSize: 10, total: 0 });
 
-const useTable: UseTable = (({
+const useTable: UseTable = ({
   columns: initColumns = [],
   dataSource: initDataSource = [],
   showColumnKeys: initShowColumnKeys = undefined,
@@ -14,14 +14,13 @@ const useTable: UseTable = (({
   searchParam: initSearchParam = {},
   searchFields: initSearchFields = [],
 }) => {
-  // eslint-disable-next-line no-underscore-dangle
   const _initSearchParam = cloneDeep(unref(initSearchParam));
 
   // 表格columns
   const columns = ref(initColumns);
 
   // 表格数据
-  const dataSource = ref(initDataSource);
+  const dataSource = ref<any>(initDataSource);
 
   // 选中的列
   const showColumnKeys = ref(
@@ -50,22 +49,12 @@ const useTable: UseTable = (({
     pagination.value = val;
   };
 
-  const { formData, fields, setFormData, setField } = useForm(
-    initSearchParam,
-    initSearchFields
-  );
-
-  // 查询参数
-  const searchParam = formData;
-
-  // 查询字段
-  const searchFields = fields;
-
-  // 修改查询参数
-  const setSearchParam = setFormData;
-
-  // 修改查询字段
-  const setSearchField = setField;
+  const {
+    formData: searchParam,
+    fields: searchFields,
+    setFormData: setSearchParam,
+    setField: setSearchField,
+  } = useForm(initSearchParam as any, initSearchFields, true);
 
   // 重置分页查询参数
   const resetQueryParams = () => {
@@ -85,7 +74,7 @@ const useTable: UseTable = (({
     setShowColumnKeys,
     setPagination,
     resetQueryParams,
-  };
-}) as any;
+  } as any;
+};
 
 export default useTable;

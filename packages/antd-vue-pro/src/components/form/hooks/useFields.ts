@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { ref, shallowReadonly } from 'vue';
 import { toPath } from 'lodash-es';
 import type {
@@ -24,8 +23,10 @@ type UpdaterParam = {
 };
 type Updater = (param: UpdaterParam) => void;
 
-const useFields: UseFields = initFields => {
-  const fields = ref(initFields);
+const useFields: UseFields = (initFields = []) => {
+  const fields = ref();
+
+  fields.value = initFields;
 
   const updateField = (
     path: string | FindBy,
@@ -60,12 +61,11 @@ const useFields: UseFields = initFields => {
       }
 
       if (parsedPath.includes('.') && !parsedPath.startsWith(selfPath)) {
-        // eslint-disable-next-line no-continue
         if (!all) continue;
       }
 
       // prettier-ignore
-      if (field.fields && updateField(path, updater, options, field.fields, selfPath, `${fieldPath}.fields`, parsedPath)) {
+      if (Array.isArray(field.fields) && updateField(path, updater, options, field.fields, selfPath, `${fieldPath}.fields`, parsedPath)) {
         if (!all) return true;
       }
     }
@@ -94,7 +94,7 @@ const useFields: UseFields = initFields => {
         if (!value) return;
         const newField =
           updateType === 'rewrite' ? value : { ...preField, ...value };
-        // eslint-disable-next-line no-param-reassign
+
         parentFields[fieldIndex] = newField as Field;
       },
       rest
@@ -165,7 +165,7 @@ const useFields: UseFields = initFields => {
     prependField,
     getFieldPath,
     getParentFields,
-  } as any;
+  };
 };
 
 export default useFields;

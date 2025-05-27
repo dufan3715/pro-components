@@ -1,8 +1,6 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    // "types": ["@qin-ui/naive-ui-pro/es/index"]
-    "types": ["@qin-ui/antd-vue-pro/es/index"]
+    "baseUrl": "."
   }
 }

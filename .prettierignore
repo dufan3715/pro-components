@@ -1,15 +1,2 @@
-# Ignore artifacts:
 node_modules
-.vscode
-.husky
-package.json
-CHANGELOG.md
-pnpm-lock.yaml
-pnpm-workspace.yaml
-README.md
-auto-imports.d.ts
-components.d.ts
-# public
-iconfont
-dist
 

@@ -1,24 +1,23 @@
 <!-- eslint-disable no-unused-vars -->
 <script lang="ts" setup>
-import {
-  PaginationProps,
-  Table,
-  TableProps as ATableProps,
-} from 'ant-design-vue';
+import { PaginationProps, Table, TableProps } from 'ant-design-vue';
 import { cloneDeep, omit } from 'lodash-es';
 import { ColumnsType, ColumnType } from 'ant-design-vue/es/table';
 import {
   computed,
   nextTick,
   ref,
-  unref,
   useAttrs,
   onMounted,
   CSSProperties,
   toValue,
 } from 'vue';
 import { INJECT_KEYS, useInjectProps } from '../../component-provider';
-import { ContainerFragment, type ContainerComponent } from '../../form';
+import {
+  ContainerFragment,
+  useForm,
+  type ContainerComponent,
+} from '../../form';
 import {
   SearchForm,
   Control,
@@ -28,18 +27,9 @@ import {
 } from '.';
 import type { Table as TableType, UseTable, ParamCache } from '../types';
 
-defineOptions({
-  name: 'ProTable',
-  inheritAttrs: false,
-});
+defineOptions({ name: 'ProTable', inheritAttrs: false });
 
-// ?? 打包时dts插件抛异常 https://github.com/microsoft/TypeScript/issues/47663
-interface TableProps extends ATableProps {
-  loading?: boolean;
-  showSorterTooltip?: boolean;
-}
-
-interface Props extends /* @vue-ignore */ TableProps {
+export interface Props extends /* @vue-ignore */ TableProps {
   // 列表表格对象，useTable hook
   table?: ReturnType<UseTable>;
   // 是否在首列插入index列
@@ -85,9 +75,9 @@ const injectAttrs = omit(injectProps, Object.keys(props));
 const cache =
   props.paramCache === null
     ? null
-    : props.paramCache ?? injectProps?.paramCache;
+    : (props.paramCache ?? injectProps?.paramCache);
 
-const size = ref(unref(props.size ?? injectProps.size));
+const size = ref(toValue(props.size ?? injectProps.size));
 
 const showControl = props.showControl ?? injectProps.showControl;
 
@@ -111,7 +101,7 @@ const {
 type Emits = {
   search: [
     param: TableType['searchParam'] &
-      Pick<PaginationProps, 'current' | 'pageSize'>
+      Pick<PaginationProps, 'current' | 'pageSize'>,
   ];
 };
 const emit = defineEmits<Emits>();
@@ -119,15 +109,15 @@ const emit = defineEmits<Emits>();
 const search = () => {
   const { current, pageSize } = props.table?.pagination.value || {};
   emit('search', {
-    ...props.table?.searchParam.value,
+    ...props.table?.searchParam,
     current,
     pageSize,
   });
   cache?.set((pre = {}) =>
     cloneDeep({
       ...pre,
-      pagination: unref(pagination),
-      searchParam: unref(searchParam),
+      pagination: toValue(pagination),
+      searchParam: toValue(searchParam),
     })
   );
 };
@@ -150,21 +140,14 @@ const slots = defineSlots<CustomSlots & TableSlots>();
 
 const tableSlots = omit(slots, ['search', 'buttons', 'table']);
 
-const form = {
-  formData: props.table?.searchParam || {},
-  fields: props.table?.searchFields || [],
-  setFormData: props.table?.setSearchParam,
-  setField: props.table?.setSearchField,
-};
-
 if (cache) {
   setPagination({
-    ...unref(pagination),
-    ...unref(cache.get()?.pagination ?? {}),
+    ...toValue(pagination),
+    ...toValue(cache.get()?.pagination ?? {}),
   });
   setSearchParam({
-    ...unref(searchParam),
-    ...unref(cache.get()?.searchParam ?? {}),
+    ...toValue(searchParam),
+    ...toValue(cache.get()?.searchParam ?? {}),
   });
 }
 
@@ -226,6 +209,8 @@ const visibleColumns = computed(() => {
   return list;
 });
 
+const form = useForm();
+
 const showSearch = computed(() => toValue(form.fields).length > 0);
 
 onMounted(() => {
@@ -236,21 +221,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="pro-table" :style="($attrs.style as CSSProperties)">
+  <div class="pro-table" :style="$attrs.style as CSSProperties">
     <ContainerFragment v-if="showSearch" :component="searchContainer">
       <slot name="search">
         <SearchForm
-          :form="(form as any)"
           :cache="cache"
           v-bind="searchFormConfig"
           @search="searchPage1st"
-          @reset="reset" />
+          @reset="reset"
+        />
       </slot>
     </ContainerFragment>
 
     <ContainerFragment
       v-if="showControl || Object.hasOwn($slots, 'buttons')"
-      :component="controlContainer">
+      :component="controlContainer"
+    >
       <div v-if="Object.hasOwn($slots, 'buttons')" style="flex: 1">
         <slot name="buttons" />
       </div>
@@ -259,7 +245,8 @@ onMounted(() => {
         v-if="showControl"
         v-model:size="size"
         :columns="(mergeTableProps as any).columns"
-        :table="table" />
+        :table="table"
+      />
     </ContainerFragment>
 
     <ContainerFragment :component="tableContainer">
@@ -268,11 +255,13 @@ onMounted(() => {
           v-bind="mergeTableProps"
           :columns="visibleColumns"
           class="base-table"
-          :size="size">
+          :size="size"
+        >
           <template
             v-for="(slot, name) of tableSlots"
             :key="name"
-            #[name]="scoped">
+            #[name]="scoped"
+          >
             <slot :name="name" v-bind="scoped" />
           </template>
         </Table>

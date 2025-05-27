@@ -20,10 +20,10 @@ import {
   RangePickerProps,
   // WeekPickerProps,
 } from 'ant-design-vue/es/date-picker';
-import { Common, ProFormProps, ProFormItemProps } from '../../form';
+import { Base, ProFormProps, ProFormItemProps } from '../../form';
 import { ProTableProps } from '../../table';
 
-type AnyProps<T extends Record<string, any>> = Record<keyof T, any> & Common;
+type AnyProps<T extends Record<string, any>> = Record<keyof T, any> & Base;
 
 // prettier-ignore
 export type ComponentVars = Partial<{

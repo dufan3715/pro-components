@@ -2,16 +2,11 @@
 import { Space, Button, FormProps } from 'ant-design-vue';
 import { DownOutlined } from '@ant-design/icons-vue';
 import { computed, onMounted, ref } from 'vue';
-import { get } from 'lodash-es';
-import ProForm, { type ProFormInstance, type UseForm } from '../../form';
+import ProForm, { useForm } from '../../form';
 
-defineOptions({
-  name: 'SearchForm',
-  inheritAttrs: false,
-});
+defineOptions({ name: 'SearchForm', inheritAttrs: false });
 
 type Props = {
-  form: ReturnType<UseForm>;
   layout?: 'grid' | 'inline';
   minExpandRows?: number;
   defaultExpandStatus?: boolean;
@@ -36,26 +31,25 @@ const columnGap = 24;
 
 const showExpandToggle = ref(false);
 
-const proFormRef = ref<ProFormInstance | null>();
 const expandStatus = ref(true);
 
 const expand = () => {
   expandStatus.value = !expandStatus.value;
 };
 
+const { formRef, getFormData } = useForm();
+
 const setInitExpandStatus = () => {
   expandStatus.value = false;
-  if (proFormRef.value) {
-    const formEl = proFormRef.value.$el;
+  if (formRef.value) {
+    const formEl = formRef.value.$el;
     const formItemsEl = formEl.querySelectorAll('.ant-form-item>[path]');
     const observer = new IntersectionObserver(
       entries => {
         expandStatus.value = entries.some(e => {
           if (e.intersectionRatio === 0) {
             const path = e.target.getAttribute('path');
-            const searchFieldValue = path
-              ? get(props.form.formData.value, path)
-              : undefined;
+            const searchFieldValue = path ? getFormData?.(path) : undefined;
             return ![null, undefined].includes(searchFieldValue);
           }
           return props.defaultExpandStatus;
@@ -72,7 +66,7 @@ const setInitExpandStatus = () => {
 
 onMounted(() => {
   if (props.layout === 'grid') {
-    const proFormEl = proFormRef.value?.$el;
+    const proFormEl = formRef.value?.$el;
     const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
     proFormHeight = height;
     const rowHeight = proFormEl
@@ -109,10 +103,10 @@ const layoutProps = computed<FormProps>(() =>
 
 <template>
   <ProForm
-    ref="proFormRef"
-    :form="form"
+    :form="{} as any"
     v-bind="layoutProps"
-    class="pro-form expand-transition">
+    class="pro-form expand-transition"
+  >
     <Space align="start">
       <Button @click="emit('reset')">重置</Button>
       <Button type="primary" html-type="submit" @click="emit('search')">
@@ -122,7 +116,8 @@ const layoutProps = computed<FormProps>(() =>
         {{ expandStatus ? '收起' : '展开' }}
         <DownOutlined
           class="expand-transition"
-          :style="{ transform: `rotate(${expandStatus ? -180 : 0}deg)` }" />
+          :style="{ transform: `rotate(${expandStatus ? -180 : 0}deg)` }"
+        />
       </Button>
     </Space>
   </ProForm>

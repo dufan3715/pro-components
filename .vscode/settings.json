@@ -7,14 +7,7 @@
   "css.validate": false,
   "less.validate": false,
   "scss.validate": false,
-  "stylelint.validate": [
-    "css",
-    "less",
-    "postcss",
-    "scss",
-    "vue",
-    "sass"
-  ],
+  "stylelint.validate": ["css", "less", "scss", "sass", "vue"],
   "eslint.validate": [
     "javascript",
     "javascriptreact",
@@ -27,7 +20,9 @@
     "source.fixAll.eslint": "explicit",
     "source.fixAll.stylelint": "explicit"
   },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
+  "prettier.requireConfig": true,
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

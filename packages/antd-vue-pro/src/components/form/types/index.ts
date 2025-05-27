@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define, no-unused-vars, no-redeclare */
 import type {
   FormItemProps,
   RowProps as GridProps,
@@ -18,11 +17,22 @@ import type {
   TextAreaProps,
   Select,
   FormItemInstance,
+  FormInstance,
 } from 'ant-design-vue';
-import type { CSSProperties, DeepReadonly, Ref, Component, Raw } from 'vue';
+import type {
+  CSSProperties,
+  DeepReadonly,
+  Ref,
+  Component,
+  Raw,
+  Reactive,
+  MaybeRef,
+  ComputedRef,
+} from 'vue';
 import { type RangePickerProps } from 'ant-design-vue/es/date-picker';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
-import { ProFormInstance } from '..';
+
+export type { FormInstance };
 
 export type FormData = { [key: string]: any };
 
@@ -30,8 +40,8 @@ type KnownKeys<T> = {
   [K in keyof T as string extends K
     ? never
     : number extends K
-    ? never
-    : K]: T[K];
+      ? never
+      : K]: T[K];
 };
 
 type FlattenKeys<T, P extends string = ''> = T extends FormData
@@ -40,10 +50,10 @@ type FlattenKeys<T, P extends string = ''> = T extends FormData
         ? KnownKeys<T>[K] extends any[]
           ? `${P}${K}` | K
           : `${P}${K}` | K | FlattenKeys<T[K], `${P}${K}.`> extends infer U
-          ? U extends `${infer V}.`
-            ? V
-            : U
-          : never
+            ? U extends `${infer V}.`
+              ? V
+              : U
+            : never
         : never;
     }[keyof KnownKeys<T>]
   : P;
@@ -54,7 +64,7 @@ type AllowKey<D extends FormData> =
 
 type Path<D extends FormData = FormData> = AllowKey<D>;
 
-type ExtendWithAny<D> = D extends object
+export type ExtendWithAny<D> = D extends object
   ? {
       [K in keyof D]: ExtendWithAny<D[K]>;
     } & { [key: string]: any }
@@ -80,7 +90,7 @@ export type Slots = {
   [name: string]: SlotComponentType;
 };
 
-type Option = {
+export type Option = {
   label: string;
   value: any;
   [x: string]: any;
@@ -90,9 +100,9 @@ export type Options = Array<Option>;
 export type Grid = boolean | GridProps;
 
 /**
- * @type {Object} Common - 公共字段类型
+ * @type {Object} Base - 公共字段类型
  */
-export interface Common<D extends FormData = FormData> {
+export interface Base<D extends FormData = FormData> {
   /** 标识key */
   key?: AllowKey<D>;
   /** 中文名称 */
@@ -123,12 +133,12 @@ export interface Common<D extends FormData = FormData> {
    * 值处理函数，onUpdateValue前执行，函数返回值将作为更新值, 例如
    * @example (val) => val?.trim()
    */
-  valueFormatter?: (val: any) => any;
+  valueFormatter?: (val: any, oldVal: any) => any;
   /** 是否隐藏校验错误信息（需要浏览器支持has选择器） */
   hideFeedback?: boolean;
-  /** 以data-form-item-开头的属性将会被渲染至formItem的dom节点 */
+  /** 以data-form-item-开始的属性名将会被渲染至formItem的dom节点 */
   [key: `data-form-item-${string}`]: string;
-  /** 以data-component-开头的属性将会被渲染至component的dom节点 */
+  /** 以data-component-开始的属性名将会被渲染至component的dom节点 */
   [key: `data-component-${string}`]: string;
 }
 
@@ -198,10 +208,27 @@ export type FieldType = {
   'custom': { component?: RenderComponentType | Raw<RenderComponentType>, slots?: Slots } & Record<string, any>;
 };
 
-export type Field<D extends FormData = FormData> = FieldType[keyof FieldType] &
-  Omit<FormItemProps, 'label'> &
-  GridItemProps &
-  Common<D>;
+// prettier-ignore
+type NoRefOrGetterProps = 'container' | 'componentContainer' | 'valueFormatter' | 'fields';
+
+type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T> | (() => T);
+
+export type WithRef<T> = T extends object
+  ? {
+      [P in keyof T]: P extends NoRefOrGetterProps
+        ? T[P]
+        : T[P] extends (args: any[]) => any
+          ? T[P]
+          : WithRef<MaybeRefOrComputedRef<T[P]>>;
+    }
+  : MaybeRefOrComputedRef<T>;
+
+export type Field<D extends FormData = FormData> = WithRef<
+  FieldType[keyof FieldType] &
+    Omit<FormItemProps, 'label'> &
+    GridItemProps &
+    Base<D>
+>;
 
 export type Fields<D extends FormData = FormData> = Array<Field<D>>;
 
@@ -210,8 +237,6 @@ export type BaseComponentStringName = Exclude<
   RenderComponentType | undefined
 >;
 
-// components/ProForm
-export type UpdateFormData = (path: string, value: any) => void;
 export type GetFormData<D extends FormData = FormData> = (
   path?: Path<D>
 ) => DeepReadonly<any>;
@@ -221,19 +246,6 @@ export type SetFormData<D extends FormData = FormData> = {
     value: Partial<D> | ((preValue: DeepReadonly<Partial<D>>) => Partial<D>)
   ): void;
 };
-export type SetActivePath<D extends FormData = FormData> = (
-  path: Path<D> | undefined
-) => void;
-
-// components/Field
-type FieldAttrsType = {
-  [key in keyof FieldType]: FieldType[key] &
-    Pick<
-      Common,
-      'slots' | 'componentStyle' | 'componentClassName' | 'componentContainer'
-    >;
-};
-export type BaseFieldAttrs = FieldAttrsType[keyof FieldAttrsType];
 
 // hooks/useFields
 export type FindBy<D extends FormData = FormData> = (
@@ -247,14 +259,14 @@ export type UpdateFieldOptions = {
   all?: boolean;
 };
 
-export type WithRefGetter<T> = T & {
+export type WithInstanceGetter<T> = T & {
   getFormItemRef?: () => FormItemInstance;
   getComponentRef?: () => any;
 };
 
 export type GetField<D extends FormData = FormData> = (
   path?: Path<D>
-) => Readonly<WithRefGetter<Field<D>>> | undefined;
+) => Readonly<WithInstanceGetter<Field<D>>> | undefined;
 
 export type SetField<D extends FormData = FormData> = (
   path: Path<D> | FindBy<D> | undefined,
@@ -323,15 +335,13 @@ export type UseFormData<D extends FormData = FormData> = (
   initFormData: Partial<ExtendWithAny<D>>
 ) => {
   /** 表单数据Ref */
-  formData: Ref<ExtendWithAny<D>>;
+  formData: Reactive<ExtendWithAny<D>>;
   /** 获取指定字段数据路径的值 */
   getFormData: GetFormData<D>;
   /** 设置指定字段数据路径的值 */
   setFormData: SetFormData<D>;
   /** 当前正在编辑的字段path */
   activePath: Ref<Path<D> | undefined>;
-  /** 设置当前正在编辑的字段path */
-  setActivePath: SetActivePath<D>;
 };
 
 /**
@@ -340,16 +350,20 @@ export type UseFormData<D extends FormData = FormData> = (
  */
 export type UseFormRef = () => {
   /** 表单组件实例引用Ref */
-  formRef: Ref<ProFormInstance | undefined>;
+  formRef: Ref<FormInstance | undefined>;
   /** 更新实例引用Ref */
-  setFormRef: (ref: any) => void;
+  setFormRef: (ref: FormInstance) => void;
 };
 
 export type Form<D extends FormData = FormData> = ReturnType<UseFormData<D>> &
   ReturnType<UseFields<D>> &
   ReturnType<UseFormRef>;
 
-export type UseForm = <D extends FormData = FormData>(
-  initFormData?: Partial<ExtendWithAny<D>>,
-  initFields?: Fields<D>
-) => Form<D>;
+export type UseForm = {
+  <D extends FormData = FormData>(
+    initFormData?: Partial<ExtendWithAny<D>>,
+    initFields?: Fields<D>,
+    root?: boolean
+  ): Form<D>;
+  <D extends FormData = FormData>(root?: boolean): Form<D>;
+};

@@ -1,11 +1,10 @@
 import { ref } from 'vue';
-import { type ProFormInstance } from '..';
-import { type UseFormRef } from '../types';
+import { type UseFormRef, FormInstance } from '../types';
 
 const useFormRef: UseFormRef = () => {
-  const formRef = ref<ProFormInstance>();
+  const formRef = ref<FormInstance>();
 
-  const setFormRef = (val: ProFormInstance) => {
+  const setFormRef = (val: FormInstance) => {
     formRef.value = val;
   };
 

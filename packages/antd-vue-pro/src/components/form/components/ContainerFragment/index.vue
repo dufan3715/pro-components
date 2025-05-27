@@ -7,10 +7,7 @@ type Props = {
 
 defineProps<Props>();
 
-defineOptions({
-  name: 'ContainerFragment',
-  inheritAttrs: false,
-});
+defineOptions({ name: 'ContainerFragment', inheritAttrs: false });
 </script>
 
 <template>

@@ -1,4 +1,4 @@
-import { Component, InjectionKey } from 'vue';
+import { Component, ComputedRef, InjectionKey } from 'vue';
 import {
   Cascader,
   CheckboxGroup,
@@ -17,11 +17,7 @@ import {
   TreeSelect,
   RangePicker,
 } from 'ant-design-vue';
-import type {
-  BaseComponentStringName,
-  SetActivePath,
-  UpdateFormData,
-} from '../types';
+import type { BaseComponentStringName, Form } from '../types';
 
 // prettier-ignore
 export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help', 'tooltip'] as const;
@@ -47,8 +43,5 @@ export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
 ])
 
 // inject keys
-export const FORM_DATA: InjectionKey<Record<string, any>> = Symbol('formData');
-export const UPDATE_FORM_DATA: InjectionKey<UpdateFormData> =
-  Symbol('updateFormData');
-export const UPDATE_ACTIVE_PATH: InjectionKey<SetActivePath> =
-  Symbol('setActivePath');
+export const FORM: InjectionKey<Form> = Symbol('form');
+export const PATH: InjectionKey<ComputedRef<string>> = Symbol('path');

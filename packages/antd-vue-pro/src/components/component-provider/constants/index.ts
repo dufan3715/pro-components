@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export, no-underscore-dangle, dot-notation */
 /* 初始化组件配置inject keys */
 import { ComponentVars } from '../types';
 
@@ -38,7 +37,7 @@ const getPopupContainer = (triggerNode: any) =>
 export const INIT_PROPS_MAP = new Map([
   [INJECT_KEYS['pro-table'], {}],
   [INJECT_KEYS['pro-form'], {}],
-  [INJECT_KEYS['pro-form-item'], {}],
+  [INJECT_KEYS['pro-form-item'], { validateFirst: true }],
   // field
   [INJECT_KEYS['input'], { maxlength: 100, allowClear: true, placeholder: '请输入' }],
   [INJECT_KEYS['textarea'], { maxlength: 200, autoSize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true, placeholder: '请输入' }],

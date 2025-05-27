@@ -9,7 +9,6 @@ export * from './components/component-provider';
 
 type SFCWithInstall<T> = T & Plugin;
 const withInstall = <T>(comp: T) => {
-  // eslint-disable-next-line no-param-reassign
   (comp as SFCWithInstall<T>).install = (app: App) => {
     app.component((comp as any).name, comp as any);
   };
@@ -22,10 +21,10 @@ const ProComponentProvider = withInstall(ComponentProvider);
 
 export { ProForm, ProTable, ProComponentProvider };
 
-const components = [ProForm, ProTable as any, ProComponentProvider];
+const components = [ProForm, ProTable, ProComponentProvider];
 
 export default {
-  install(app: import('vue').App) {
+  install(app: App) {
     components.forEach(component => {
       app.component(component.name!, component);
     });

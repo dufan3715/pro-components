@@ -1,26 +1,21 @@
-/* eslint-disable no-unused-vars, no-param-reassign */
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 import { get, set } from 'lodash-es';
 import type { GetFormData, SetFormData, UseFormData } from '../types';
 
 const useFormData: UseFormData = initFormData => {
-  const formData = ref(initFormData);
+  const formData = reactive(initFormData);
 
   const activePath = ref<string>();
 
-  const setActivePath = (path?: string) => {
-    activePath.value = path;
-  };
-
   const getFormData: GetFormData = path => {
     if (!path) return undefined;
-    return get(formData.value, path);
+    return get(formData, path);
   };
 
   const setFormData: SetFormData = (...args: any[]) => {
     let path;
     let value;
-    if (args.length === 2) {
+    if (args.length >= 2) {
       [path, value] = args;
     } else {
       [value] = args;
@@ -30,17 +25,21 @@ const useFormData: UseFormData = initFormData => {
         const preValue = getFormData(path);
         value = value(preValue);
       }
-      set(formData.value, path, value);
+      activePath.value = path;
+      set(formData, path, value);
     } else {
       if (typeof value === 'function') {
-        const preValue = formData.value;
+        const preValue = formData;
         value = value(preValue);
       }
-      formData.value = value;
+      Object.keys(formData).forEach(key => {
+        delete formData[key];
+      });
+      Object.assign(formData, value);
     }
   };
 
-  return { formData, getFormData, setFormData, activePath, setActivePath };
+  return { formData, getFormData, setFormData, activePath };
 };
 
 export default useFormData;

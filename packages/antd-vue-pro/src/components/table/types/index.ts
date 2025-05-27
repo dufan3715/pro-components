@@ -1,7 +1,6 @@
-/* eslint-disable no-unused-vars */
 import { PaginationProps } from 'ant-design-vue';
 import type { ColumnType } from 'ant-design-vue/es/table';
-import { Ref } from 'vue';
+import { Reactive, Ref } from 'vue';
 import { Fields, SetField, SetFormData } from '../../form/types';
 
 type Data = { [key: string]: any };
@@ -15,7 +14,7 @@ interface Column<D extends Data = Data> extends Omit<ColumnType, 'dataIndex'> {
 export type Columns<D extends Data = Data> = Array<Column<D>>;
 
 export type Table<D extends Data = Data> = {
-  dataSource: Array<D>;
+  dataSource: Array<D & Record<string, any>>;
   columns: Columns<D>;
   showColumnKeys: Array<string>;
   searchParam: Partial<D & Record<string, any>>;
@@ -25,11 +24,15 @@ export type Table<D extends Data = Data> = {
 
 export type UseTable = <D extends Data = Data>(
   init: Partial<Table<D>>
-) => {
-  [k in keyof Table<D>]: Ref<Table<D>[k]>;
-} & {
-  setSearchParam: SetFormData;
-  setSearchField: SetField;
+) => Omit<
+  {
+    [k in keyof Table<D>]: Ref<Table<D>[k]>;
+  },
+  'searchParam'
+> & {
+  searchParam: Reactive<Partial<D & Record<string, any>>>;
+  setSearchParam: SetFormData<D>;
+  setSearchField: SetField<D>;
   setShowColumnKeys: (val: Array<string>) => void;
   setPagination: (val: PaginationProps) => void;
   resetQueryParams: () => void;

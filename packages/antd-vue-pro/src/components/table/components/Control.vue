@@ -12,15 +12,31 @@ import { ColumnHeightOutlined, FilterOutlined } from '@ant-design/icons-vue';
 import { computed, ref, watch } from 'vue';
 import type { UseTable, Columns } from '../types';
 
+type Size = TableProps['size'];
+
 type Props = {
   columns: Columns;
   table?: ReturnType<UseTable>;
+  size?: Size;
 };
 const props = withDefaults(defineProps<Props>(), {
   table: undefined,
+  size: 'large',
 });
 
-const size = defineModel('size', { default: 'large' });
+type Emits = {
+  'update:size': [size: Size];
+};
+const emit = defineEmits<Emits>();
+
+const size = computed({
+  get() {
+    return props.size;
+  },
+  set(val) {
+    emit('update:size', val);
+  },
+});
 
 const onSizeChange = (val: any) => {
   size.value = val.key;
@@ -29,7 +45,7 @@ const onSizeChange = (val: any) => {
 const checkAll = ref(false);
 const indeterminate = ref(false);
 
-const sizeOptions: Array<{ label: string; key: TableProps['size'] }> = [
+const sizeOptions: Array<{ label: string; key: Size }> = [
   { label: '默认', key: 'large' },
   { label: '中等', key: 'middle' },
   { label: '紧凑', key: 'small' },
@@ -87,13 +103,15 @@ watch(
     <Dropdown arrow placement="bottomRight">
       <ColumnHeightOutlined
         :style="{ fontSize: '16px' }"
-        class="control-icon" />
+        class="control-icon"
+      />
       <template #overlay>
         <Menu
           style="width: 100px; text-align: center"
           :selected-keys="[size]"
-          :items="(sizeOptions as any)"
-          @click="onSizeChange">
+          :items="sizeOptions as any"
+          @click="onSizeChange"
+        >
         </Menu>
       </template>
     </Dropdown>
@@ -103,13 +121,15 @@ watch(
         <div>
           <Menu
             style="min-width: 100px; max-height: 500px; overflow-y: scroll"
-            :selectable="false">
+            :selectable="false"
+          >
             <MenuItem :key="0">
               <div>
                 <Checkbox
                   :checked="checkAll"
                   :indeterminate="indeterminate"
-                  @change="onCheckAllChange">
+                  @change="onCheckAllChange"
+                >
                   全选
                 </Checkbox>
               </div>
@@ -118,7 +138,8 @@ watch(
             <MenuItem
               v-for="item of checkedColumnsOptions"
               :key="item.value"
-              @click="checkColumnsMenuItemClick(item.value)">
+              @click="checkColumnsMenuItemClick(item.value)"
+            >
               <Checkbox :checked="checkedColumns.includes(item.value)">
                 <div @click.stop>{{ item.label }}</div>
               </Checkbox>

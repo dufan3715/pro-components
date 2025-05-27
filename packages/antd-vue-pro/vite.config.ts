@@ -14,15 +14,7 @@ const componentsName = fs
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    vue({
-      script: {
-        defineModel: true,
-        propsDestructure: true,
-      },
-    }),
-    dts({ rollupTypes: true }),
-  ],
+  plugins: [vue(), dts({ rollupTypes: true })],
   build: {
     target: 'modules',
     outDir: 'es',
@@ -48,18 +40,23 @@ export default defineConfig({
         entryFileNames: '[name].js',
         intro: chunk => {
           if (chunk.name === 'index') {
-            return `import "./style.css";`;
+            return `import "./antd-vue-pro.css";`;
           }
           return '';
         },
         manualChunks: id => {
-          // eslint-disable-next-line no-restricted-syntax
           for (const name of componentsName) {
             if (id.includes(`${componentsDir}/${name}`)) {
               return `${name}/index`;
             }
           }
           return null;
+        },
+        globals: {
+          vue: 'Vue',
+          'ant-design-vue': 'AntDesignVue',
+          'lodash-es': 'lodashEs',
+          '@ant-design/icons-vue': 'AntDesignIconsVue',
         },
       },
     },
