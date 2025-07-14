@@ -196,8 +196,8 @@ const mergeTableProps = computed<TableProps>(() => {
     onChange: table
       ? (...args) => {
           setPagination(args[0]);
-          search();
           (attrs.onChange as TableProps['onChange'])?.(...args);
+          search();
         }
       : attrs.onChange,
   };
