@@ -24,7 +24,8 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['ant-design-vue', 'vue'],
+      // 确保这些依赖被外部化
+      external: ['vue', 'ant-design-vue', /^ant-design-vue\/.*/],
       input: {
         index: entry,
         ...Object.fromEntries(
@@ -45,6 +46,12 @@ export default defineConfig({
           return '';
         },
         manualChunks: id => {
+          if (id.includes('node_modules')) {
+            if (id.includes('lodash-es')) {
+              return 'vendor/utils/lodash-es';
+            }
+            return 'vendor';
+          }
           for (const name of componentsName) {
             if (id.includes(`${componentsDir}/${name}`)) {
               return `${name}/index`;
@@ -55,8 +62,6 @@ export default defineConfig({
         globals: {
           vue: 'Vue',
           'ant-design-vue': 'AntDesignVue',
-          'lodash-es': 'lodashEs',
-          '@ant-design/icons-vue': 'AntDesignIconsVue',
         },
       },
     },

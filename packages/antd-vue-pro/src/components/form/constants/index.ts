@@ -16,8 +16,9 @@ import {
   Transfer,
   TreeSelect,
   RangePicker,
-} from 'ant-design-vue';
-import type { BaseComponentStringName, Form } from '../types';
+} from '../../../shared/ui';
+import type { BaseComponentStringName } from '../types';
+import { type Form } from '../hooks/useForm';
 
 // prettier-ignore
 export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help', 'tooltip'] as const;
@@ -42,6 +43,9 @@ export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
   ['transfer', Transfer],
 ])
 
+export const TeleportComponentNamePrefix = 'TeleportComponent_';
+
 // inject keys
 export const FORM: InjectionKey<Form> = Symbol('form');
-export const PATH: InjectionKey<ComputedRef<string>> = Symbol('path');
+export const PATH: InjectionKey<ComputedRef<string | undefined>> =
+  Symbol('path');

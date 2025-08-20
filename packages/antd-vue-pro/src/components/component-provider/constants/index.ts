@@ -1,61 +1,136 @@
-/* 初始化组件配置inject keys */
-import { ComponentVars } from '../types';
-
-// prettier-ignore
-export const INJECT_KEYS: Record<keyof ComponentVars, symbol> = {
-  'pro-table': Symbol(''),
-  'pro-form': Symbol(''),
-  'pro-form-item': Symbol(''),
-  // field
-  'input': Symbol(''),
-  'textarea': Symbol(''),
-  'input-password': Symbol(''),
-  'input-search': Symbol(''),
-  'input-number': Symbol(''),
-  'select': Symbol(''),
-  'cascader': Symbol(''),
-  'date-picker': Symbol(''),
-  'date-picker.date': Symbol(''),
-  'date-picker.week': Symbol(''),
-  'date-picker.month': Symbol(''),
-  'date-picker.year': Symbol(''),
-  'date-picker.quarter': Symbol(''),
-  'range-picker': Symbol(''),
-  'time-picker': Symbol(''),
-  'checkbox-group': Symbol(''),
-  'radio-group': Symbol(''),
-  'switch': Symbol(''),
-  'slider': Symbol(''),
-  'tree-select': Symbol(''),
-  'transfer': Symbol(''),
-};
+/* 初始化组件配置inject keys default */
+import { RequiredComponentVars } from '../types';
+import { InjectionKey } from 'vue';
 
 const getPopupContainer = (triggerNode: any) =>
   triggerNode.closest('.ant-form');
 
-// prettier-ignore
-export const INIT_PROPS_MAP = new Map([
-  [INJECT_KEYS['pro-table'], {}],
-  [INJECT_KEYS['pro-form'], {}],
-  [INJECT_KEYS['pro-form-item'], { validateFirst: true }],
+export const INJECT_CONFIG: {
+  [key in keyof RequiredComponentVars]: {
+    injectionKey: InjectionKey<RequiredComponentVars[key]>;
+    default: RequiredComponentVars[key];
+  };
+} = {
+  'pro-table': {
+    injectionKey: Symbol(''),
+    default: {
+      pagination: {
+        showTotal: total => `共 ${total} 条`,
+        showSizeChanger: true,
+        pageSizeOptions: ['10', '20', '30', '40', '50', '100'],
+        showQuickJumper: true,
+      },
+      searchFormConfig: {
+        layout: 'grid',
+        expand: { minExpandRows: 2, expandStatus: false },
+      },
+      control: true,
+      addIndexColumn: true,
+    },
+  },
+  'pro-form': {
+    injectionKey: Symbol(''),
+    default: { grid: { gutter: { xs: 8, sm: 16, md: 16, lg: 24 } } },
+  },
+  'pro-form-item': {
+    injectionKey: Symbol(''),
+    default: { validateFirst: true, span: 8 },
+  },
   // field
-  [INJECT_KEYS['input'], { maxlength: 100, allowClear: true, placeholder: '请输入' }],
-  [INJECT_KEYS['textarea'], { maxlength: 200, autoSize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true, placeholder: '请输入' }],
-  [INJECT_KEYS['input-password'], { maxlength: 100, allowClear: true, placeholder: '请输入' }],
-  [INJECT_KEYS['input-number'], { max: 10 ** 15 - 1, min: -(10 ** 15 + 1), controls: false, allowClear: true, placeholder: '请输入' }],
-  [INJECT_KEYS['select'], { allowClear: true, placeholder: '请选择', getPopupContainer }],
-  [INJECT_KEYS['cascader'], { allowClear: true, placeholder: '请选择', getPopupContainer }],
-  [INJECT_KEYS['date-picker'], { allowClear: true, getPopupContainer }],
-  [INJECT_KEYS['date-picker.week'], { allowClear: true, getPopupContainer }],
-  [INJECT_KEYS['date-picker.month'], { allowClear: true, getPopupContainer }],
-  [INJECT_KEYS['date-picker.year'], { allowClear: true, getPopupContainer }],
-  [INJECT_KEYS['date-picker.quarter'], { allowClear: true, getPopupContainer }],
-  [INJECT_KEYS['time-picker'], { allowClear: true, getPopupContainer }],
-  [INJECT_KEYS['range-picker'], { allowClear: true, getPopupContainer }],
-  [INJECT_KEYS['checkbox-group'], { allowClear: true, getPopupContainer }],
-  [INJECT_KEYS['radio-group'], {}],
-  [INJECT_KEYS['switch'], {}],
-  [INJECT_KEYS['slider'], {}],
-  [INJECT_KEYS['tree-select'], {}],
-  [INJECT_KEYS['transfer'], {}],
-]);
+  input: {
+    injectionKey: Symbol(''),
+    default: { maxlength: 100, allowClear: true, placeholder: '请输入' },
+  },
+  textarea: {
+    injectionKey: Symbol(''),
+    default: {
+      maxlength: 200,
+      autoSize: { minRows: 3, maxRows: 6 },
+      showCount: true,
+      allowClear: true,
+      placeholder: '请输入',
+    },
+  },
+  'input-password': {
+    injectionKey: Symbol(''),
+    default: { maxlength: 100, allowClear: true, placeholder: '请输入' },
+  },
+  'input-search': {
+    injectionKey: Symbol(''),
+    default: {},
+  },
+  'input-number': {
+    injectionKey: Symbol(''),
+    default: {
+      max: 10 ** 15 - 1,
+      min: -(10 ** 15 + 1),
+      controls: false,
+      placeholder: '请输入',
+      style: { width: '100%' },
+    },
+  },
+  select: {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, placeholder: '请选择', getPopupContainer },
+  },
+  cascader: {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, placeholder: '请选择', getPopupContainer },
+  },
+  'date-picker': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, getPopupContainer, style: { width: '100%' } },
+  },
+  'date-picker.date': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, getPopupContainer, style: { width: '100%' } },
+  },
+  'date-picker.week': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, getPopupContainer, style: { width: '100%' } },
+  },
+  'date-picker.month': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, getPopupContainer, style: { width: '100%' } },
+  },
+  'date-picker.year': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, getPopupContainer, style: { width: '100%' } },
+  },
+  'date-picker.quarter': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, getPopupContainer, style: { width: '100%' } },
+  },
+  'range-picker': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, getPopupContainer, style: { width: '100%' } },
+  },
+  'time-picker': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, getPopupContainer, style: { width: '100%' } },
+  },
+  'checkbox-group': {
+    injectionKey: Symbol(''),
+    default: {},
+  },
+  'radio-group': {
+    injectionKey: Symbol(''),
+    default: {},
+  },
+  switch: {
+    injectionKey: Symbol(''),
+    default: { modelName: 'checked' },
+  },
+  slider: {
+    injectionKey: Symbol(''),
+    default: {},
+  },
+  'tree-select': {
+    injectionKey: Symbol(''),
+    default: {},
+  },
+  transfer: {
+    injectionKey: Symbol(''),
+    default: {},
+  },
+};

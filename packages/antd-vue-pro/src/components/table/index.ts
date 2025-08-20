@@ -1,13 +1,14 @@
-import BaseTable from './components/Table.vue';
-
-export default BaseTable;
+import { ComponentExposed, ComponentProps } from 'vue-component-type-helpers';
+import BaseTable from './components/BaseTable.vue';
 
 // instance
-export type ProTableInstance = InstanceType<typeof BaseTable>;
-export type ProTableProps = ProTableInstance['$props'];
+export type ProTableProps = ComponentProps<typeof BaseTable>;
+export type ProTableInstance = ComponentExposed<typeof BaseTable>;
 
-// type.d
+// types
 export * from './types';
 
 // hooks
 export * from './hooks';
+
+export default BaseTable;

@@ -1,47 +1,78 @@
-<script lang="ts" setup>
-import { Space, Button, FormProps } from 'ant-design-vue';
-import { DownOutlined } from '@ant-design/icons-vue';
-import { computed, onMounted, ref } from 'vue';
-import ProForm, { useForm } from '../../form';
-
-defineOptions({ name: 'SearchForm', inheritAttrs: false });
-
-type Props = {
-  layout?: 'grid' | 'inline';
+<script lang="ts">
+type Expand = {
+  // 网格布局时默认展开行数量
   minExpandRows?: number;
-  defaultExpandStatus?: boolean;
+  // 网格布局时展开状态
+  expandStatus?: boolean;
 };
 
-const props = withDefaults(defineProps<Props>(), {
+type _FormProps = Pick<
+  Partial<FormProps>,
+  | 'colon'
+  | 'disabled'
+  | 'hideRequiredMark'
+  | 'labelAlign'
+  | 'labelCol'
+  | 'labelWrap'
+  | 'name'
+  | 'wrapperCol'
+>;
+
+export type SearchFormProps = {
+  form: Form;
+  layout?: 'grid' | 'inline';
+  expand?: boolean | Expand;
+} & /* @vue-ignore */ _FormProps &
+  AllowedComponentProps;
+</script>
+
+<script lang="ts" setup>
+import { Space, Button, FormProps } from '../../../shared/ui';
+import { AllowedComponentProps, computed, ref, watch, watchEffect } from 'vue';
+import ProForm, { Form } from '../../form';
+import DownOutlined from './icons/DownOutlined.vue';
+
+defineOptions({ name: 'SearchForm' });
+
+const props = withDefaults(defineProps<SearchFormProps>(), {
   layout: 'grid',
-  minExpandRows: 1,
-  defaultExpandStatus: false,
+  expand: true,
 });
 
 type Emits = {
-  search: [];
-  reset: [];
+  (e: 'search'): void;
+  (e: 'reset'): void;
 };
 const emit = defineEmits<Emits>();
 
-let proFormHeight = 'unset';
-let collapseHeight = 0;
+const proFormHeight = ref<'unset' | number>('unset');
+const collapseHeight = ref(0);
+let rowHeight = 32;
 const rowGap = 16;
 const columnGap = 24;
+
+const computedExpand = computed(() => {
+  if (!props.expand) return false;
+  if (props.expand === true) return { minExpandRows: 2, expandStatus: false };
+  return {
+    minExpandRows: Math.max(Math.floor(props.expand.minExpandRows ?? 2), 1),
+    expandStatus: props.expand.expandStatus ?? false,
+  };
+});
 
 const showExpandToggle = ref(false);
 
 const expandStatus = ref(true);
 
-const expand = () => {
+const changeExpandStatus = () => {
   expandStatus.value = !expandStatus.value;
 };
 
-const { formRef, getFormData } = useForm();
+const { formRef, getFormData } = props.form;
 
 const setInitExpandStatus = () => {
   expandStatus.value = false;
-  if (formRef.value) {
+  if (formRef.value && props.expand) {
     const formEl = formRef.value.$el;
     const formItemsEl = formEl.querySelectorAll('.ant-form-item>[path]');
     const observer = new IntersectionObserver(
@@ -52,7 +83,7 @@ const setInitExpandStatus = () => {
             const searchFieldValue = path ? getFormData?.(path) : undefined;
             return ![null, undefined].includes(searchFieldValue);
           }
-          return props.defaultExpandStatus;
+          return (props.expand as any).expandStatus;
         });
         observer.disconnect();
       },
@@ -64,58 +95,81 @@ const setInitExpandStatus = () => {
   }
 };
 
-onMounted(() => {
-  if (props.layout === 'grid') {
+watch(
+  [
+    () => props.form?.fields.value?.filter(f => !f.hidden)?.length,
+    () => formRef.value,
+  ],
+  () => {
+    if (!expandStatus.value || !formRef.value) return;
     const proFormEl = formRef.value?.$el;
     const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
-    proFormHeight = height;
-    const rowHeight = proFormEl
-      .querySelector('.ant-form-item')
+    proFormHeight.value = height;
+    rowHeight = proFormEl
+      ?.querySelector('.ant-form-item')
       ?.getBoundingClientRect?.()?.height;
-    collapseHeight =
-      props.minExpandRows * rowHeight + (props.minExpandRows - 1) * rowGap;
-    showExpandToggle.value = height > collapseHeight;
-    if (showExpandToggle.value) {
-      setInitExpandStatus();
-    }
-  }
-});
+  },
+  { flush: 'post', immediate: true }
+);
 
-const layoutProps = computed<FormProps>(() =>
+watchEffect(
+  () => {
+    if (typeof proFormHeight.value !== 'number') return;
+    if (props.layout === 'grid' && computedExpand.value) {
+      const { minExpandRows } = computedExpand.value;
+      collapseHeight.value = Math.min(
+        minExpandRows * rowHeight + (minExpandRows - 1) * rowGap,
+        +proFormHeight.value
+      );
+      showExpandToggle.value = +proFormHeight.value > collapseHeight.value;
+      if (showExpandToggle.value) {
+        setInitExpandStatus();
+      }
+    } else {
+      showExpandToggle.value = false;
+    }
+  },
+  { flush: 'post' }
+);
+
+const layoutProps = computed(() =>
   props.layout === 'grid'
     ? {
         grid: {
-          gutter: [columnGap, rowGap],
+          gutter: [columnGap, rowGap] as [number, number],
           style: { flex: 1, marginRight: '12px' },
         },
         style: {
           display: 'flex',
           overflow: 'hidden',
-          height: `${expandStatus.value ? proFormHeight : collapseHeight}px`,
+          height: `${expandStatus.value ? proFormHeight.value : collapseHeight.value}px`,
         },
       }
     : {
         layout: 'inline',
         style: { gap: `${rowGap}px ${columnGap}px` },
+        grid: false,
       }
 );
 </script>
 
 <template>
-  <ProForm
-    :form="{} as any"
-    v-bind="layoutProps"
-    class="pro-form expand-transition"
-  >
+  <ProForm v-bind="layoutProps" :form="form" class="search-form transition">
     <Space align="start">
       <Button @click="emit('reset')">重置</Button>
       <Button type="primary" html-type="submit" @click="emit('search')">
         查询
       </Button>
-      <Button v-if="showExpandToggle" type="link" @click="expand">
+      <Button
+        v-if="showExpandToggle"
+        type="link"
+        class="expand-toggle-button"
+        @click="changeExpandStatus"
+      >
         {{ expandStatus ? '收起' : '展开' }}
         <DownOutlined
-          class="expand-transition"
+          class="transition"
+          style="margin-left: 4px"
           :style="{ transform: `rotate(${expandStatus ? -180 : 0}deg)` }"
         />
       </Button>
@@ -124,7 +178,7 @@ const layoutProps = computed<FormProps>(() =>
 </template>
 
 <style scoped lang="less">
-.pro-form {
+.search-form {
   :deep {
     .ant-form-item {
       margin: 0;
@@ -132,7 +186,14 @@ const layoutProps = computed<FormProps>(() =>
   }
 }
 
-.expand-transition {
+.expand-toggle-button {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  padding-left: 4px;
+}
+
+.transition {
   transition: all 0.25s;
 }
 </style>

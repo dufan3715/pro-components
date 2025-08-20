@@ -45,7 +45,9 @@ export default defineConfig([
     rules: {
       'vue/multi-word-component-names': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'error',
     },
   },
-  prettier,
+  prettier
 ]);

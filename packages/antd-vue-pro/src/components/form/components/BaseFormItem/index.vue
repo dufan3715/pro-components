@@ -1,18 +1,18 @@
 <script lang="ts" setup>
-import { toPath } from 'lodash-es';
+import { getObject, toPath } from '../../../../shared/utils';
 import {
-  type RowProps as GridProps,
   FormItem,
-  Row as AGrid,
-  Col as AGridItem,
-} from 'ant-design-vue';
-import { FormItemInstance } from 'ant-design-vue/es/form';
-import { computed, ref } from 'vue';
-import { useProviderDisabled } from 'ant-design-vue/es/config-provider/DisabledContext';
-import type { Field, Fields, Grid, WithInstanceGetter } from '../../types';
+  Grid as UIGrid,
+  GridItem as UIGridItem,
+  GridProps,
+  useProviderDisabled,
+} from '../../../../shared/ui';
+import { computed, inject, toValue } from 'vue';
+import type { Fields, Grid } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
 import PathProvider from '../PathProvider/index.vue';
-import MixinFieldAttrs from '../MixinFieldAttrs/index.vue';
+import GroupedFieldAttrs from '../GroupedFieldAttrs/index.vue';
+import { INJECT_CONFIG } from '../../../component-provider';
 
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
@@ -21,113 +21,118 @@ type Props = {
   fields?: Fields;
   disabled?: boolean;
 };
-
 const props = withDefaults(defineProps<Props>(), {
   grid: undefined,
   fields: () => [],
   disabled: undefined,
 });
 
-const validFields = computed(() => props.fields.filter(field => !field.hidden));
+const validFields = computed(() =>
+  props.fields.filter?.(field => !field.hidden)
+);
 
 useProviderDisabled(computed(() => props.disabled));
 
-const formItemRefs = ref<FormItemInstance[]>();
+const config = INJECT_CONFIG['pro-form'];
 
-const setFormItemRef = (el: any, field: Field) => {
-  if (!el) return;
-  if ((field as WithInstanceGetter<Field>)?.getFormItemRef?.() === el) return;
-  Object.assign(field, { getFormItemRef: () => el });
-};
+const { grid: injectGrid } = inject(config.injectionKey, config.default);
 
-const setComponentRef = (el: any, field: Field) => {
-  if (!el) return;
-  if ((field as WithInstanceGetter<Field>)?.getComponentRef?.() === el) return;
-  Object.assign(field, { getComponentRef: () => el });
-};
-
-const withDefaultGridProps = computed(() => {
-  if (props.grid) {
-    const defaultGrid: GridProps = { gutter: 24 };
-    return props.grid === true
-      ? defaultGrid
-      : { ...defaultGrid, ...props.grid };
-  }
-  return props.grid;
+const enableGrid = computed(() => {
+  if (props.grid !== undefined) return !!props.grid;
+  return !!injectGrid;
 });
+
+const computedGridProps = computed<GridProps>(() => {
+  return enableGrid.value
+    ? { ...getObject(injectGrid), ...getObject(props.grid) }
+    : {};
+});
+
+const formItemRefs: any[] = [];
+const componentRefs: any[] = [];
+
+const onFormItemMounted = (index: number, formItemProps?: any) => {
+  const field = validFields.value[index];
+  Object.assign(field, {
+    getFormItemRef: () => formItemRefs[index],
+    getFormItemComputedProps: () => formItemProps,
+  });
+};
+
+const onComponentMounted = (index: number) => {
+  const field = validFields.value[index];
+  Object.assign(field, {
+    getComponentRef: () => componentRefs[index]?.getComponentRef(),
+    getComponentComputedProps: () =>
+      componentRefs[index]?.getComponentComputedProps(),
+  });
+};
 </script>
 
 <template>
   <ContainerFragment
-    :component="grid ? AGrid : undefined"
-    v-bind="withDefaultGridProps"
+    :component="enableGrid ? UIGrid : undefined"
+    v-bind="computedGridProps"
   >
-    <template v-for="(field, index) of validFields" :key="index">
-      <PathProvider
-        :field-name="(field as any).name"
-        :field-key="(field as any).key"
-      >
-        <template #default="{ path }">
-          <MixinFieldAttrs :field="field">
-            <template
-              #default="{
-                gridItemProps,
-                formItemProps,
-                componentProps,
-                formItemSlots,
-              }"
+    <PathProvider
+      v-for="({ path: _path, name: _name, ...field }, index) of validFields"
+      :key="toPath(toValue((_name ?? _path) as any)).join('.') || index"
+      v-bind="{ path: (_name ?? _path) as any }"
+    >
+      <template #default="{ path }">
+        <GroupedFieldAttrs :field="field">
+          <template
+            #default="{
+              gridItemProps,
+              formItemProps: { container, ...formItemProps },
+              componentProps,
+              formItemSlots,
+            }"
+          >
+            <ContainerFragment
+              :component="enableGrid ? UIGridItem : undefined"
+              v-bind="gridItemProps"
             >
-              <ContainerFragment
-                :component="grid ? AGridItem : undefined"
-                v-bind="gridItemProps"
-              >
-                <ContainerFragment :component="field.container" :path="path">
-                  <FormItem
-                    v-bind="formItemProps"
-                    ref="formItemRefs"
-                    :name="toPath(path)"
-                    :path="path"
-                    @vue:mounted="
-                      () => setFormItemRef(formItemRefs?.[index], field)
-                    "
+              <ContainerFragment :component="container" :path="path">
+                <FormItem
+                  v-bind="formItemProps"
+                  :ref="el => (formItemRefs[index] = el)"
+                  :name="toPath(path)"
+                  :path="path"
+                  @vue:mounted="onFormItemMounted(index, formItemProps)"
+                >
+                  <template
+                    v-for="(slot, name) in formItemSlots"
+                    :key="name"
+                    #[name]="scoped"
                   >
-                    <template
-                      v-for="(slot, name) in formItemSlots"
-                      :key="name"
-                      #[name]="scoped"
-                    >
-                      <SlotComponent
-                        :path="path"
-                        :component="slot"
-                        v-bind="scoped"
-                      />
-                    </template>
-                    <template v-if="field.fields">
-                      <BaseFormItem
-                        :grid="field.grid ?? grid"
-                        :fields="field.fields"
-                        :disabled="field.disabled"
-                      >
-                      </BaseFormItem>
-                    </template>
-                    <template v-else-if="field.component">
-                      <BaseField
-                        v-bind="componentProps"
-                        :path="path"
-                        @set-component-ref="
-                          (el: any) => setComponentRef(el, field)
-                        "
-                      >
-                      </BaseField>
-                    </template>
-                    <template v-else> missing "component" prop </template>
-                  </FormItem>
-                </ContainerFragment>
+                    <SlotComponent
+                      :path="path"
+                      :component="slot"
+                      v-bind="scoped"
+                    />
+                  </template>
+                  <template v-if="field.fields">
+                    <BaseFormItem
+                      :grid="(field as any).grid ?? grid"
+                      :fields="field.fields"
+                      :disabled="field.disabled"
+                    />
+                  </template>
+                  <template v-else>
+                    <BaseField
+                      :ref="el => (componentRefs[index] = el)"
+                      v-bind="componentProps"
+                      :path="path"
+                      @vue:mounted="onComponentMounted(index)"
+                    />
+                  </template>
+                </FormItem>
               </ContainerFragment>
-            </template>
-          </MixinFieldAttrs>
-        </template>
-      </PathProvider>
-    </template>
+            </ContainerFragment>
+          </template>
+        </GroupedFieldAttrs>
+      </template>
+    </PathProvider>
   </ContainerFragment>
 </template>

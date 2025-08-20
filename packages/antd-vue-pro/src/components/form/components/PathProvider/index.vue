@@ -1,26 +1,19 @@
 <script lang="ts" setup>
-import { toPath } from 'lodash-es';
-import { computed, inject, provide, toValue } from 'vue';
+import { computed, provide } from 'vue';
 import { PATH } from '../../constants';
+import { NamePath } from '../../../../shared/ui';
 
-type Props = {
-  fieldName?: string | number;
-  fieldKey?: string;
-  parentPath?: string;
-};
-const props = defineProps<Props>();
+const props = defineProps<{ path?: NamePath }>();
 
-const injectParentPath = inject(PATH, undefined);
-
-const path = computed(() => {
-  const pPath = toValue(props.parentPath ?? injectParentPath);
-  const pathValue = props.fieldName ?? [pPath, props.fieldKey].filter(Boolean);
-  return toPath(pathValue).join('.');
+const namePath = computed(() => {
+  return Array.isArray(props.path)
+    ? props.path.join('.')
+    : (props.path as string | undefined);
 });
 
-provide(PATH, path);
+provide(PATH, namePath);
 </script>
 
 <template>
-  <slot :path="path" />
+  <slot :path="namePath" />
 </template>

@@ -16,12 +16,12 @@ const withInstall = <T>(comp: T) => {
 };
 
 const ProForm = withInstall(Form);
-const ProTable = withInstall(Table);
+const ProTable = withInstall(Table) as typeof Table;
 const ProComponentProvider = withInstall(ComponentProvider);
 
 export { ProForm, ProTable, ProComponentProvider };
 
-const components = [ProForm, ProTable, ProComponentProvider];
+const components = [ProForm, ProTable as any, ProComponentProvider];
 
 export default {
   install(app: App) {

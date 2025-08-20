@@ -1,7 +1,7 @@
 import type {
   FormItemProps,
-  RowProps as GridProps,
-  ColProps as GridItemProps,
+  GridProps,
+  GridItemProps,
   InputProps,
   InputNumberProps,
   SelectProps,
@@ -18,160 +18,192 @@ import type {
   Select,
   FormItemInstance,
   FormInstance,
-} from 'ant-design-vue';
-import type {
-  CSSProperties,
-  DeepReadonly,
-  Ref,
-  Component,
-  Raw,
-  Reactive,
-  MaybeRef,
-  ComputedRef,
+  RangePickerProps,
+} from '../../../shared/ui';
+import {
+  type CSSProperties,
+  type Component,
+  type Raw,
+  type MaybeRef,
+  type ComputedRef,
+  VNode,
 } from 'vue';
-import { type RangePickerProps } from 'ant-design-vue/es/date-picker';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
+import type { Data, KeyExpandString, Path } from '../../../shared/types';
 
 export type { FormInstance };
 
-export type FormData = { [key: string]: any };
+export type PathProps = { path?: string } & Data;
 
-type KnownKeys<T> = {
-  [K in keyof T as string extends K
-    ? never
-    : number extends K
-      ? never
-      : K]: T[K];
-};
-
-type FlattenKeys<T, P extends string = ''> = T extends FormData
-  ? {
-      [K in keyof KnownKeys<T>]: K extends string
-        ? KnownKeys<T>[K] extends any[]
-          ? `${P}${K}` | K
-          : `${P}${K}` | K | FlattenKeys<T[K], `${P}${K}.`> extends infer U
-            ? U extends `${infer V}.`
-              ? V
-              : U
-            : never
-        : never;
-    }[keyof KnownKeys<T>]
-  : P;
-
-type AllowKey<D extends FormData> =
-  | FlattenKeys<D>
-  | (string & Record<never, never>);
-
-type Path<D extends FormData = FormData> = AllowKey<D>;
-
-export type ExtendWithAny<D> = D extends object
-  ? {
-      [K in keyof D]: ExtendWithAny<D[K]>;
-    } & { [key: string]: any }
-  : D;
-
-type DefaultProps = { path?: string; [key: string]: any };
-
-type VModelProps<T = any> = {
+export type VModelProps<T = any> = {
   value?: T;
   'onUpdate:value'?: (val: T) => void;
 };
+
 /**
  * @description 自定义组件
  * @example (p, ctx) => h('div', ctx.attrs)
  */
-export type RenderComponentType = Component<VModelProps & DefaultProps>;
+export type RenderComponentType = Component<VModelProps & PathProps>;
 
-export type SlotComponentType = string | Component<DefaultProps>;
+/**
+ * @description 插槽组件类型
+ */
+export type SlotComponentType =
+  | Component<PathProps>
+  | VNode
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | ((...args: any[]) => SlotComponentType);
 
-export type ContainerComponent = Component<DefaultProps> | null;
+/**
+ * @description 容器组件类型
+ */
+export type ContainerComponent = Component<PathProps> | null;
 
+/**
+ * @description 插槽对象类型
+ */
 export type Slots = {
   [name: string]: SlotComponentType;
 };
 
-export type Option = {
-  label: string;
-  value: any;
-  [x: string]: any;
-};
+export type Option = { label: string; value: any; [x: string]: any };
 export type Options = Array<Option>;
 
-export type Grid = boolean | GridProps;
+export type Grid = boolean | (GridProps & {});
 
 /**
- * @type {Object} Base - 公共字段类型
+ * @type {Object} Base - 基础公共字段类型
  */
-export interface Base<D extends FormData = FormData> {
-  /** 标识key */
-  key?: AllowKey<D>;
-  /** 中文名称 */
+export interface Base<D extends Data = Data> {
+  /**
+   * @description 字段标识namePath, 同name
+   * @example 'name' | 'age' | 'sex' | ...
+   */
+  path?: Path<D>;
+  /**
+   * @description 字段是否隐藏
+   */
+  hidden?: boolean;
+  /**
+   * @description 字段中文名称，支持字符串或组件
+   * @example '姓名' | '年龄' | '性别' | () => h('span', '自定义标签')
+   */
   label?: SlotComponentType;
-  /** 插槽，可包含formItem插槽和component插槽 */
+  /**
+   * @description 字段插槽配置，可包含formItem插槽和component插槽
+   * @example
+   * ```js
+   * slots: {
+   *   label: () => h('div', { style: { fontSize: '12px' } }, '年龄'),
+   *   addonAfter: '岁',
+   *   suffix: () => h('span', '元')
+   * }
+   * ```
+   */
   slots?: Partial<
     Record<(typeof FORM_ITEM_SLOT_KEYS)[number], SlotComponentType>
   >;
-  /** 网格布局属性 */
-  grid?: Grid;
-  /** 子字段 */
-  fields?: Fields<D>;
-  /** 是否隐藏 */
-  hidden?: boolean;
-  /** formItem样式属性 */
+  /**
+   * @description 字段formItem样式属性
+   * @example { marginBottom: '8px', padding: '12px' }
+   */
   style?: CSSProperties;
-  /** formItem样式类名 */
+  /**
+   * @description 字段formItem样式类名
+   * @example 'custom-form-item' | 'required-field'
+   */
   className?: string;
-  /** formItem容器包裹组件 */
+  /**
+   * @description 嵌套子字段配置
+   * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
+   */
+  fields?: Fields<D>;
+  /**
+   * @description 网格布局属性，true表示使用默认网格布局，针对具有嵌套字段的字段
+   * @example boolean | { gutter: 24 }
+   */
+  grid?: Grid;
+  /**
+   * @description 字段formItem容器包裹组件
+   * @example (props, ctx) => h('div', { class: 'custom-container' }, ctx.slots.default?.())
+   */
   container?: ContainerComponent;
-  /** component样式属性 */
+  /**
+   * @description 字段component样式属性
+   * @example { width: '100%', borderColor: '#d9d9d9' }
+   */
   componentStyle?: CSSProperties;
-  /** component样式类名 */
+  /**
+   * @description 字段component样式类名
+   * @example 'custom-input' | 'error-input'
+   */
   componentClassName?: string;
-  /** component容器包裹组件 */
+  /**
+   * @description 字段component容器包裹组件
+   * @example (props, ctx) => h('div', { class: 'input-wrapper' }, ctx.slots.default?.())
+   */
   componentContainer?: ContainerComponent;
   /**
-   * 值处理函数，onUpdateValue前执行，函数返回值将作为更新值, 例如
+   * @description 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值
    * @example (val) => val?.trim()
    */
   valueFormatter?: (val: any, oldVal: any) => any;
-  /** 是否隐藏校验错误信息（需要浏览器支持has选择器） */
-  hideFeedback?: boolean;
-  /** 以data-form-item-开始的属性名将会被渲染至formItem的dom节点 */
+  /**
+   * @description 组件v-model双向绑定更新属性名，默认'value'
+   */
+  modelName?: string;
+  /**
+   * @description 以data-form-item-开始的属性名将会被渲染至formItem的dom节点
+   * @example { 'data-form-item-test': 'test-value' }
+   */
   [key: `data-form-item-${string}`]: string;
-  /** 以data-component-开始的属性名将会被渲染至component的dom节点 */
+  /**
+   * @description 以data-component-开始的属性名将会被渲染至component的dom节点
+   * @example { 'data-component-test': 'test-value' }
+   */
   [key: `data-component-${string}`]: string;
 }
 
-/* 插槽类型 */
-type FieldSlot<T extends string> = Partial<Record<T, SlotComponentType>>;
+/**
+ * @description 字段插槽类型
+ * @template T - 插槽名称联合类型
+ */
+type CompSlot<T extends string> = Partial<
+  Record<KeyExpandString<T>, SlotComponentType>
+>;
 // prettier-ignore
-type InputSlots = FieldSlot<'addonAfter' | 'addonBefore' | 'clearIcon' | 'prefix' | 'suffix'>
+type InputSlots = CompSlot<'addonAfter' | 'addonBefore' | 'clearIcon' | 'prefix' | 'suffix'>;
 // prettier-ignore
-type InputNumberSlots = FieldSlot<'addonAfter' | 'addonBefore' | 'prefix' | 'upIcon' | 'downIcon'>
+type InputNumberSlots = CompSlot<'addonAfter' | 'addonBefore' | 'prefix' | 'upIcon' | 'downIcon'>
 // prettier-ignore
-type SelectSlots = FieldSlot<keyof InstanceType<typeof Select>['$slots']>
+type SelectSlots = CompSlot<keyof InstanceType<typeof Select>['$slots']>
 // prettier-ignore
-type CascaderSlots = FieldSlot<'clearIcon' | 'expandIcon' | 'maxTagPlaceholder' | 'notFoundContent' | 'removeIcon' | 'suffixIcon' | 'tagRender'>
+type CascaderSlots = CompSlot<'clearIcon' | 'expandIcon' | 'maxTagPlaceholder' | 'notFoundContent' | 'removeIcon' | 'suffixIcon' | 'tagRender'>
 // prettier-ignore
-type DatePickerSlots = FieldSlot<'dateRender' | 'renderExtraFooter' | 'separator' | 'monthCellRender'>
+type DatePickerSlots = CompSlot<'dateRender' | 'renderExtraFooter' | 'separator' | 'monthCellRender'>
 // prettier-ignore
-type RangePickerSlots = FieldSlot<'dateRender' | 'renderExtraFooter' | 'separator'>
+type RangePickerSlots = CompSlot<'dateRender' | 'renderExtraFooter' | 'separator'>
 // prettier-ignore
-type TimePickerSlots = FieldSlot<'clearIcon' | 'renderExtraFooter' | 'suffixIcon'>
+type TimePickerSlots = CompSlot<'clearIcon' | 'renderExtraFooter' | 'suffixIcon'>
 // prettier-ignore
-type SwitchSlots = FieldSlot<'checkedChildren' | 'unCheckedChildren'>
+type SwitchSlots = CompSlot<'checkedChildren' | 'unCheckedChildren'>
 // prettier-ignore
-type SliderSlots = FieldSlot<'mark'>
+type SliderSlots = CompSlot<'mark'>
 // prettier-ignore
-type TreeSelectSlots = FieldSlot<'maxTagPlaceholder' | 'notFoundContent' | 'placeholder' | 'searchPlaceholder' | 'suffixIcon' |'tagRender' | 'title'>
+type TreeSelectSlots = CompSlot<'maxTagPlaceholder' | 'notFoundContent' | 'placeholder' | 'searchPlaceholder' | 'suffixIcon' |'tagRender' | 'title'>
 // prettier-ignore
-type TransferSlots = FieldSlot<'footer' | 'render'>
+type TransferSlots = CompSlot<'footer' | 'render'>
 
 /**
- * @type {FieldType} 字段类型集合
+ * @type {CompType} 字段类型集合
  */
 // prettier-ignore
-export type FieldType = {
+export type CompType = {
   /** 文本框 */
   'input': { component: 'input', slots?: InputSlots } & InputProps;
   /** 文本域 */
@@ -208,162 +240,74 @@ export type FieldType = {
   'custom': { component?: RenderComponentType | Raw<RenderComponentType>, slots?: Slots } & Record<string, any>;
 };
 
-// prettier-ignore
-type NoRefOrGetterProps = 'container' | 'componentContainer' | 'valueFormatter' | 'fields';
+/**
+ * @description 不支持响应式的属性名
+ */
+type NotSupportedRefOrGetterProps =
+  | 'container'
+  | 'componentContainer'
+  | 'valueFormatter'
+  | 'fields'
+  | 'slots'
+  | 'modelName';
 
-type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T> | (() => T);
+type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
 
-export type WithRef<T> = T extends object
-  ? {
-      [P in keyof T]: P extends NoRefOrGetterProps
-        ? T[P]
-        : T[P] extends (args: any[]) => any
-          ? T[P]
-          : WithRef<MaybeRefOrComputedRef<T[P]>>;
-    }
-  : MaybeRefOrComputedRef<T>;
+/**
+ * @description 为对象属性添加响应式支持的类型
+ * @template T - 原始类型
+ */
+export type WithRef<T> = {
+  [P in keyof T]: P extends NotSupportedRefOrGetterProps
+    ? T[P]
+    : T[P] extends (...args: any[]) => any
+      ? T[P]
+      : MaybeRefOrComputedRef<T[P]>;
+};
 
-export type Field<D extends FormData = FormData> = WithRef<
-  FieldType[keyof FieldType] &
+/**
+ * @description 字段配置类型，包含所有字段属性和响应式支持
+ * @template D - 数据对象类型
+ */
+export type Field<D extends Data = Data> = WithRef<
+  CompType[keyof CompType] &
     Omit<FormItemProps, 'label'> &
     GridItemProps &
     Base<D>
 >;
 
-export type Fields<D extends FormData = FormData> = Array<Field<D>>;
+/**
+ * @description 字段数组类型
+ * @template D - 数据对象类型
+ */
+export type Fields<D extends Data = Data> = Array<Field<D>>;
 
+/**
+ * @description 基础组件字符串名称类型
+ */
 export type BaseComponentStringName = Exclude<
   Field['component'],
   RenderComponentType | undefined
 >;
 
-export type GetFormData<D extends FormData = FormData> = (
-  path?: Path<D>
-) => DeepReadonly<any>;
-export type SetFormData<D extends FormData = FormData> = {
-  (path: Path<D>, value: any | ((preValue: DeepReadonly<any>) => any)): void;
-  (
-    value: Partial<D> | ((preValue: DeepReadonly<Partial<D>>) => Partial<D>)
-  ): void;
-};
-
-// hooks/useFields
-export type FindBy<D extends FormData = FormData> = (
-  field: Readonly<Field<D>>
-) => boolean;
-
-export type UpdateFieldOptions = {
+export type WithAdditionalMethodsGetter<T> = T & {
   /**
-   * 更新所有符合条件的字段，默认false（仅更新第一个）
+   * @description 获取FormItem实例的方法
    */
-  all?: boolean;
-};
-
-export type WithInstanceGetter<T> = T & {
   getFormItemRef?: () => FormItemInstance;
+  /**
+   * @description 获取传入FormItem组件的属性
+   */
+  getFormItemComputedProps?: () => Readonly<FormItemProps>;
+  /**
+   * @description 获取组件实例的方法
+   */
   getComponentRef?: () => any;
-};
-
-export type GetField<D extends FormData = FormData> = (
-  path?: Path<D>
-) => Readonly<WithInstanceGetter<Field<D>>> | undefined;
-
-export type SetField<D extends FormData = FormData> = (
-  path: Path<D> | FindBy<D> | undefined,
-  field: Field<D> | ((preField: Readonly<Field<D>>) => Field<D>),
-  options?: {
-    /**
-     * 更新方式 rewrite替换重写，merge合并(默认)
-     */
-    updateType?: 'rewrite' | 'merge';
-  } & UpdateFieldOptions
-) => void;
-
-export type DeleteField<D extends FormData = FormData> = (
-  path: Path<D>,
-  options?: UpdateFieldOptions
-) => void;
-
-export type GetFieldPath<D extends FormData = FormData> = (
-  path: Path<D>
-) => string | undefined;
-
-export type AppendField<D extends FormData = FormData> = (
-  path: Path<D> | undefined,
-  field: Field<D>
-) => void;
-
-export type PrependField<D extends FormData = FormData> = (
-  path: Path<D> | undefined,
-  field: Field<D>
-) => void;
-
-export type GetParentFields<D extends FormData = FormData> = (
-  path: Path<D>
-) => Fields<D> | undefined;
-
-/**
- * @description useFields hook
- * @param {Fields} initFields - 初始化表单字段
- * @returns {Object} form
- */
-export type UseFields<D extends FormData = FormData> = (initFields: Fields) => {
-  /** 表单字段Ref */
-  fields: Ref<Fields<D>>;
-  /** 获取指定字段数据路径的字段配置 */
-  getField: GetField<D>;
-  /** 设置指定字段数据路径的字段配置 */
-  setField: SetField<D>;
-  /** 删除指定字段数据路径的字段配置, 或许你更应该使用setField(path, { hidden: true })来隐藏字段 */
-  deleteField: DeleteField<D>;
-  /** 根据字段数据路径获取字段配置路径 */
-  getFieldPath: GetFieldPath<D>;
-  /** 在指定字段数据路径的字段配置后添加新的字段配置 */
-  appendField: AppendField<D>;
-  /** 在指定字段数据路径的字段配置前插入新的字段配置 */
-  prependField: PrependField<D>;
-  /** 获取指定字段数据路径的字段所在字段分组 */
-  getParentFields: GetParentFields<D>;
-};
-
-/**
- * @description useFormData hook
- * @param {array} initFormData - 初始化表单数据
- * @returns {Object}
- */
-export type UseFormData<D extends FormData = FormData> = (
-  initFormData: Partial<ExtendWithAny<D>>
-) => {
-  /** 表单数据Ref */
-  formData: Reactive<ExtendWithAny<D>>;
-  /** 获取指定字段数据路径的值 */
-  getFormData: GetFormData<D>;
-  /** 设置指定字段数据路径的值 */
-  setFormData: SetFormData<D>;
-  /** 当前正在编辑的字段path */
-  activePath: Ref<Path<D> | undefined>;
-};
-
-/**
- * @description useFormRef hook
- * @returns {Object}
- */
-export type UseFormRef = () => {
-  /** 表单组件实例引用Ref */
-  formRef: Ref<FormInstance | undefined>;
-  /** 更新实例引用Ref */
-  setFormRef: (ref: FormInstance) => void;
-};
-
-export type Form<D extends FormData = FormData> = ReturnType<UseFormData<D>> &
-  ReturnType<UseFields<D>> &
-  ReturnType<UseFormRef>;
-
-export type UseForm = {
-  <D extends FormData = FormData>(
-    initFormData?: Partial<ExtendWithAny<D>>,
-    initFields?: Fields<D>,
-    root?: boolean
-  ): Form<D>;
-  <D extends FormData = FormData>(root?: boolean): Form<D>;
+  /**
+   * @description 获取传入Component组件的属性
+   */
+  getComponentComputedProps?: () => Readonly<{
+    disabled?: boolean;
+    [x: string]: any;
+  }>;
 };

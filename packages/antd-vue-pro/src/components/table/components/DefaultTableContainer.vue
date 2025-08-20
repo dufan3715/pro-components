@@ -9,7 +9,7 @@
 <style scoped lang="less">
 .table-container {
   flex: 1;
-  padding: 0 24px;
+  padding: 24px 24px 0;
   background-color: #fff;
 }
 </style>

@@ -12,10 +12,7 @@
     "jsx": "preserve",
     "outDir": "./es",
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "paths": {
-      "vue-types": ["node_modules/vue-types"]
-    }
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "es"]
