@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "二次封装antd vue组件",
   "type": "module",
   "module": "es/index.js",
@@ -17,7 +17,7 @@
     "README.md",
     "LICENSE"
   ],
-  "homepage": "https://github.com/dufan3715/pro-components.git",
+  "homepage": "https://dufan3715.github.io/pro-components/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dufan3715/pro-components.git"
