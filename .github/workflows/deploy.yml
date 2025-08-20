@@ -46,7 +46,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install # 或 pnpm install / yarn install / bun install
       - name: Build with VitePress
-        run: pnpm run docs:build -F @qin-ui/antd-vue-pro-docs # 或 pnpm docs:build / yarn docs:build / bun run docs:build
+        run: |
+          cd docs/antd-vue-pro-docs
+          pnpm run docs:build
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
