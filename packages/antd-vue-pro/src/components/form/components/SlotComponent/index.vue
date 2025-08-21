@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isVNode, toValue } from 'vue';
+import { isVNode } from 'vue';
 import { SlotComponentType } from '../../types';
 
 defineOptions({ name: 'SlotComponent', inheritAttrs: false });
@@ -13,7 +13,7 @@ defineProps<Props>();
 <template>
   <component
     :is="component"
-    v-if="isVNode(toValue(component))"
+    v-if="isVNode(component) || typeof component === 'function'"
     v-bind="$attrs"
   />
   <template v-else>{{ component }}</template>
