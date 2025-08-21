@@ -1,7 +1,7 @@
 import { PaginationProps } from '../../../shared/ui';
 import { Reactive, reactive, Ref, ref, toValue } from 'vue';
 import { Column, Columns } from '../types';
-import { Data, ExtendWithAny, Path } from '../../../shared/types';
+import { Data, DeepPartial, ExtendWithAny, Path } from '../../../shared/types';
 import { cloneDeep, pick } from '../../../shared/utils';
 import { Fields, Form, useForm } from '../../form';
 
@@ -81,7 +81,7 @@ const useTable = <
   columns?: Columns<D>;
   dataSource?: T[];
   pageParam?: PageParam;
-  searchParam?: T;
+  searchParam?: ExtendWithAny<DeepPartial<D>>;
   searchFields?: Fields<D>;
 }): Table<D, T> => {
   const {

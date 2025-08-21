@@ -36,8 +36,10 @@ const useFormData = <D extends Data = Data>(
    * 设置表单数据
    * @param value 表单数据
    */
-  function setFormData(value: any): void;
-  function setFormData(value: (v: any) => any): void;
+  function setFormData(value: ExtendWithAny<DeepPartial<D>>): void;
+  function setFormData(
+    value: (v: ExtendWithAny<DeepPartial<D>>) => ExtendWithAny<DeepPartial<D>>
+  ): void;
   function setFormData(...args: any[]) {
     let path;
     let value;

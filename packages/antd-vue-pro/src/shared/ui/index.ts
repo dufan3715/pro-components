@@ -1,4 +1,5 @@
 import type { FormProps as _FormProps } from 'ant-design-vue';
+import type { Options } from 'scroll-into-view-if-needed';
 
 export {
   Form,
@@ -65,5 +66,5 @@ export {
 export { type NamePath } from 'ant-design-vue/es/form/interface';
 
 export type FormProps = Omit<_FormProps, 'scrollToFirstError'> & {
-  scrollToFirstError?: boolean;
+  scrollToFirstError?: boolean | Options<any>;
 };
