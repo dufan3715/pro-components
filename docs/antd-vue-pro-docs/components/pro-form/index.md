@@ -47,21 +47,21 @@ antd-vue-pro 导出了一个名为 `useForm` 的自定义 Hook，用于处理表
 
 #### Base
 
-| 参数名             | 说明                                                                                                                       | 类型                                                             | 默认值  |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------- |
-| path               | 字段标识namePath，同[FormItemProps](https://antdv.com/components/form-cn/#form-item)的name属性，可根据FormData推断可能的值 | Path                                                             | -       |
-| hidden             | 字段是否隐藏，隐藏后字段不会渲染                                                                                           | boolean                                                          | -       |
-| slots              | 字段插槽配置，可包含formItem插槽和component插槽                                                                            | Slots                                                            | -       |
-| style              | 字段formItem样式属性                                                                                                       | CSSProperties                                                    | -       |
-| className          | 字段formItem样式类名                                                                                                       | string                                                           | -       |
-| fields             | 嵌套子字段配置                                                                                                             | Field[]                                                          | -       |
-| grid               | 网格布局属性，true表示使用默认网格布局，针对具有嵌套字段的字段，会继承父级字段的网格布局属性                               | boolean \|[GridProps](https://antdv.com/components/grid-cn/#api) | -       |
-| container          | 字段formItem容器包裹组件，会渲染在a-form-item的外层，需要有default slot                                                    | Component                                                        | -       |
-| componentStyle     | 字段component样式属性                                                                                                      | CSSProperties                                                    | -       |
-| componentClassName | 字段component样式类名                                                                                                      | string                                                           | -       |
-| componentContainer | 字段component容器包裹组件，会渲染在component的外层，需要有default slot                                                     | Component                                                        | -       |
-| valueFormatter     | 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值，例如：(val) => val?.trim()                                  | (_val_: any, _oldVal_: any) => any;                              | -       |
-| modelName          | 组件v-model双向绑定更新属性名，默认'value'                                                                                 | String                                                           | 'value' |
+| 参数名             | 说明                                                                                                                            | 类型                                                             | 默认值  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------- |
+| path               | 字段标识namePath，同[FormItemProps](https://antdv.com/components/form-cn/#form-item)的name属性，可根据FormData推断可能的值      | Path                                                             | -       |
+| hidden             | 字段是否隐藏，隐藏后字段不会渲染                                                                                                | boolean                                                          | -       |
+| slots              | 字段插槽配置，可包含formItem插槽和component插槽                                                                                 | Slots                                                            | -       |
+| style              | 字段formItem样式属性                                                                                                            | CSSProperties                                                    | -       |
+| className          | 字段formItem样式类名                                                                                                            | string                                                           | -       |
+| fields             | 嵌套子字段配置                                                                                                                  | Field[]                                                          | -       |
+| grid               | 网格布局属性，true表示使用默认网格布局，针对具有嵌套字段的字段，会继承父级字段的网格布局属性                                    | boolean \|[GridProps](https://antdv.com/components/grid-cn/#api) | -       |
+| container          | 字段formItem容器包裹组件，会渲染在a-form-item的外层，需要有default slot                                                         | Component                                                        | -       |
+| componentStyle     | 字段component样式属性                                                                                                           | CSSProperties                                                    | -       |
+| componentClassName | 字段component样式类名                                                                                                           | string                                                           | -       |
+| componentContainer | 字段component容器包裹组件，会渲染在component的外层，需要有default slot                                                          | Component                                                        | -       |
+| valueFormatter     | 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值，也可设置get和set函数，用于处理字段值，例如：(val) => val?.trim() | (_val_: any, _oldVal_: any) => any;                              | -       |
+| modelName          | 组件v-model双向绑定更新属性名，默认'value'                                                                                      | String                                                           | 'value' |
 
 #### useForm
 

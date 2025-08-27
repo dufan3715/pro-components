@@ -40,6 +40,10 @@ export type VModelProps<T = any> = {
   'onUpdate:value'?: (val: T) => void;
 };
 
+export type ValueFormatter =
+  | { (val: any, oldVal: any): any }
+  | { get?: (val: any) => any; set?: (val: any, oldVal: any) => any };
+
 /**
  * @description 自定义组件
  * @example (p, ctx) => h('div', ctx.attrs)
@@ -149,10 +153,10 @@ export interface Base<D extends Data = Data> {
    */
   componentContainer?: ContainerComponent;
   /**
-   * @description 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值
+   * @description 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值，也可设置get和set函数，用于处理字段值
    * @example (val) => val?.trim()
    */
-  valueFormatter?: (val: any, oldVal: any) => any;
+  valueFormatter?: ValueFormatter;
   /**
    * @description 组件v-model双向绑定更新属性名，默认'value'
    */

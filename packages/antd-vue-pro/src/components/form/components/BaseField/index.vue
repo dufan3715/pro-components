@@ -7,12 +7,12 @@ import {
   ref,
   useAttrs,
 } from 'vue';
-import { cloneDeep, get } from '../../../../shared/utils';
+import { cloneDeep, omit } from '../../../../shared/utils';
 import {
   useInjectDisabled,
   useInjectFormItemContext,
 } from '../../../../shared/ui';
-import type { Field } from '../../types';
+import type { Base, Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import { COMPONENT_MAP, TeleportComponentNamePrefix } from '../../constants';
 import { useForm } from '../../hooks';
@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const form = useForm(false);
-const { formData, getFormData, setFormData } = form;
+const { getFormData, setFormData } = form;
 
 const componentRef = ref<any>();
 
@@ -41,19 +41,33 @@ const triggerFormItemChange = () => {
 };
 
 const attrs: any = useAttrs();
+const { valueFormatter } = attrs as Base;
+
+function getOldValue() {
+  return cloneDeep(getFormData?.(props.path));
+}
 
 const value = computed({
   get() {
-    return getFormData?.(props.path);
+    let val = getFormData?.(props.path);
+    if (
+      typeof valueFormatter === 'object' &&
+      typeof valueFormatter.get === 'function'
+    ) {
+      val = valueFormatter.get(val);
+    }
+    return val;
   },
   set(val) {
-    const { valueFormatter } = attrs;
-    if (valueFormatter && typeof valueFormatter === 'function') {
-      const oldVal = cloneDeep(get(formData?.value, props.path));
-      setFormData?.(props.path, valueFormatter(val, oldVal));
-    } else {
-      setFormData?.(props.path, val);
+    let newVal = val;
+    if (valueFormatter) {
+      if (typeof valueFormatter === 'function') {
+        newVal = valueFormatter(val, getOldValue());
+      } else if (typeof valueFormatter.set === 'function') {
+        newVal = valueFormatter.set(val, getOldValue());
+      }
     }
+    setFormData?.(props.path, newVal);
     triggerFormItemChange();
   },
 });
@@ -76,7 +90,8 @@ const groupedAttrs = computed(() => {
   // prettier-ignore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { valueFormatter, modelName, slots, componentClassName, componentStyle, componentContainer, ...rest } = mergedProps
-  return { attrs: rest, slots, componentContainer, modelName };
+  const bindAttrs = omit(rest, [modelName, `onUpdate:${modelName}`]);
+  return { attrs: bindAttrs, slots, componentContainer, modelName };
 });
 
 const teleportComponent = inject(
