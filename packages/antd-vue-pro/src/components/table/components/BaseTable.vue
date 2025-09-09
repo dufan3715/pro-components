@@ -20,7 +20,7 @@ import { ContainerFragment, type ContainerComponent } from '../../form';
 import SearchForm from './SearchForm.vue';
 import { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../hooks';
-import { getObject, pick } from '../../../shared/utils';
+import { camelizeProperties, getObject, pick } from '../../../shared/utils';
 import { useModel } from '../../../shared/hooks';
 import { ComponentSlots } from 'vue-component-type-helpers';
 import {
@@ -75,10 +75,9 @@ const props = withDefaults(defineProps<Props>(), {
 const config = INJECT_CONFIG['pro-table'];
 const injectProps = inject(config.injectionKey, config.default);
 
-const injectAttrs = pick(
-  injectProps,
-  Object.keys(tableProps()) as any
-) as TableProps;
+const tableProperties = Object.keys(tableProps());
+
+const injectAttrs = pick(injectProps, tableProperties) as TableProps;
 
 const computedSearchFormConfig = computed(() => {
   return {
@@ -88,7 +87,11 @@ const computedSearchFormConfig = computed(() => {
   };
 });
 
-const attrs: TableProps = pick(useAttrs(), Object.keys(tableProps()));
+const attrs: Record<string, any> = useAttrs();
+const tableAttrs = computed<TableProps>(() => {
+  return pick(camelizeProperties(attrs), tableProperties);
+});
+
 const { columns, dataSource, searchForm, pageParam, setPageParam } =
   props.table || {};
 
@@ -133,7 +136,7 @@ const searchPage1st = () => {
 };
 
 const computedTableProps = computed<TableProps>(() => {
-  return { ...injectAttrs, ...attrs, onChange: undefined };
+  return { ...injectAttrs, ...tableAttrs.value, onChange: undefined };
 });
 
 type ReturnGenericParameterTypes<V> = V extends Table<infer U> ? U : never;
@@ -150,7 +153,7 @@ const computedColumns = computed(() => [
   ...((props.addIndexColumn ?? injectProps.addIndexColumn)
     ? [indexColumn]
     : []),
-  ...(attrs.columns ?? columns?.value ?? []).flatMap(
+  ...(tableAttrs.value.columns ?? columns?.value ?? []).flatMap(
     (item: ColumnType<RecordType>, index) => {
       if (item.key) return [{ ...item, key: item.key }];
       if (item.dataIndex) {
@@ -169,12 +172,16 @@ const visibleComputedColumns = computed(() => {
 });
 
 const computedDataSource = computed<RecordType[]>(() => {
-  return (attrs.dataSource as any[]) ?? dataSource?.value;
+  return (tableAttrs.value.dataSource as any[]) ?? dataSource?.value;
 });
 
 const computedPagination = computed<PaginationProps | false>(() => {
-  if (attrs.pagination === false) return false;
-  return { ...injectAttrs.pagination, ...pageParam, ...attrs.pagination };
+  if (tableAttrs.value.pagination === false) return false;
+  return {
+    ...injectAttrs.pagination,
+    ...pageParam,
+    ...tableAttrs.value.pagination,
+  };
 });
 
 const onTableChange: TableProps['onChange'] = (...args) => {

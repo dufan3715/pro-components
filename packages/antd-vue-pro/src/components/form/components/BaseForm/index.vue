@@ -9,6 +9,7 @@ import { BaseFormItem } from '..';
 import { FORM, TeleportComponentNamePrefix } from '../..';
 import type { Grid, VModelProps, PathProps, Form } from '../..';
 import { Path } from '../../../../shared/types';
+import { camelizeProperties } from '../../../../shared/utils';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
 
@@ -50,7 +51,7 @@ watchEffect(() => {
   <UIForm
     :ref="(el: any) => setFormRef?.(el)"
     :model="formData"
-    v-bind="mergeProps(injectAttrs, $attrs)"
+    v-bind="mergeProps(injectAttrs, camelizeProperties($attrs))"
   >
     <BaseFormItem :fields="fields" :grid="grid" />
     <slot />
