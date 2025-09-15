@@ -34,9 +34,8 @@ const { getFormData, setFormData } = form;
 
 const componentRef = ref<any>();
 
+const formItemContext = useInjectFormItemContext();
 const triggerFormItemChange = () => {
-  if (COMPONENT_MAP.has(props.component as any)) return;
-  const formItemContext = useInjectFormItemContext();
   formItemContext.onFieldChange();
 };
 
