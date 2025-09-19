@@ -13,7 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@qin-ui/antd-vue-pro": "^2.0.0",
+    "@qin-ui/antd-vue-pro": "^2.0.8",
     "ant-design-vue": "^4.2.6",
     "vue": "^3.5.18"
   }

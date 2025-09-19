@@ -41,7 +41,8 @@ const mockListData = new Array(total).fill(null).map((_, index) => ({
 
 // [!code highlight]
 // 3. 定义表格数据获取方法search
-const search: ProTableProps['search'] = async ({ current, pageSize }) => {
+const search: ProTableProps['search'] = async () => {
+  const { current, pageSize } = table.pageParam;
   return new Promise<void>(resolve => {
     setTimeout(() => {
       const list = mockListData.slice(

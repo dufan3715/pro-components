@@ -46,8 +46,9 @@ const mockListData = new Array(total).fill(null).map((_, index) => ({
   address: '上海',
 }));
 
-const search: ProTableProps['search'] = async ({ current, pageSize }) => {
+const search: ProTableProps['search'] = async () => {
   console.log('search: 我被调用了');
+  const { current, pageSize } = table.pageParam;
   return new Promise<void>(resolve => {
     setTimeout(() => {
       const list = mockListData.slice(
