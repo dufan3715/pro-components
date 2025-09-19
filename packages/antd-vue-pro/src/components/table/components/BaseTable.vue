@@ -42,14 +42,11 @@ type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
   container?: ContainerComponent;
 };
 
-type SearchParam = T['searchForm']['formData'] &
-  Required<Pick<PaginationProps, 'current' | 'pageSize'>>;
-
 type Props = {
   // 列表表格对象，returns from useTable
   table?: T;
   // 列表数据查询方法
-  search?: (params: SearchParam) => Promise<unknown>;
+  search?: () => Promise<unknown>;
   // 是否在首列插入index列
   addIndexColumn?: boolean;
   // onMounted 时立即触发一次search事件
@@ -99,11 +96,9 @@ const size = useModel<TableProps['size']>(attrs, 'size');
 const loading = useModel<boolean>(attrs, 'loading');
 
 const _search = async () => {
-  const { current = 0, pageSize = 0 } = pageParam || {};
-  const param = { ...searchForm?.formData, current, pageSize };
   try {
     loading.value = true;
-    await props.search?.(param);
+    await props.search?.();
   } finally {
     loading.value = false;
   }
