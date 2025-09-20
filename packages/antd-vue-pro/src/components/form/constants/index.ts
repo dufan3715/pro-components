@@ -46,6 +46,6 @@ export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
 export const TeleportComponentNamePrefix = 'TeleportComponent_';
 
 // inject keys
-export const FORM: InjectionKey<Form> = Symbol('form');
-export const PATH: InjectionKey<ComputedRef<string | undefined>> =
+export const InjectionFormKey: InjectionKey<Form> = Symbol('form');
+export const InjectionPathKey: InjectionKey<ComputedRef<string | undefined>> =
   Symbol('path');

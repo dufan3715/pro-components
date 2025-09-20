@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, provide } from 'vue';
-import { PATH } from '../../constants';
+import { InjectionPathKey } from '../../constants';
 import { NamePath } from '../../../../shared/ui';
 
 const props = defineProps<{ path?: NamePath }>();
@@ -11,7 +11,7 @@ const namePath = computed(() => {
     : (props.path as string | undefined);
 });
 
-provide(PATH, namePath);
+provide(InjectionPathKey, namePath);
 </script>
 
 <template>

@@ -3,7 +3,7 @@ import type { Fields } from '../types';
 import useFields from './useFields';
 import useFormData from './useFormData';
 import useFormRef from './useFormRef';
-import { FORM } from '../constants';
+import { InjectionFormKey } from '../constants';
 import { Data, DeepPartial, ExtendWithAny } from '../../../shared/types';
 
 export type Form<D extends Data = Data> = ReturnType<typeof useFormData<D>> &
@@ -49,7 +49,7 @@ function useForm<D extends Data = Data>(...args: any[]) {
     root = (args[2] as boolean) ?? root;
   }
   if (!root) {
-    const injectForm = inject(FORM);
+    const injectForm = inject(InjectionFormKey);
     if (injectForm) return injectForm;
   }
   return {

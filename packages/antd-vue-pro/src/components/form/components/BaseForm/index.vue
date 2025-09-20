@@ -6,7 +6,7 @@ import {
 import { inject, mergeProps, provide, type Slot, watchEffect } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider';
 import { BaseFormItem } from '..';
-import { FORM, TeleportComponentNamePrefix } from '../..';
+import { InjectionFormKey, TeleportComponentNamePrefix } from '../..';
 import type { Grid, VModelProps, PathProps, Form } from '../..';
 import { Path } from '../../../../shared/types';
 import { camelizeProperties } from '../../../../shared/utils';
@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   form: () => ({}) as F,
 });
 
-provide(FORM, props.form as F);
+provide(InjectionFormKey, props.form as F);
 
 const { formData, fields, setFormRef } = props.form as F;
 

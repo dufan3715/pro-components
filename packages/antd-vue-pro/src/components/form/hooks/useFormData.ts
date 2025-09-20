@@ -1,6 +1,9 @@
-import { reactive } from 'vue';
+import { inject, provide, reactive } from 'vue';
 import { Path, Data, ExtendWithAny, DeepPartial } from '../../../shared/types';
 import { get, isPlainObject, set } from '../../../shared/utils';
+
+const InjectionFormDataKey = Symbol('form-data');
+
 /**
  * 表单数据处理hook
  * @param initFormData 初始表单数据
@@ -10,11 +13,14 @@ import { get, isPlainObject, set } from '../../../shared/utils';
  * @property {Function} setFormData - 设置指定字段数据路径path的值, path为空时设置所有字段数据
  */
 const useFormData = <D extends Data = Data>(
-  initFormData: ExtendWithAny<DeepPartial<D>> = {} as ExtendWithAny<
-    DeepPartial<D>
-  >
+  initFormData?: ExtendWithAny<DeepPartial<D>>
 ) => {
-  const formData = reactive(initFormData as ExtendWithAny<D>);
+  if (!initFormData) {
+    const injectFormDataStore = inject(InjectionFormDataKey, undefined);
+    if (injectFormDataStore) return injectFormDataStore as never;
+  }
+
+  const formData = reactive((initFormData ?? {}) as ExtendWithAny<D>);
 
   /**
    * 获取指定字段数据路径的值
@@ -68,7 +74,10 @@ const useFormData = <D extends Data = Data>(
     }
   }
 
-  return { formData, getFormData, setFormData };
+  const formDataStore = { formData, getFormData, setFormData };
+  provide(InjectionFormDataKey, formDataStore as any);
+
+  return formDataStore;
 };
 
 export default useFormData;
