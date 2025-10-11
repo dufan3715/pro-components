@@ -204,50 +204,51 @@ type TreeSelectSlots = CompSlot<'maxTagPlaceholder' | 'notFoundContent' | 'place
 type TransferSlots = CompSlot<'footer' | 'render'>
 
 /**
- * @type {CompType} 字段类型集合
+ * @type {FieldTypeMap} 字段类型集合
  */
 // prettier-ignore
-export type CompType = {
+export type FieldTypeMap<D extends Data = Data> = {
   /** 文本框 */
-  'input': { component: 'input', slots?: InputSlots } & InputProps;
+  'input': WithCommon<{ slots?: InputSlots } & InputProps, D>;
   /** 文本域 */
-  'textarea': { component: 'textarea', slots?: InputSlots } & TextAreaProps;
+  'textarea': WithCommon<{ slots?: InputSlots } & TextAreaProps, D>;
   /** 文本框-密码 */
-  'input-password': { component: 'input-password', slots?: InputSlots } & InputProps;
+  'input-password': WithCommon<{ slots?: InputSlots } & InputProps, D>;
   /** 文本框-搜索 */
-  'input-search': { component: 'input-search', slots?: InputSlots } & InputProps;
+  'input-search': WithCommon<{ slots?: InputSlots } & InputProps, D>;
   /** 数字文本框 */
-  'input-number': { component: 'input-number', slots?: InputNumberSlots } & InputNumberProps;
+  'input-number': WithCommon<{ slots?: InputNumberSlots } & InputNumberProps, D>;
   /** 下拉选择器 */
-  'select': { component: 'select', slots?: SelectSlots } & SelectProps;
+  'select': WithCommon<{ slots?: SelectSlots } & SelectProps, D>;
   /** 级联选择器 */
-  'cascader': { component: 'cascader', slots?: CascaderSlots } & CascaderProps;
+  'cascader': WithCommon<{ slots?: CascaderSlots } & CascaderProps, D>;
   /** 日期选择器 */
-  'date-picker': { component: 'date-picker', slots?: DatePickerSlots } & DatePickerProps;
+  'date-picker': WithCommon<{ slots?: DatePickerSlots } & DatePickerProps, D>;
   /** 日期选择器-范围 */
-  'range-picker': { component: 'range-picker', slots?: RangePickerSlots } & RangePickerProps;
+  'range-picker': WithCommon<{ slots?: RangePickerSlots } & RangePickerProps, D>;
   /** 时间选择器 */
-  'time-picker': { component: 'time-picker', slots?: TimePickerSlots } & TimePickerProps;
+  'time-picker': WithCommon<{ slots?: TimePickerSlots } & TimePickerProps, D>;
   /** 复选框组 */
-  'checkbox-group': { component: 'checkbox-group' } & CheckboxGroupProps;
+  'checkbox-group': WithCommon<CheckboxGroupProps, D>;
   /** 单选框组 */
-  'radio-group': { component: 'radio-group' } & RadioGroupProps;
+  'radio-group': WithCommon<RadioGroupProps, D>;
   /** 开关 */
-  'switch': { component: 'switch', slots?: SwitchSlots } & SwitchProps;
+  'switch': WithCommon<{ slots?: SwitchSlots } & SwitchProps, D>;
   /** 滑块 */
-  'slider': { component: 'slider', slots?: SliderSlots } & SliderProps;
+  'slider': WithCommon<{ slots?: SliderSlots } & SliderProps, D>;
   /** 树形选择器 */
-  'tree-select': { component: 'tree-select', slots?: TreeSelectSlots } & TreeSelectProps;
+  'tree-select': WithCommon<{ slots?: TreeSelectSlots } & TreeSelectProps, D>;
   /** 穿梭框 */
-  'transfer': { component: 'transfer', slots?: TransferSlots } & TransferProps;
+  'transfer': WithCommon<{ slots?: TransferSlots } & TransferProps, D>;
   /** 自定义组件 */
-  'custom': { component?: RenderComponentType | Raw<RenderComponentType>, slots?: Slots } & Record<string, any>;
+  'custom': { component?: RenderComponentType | Raw<RenderComponentType> } & WithCommon<{ slots?: Slots } & Record<string, any>, D>;
 };
 
 /**
  * @description 不支持响应式的属性名
  */
 type NotSupportedRefOrGetterProps =
+  | 'component'
   | 'container'
   | 'componentContainer'
   | 'valueFormatter'
@@ -269,16 +270,19 @@ export type WithRef<T> = {
       : MaybeRefOrComputedRef<T[P]>;
 };
 
+type WithCommon<T, D extends Data = Data> = WithRef<
+  T & Omit<FormItemProps, 'label'> & GridItemProps & Base<D>
+>;
+
 /**
  * @description 字段配置类型，包含所有字段属性和响应式支持
  * @template D - 数据对象类型
  */
-export type Field<D extends Data = Data> = WithRef<
-  CompType[keyof CompType] &
-    Omit<FormItemProps, 'label'> &
-    GridItemProps &
-    Base<D>
->;
+export type Field<D extends Data = Data> = {
+  [K in keyof FieldTypeMap]: {
+    component: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
+  } & FieldTypeMap<D>[K];
+}[keyof FieldTypeMap];
 
 /**
  * @description 字段数组类型

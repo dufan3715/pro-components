@@ -19,6 +19,8 @@ const props = withDefaults(defineProps<Props>(), {
   table: undefined,
 });
 
+const open = ref(false);
+
 const checkAll = ref(false);
 const indeterminate = ref(false);
 
@@ -82,7 +84,7 @@ watch(
 </script>
 
 <template>
-  <Dropdown arrow placement="bottomRight">
+  <Dropdown v-model:open="open" arrow placement="bottomRight">
     <div class="control-icon">
       <FilterOutlined style="font-size: 17px" />
     </div>
