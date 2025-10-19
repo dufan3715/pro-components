@@ -22,6 +22,21 @@ const useFormData = <D extends Data = Data>(
 
   const formData = reactive((initFormData ?? {}) as ExtendWithAny<D>);
 
+  function getFormData<K extends keyof D>(path: K): D[K];
+
+  function getFormData<
+    K extends keyof D & string,
+    K1 extends keyof D[K] & string,
+  >(path: `${K}.${K1}`): D[K][K1];
+
+  function getFormData<
+    K extends keyof D & string,
+    K1 extends keyof D[K] & string,
+    K2 extends keyof D[K][K1] & string,
+  >(path: `${K}.${K1}.${K2}`): D[K][K1][K2];
+
+  function getFormData(path: Path<D>): any;
+
   /**
    * 获取指定字段数据路径的值
    * @param path - 字段数据路径

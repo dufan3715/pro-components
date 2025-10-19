@@ -280,7 +280,7 @@ type WithCommon<T, D extends Data = Data> = WithRef<
  */
 export type Field<D extends Data = Data> = {
   [K in keyof FieldTypeMap]: {
-    component: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
+    component?: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
   } & FieldTypeMap<D>[K];
 }[keyof FieldTypeMap];
 
