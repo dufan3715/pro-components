@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { Dropdown, Menu, type TableProps } from '../../../shared/ui';
+import {
+  Dropdown,
+  Menu,
+  Button,
+  type TableProps,
+  useConfigContextInject,
+} from '../../../shared/ui';
 import ColumnHeightOutlined from './icons/ColumnHeightOutlined.vue';
 import { useModel } from '../../../shared/hooks';
 import { useAttrs } from 'vue';
@@ -13,8 +19,12 @@ defineProps<Props>();
 
 const attrs = useAttrs();
 
+const configContext = useConfigContextInject();
+
 // eslint-disable-next-line vue/no-dupe-keys
-const size = useModel<Size>(attrs, 'size', { default: 'large' });
+const size = useModel<Size>(attrs, 'size', {
+  default: configContext.componentSize?.value ?? 'large',
+});
 
 const onSizeChange = (val: any) => {
   size.value = val.key;
@@ -29,9 +39,9 @@ const sizeOptions: Array<{ label: string; key: Size }> = [
 
 <template>
   <Dropdown arrow placement="bottomRight">
-    <div class="control-icon">
-      <ColumnHeightOutlined style="font-size: 16px" />
-    </div>
+    <Button type="text" class="size-control-button">
+      <ColumnHeightOutlined />
+    </Button>
     <template #overlay>
       <Menu
         style="width: 100px; text-align: center"
@@ -45,13 +55,14 @@ const sizeOptions: Array<{ label: string; key: Size }> = [
 </template>
 
 <style scoped lang="less">
-.control-icon {
+.size-control-button {
   display: flex;
   align-items: center;
-  cursor: pointer;
+  padding-right: 12px;
+  padding-left: 12px;
 
-  :hover {
-    color: #1677ff;
+  :deep(svg) {
+    transform: scale(1.3);
   }
 }
 </style>

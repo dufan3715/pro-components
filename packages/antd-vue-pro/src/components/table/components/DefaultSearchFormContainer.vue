@@ -1,7 +1,13 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { theme } from '../../../shared/ui';
+const { token } = theme.useToken();
+</script>
 
 <template>
-  <div class="search-form-container">
+  <div
+    class="search-form-container"
+    :style="{ backgroundColor: token.colorBgContainer }"
+  >
     <slot />
   </div>
 </template>
@@ -10,6 +16,5 @@
 .search-form-container {
   margin-bottom: 24px;
   padding: 24px;
-  background-color: #fff;
 }
 </style>

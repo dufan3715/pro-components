@@ -18,17 +18,33 @@ type _FormProps = Pick<
   | 'wrapperCol'
 >;
 
+type ButtonProps = { onClick: () => void };
+type ExpandButtonProps = ButtonProps & { expandStatus: boolean };
+
 export type SearchFormProps = {
   form: Form;
   layout?: 'grid' | 'inline';
   expand?: boolean | Expand;
+  searchButton?: Component<ButtonProps> | DefineComponent<ButtonProps>;
+  resetButton?: Component<ButtonProps> | DefineComponent<ButtonProps>;
+  expandButton?:
+    | Component<ExpandButtonProps>
+    | DefineComponent<ExpandButtonProps>;
 } & /* @vue-ignore */ _FormProps &
   AllowedComponentProps;
 </script>
 
 <script lang="ts" setup>
 import { Space, Button, FormProps } from '../../../shared/ui';
-import { AllowedComponentProps, computed, ref, watch, watchEffect } from 'vue';
+import {
+  AllowedComponentProps,
+  computed,
+  ref,
+  watch,
+  watchEffect,
+  type Component,
+  type DefineComponent,
+} from 'vue';
 import ProForm, { Form } from '../../form';
 import DownOutlined from './icons/DownOutlined.vue';
 
@@ -37,6 +53,9 @@ defineOptions({ name: 'SearchForm' });
 const props = withDefaults(defineProps<SearchFormProps>(), {
   layout: 'grid',
   expand: true,
+  searchButton: undefined,
+  resetButton: undefined,
+  expandButton: undefined,
 });
 
 type Emits = {
@@ -121,7 +140,7 @@ watchEffect(
         minExpandRows * rowHeight + (minExpandRows - 1) * rowGap,
         +proFormHeight.value
       );
-      showExpandToggle.value = +proFormHeight.value > collapseHeight.value;
+      showExpandToggle.value = +proFormHeight.value - collapseHeight.value > 1;
       if (showExpandToggle.value) {
         setInitExpandStatus();
       }
@@ -151,28 +170,52 @@ const layoutProps = computed(() =>
         grid: false,
       }
 );
+
+const onReset = () => {
+  emit('reset');
+};
+
+const onSearch = () => {
+  emit('search');
+};
 </script>
 
 <template>
   <ProForm v-bind="layoutProps" :form="form" class="search-form transition">
     <Space align="start">
-      <Button @click="emit('reset')">重置</Button>
-      <Button type="primary" html-type="submit" @click="emit('search')">
-        查询
-      </Button>
-      <Button
-        v-if="showExpandToggle"
-        type="link"
-        class="expand-toggle-button"
-        @click="changeExpandStatus"
-      >
-        {{ expandStatus ? '收起' : '展开' }}
-        <DownOutlined
-          class="transition"
-          style="margin-left: 4px"
-          :style="{ transform: `rotate(${expandStatus ? -180 : 0}deg)` }"
-        />
-      </Button>
+      <slot name="reset-button" @click="onReset">
+        <component :is="resetButton" v-if="resetButton" @click="onReset" />
+        <Button v-else @click="onReset">重置</Button>
+      </slot>
+      <slot name="search-button" @click="onSearch">
+        <component :is="searchButton" v-if="searchButton" @click="onSearch" />
+        <Button v-else type="primary" html-type="submit" @click="onSearch">
+          查询
+        </Button>
+      </slot>
+      <slot name="expand-button" @click="changeExpandStatus">
+        <template v-if="showExpandToggle">
+          <component
+            :is="expandButton"
+            v-if="expandButton"
+            :expand-status="expandStatus"
+            @click="changeExpandStatus"
+          />
+          <Button
+            v-else
+            type="link"
+            class="expand-toggle-button"
+            @click="changeExpandStatus"
+          >
+            {{ expandStatus ? '收起' : '展开' }}
+            <DownOutlined
+              class="transition"
+              style="margin-left: 4px"
+              :style="{ transform: `rotate(${expandStatus ? -180 : 0}deg)` }"
+            />
+          </Button>
+        </template>
+      </slot>
     </Space>
   </ProForm>
 </template>

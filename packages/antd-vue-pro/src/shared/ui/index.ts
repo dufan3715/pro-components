@@ -2,6 +2,7 @@ import type { FormProps as _FormProps } from 'ant-design-vue';
 import type { Options } from 'scroll-into-view-if-needed';
 
 export {
+  theme,
   Form,
   FormItem,
   Row as Grid,
@@ -54,6 +55,7 @@ export {
 
 export { type ColumnType, tableProps } from 'ant-design-vue/es/table';
 export { type RangePickerProps } from 'ant-design-vue/es/date-picker';
+export { useConfigContextInject } from 'ant-design-vue/es/config-provider/context';
 export {
   useInjectDisabled,
   useProviderDisabled,

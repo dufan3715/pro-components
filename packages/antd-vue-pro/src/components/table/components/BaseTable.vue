@@ -237,10 +237,10 @@ onMounted(() => {
         <div v-if="toolbarSlot" style="margin-left: 12px">
           <slot name="toolbar" />
         </div>
-        <div v-if="computedControl.sizeControl" style="margin-left: 12px">
+        <div v-if="computedControl.sizeControl">
           <SizeControl v-model:size="size" />
         </div>
-        <div v-if="computedControl.columnControl" style="margin-left: 12px">
+        <div v-if="computedControl.columnControl">
           <ColumnControl
             :columns="computedColumns as unknown as any"
             :table="props.table"
@@ -288,11 +288,9 @@ onMounted(() => {
     }
   }
 
-  :deep {
-    .ant-pagination {
-      .ant-pagination-total-text {
-        flex: 1;
-      }
+  :deep(.ant-pagination) {
+    .ant-pagination-total-text {
+      flex: 1;
     }
   }
 }

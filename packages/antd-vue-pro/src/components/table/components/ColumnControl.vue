@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {
+  Button,
   MenuDivider,
   Dropdown,
   Menu,
@@ -85,9 +86,9 @@ watch(
 
 <template>
   <Dropdown v-model:open="open" arrow placement="bottomRight">
-    <div class="control-icon">
-      <FilterOutlined style="font-size: 17px" />
-    </div>
+    <Button type="text" class="column-control-button">
+      <FilterOutlined />
+    </Button>
     <template #overlay>
       <div>
         <Menu
@@ -122,13 +123,14 @@ watch(
 </template>
 
 <style scoped lang="less">
-.control-icon {
+.column-control-button {
   display: flex;
   align-items: center;
-  cursor: pointer;
+  padding-right: 12px;
+  padding-left: 12px;
 
-  :hover {
-    color: #1677ff;
+  :deep(svg) {
+    transform: scale(1.2, 1.4);
   }
 }
 </style>
