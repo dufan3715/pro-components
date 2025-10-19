@@ -10,6 +10,8 @@ import {
 import { Field, Fields, ProForm, useForm } from '@qin-ui/antd-vue-pro';
 import { computed, h, markRaw, ref, toValue, watch } from 'vue';
 import { Flex } from 'ant-design-vue';
+import { useData } from 'vitepress';
+const { isDark } = useData();
 
 type User = {
   name: string;
@@ -40,7 +42,7 @@ type FormData = User & {
   educations: Education[];
 };
 
-const getEducationFields = (index): Fields<Education> => [
+const getEducationFields = (index: number): Fields<Education> => [
   {
     path: `educations.${index}.no`,
     component: () =>
@@ -141,7 +143,8 @@ const form = useForm<FormData>({}, [
         onChange: val => {
           setFormData(
             'age',
-            new Date().getFullYear() - new Date(val).getFullYear()
+            val &&
+              new Date().getFullYear() - new Date(val.valueOf()).getFullYear()
           );
         },
       },
@@ -216,7 +219,7 @@ const getAddEducationButtonField = (): Field => ({
 watch(
   () => getFormData('educations'),
   val => {
-    const values: Education[] = val?.length > 0 ? val : [{}];
+    const values: Education[] = val?.length > 0 ? val : [{} as any];
     const educationFields = values
       .reduce((preVal, curVal, i) => {
         return [...preVal, ...getEducationFields(i)];
@@ -256,7 +259,10 @@ const submit = async () => {
 </script>
 
 <template>
-  <Card title="复杂表单" :body-style="{ background: '#f7f8f9' }">
+  <Card
+    title="复杂表单"
+    :body-style="{ background: isDark ? '#141414' : '#f7f8f9' }"
+  >
     <Space direction="vertical" :size="24" style="margin-bottom: 24px">
       <div>
         <TypographyText strong>ant-design-vue 表单布局：</TypographyText>

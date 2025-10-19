@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { Card } from 'ant-design-vue';
 import { ProTable, ProTableProps, useTable } from '@qin-ui/antd-vue-pro';
+import { useData } from 'vitepress';
+const { isDark } = useData();
 
 // [!code highlight]
 // 1. 定义表格行数据类型（可选）
@@ -58,7 +60,10 @@ const search: ProTableProps['search'] = async () => {
 </script>
 
 <template>
-  <Card class="pro-table-demo" :body-style="{ background: '#f7f8f9' }">
+  <Card
+    class="pro-table-demo"
+    :body-style="{ background: isDark ? '#141414' : '#f7f8f9' }"
+  >
     <!-- [!code highlight] -->
     <!-- 4. 向ProTable表格组件传入创建的table对象和search方法 -->
     <ProTable :table="table" :search="search" class="pro-table"> </ProTable>

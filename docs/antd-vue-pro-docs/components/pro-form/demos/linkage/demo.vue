@@ -32,7 +32,7 @@ const form = useForm<FormData>({}, [
     component: 'input',
     // [!code highlight]
     // 方式1. 使用 vue computed 进行依赖关联
-    hidden: computed(() => formData.maritalStatus !== 'married'),
+    hidden: computed((): boolean => formData.maritalStatus !== 'married'),
   },
   {
     path: 'spouseAge',

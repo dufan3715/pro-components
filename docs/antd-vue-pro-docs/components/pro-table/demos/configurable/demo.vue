@@ -8,6 +8,8 @@ import {
   useTable,
 } from '@qin-ui/antd-vue-pro';
 import { computed, h, ref } from 'vue';
+import { useData } from 'vitepress';
+const { isDark } = useData();
 
 type Row = {
   name: string;
@@ -138,7 +140,7 @@ const form = useForm<Omit<ProTableProps, 'table'>>(
       componentStyle: { width: '100px' },
       precision: 0,
       min: 1,
-      hidden: computed(() => !getFormData('searchFormConfig.expand')),
+      hidden: computed((): boolean => !getFormData('searchFormConfig.expand')),
     },
     {
       label: '搜索表单初始展开状态（searchFormConfig.expand.expandStatus）',
@@ -146,7 +148,7 @@ const form = useForm<Omit<ProTableProps, 'table'>>(
       component: 'switch',
       checkedChildren: '展开',
       unCheckedChildren: '收起',
-      hidden: computed(() => !getFormData('searchFormConfig.expand')),
+      hidden: computed((): boolean => !getFormData('searchFormConfig.expand')),
     },
   ]
 );
@@ -157,7 +159,10 @@ const { formData, getFormData, setFormData } = form;
   <!-- eslint-disable vue/valid-v-slot -->
   <Card
     class="pro-table-demo"
-    :body-style="{ background: '#f7f8f9', overflow: 'hidden' }"
+    :body-style="{
+      background: isDark ? '#141414' : '#f7f8f9',
+      overflow: 'hidden',
+    }"
   >
     <Space align="start">
       <ProForm :form="form" style="width: 700px">
