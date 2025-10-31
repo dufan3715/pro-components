@@ -5,7 +5,7 @@ const { token } = theme.useToken();
 
 <template>
   <div
-    class="table-container"
+    class="pro-table_table-container"
     :style="{ backgroundColor: token.colorBgContainer }"
   >
     <slot />
@@ -13,7 +13,7 @@ const { token } = theme.useToken();
 </template>
 
 <style scoped lang="less">
-.table-container {
+.pro-table_table-container {
   flex: 1;
   padding: 24px 24px 0;
 }

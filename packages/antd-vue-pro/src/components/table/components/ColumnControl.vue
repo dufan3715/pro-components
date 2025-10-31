@@ -86,44 +86,42 @@ watch(
 
 <template>
   <Dropdown v-model:open="open" arrow placement="bottomRight">
-    <Button type="text" class="column-control-button">
+    <Button type="text" class="pro-table_column-control_button">
       <FilterOutlined />
     </Button>
     <template #overlay>
-      <div>
-        <Menu
-          style="min-width: 100px; max-height: 500px; overflow-y: scroll"
-          :selectable="false"
-        >
-          <MenuItem :key="0">
-            <div>
-              <Checkbox
-                :checked="checkAll"
-                :indeterminate="indeterminate"
-                @change="onCheckAllChange"
-              >
-                全选
-              </Checkbox>
-            </div>
-          </MenuItem>
-          <MenuDivider />
-          <MenuItem
-            v-for="item of checkedColumnsOptions"
-            :key="item.value"
-            @click="checkColumnsMenuItemClick(item.value)"
-          >
-            <Checkbox :checked="checkedColumnKeys.includes(item.value)">
-              <div @click.stop>{{ item.label }}</div>
+      <Menu
+        style="min-width: 100px; max-height: 500px; overflow-y: scroll"
+        :selectable="false"
+      >
+        <MenuItem :key="0">
+          <div>
+            <Checkbox
+              :checked="checkAll"
+              :indeterminate="indeterminate"
+              @change="onCheckAllChange"
+            >
+              全选
             </Checkbox>
-          </MenuItem>
-        </Menu>
-      </div>
+          </div>
+        </MenuItem>
+        <MenuDivider />
+        <MenuItem
+          v-for="item of checkedColumnsOptions"
+          :key="item.value"
+          @click="checkColumnsMenuItemClick(item.value)"
+        >
+          <Checkbox :checked="checkedColumnKeys.includes(item.value)">
+            <div @click.stop>{{ item.label }}</div>
+          </Checkbox>
+        </MenuItem>
+      </Menu>
     </template>
   </Dropdown>
 </template>
 
 <style scoped lang="less">
-.column-control-button {
+.pro-table_column-control_button {
   display: flex;
   align-items: center;
   padding-right: 12px;

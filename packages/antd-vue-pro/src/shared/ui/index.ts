@@ -66,6 +66,7 @@ export {
   useInjectFormItemContext,
 } from 'ant-design-vue/es/form';
 export { type NamePath } from 'ant-design-vue/es/form/interface';
+export { type MenuItemType } from 'ant-design-vue/es/menu/src/interface';
 
 export type FormProps = Omit<_FormProps, 'scrollToFirstError'> & {
   scrollToFirstError?: boolean | Options<any>;

@@ -31,7 +31,7 @@ type FP<T extends Record<string, any>> = Partial<
 
 // prettier-ignore
 export type RequiredComponentVars = {
-  'pro-table': PP<TableProps & Pick<ProTableProps, 'control' | 'searchFormConfig' | 'immediateSearch' | 'addIndexColumn'>>;
+  'pro-table': PP<TableProps & Pick<ProTableProps, 'control' | 'searchFormConfig' | 'immediateSearch' | 'addIndexColumn' | 'tableContainer'>>;
   'pro-form': PP<Omit<ProFormProps, 'form' | 'grid'> & { grid: Exclude<Grid, undefined | boolean>}>;
   'pro-form-item': PP<FormItemProps & Pick<GridItemProps, 'span' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'> & Pick<Base, 'container'>>;
   // field

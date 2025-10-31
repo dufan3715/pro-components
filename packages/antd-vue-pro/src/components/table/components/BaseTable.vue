@@ -29,7 +29,7 @@ import {
   SizeControl,
   ColumnControl,
 } from '.';
-import { Column } from '../types';
+import { Column, Columns } from '../types';
 
 defineOptions({ name: 'ProTable', inheritAttrs: false });
 
@@ -39,7 +39,7 @@ type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
   // 是否隐藏搜索表单
   hidden?: boolean;
   // 搜索区域包裹容器
-  container?: ContainerComponent;
+  container?: ContainerComponent | false;
 };
 
 type Props = {
@@ -56,7 +56,7 @@ type Props = {
   // 搜索栏查询字段表单配置
   searchFormConfig?: SearchFormConfig;
   // 表格区域包裹容器
-  tableContainer?: ContainerComponent;
+  tableContainer?: ContainerComponent | false;
 } & /* @vue-ignore */ TableProps;
 
 const props = withDefaults(defineProps<Props>(), {
@@ -64,7 +64,7 @@ const props = withDefaults(defineProps<Props>(), {
   search: undefined,
   addIndexColumn: undefined,
   control: undefined,
-  tableContainer: DefaultTableContainer,
+  tableContainer: undefined,
   immediateSearch: undefined,
   searchFormConfig: undefined,
 });
@@ -77,10 +77,14 @@ const tableProperties = Object.keys(tableProps());
 const injectAttrs = pick(injectProps, tableProperties) as TableProps;
 
 const computedSearchFormConfig = computed(() => {
+  const container =
+    props.searchFormConfig?.container ??
+    injectProps.searchFormConfig?.container ??
+    DefaultSearchFormContainer;
   return {
-    container: DefaultSearchFormContainer,
     ...injectProps.searchFormConfig,
     ...getObject(props.searchFormConfig),
+    container: container ? container : undefined,
   };
 });
 
@@ -111,10 +115,21 @@ const reset = () => {
   });
 };
 
-type CustomSlots = Partial<
-  Record<'search-form' | 'button-bar' | 'toolbar' | 'table', Slot>
+type CustomSlots = Readonly<
+  Partial<Record<'search-form' | 'button-bar' | 'toolbar' | 'table', Slot>>
 >;
-type Slots = Omit<ComponentSlots<typeof UITable> & CustomSlots, 'default'>;
+type TableSlots = Omit<ComponentSlots<typeof UITable>, 'bodyCell'> &
+  Readonly<{
+    bodyCell?: (props: {
+      text: any;
+      value: any;
+      record: RecordType;
+      index: number;
+      column: Column<RecordType>;
+    }) => void;
+  }>;
+type Slots = Omit<TableSlots & CustomSlots, 'default'>;
+
 const slots = defineSlots<Slots>();
 const {
   'search-form': searchFormSlot,
@@ -131,7 +146,18 @@ const searchPage1st = () => {
 };
 
 const computedTableProps = computed<TableProps>(() => {
-  return { ...injectAttrs, ...tableAttrs.value, onChange: undefined };
+  return {
+    ...injectAttrs,
+    ...tableAttrs.value,
+    pagination: undefined,
+    onChange: undefined,
+  };
+});
+
+const computedTableContainer = computed(() => {
+  const container =
+    props.tableContainer ?? injectProps.tableContainer ?? DefaultTableContainer;
+  return container ? container : undefined;
 });
 
 type ReturnGenericParameterTypes<V> = V extends Table<infer U> ? U : never;
@@ -144,23 +170,26 @@ const indexColumn: ColumnType = {
   customRender: ({ index }) => index + 1,
 };
 
-const computedColumns = computed(() => [
-  ...((props.addIndexColumn ?? injectProps.addIndexColumn)
-    ? [indexColumn]
-    : []),
-  ...(tableAttrs.value.columns ?? columns?.value ?? []).flatMap(
-    (item: ColumnType<RecordType>, index) => {
-      if (item.key) return [{ ...item, key: item.key }];
-      if (item.dataIndex) {
-        const dataIndexKey = Array.isArray(item.dataIndex)
-          ? item.dataIndex.join('.')
-          : (item.dataIndex as string);
-        return [{ ...item, key: dataIndexKey }];
-      }
-      return [{ ...item, key: index }];
-    }
-  ),
-]);
+const computedColumns = computed(
+  () =>
+    [
+      ...((props.addIndexColumn ?? injectProps.addIndexColumn)
+        ? [indexColumn]
+        : []),
+      ...(tableAttrs.value.columns ?? columns?.value ?? []).flatMap(
+        (item: ColumnType<RecordType>, index) => {
+          if (item.key) return [{ ...item, key: item.key }];
+          if (item.dataIndex) {
+            const dataIndexKey = Array.isArray(item.dataIndex)
+              ? item.dataIndex.join('.')
+              : (item.dataIndex as string);
+            return [{ ...item, key: dataIndexKey }];
+          }
+          return [{ ...item, key: index }];
+        }
+      ),
+    ] as Columns<RecordType>
+);
 
 const visibleComputedColumns = computed(() => {
   return computedColumns.value.filter(item => !(item as Column).hidden);
@@ -229,28 +258,31 @@ onMounted(() => {
       </slot>
     </ContainerFragment>
 
-    <ContainerFragment :component="tableContainer">
-      <div class="pro-table-header">
-        <div v-if="buttonBarSlot" style="flex: 1">
+    <ContainerFragment :component="computedTableContainer">
+      <div class="pro-table_header">
+        <div v-if="buttonBarSlot" class="pro-table_header_button-bar">
           <slot name="button-bar" />
         </div>
-        <div v-if="toolbarSlot" style="margin-left: 12px">
+        <div v-if="toolbarSlot" class="pro-table_header_toolbar">
           <slot name="toolbar" />
         </div>
-        <div v-if="computedControl.sizeControl">
+        <div
+          v-if="computedControl.sizeControl"
+          class="pro-table_header_size-control"
+        >
           <SizeControl v-model:size="size" />
         </div>
-        <div v-if="computedControl.columnControl">
-          <ColumnControl
-            :columns="computedColumns as unknown as any"
-            :table="props.table"
-          />
+        <div
+          v-if="computedControl.columnControl"
+          class="pro-table_header_column-control"
+        >
+          <ColumnControl :columns="computedColumns" :table="props.table" />
         </div>
       </div>
 
       <slot name="table">
         <UITable
-          class="pro-table-content"
+          class="pro-table_content"
           v-bind="computedTableProps"
           :size="size"
           :loading="loading"
@@ -274,7 +306,7 @@ onMounted(() => {
 
 <style scoped lang="less">
 .pro-table {
-  .pro-table-header {
+  &_header {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -283,8 +315,16 @@ onMounted(() => {
       display: none;
     }
 
-    & + .pro-table-content {
+    & + &_content {
       margin-top: 16px;
+    }
+
+    &_button-bar {
+      flex: 1;
+    }
+
+    &_toolbar {
+      margin-left: 12px;
     }
   }
 

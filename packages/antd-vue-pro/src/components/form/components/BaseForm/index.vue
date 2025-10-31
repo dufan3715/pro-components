@@ -52,6 +52,7 @@ watchEffect(() => {
     :ref="(el: any) => setFormRef?.(el)"
     :model="formData"
     v-bind="mergeProps(injectAttrs, camelizeProperties($attrs))"
+    class="pro-form"
   >
     <BaseFormItem :fields="fields" :grid="grid" />
     <slot />

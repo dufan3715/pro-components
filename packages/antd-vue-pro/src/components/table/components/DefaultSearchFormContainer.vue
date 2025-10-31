@@ -5,7 +5,7 @@ const { token } = theme.useToken();
 
 <template>
   <div
-    class="search-form-container"
+    class="pro-table_search-form-container"
     :style="{ backgroundColor: token.colorBgContainer }"
   >
     <slot />
@@ -13,7 +13,7 @@ const { token } = theme.useToken();
 </template>
 
 <style scoped lang="less">
-.search-form-container {
+.pro-table_search-form-container {
   margin-bottom: 24px;
   padding: 24px;
 }

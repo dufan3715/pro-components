@@ -12,4 +12,6 @@ export * from './types';
 // hooks
 export * from './hooks';
 
+export * from './components/BaseField/utils';
+
 export default BaseForm;

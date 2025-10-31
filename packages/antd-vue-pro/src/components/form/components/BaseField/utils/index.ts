@@ -6,7 +6,8 @@ import { inject } from 'vue';
 const initPropsMap = new Map();
 
 export const getInitProps = (field: Field): Record<string, any> => {
-  const { component, type = '' } = field as any;
+  const { component } = field as any;
+  const type = component === 'input' ? '' : (field as any).type;
   if (COMPONENT_MAP.has(component)) {
     const k = [component, type]
       .filter(Boolean)

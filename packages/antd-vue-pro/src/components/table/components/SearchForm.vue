@@ -181,15 +181,30 @@ const onSearch = () => {
 </script>
 
 <template>
-  <ProForm v-bind="layoutProps" :form="form" class="search-form transition">
-    <Space align="start">
+  <ProForm
+    v-bind="layoutProps"
+    :form="form"
+    class="pro-table_search-form transition"
+  >
+    <Space align="start" class="pro-table_search-form_button-group">
       <slot name="reset-button" @click="onReset">
         <component :is="resetButton" v-if="resetButton" @click="onReset" />
-        <Button v-else @click="onReset">重置</Button>
+        <Button
+          v-else
+          class="pro-table_search-form_reset-button"
+          @click="onReset"
+          >重置</Button
+        >
       </slot>
       <slot name="search-button" @click="onSearch">
         <component :is="searchButton" v-if="searchButton" @click="onSearch" />
-        <Button v-else type="primary" html-type="submit" @click="onSearch">
+        <Button
+          v-else
+          class="pro-table_search-form_search-button"
+          type="primary"
+          html-type="submit"
+          @click="onSearch"
+        >
           查询
         </Button>
       </slot>
@@ -204,7 +219,7 @@ const onSearch = () => {
           <Button
             v-else
             type="link"
-            class="expand-toggle-button"
+            class="pro-table_search-form_expand-toggle-button"
             @click="changeExpandStatus"
           >
             {{ expandStatus ? '收起' : '展开' }}
@@ -221,22 +236,21 @@ const onSearch = () => {
 </template>
 
 <style scoped lang="less">
-.search-form {
+.pro-table_search-form {
   :deep {
     .ant-form-item {
       margin: 0;
     }
   }
-}
+  &_expand-toggle-button {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    padding-left: 4px;
+  }
 
-.expand-toggle-button {
-  display: flex;
-  align-items: center;
-  padding: 0;
-  padding-left: 4px;
-}
-
-.transition {
-  transition: all 0.25s;
+  .transition {
+    transition: all 0.25s;
+  }
 }
 </style>

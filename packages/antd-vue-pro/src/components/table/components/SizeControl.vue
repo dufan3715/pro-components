@@ -4,6 +4,7 @@ import {
   Menu,
   Button,
   type TableProps,
+  type MenuItemType,
   useConfigContextInject,
 } from '../../../shared/ui';
 import ColumnHeightOutlined from './icons/ColumnHeightOutlined.vue';
@@ -30,7 +31,7 @@ const onSizeChange = (val: any) => {
   size.value = val.key;
 };
 
-const sizeOptions: Array<{ label: string; key: Size }> = [
+const sizeOptions: Array<MenuItemType> = [
   { label: '默认', key: 'large' },
   { label: '中等', key: 'middle' },
   { label: '紧凑', key: 'small' },
@@ -39,14 +40,14 @@ const sizeOptions: Array<{ label: string; key: Size }> = [
 
 <template>
   <Dropdown arrow placement="bottomRight">
-    <Button type="text" class="size-control-button">
+    <Button type="text" class="pro-table_size-control_button">
       <ColumnHeightOutlined />
     </Button>
     <template #overlay>
       <Menu
         style="width: 100px; text-align: center"
         :selected-keys="size ? [size] : []"
-        :items="sizeOptions as any"
+        :items="sizeOptions"
         @click="onSizeChange"
       >
       </Menu>
@@ -55,7 +56,7 @@ const sizeOptions: Array<{ label: string; key: Size }> = [
 </template>
 
 <style scoped lang="less">
-.size-control-button {
+.pro-table_size-control_button {
   display: flex;
   align-items: center;
   padding-right: 12px;

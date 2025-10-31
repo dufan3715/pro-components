@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "description": "二次封装antd vue组件",
   "type": "module",
   "module": "es/index.js",
@@ -36,8 +36,10 @@
     "url": "https://github.com/dufan3715/pro-components/issues"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
     "ant-design-vue": "^4",
     "lodash-es": "^4.17.21",
+    "scroll-into-view-if-needed": "^3.1.0",
     "vue": "^3.5.18",
     "vue-component-type-helpers": "^3.0.1"
   },

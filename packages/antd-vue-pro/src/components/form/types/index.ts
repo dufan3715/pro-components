@@ -66,7 +66,7 @@ export type SlotComponentType =
 /**
  * @description 容器组件类型
  */
-export type ContainerComponent = Component<PathProps> | null;
+export type ContainerComponent = Component<PathProps>;
 
 /**
  * @description 插槽对象类型
