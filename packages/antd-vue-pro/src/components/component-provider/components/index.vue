@@ -4,6 +4,10 @@ import { INJECT_CONFIG } from '../constants';
 import { provide } from 'vue';
 import { getObject } from '../../../shared/utils';
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 type Props = {
   componentVars: ComponentVars;
 };
