@@ -12,7 +12,7 @@ import {
   useInjectDisabled,
   useInjectFormItemContext,
 } from '../../../../shared/ui';
-import type { Base, Field } from '../../types';
+import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import { COMPONENT_MAP, TeleportComponentNamePrefix } from '../../constants';
 import { useForm } from '../../hooks';
@@ -40,7 +40,6 @@ const triggerFormItemChange = () => {
 };
 
 const attrs: any = useAttrs();
-const { valueFormatter } = attrs as Base;
 
 function getOldValue() {
   return cloneDeep(getFormData?.(props.path));
@@ -49,6 +48,7 @@ function getOldValue() {
 const value = computed({
   get() {
     let val = getFormData?.(props.path);
+    const { valueFormatter } = groupedAttrs.value;
     if (
       typeof valueFormatter === 'object' &&
       typeof valueFormatter.get === 'function'
@@ -59,6 +59,7 @@ const value = computed({
   },
   set(val) {
     let newVal = val;
+    const { valueFormatter } = groupedAttrs.value;
     if (valueFormatter) {
       if (typeof valueFormatter === 'function') {
         newVal = valueFormatter(val, getOldValue());
@@ -90,7 +91,13 @@ const groupedAttrs = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { valueFormatter, modelName, slots, componentClassName, componentStyle, componentContainer, ...rest } = mergedProps
   const bindAttrs = omit(rest, [modelName, `onUpdate:${modelName}`]);
-  return { attrs: bindAttrs, slots, componentContainer, modelName };
+  return {
+    attrs: bindAttrs,
+    slots,
+    componentContainer,
+    modelName,
+    valueFormatter,
+  };
 });
 
 const teleportComponent = inject(
