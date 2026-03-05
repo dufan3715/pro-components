@@ -130,8 +130,8 @@ importers:
         specifier: ^2.0.12
         version: 2.0.16(ant-design-vue@4.2.6(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))
       '@qin-ui/antdv-next-pro':
-        specifier: ^1.0.2
-        version: 1.0.2(antdv-next@1.1.0(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))
+        specifier: ^1.0.3
+        version: 1.0.3(antdv-next@1.1.0(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))
       ant-design-vue:
         specifier: ^4.2.6
         version: 4.2.6(vue@3.5.29(typescript@5.9.3))
@@ -337,8 +337,8 @@ packages:
     peerDependencies:
       vue: '>=3.2.0'
 
-  '@antdv-next/icons@1.0.3':
-    resolution: {integrity: sha512-vvTqN+w/9ezBKWJ8CRBx7Q7AOHbnbG7fVnlbXR41PkoOeNrlRwFstS4JfbfiRikLQPQLhh+42XPwdVOEzQJwBw==}
+  '@antdv-next/icons@1.0.4':
+    resolution: {integrity: sha512-z80jte5r11mSz/HeajbX53F+hud9D3+SEs7qkcJQ/haEhEE05z5LTOA8kNJO+4GCZczYeNfxq2LvArE7rnQvHQ==}
     peerDependencies:
       vue: '>=3.2.0'
 
@@ -1064,8 +1064,8 @@ packages:
       ant-design-vue: ^4
       vue: ^3.3
 
-  '@qin-ui/antdv-next-pro@1.0.2':
-    resolution: {integrity: sha512-yzOnEKu7h2nTINq9OAsKnMu0T947cmOPzunaMhSsm1VNVfHB4vTCx++N3EYizoo5ytkagM3mJCKZqgiFhJ9BjQ==}
+  '@qin-ui/antdv-next-pro@1.0.3':
+    resolution: {integrity: sha512-M3wc4yXZS+ySFiAfR17KfmkG9P4eTYVXzmNyAfLwQb7Tu/6m7PUzjQUWwU/hqbv4izWgF0QAsOXhQ9Xpucl+/A==}
     peerDependencies:
       antdv-next: ^1.1.0
       vue: ^3.5.0
@@ -1459,8 +1459,8 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  '@v-c/menu@1.0.10':
-    resolution: {integrity: sha512-iKXuPpZteVjPlg3nQ+4YbAlYa3/I21N/5RswKLai61IRO/8IcfRLc+YBEoG3n5xV+I5b2Yby2iJjsA8lU1En/w==}
+  '@v-c/menu@1.0.11':
+    resolution: {integrity: sha512-NDMucv22bI8/L+8W9HKWrg/dVVokNo6sROzApEH3Gy5uXeWHyQbPCZqGb5CY+nNYHVo6gQI6G5IQFd2eNRzKaw==}
     peerDependencies:
       vue: ^3.0.0
 
@@ -1602,11 +1602,6 @@ packages:
 
   '@v-c/upload@1.0.0':
     resolution: {integrity: sha512-W92PNCD61aM/B5w8oUzHQSDHur1T8484726Ls0IoNMO5nPiF/15eEE3RuuI/t7xXQVP/fA06hNSwzXwGWdDg1w==}
-    peerDependencies:
-      vue: ^3.0.0
-
-  '@v-c/util@1.0.15':
-    resolution: {integrity: sha512-8hwmVB8uJvs4S5tHLmUCwbBZo2nv+HwiL+W1X5cV0+WlIDLhFxUu4s9tVp/7wM34xRaemImSc8LVYhSlsAWyYg==}
     peerDependencies:
       vue: ^3.0.0
 
@@ -2749,7 +2744,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   global-directory@4.0.1:
     resolution: {integrity: sha512-wHTUcDUoZ1H5/0iVqEudYW4/kAlN5cZ3j/bXn0Dpbizl9iaUVeWSHqiOjsgk6OW2bkLclbBjzewBz6weQ1zA2Q==}
@@ -4951,7 +4946,7 @@ snapshots:
       stylis: 4.3.6
       vue: 3.5.29(typescript@5.9.3)
 
-  '@antdv-next/icons@1.0.3(vue@3.5.29(typescript@5.9.3))':
+  '@antdv-next/icons@1.0.4(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       '@ant-design/colors': 7.2.1
       '@ant-design/icons-svg': 4.4.2
@@ -5643,7 +5638,7 @@ snapshots:
       ant-design-vue: 4.2.6(vue@3.5.29(typescript@5.9.3))
       vue: 3.5.29(typescript@5.9.3)
 
-  '@qin-ui/antdv-next-pro@1.0.2(antdv-next@1.1.0(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))':
+  '@qin-ui/antdv-next-pro@1.0.3(antdv-next@1.1.0(vue@3.5.29(typescript@5.9.3)))(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       '@qin-ui/core': link:packages/core
       antdv-next: 1.1.0(vue@3.5.29(typescript@5.9.3))
@@ -6068,13 +6063,13 @@ snapshots:
   '@v-c/mentions@1.0.0(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       '@v-c/input': 1.0.2(vue@3.5.29(typescript@5.9.3))
-      '@v-c/menu': 1.0.10(vue@3.5.29(typescript@5.9.3))
+      '@v-c/menu': 1.0.11(vue@3.5.29(typescript@5.9.3))
       '@v-c/textarea': 1.0.3(vue@3.5.29(typescript@5.9.3))
       '@v-c/trigger': 1.0.11(vue@3.5.29(typescript@5.9.3))
       '@v-c/util': 1.0.17(vue@3.5.29(typescript@5.9.3))
       vue: 3.5.29(typescript@5.9.3)
 
-  '@v-c/menu@1.0.10(vue@3.5.29(typescript@5.9.3))':
+  '@v-c/menu@1.0.11(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       '@v-c/overflow': 1.0.3(vue@3.5.29(typescript@5.9.3))
       '@v-c/trigger': 1.0.11(vue@3.5.29(typescript@5.9.3))
@@ -6097,7 +6092,7 @@ snapshots:
   '@v-c/overflow@1.0.3(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       '@v-c/resize-observer': 1.0.8(vue@3.5.29(typescript@5.9.3))
-      '@v-c/util': 1.0.15(vue@3.5.29(typescript@5.9.3))
+      '@v-c/util': 1.0.17(vue@3.5.29(typescript@5.9.3))
       vue: 3.5.29(typescript@5.9.3)
 
   '@v-c/pagination@1.0.0(vue@3.5.29(typescript@5.9.3))':
@@ -6117,7 +6112,7 @@ snapshots:
 
   '@v-c/portal@1.0.7(vue@3.5.29(typescript@5.9.3))':
     dependencies:
-      '@v-c/util': 1.0.15(vue@3.5.29(typescript@5.9.3))
+      '@v-c/util': 1.0.17(vue@3.5.29(typescript@5.9.3))
       vue: 3.5.29(typescript@5.9.3)
 
   '@v-c/progress@1.0.0(vue@3.5.29(typescript@5.9.3))':
@@ -6185,7 +6180,7 @@ snapshots:
   '@v-c/tabs@1.0.1(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       '@v-c/dropdown': 1.0.2(vue@3.5.29(typescript@5.9.3))
-      '@v-c/menu': 1.0.10(vue@3.5.29(typescript@5.9.3))
+      '@v-c/menu': 1.0.11(vue@3.5.29(typescript@5.9.3))
       '@v-c/overflow': 1.0.3(vue@3.5.29(typescript@5.9.3))
       '@v-c/resize-observer': 1.0.8(vue@3.5.29(typescript@5.9.3))
       '@v-c/util': 1.0.17(vue@3.5.29(typescript@5.9.3))
@@ -6234,10 +6229,6 @@ snapshots:
   '@v-c/upload@1.0.0(vue@3.5.29(typescript@5.9.3))':
     dependencies:
       '@v-c/util': 1.0.17(vue@3.5.29(typescript@5.9.3))
-      vue: 3.5.29(typescript@5.9.3)
-
-  '@v-c/util@1.0.15(vue@3.5.29(typescript@5.9.3))':
-    dependencies:
       vue: 3.5.29(typescript@5.9.3)
 
   '@v-c/util@1.0.17(vue@3.5.29(typescript@5.9.3))':
@@ -6767,7 +6758,7 @@ snapshots:
       '@ant-design/colors': 7.2.1
       '@ant-design/fast-color': 3.0.1
       '@antdv-next/cssinjs': 1.0.3(vue@3.5.29(typescript@5.9.3))
-      '@antdv-next/icons': 1.0.3(vue@3.5.29(typescript@5.9.3))
+      '@antdv-next/icons': 1.0.4(vue@3.5.29(typescript@5.9.3))
       '@v-c/async-validator': 1.0.0
       '@v-c/cascader': 1.0.2(vue@3.5.29(typescript@5.9.3))
       '@v-c/checkbox': 1.0.1(vue@3.5.29(typescript@5.9.3))
@@ -6780,7 +6771,7 @@ snapshots:
       '@v-c/input': 1.0.2(vue@3.5.29(typescript@5.9.3))
       '@v-c/input-number': 1.0.2(vue@3.5.29(typescript@5.9.3))
       '@v-c/mentions': 1.0.0(vue@3.5.29(typescript@5.9.3))
-      '@v-c/menu': 1.0.10(vue@3.5.29(typescript@5.9.3))
+      '@v-c/menu': 1.0.11(vue@3.5.29(typescript@5.9.3))
       '@v-c/mutate-observer': 1.0.1(vue@3.5.29(typescript@5.9.3))
       '@v-c/notification': 1.0.0(vue@3.5.29(typescript@5.9.3))
       '@v-c/pagination': 1.0.0(vue@3.5.29(typescript@5.9.3))
@@ -8579,7 +8570,7 @@ snapshots:
     dependencies:
       htmlparser2: 3.10.1
       postcss: 7.0.39
-      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
+      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0)(postcss-scss@2.1.1)(postcss@7.0.39)
 
   postcss-html@1.8.0:
     dependencies:
@@ -8592,7 +8583,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.28.5
       postcss: 7.0.39
-      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
+      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0)(postcss-scss@2.1.1)(postcss@7.0.39)
     transitivePeerDependencies:
       - supports-color
 
@@ -8607,7 +8598,7 @@ snapshots:
   postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39):
     dependencies:
       postcss: 7.0.39
-      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
+      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0)(postcss-scss@2.1.1)(postcss@7.0.39)
       remark: 10.0.1
       unist-util-find-all-after: 1.0.5
 
@@ -8668,7 +8659,7 @@ snapshots:
     dependencies:
       postcss: 8.5.6
 
-  postcss-syntax@0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39):
+  postcss-syntax@0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0)(postcss-scss@2.1.1)(postcss@7.0.39):
     dependencies:
       postcss: 7.0.39
     optionalDependencies:
@@ -9258,7 +9249,7 @@ snapshots:
       postcss-sass: 0.3.5
       postcss-scss: 2.1.1
       postcss-selector-parser: 3.1.2
-      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-scss@2.1.1)(postcss@7.0.39)
+      postcss-syntax: 0.36.2(postcss-html@0.36.0(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-jsx@0.36.4(postcss-syntax@0.36.2(postcss-html@1.8.0)(postcss-less@6.0.0(postcss@8.5.6))(postcss@8.5.6))(postcss@7.0.39))(postcss-less@3.1.4)(postcss-markdown@0.36.0)(postcss-scss@2.1.1)(postcss@7.0.39)
       postcss-value-parser: 3.3.1
       resolve-from: 4.0.0
       signal-exit: 3.0.7

@@ -11,7 +11,7 @@ import type { Base, Field } from '../../types';
 import { FORM_ITEM_SLOT_KEYS } from '../../constants';
 import { isPlainObject } from '../../../../shared/core';
 
-const formItemPropKeys = Object.keys(formItemProps()).concat(['container']);
+const formItemPropKeys = Object.keys(formItemProps());
 const gridItemPropKeys = Object.keys(gridItemProps());
 
 type Props = {
@@ -24,7 +24,7 @@ const injectFormItemProps = inject(config.injectionKey, config.default);
 
 type GroupedFieldAttrs = {
   gridItemProps: GridItemProps;
-  formItemProps: FormItemProps & Pick<Base, 'container'>;
+  formItemProps: FormItemProps & { container?: Base['formItemContainer'] };
   formItemSlots: Record<(typeof FORM_ITEM_SLOT_KEYS)[number], any>;
   componentProps: Record<string, any>;
 };
@@ -38,12 +38,13 @@ const groupedAttributes = computed<GroupedFieldAttrs>(() => {
   if (isPlainObject(props.field)) {
     // prettier-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { path, name, fields, className, style, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, ...rest } =
+    const { path, name, fields, formItemClass, formItemStyle, formItemContainer, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, ...rest } =
     props.field as any;
     const {
       class: injectClassName,
       style: injectStyle,
       span: injectSpan,
+      formItemContainer: injectFormItemContainer,
       xs,
       sm,
       md,
@@ -62,8 +63,9 @@ const groupedAttributes = computed<GroupedFieldAttrs>(() => {
     formItemProps = mergeProps(
       injectRest as any,
       { class: injectClassName, style: injectStyle },
-      { class: toValue(className), style: toValue(style) }
+      { class: toValue(formItemClass), style: toValue(formItemStyle) }
     );
+    formItemProps.container = formItemContainer ?? injectFormItemContainer;
 
     Object.keys(rest).forEach(k => {
       if (gridItemPropKeys.includes(k)) {

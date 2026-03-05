@@ -67,23 +67,28 @@ const groupedAttrs = computed(() => {
     component: component,
     type: attrs.type,
   } as Field);
+  const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'value';
   const mergedProps = mergeProps(
     initProps,
     attrs,
-    { class: attrs.componentClassName, style: attrs.componentStyle },
-    { class: initProps.componentClassName, style: initProps.componentStyle },
+    { class: attrs.componentClass, style: attrs.componentStyle },
+    { class: initProps.componentClass, style: initProps.componentStyle },
     { disabled: attrs.disabled ?? parentDisabled.value ?? initProps.disabled },
-    { modelName: attrs.modelName ?? initProps.modelName ?? 'value' }
+    { modelProp: modelPropName }
   ) as Required<Field>;
   // prettier-ignore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { valueFormatter, modelName, slots, componentClassName, componentStyle, componentContainer, ...rest } = mergedProps
-  const bindAttrs = omit(rest, [modelName, `onUpdate:${modelName}`]);
+  const { valueFormatter, modelProp, slots, componentClass, componentStyle, componentContainer, ...rest } = mergedProps
+  const modelBindingProp = modelProp ?? 'value';
+  const bindAttrs = omit(rest, [
+    modelBindingProp,
+    `onUpdate:${modelBindingProp}`,
+  ]);
   return {
     attrs: bindAttrs,
     slots,
     componentContainer,
-    modelName,
+    modelProp: modelBindingProp,
     valueFormatter,
   };
 });
@@ -110,7 +115,7 @@ defineExpose({
       v-if="is"
       v-bind="groupedAttrs.attrs"
       ref="componentRef"
-      v-model:[`${groupedAttrs.modelName}`]="value"
+      v-model:[`${groupedAttrs.modelProp}`]="value"
       :path="path"
     >
       <template

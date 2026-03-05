@@ -1,12 +1,14 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
 import { theme } from '../../../shared/ui';
 const { token } = theme.useToken();
+const bgColor = computed(() => token.value?.colorBgContainer);
 </script>
 
 <template>
   <div
     class="pro-table_search-form-container"
-    :style="{ backgroundColor: token.value?.colorBgContainer }"
+    :style="{ backgroundColor: bgColor }"
   >
     <slot />
   </div>

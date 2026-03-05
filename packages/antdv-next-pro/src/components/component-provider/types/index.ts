@@ -29,7 +29,14 @@ type PP<T extends Record<string, any>> = Partial<T & AllowedComponentProps>;
 
 type FP<T extends Record<string, any>> = Partial<
   T &
-    Pick<Base, 'valueFormatter' | 'componentContainer' | 'modelName'> &
+    Pick<
+      Base,
+      | 'valueFormatter'
+      | 'componentContainer'
+      | 'modelProp'
+      | 'componentClass'
+      | 'componentStyle'
+    > &
     AllowedComponentProps
 >;
 
@@ -37,14 +44,14 @@ type FP<T extends Record<string, any>> = Partial<
 export type RequiredComponentVars = {
   'pro-table': PP<TableProps & Pick<ProTableProps, 'control' | 'searchFormConfig' | 'immediateSearch' | 'addIndexColumn' | 'tableContainer'>>;
   'pro-form': PP<Omit<ProFormProps, 'form' | 'grid'> & { grid: Exclude<Grid, undefined | boolean>}>;
-  'pro-form-item': PP<FormItemProps & Pick<GridItemProps, 'span' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'> & Pick<Base, 'container'>>;
+  'pro-form-item': PP<FormItemProps & Pick<GridItemProps, 'span' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'> & Pick<Base, 'formItemContainer'>>;
   // field
   'input': FP<InputProps>;
   'textarea': FP<TextAreaProps>;
   'input-password': FP<InputProps>;
   'input-search': FP<InputProps>;
   'input-number': FP<InputNumberProps>;
-  'input-opt': FP<InputOTPProps>
+  'input-otp': FP<InputOTPProps>
   'select': FP<SelectProps>;
   'cascader': FP<CascaderProps>;
   'date-picker': FP<DatePickerProps>;

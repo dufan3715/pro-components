@@ -11,7 +11,6 @@ import {
   nextTick,
   useAttrs,
   onMounted,
-  CSSProperties,
   inject,
   type Slot,
 } from 'vue';
@@ -238,8 +237,8 @@ onMounted(() => {
 <template>
   <div
     class="pro-table"
-    :class="$attrs.class as any"
-    :style="$attrs.style as CSSProperties"
+    :class="($attrs as any).class"
+    :style="($attrs as any).style"
   >
     <ContainerFragment
       v-if="showSearch"
@@ -274,7 +273,7 @@ onMounted(() => {
           v-if="computedControl.columnControl"
           class="pro-table_header_column-control"
         >
-          <ColumnControl :columns="computedColumns as any" :table="table" />
+          <ColumnControl :columns="computedColumns" :table="table" />
         </div>
       </div>
 

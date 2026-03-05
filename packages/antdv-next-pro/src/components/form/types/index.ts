@@ -134,12 +134,12 @@ export interface Base<D extends Data = Data> {
    * @description 字段formItem样式属性
    * @example { marginBottom: '8px', padding: '12px' }
    */
-  style?: CSSProperties;
+  formItemStyle?: CSSProperties;
   /**
    * @description 字段formItem样式类名
    * @example 'custom-form-item' | 'required-field'
    */
-  className?: string;
+  formItemClass?: string;
   /**
    * @description 嵌套子字段配置
    * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
@@ -154,7 +154,7 @@ export interface Base<D extends Data = Data> {
    * @description 字段formItem容器包裹组件
    * @example (props, ctx) => h('div', { class: 'custom-container' }, ctx.slots.default?.())
    */
-  container?: ContainerComponent;
+  formItemContainer?: ContainerComponent;
   /**
    * @description 字段component样式属性
    * @example { width: '100%', borderColor: '#d9d9d9' }
@@ -164,7 +164,7 @@ export interface Base<D extends Data = Data> {
    * @description 字段component样式类名
    * @example 'custom-input' | 'error-input'
    */
-  componentClassName?: string;
+  componentClass?: string;
   /**
    * @description 字段component容器包裹组件
    * @example (props, ctx) => h('div', { class: 'input-wrapper' }, ctx.slots.default?.())
@@ -178,7 +178,7 @@ export interface Base<D extends Data = Data> {
   /**
    * @description 组件v-model双向绑定更新属性名，默认'value'
    */
-  modelName?: string;
+  modelProp?: string;
   /**
    * @description 以data-form-item-开始的属性名将会被渲染至formItem的dom节点
    * @example { 'data-form-item-test': 'test-value' }
@@ -241,12 +241,12 @@ export type FieldTypeMap<D extends Data = Data> = {
  */
 type NotSupportedRefOrGetterProps =
   | 'component'
-  | 'container'
+  | 'formItemContainer'
   | 'componentContainer'
   | 'valueFormatter'
   | 'fields'
   | 'slots'
-  | 'modelName';
+  | 'modelProp';
 
 type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
 

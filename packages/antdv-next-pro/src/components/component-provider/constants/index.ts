@@ -69,7 +69,7 @@ export const INJECT_CONFIG: {
       style: { width: '100%' },
     } as any,
   },
-  'input-opt': {
+  'input-otp': {
     injectionKey: Symbol(''),
     default: {},
   },
@@ -127,7 +127,7 @@ export const INJECT_CONFIG: {
   },
   switch: {
     injectionKey: Symbol(''),
-    default: { modelName: 'checked' },
+    default: { modelProp: 'checked' },
   },
   slider: {
     injectionKey: Symbol(''),

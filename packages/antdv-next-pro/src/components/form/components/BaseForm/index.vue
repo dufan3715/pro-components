@@ -9,7 +9,7 @@ import {
   provide,
   type Slot,
   watchEffect,
-  toValue,
+  computed,
 } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider';
 import { BaseFormItem } from '..';
@@ -28,6 +28,7 @@ const { grid = false, form = {} as F } = defineProps<Props>();
 provide(InjectionFormKey, form as F);
 
 const { formData, fields, setFormRef } = form as F;
+const _fields = computed(() => fields.value);
 
 const config = INJECT_CONFIG['pro-form'];
 
@@ -58,7 +59,7 @@ watchEffect(() => {
     v-bind="mergeProps(injectAttrs, camelizeProperties($attrs))"
     class="pro-form"
   >
-    <BaseFormItem :fields="toValue(fields) as any" :grid="grid" />
+    <BaseFormItem :fields="_fields" :grid="grid" />
     <slot />
   </UIForm>
 </template>

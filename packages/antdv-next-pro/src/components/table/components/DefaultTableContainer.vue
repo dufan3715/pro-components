@@ -1,13 +1,12 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
 import { theme } from '../../../shared/ui';
 const { token } = theme.useToken();
+const bgColor = computed(() => token.value?.colorBgContainer);
 </script>
 
 <template>
-  <div
-    class="pro-table_table-container"
-    :style="{ backgroundColor: token.value?.colorBgContainer }"
-  >
+  <div class="pro-table_table-container" :style="{ backgroundColor: bgColor }">
     <slot />
   </div>
 </template>
