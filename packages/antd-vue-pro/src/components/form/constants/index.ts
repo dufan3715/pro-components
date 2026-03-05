@@ -1,4 +1,4 @@
-import { Component, ComputedRef, InjectionKey } from 'vue';
+import { Component } from 'vue';
 import {
   Cascader,
   CheckboxGroup,
@@ -18,7 +18,6 @@ import {
   RangePicker,
 } from '../../../shared/ui';
 import type { BaseComponentStringName } from '../types';
-import { type Form } from '../hooks/useForm';
 
 // prettier-ignore
 export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help', 'tooltip'] as const;
@@ -46,6 +45,4 @@ export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
 export const TeleportComponentNamePrefix = 'TeleportComponent_';
 
 // inject keys
-export const InjectionFormKey: InjectionKey<Form> = Symbol('form');
-export const InjectionPathKey: InjectionKey<ComputedRef<string | undefined>> =
-  Symbol('path');
+export { InjectionFormKey, InjectionPathKey } from '../../../shared/core';

@@ -1,0 +1,21 @@
+{
+  "name": "@qin-ui/docs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docs:dev": "vitepress dev --port 5200",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
+  },
+  "dependencies": {
+    "@qin-ui/antd-vue-pro": "^2.0.12",
+    "@qin-ui/antdv-next-pro": "^1.0.2",
+    "ant-design-vue": "^4.2.6",
+    "antdv-next": "^1.1.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "vitepress": "^1.0.0"
+  }
+}

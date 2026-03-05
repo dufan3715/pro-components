@@ -9,7 +9,7 @@ import {
 import { INJECT_CONFIG } from '../../../component-provider';
 import type { Base, Field } from '../../types';
 import { FORM_ITEM_SLOT_KEYS } from '../../constants';
-import { isPlainObject } from '../../../../shared/utils';
+import { isPlainObject } from '../../../../shared/core';
 
 const formItemPropKeys = Object.keys(formItemProps()).concat(['container']);
 const gridItemPropKeys = Object.keys(gridItemProps());

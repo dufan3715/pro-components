@@ -29,7 +29,7 @@ import {
   VNode,
 } from 'vue';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
-import type { Data, KeyExpandString, Path } from '../../../shared/types';
+import type { Data, KeyExpandString, Path } from '../../../shared/core';
 
 export type { FormInstance };
 

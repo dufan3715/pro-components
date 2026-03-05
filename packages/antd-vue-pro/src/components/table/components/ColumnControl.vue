@@ -9,16 +9,14 @@ import {
 } from '../../../shared/ui';
 import { computed, ref, watch } from 'vue';
 import type { Columns } from '../types';
-import { Table } from '../hooks/useTable';
+import { type Table } from '../hooks/useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
 
 type Props = {
   columns: Columns;
   table?: Table;
 };
-const props = withDefaults(defineProps<Props>(), {
-  table: undefined,
-});
+const { columns, table = undefined } = defineProps<Props>();
 
 const open = ref(false);
 
@@ -28,7 +26,7 @@ const indeterminate = ref(false);
 const checkedColumnsOptions = computed<
   Array<{ label: string; value: string; checked: boolean }>
 >(() =>
-  props.columns.flatMap(item =>
+  columns.flatMap(item =>
     item.key && item.title
       ? {
           label: item.title as string,
@@ -49,7 +47,7 @@ const checkedColumnKeys = computed({
   },
   set(val) {
     checkedColumnsOptions.value?.forEach(item => {
-      props.table?.setColumn?.(item.value, {
+      table?.setColumn?.(item.value, {
         hidden: !val.includes(item.value),
       });
     });

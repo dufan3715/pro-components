@@ -8,24 +8,14 @@ import {
   useConfigContextInject,
 } from '../../../shared/ui';
 import ColumnHeightOutlined from './icons/ColumnHeightOutlined.vue';
-import { useModel } from '../../../shared/hooks';
-import { useAttrs } from 'vue';
 
 type Size = TableProps['size'];
 
-type Props = {} & /* @vue-ignore */ {
-  size?: Size;
-};
-defineProps<Props>();
-
-const attrs = useAttrs();
-
 const configContext = useConfigContextInject();
 
-// eslint-disable-next-line vue/no-dupe-keys
-const size = useModel<Size>(attrs, 'size', {
-  default: configContext.componentSize?.value ?? 'large',
-});
+const size = defineModel<Size>('size');
+
+size.value = size.value ?? configContext.componentSize?.value ?? 'large';
 
 const onSizeChange = (val: any) => {
   size.value = val.key;

@@ -19,9 +19,8 @@ import { INJECT_CONFIG } from '../../component-provider';
 import { ContainerFragment, type ContainerComponent } from '../../form';
 import SearchForm from './SearchForm.vue';
 import { SearchFormProps } from './SearchForm.vue';
-import type { Table } from '../hooks';
-import { camelizeProperties, getObject, pick } from '../../../shared/utils';
-import { useModel } from '../../../shared/hooks';
+import type { Table } from '../hooks/useTable';
+import { camelizeProperties, getObject, pick } from '../../../shared/core';
 import { ComponentSlots } from 'vue-component-type-helpers';
 import {
   DefaultSearchFormContainer,
@@ -59,15 +58,15 @@ type Props = {
   tableContainer?: ContainerComponent | false;
 } & /* @vue-ignore */ TableProps;
 
-const props = withDefaults(defineProps<Props>(), {
-  table: undefined,
-  search: undefined,
-  addIndexColumn: undefined,
-  control: undefined,
-  tableContainer: undefined,
-  immediateSearch: undefined,
-  searchFormConfig: undefined,
-});
+const {
+  table = undefined,
+  search = undefined,
+  addIndexColumn = undefined,
+  control = undefined,
+  tableContainer = undefined,
+  immediateSearch = undefined,
+  searchFormConfig = undefined,
+} = defineProps<Props>();
 
 const config = INJECT_CONFIG['pro-table'];
 const injectProps = inject(config.injectionKey, config.default);
@@ -78,12 +77,12 @@ const injectAttrs = pick(injectProps, tableProperties) as TableProps;
 
 const computedSearchFormConfig = computed(() => {
   const container =
-    props.searchFormConfig?.container ??
+    searchFormConfig?.container ??
     injectProps.searchFormConfig?.container ??
     DefaultSearchFormContainer;
   return {
     ...injectProps.searchFormConfig,
-    ...getObject(props.searchFormConfig),
+    ...getObject(searchFormConfig),
     container: container ? container : undefined,
   };
 });
@@ -94,22 +93,22 @@ const tableAttrs = computed<TableProps>(() => {
 });
 
 const { columns, dataSource, searchForm, pageParam, setPageParam } =
-  props.table || {};
+  table || {};
 
-const size = useModel<TableProps['size']>(attrs, 'size');
-const loading = useModel<boolean>(attrs, 'loading');
+const size = defineModel<TableProps['size']>('size');
+const loading = defineModel<boolean>('loading');
 
 const _search = async () => {
   try {
     loading.value = true;
-    await props.search?.();
+    await search?.();
   } finally {
     loading.value = false;
   }
 };
 
 const reset = () => {
-  props.table?.resetQueryParams();
+  table?.resetQueryParams();
   nextTick(() => {
     _search();
   });
@@ -156,7 +155,7 @@ const computedTableProps = computed<TableProps>(() => {
 
 const computedTableContainer = computed(() => {
   const container =
-    props.tableContainer ?? injectProps.tableContainer ?? DefaultTableContainer;
+    tableContainer ?? injectProps.tableContainer ?? DefaultTableContainer;
   return container ? container : undefined;
 });
 
@@ -173,9 +172,7 @@ const indexColumn: ColumnType = {
 const computedColumns = computed(
   () =>
     [
-      ...((props.addIndexColumn ?? injectProps.addIndexColumn)
-        ? [indexColumn]
-        : []),
+      ...((addIndexColumn ?? injectProps.addIndexColumn) ? [indexColumn] : []),
       ...(tableAttrs.value.columns ?? columns?.value ?? []).flatMap(
         (item: ColumnType<RecordType>, index) => {
           if (item.key) return [{ ...item, key: item.key }];
@@ -224,14 +221,15 @@ const showSearch = computed(() => {
 });
 
 const computedControl = computed<Control>(() => {
-  const control = props.control ?? injectProps.control;
-  const sizeControl = (control as Control)?.sizeControl ?? control;
-  const columnControl = (control as Control)?.columnControl ?? control;
+  const mergedControl = control ?? injectProps.control;
+  const sizeControl = (mergedControl as Control)?.sizeControl ?? mergedControl;
+  const columnControl =
+    (mergedControl as Control)?.columnControl ?? mergedControl;
   return { sizeControl, columnControl };
 });
 
 onMounted(() => {
-  if (props.immediateSearch ?? injectProps.immediateSearch) {
+  if (immediateSearch ?? injectProps.immediateSearch) {
     _search();
   }
 });
@@ -276,7 +274,7 @@ onMounted(() => {
           v-if="computedControl.columnControl"
           class="pro-table_header_column-control"
         >
-          <ColumnControl :columns="computedColumns" :table="props.table" />
+          <ColumnControl :columns="computedColumns as any" :table="table" />
         </div>
       </div>
 

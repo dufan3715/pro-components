@@ -7,23 +7,20 @@ import { inject, mergeProps, provide, type Slot, watchEffect } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider';
 import { BaseFormItem } from '..';
 import { InjectionFormKey, TeleportComponentNamePrefix } from '../..';
-import type { Grid, VModelProps, PathProps, Form } from '../..';
-import { Path } from '../../../../shared/types';
-import { camelizeProperties } from '../../../../shared/utils';
+import type { Grid, VModelProps, PathProps } from '../..';
+import { Path, camelizeProperties } from '../../../../shared/core';
+import type { Form } from '../../hooks/useForm';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
 
 type FormProps = Partial<Omit<UIFormProps, 'model'>>;
 
 type Props = { grid?: Grid; form?: F } & /* @vue-ignore */ FormProps;
-const props = withDefaults(defineProps<Props>(), {
-  grid: false,
-  form: () => ({}) as F,
-});
+const { grid = false, form = {} as F } = defineProps<Props>();
 
-provide(InjectionFormKey, props.form as F);
+provide(InjectionFormKey, form as F);
 
-const { formData, fields, setFormRef } = props.form as F;
+const { formData, fields, setFormRef } = form as F;
 
 const config = INJECT_CONFIG['pro-form'];
 

@@ -6,8 +6,15 @@ import json from '@eslint/json';
 import css from '@eslint/css';
 import { defineConfig } from 'eslint/config';
 import prettier from 'eslint-config-prettier';
+import { includeIgnoreFile } from '@eslint/compat';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const gitignorePath = path.resolve(__dirname, '.gitignore');
 
 export default defineConfig([
+  includeIgnoreFile(gitignorePath),
   {
     files: ['**/*.{js,mjs,cjs,ts,vue}'],
     plugins: { js },
@@ -49,5 +56,5 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': 'error',
     },
   },
-  prettier
+  prettier,
 ]);

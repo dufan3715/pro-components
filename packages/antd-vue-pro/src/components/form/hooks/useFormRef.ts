@@ -1,24 +1,10 @@
-import { ref } from 'vue';
-import { FormInstance } from '../types';
+import { useFormRef as _useFormRef } from '../../../shared/core';
+import type { FormInstance } from '../../../shared/ui';
 
 /**
- * 表单组件实例引用
- * @returns {Object}
- * @property {Ref<FormInstance | undefined>} formRef - 表单组件实例引用
- * @property {Function} setFormRef - 更新实例引用
+ * 类型断言 re-export @qin-ui/core 的 useFormRef，
+ * 将 FormInstance 泛型参数绑定为本地 UI 库（Ant Design Vue）的 FormInstance。
  */
-const useFormRef = () => {
-  const formRef = ref<FormInstance>();
-
-  /**
-   * 设置实例引用
-   * @param {FormInstance} inst - 表单组件实例
-   */
-  const setFormRef = (inst: FormInstance) => {
-    formRef.value = inst;
-  };
-
-  return { formRef, setFormRef };
+export const useFormRef = _useFormRef as {
+  (): ReturnType<typeof _useFormRef<FormInstance>>;
 };
-
-export default useFormRef;

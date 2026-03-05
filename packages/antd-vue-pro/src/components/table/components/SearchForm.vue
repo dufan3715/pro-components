@@ -45,18 +45,20 @@ import {
   type Component,
   type DefineComponent,
 } from 'vue';
-import ProForm, { Form } from '../../form';
+import ProForm from '../../form';
+import { type Form } from '../../form';
 import DownOutlined from './icons/DownOutlined.vue';
 
 defineOptions({ name: 'SearchForm' });
 
-const props = withDefaults(defineProps<SearchFormProps>(), {
-  layout: 'grid',
-  expand: true,
-  searchButton: undefined,
-  resetButton: undefined,
-  expandButton: undefined,
-});
+const {
+  layout = 'grid',
+  expand = true,
+  searchButton = undefined,
+  resetButton = undefined,
+  expandButton = undefined,
+  form,
+} = defineProps<SearchFormProps>();
 
 type Emits = {
   (e: 'search'): void;
@@ -71,11 +73,11 @@ const rowGap = 16;
 const columnGap = 24;
 
 const computedExpand = computed(() => {
-  if (!props.expand) return false;
-  if (props.expand === true) return { minExpandRows: 2, expandStatus: false };
+  if (!expand) return false;
+  if (expand === true) return { minExpandRows: 2, expandStatus: false };
   return {
-    minExpandRows: Math.max(Math.floor(props.expand.minExpandRows ?? 2), 1),
-    expandStatus: props.expand.expandStatus ?? false,
+    minExpandRows: Math.max(Math.floor(expand.minExpandRows ?? 2), 1),
+    expandStatus: expand.expandStatus ?? false,
   };
 });
 
@@ -87,12 +89,12 @@ const changeExpandStatus = () => {
   expandStatus.value = !expandStatus.value;
 };
 
-const { formRef, getFormData } = props.form;
+const { formRef, getFormData } = form;
 
 const setInitExpandStatus = () => {
   expandStatus.value = false;
-  if (formRef.value && props.expand) {
-    const formEl = formRef.value.$el;
+  if (formRef.value && expand) {
+    const formEl = (formRef.value as any).$el;
     const formItemsEl = formEl.querySelectorAll('.ant-form-item>[path]');
     const observer = new IntersectionObserver(
       entries => {
@@ -102,7 +104,7 @@ const setInitExpandStatus = () => {
             const searchFieldValue = path ? getFormData?.(path) : undefined;
             return ![null, undefined].includes(searchFieldValue);
           }
-          return (props.expand as any).expandStatus;
+          return (expand as any).expandStatus;
         });
         observer.disconnect();
       },
@@ -116,12 +118,12 @@ const setInitExpandStatus = () => {
 
 watch(
   [
-    () => props.form?.fields.value?.filter(f => !f.hidden)?.length,
+    () => form?.fields.value?.filter(f => !f.hidden)?.length,
     () => formRef.value,
   ],
   () => {
     if (!expandStatus.value || !formRef.value) return;
-    const proFormEl = formRef.value?.$el;
+    const proFormEl = (formRef.value as any)?.$el;
     const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
     proFormHeight.value = height;
     rowHeight = proFormEl
@@ -134,7 +136,7 @@ watch(
 watchEffect(
   () => {
     if (typeof proFormHeight.value !== 'number') return;
-    if (props.layout === 'grid' && computedExpand.value) {
+    if (layout === 'grid' && computedExpand.value) {
       const { minExpandRows } = computedExpand.value;
       collapseHeight.value = Math.min(
         minExpandRows * rowHeight + (minExpandRows - 1) * rowGap,
@@ -152,7 +154,7 @@ watchEffect(
 );
 
 const layoutProps = computed(() =>
-  props.layout === 'grid'
+  layout === 'grid'
     ? {
         grid: {
           gutter: [columnGap, rowGap] as [number, number],
@@ -204,8 +206,7 @@ const onSearch = () => {
           type="primary"
           html-type="submit"
           @click="onSearch"
-        >
-          查询
+          >查询
         </Button>
       </slot>
       <slot name="expand-button" @click="changeExpandStatus">

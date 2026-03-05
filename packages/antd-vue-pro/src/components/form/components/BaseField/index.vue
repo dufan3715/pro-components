@@ -7,7 +7,7 @@ import {
   ref,
   useAttrs,
 } from 'vue';
-import { cloneDeep, omit } from '../../../../shared/utils';
+import { cloneDeep, omit } from '../../../../shared/core';
 import {
   useInjectDisabled,
   useInjectFormItemContext,
@@ -15,7 +15,7 @@ import {
 import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import { COMPONENT_MAP, TeleportComponentNamePrefix } from '../../constants';
-import { useForm } from '../../hooks';
+import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
@@ -24,10 +24,7 @@ type Props = {
   component?: string | Component;
   path?: string;
 };
-const props = withDefaults(defineProps<Props>(), {
-  component: undefined,
-  path: '',
-});
+const { component = undefined, path = '' } = defineProps<Props>();
 
 const form = useForm(false);
 const { getFormData, setFormData } = form;
@@ -42,12 +39,12 @@ const triggerFormItemChange = () => {
 const attrs: any = useAttrs();
 
 function getOldValue() {
-  return cloneDeep(getFormData?.(props.path));
+  return cloneDeep(getFormData?.(path));
 }
 
 const value = computed({
   get() {
-    let val = getFormData?.(props.path);
+    let val = getFormData?.(path);
     const { valueFormatter } = groupedAttrs.value;
     if (
       typeof valueFormatter === 'object' &&
@@ -67,7 +64,7 @@ const value = computed({
         newVal = valueFormatter.set(val, getOldValue());
       }
     }
-    setFormData?.(props.path, newVal);
+    setFormData?.(path, newVal);
     triggerFormItemChange();
   },
 });
@@ -76,7 +73,7 @@ const parentDisabled = useInjectDisabled();
 
 const groupedAttrs = computed(() => {
   const initProps = getInitProps({
-    component: props.component,
+    component: component,
     type: attrs.type,
   } as Field);
   const mergedProps = mergeProps(
@@ -101,16 +98,12 @@ const groupedAttrs = computed(() => {
 });
 
 const teleportComponent = inject(
-  `${TeleportComponentNamePrefix}${props.path}`,
+  `${TeleportComponentNamePrefix}${path}`,
   undefined
 );
 
 const is = computed(() => {
-  return (
-    teleportComponent ??
-    COMPONENT_MAP.get(props.component as any) ??
-    props.component
-  );
+  return teleportComponent ?? COMPONENT_MAP.get(component as any) ?? component;
 });
 
 defineExpose({

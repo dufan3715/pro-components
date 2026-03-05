@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { getObject, toPath } from '../../../../shared/utils';
+import { getObject, toPath } from '../../../../shared/core';
 import {
   FormItem,
   Grid as UIGrid,
@@ -21,30 +21,28 @@ type Props = {
   fields?: Fields;
   disabled?: boolean;
 };
-const props = withDefaults(defineProps<Props>(), {
-  grid: undefined,
-  fields: () => [],
-  disabled: undefined,
-});
+const {
+  grid = undefined,
+  fields = [],
+  disabled = undefined,
+} = defineProps<Props>();
 
-const validFields = computed(() =>
-  props.fields.filter?.(field => !field.hidden)
-);
+const validFields = computed(() => fields.filter?.(field => !field.hidden));
 
-useProviderDisabled(computed(() => props.disabled));
+useProviderDisabled(computed(() => disabled));
 
 const config = INJECT_CONFIG['pro-form'];
 
 const { grid: injectGrid } = inject(config.injectionKey, config.default);
 
 const enableGrid = computed(() => {
-  if (props.grid !== undefined) return !!props.grid;
+  if (grid !== undefined) return !!grid;
   return !!injectGrid;
 });
 
 const computedGridProps = computed<GridProps>(() => {
   return enableGrid.value
-    ? { ...getObject(injectGrid), ...getObject(props.grid) }
+    ? { ...getObject(injectGrid), ...getObject(grid) }
     : {};
 });
 

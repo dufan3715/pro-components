@@ -1,0 +1,44 @@
+{
+  "name": "@qin-ui/antdv-next-pro",
+  "version": "1.0.2",
+  "description": "基于 antdv-next 的二次封装组件",
+  "type": "module",
+  "module": "es/index.js",
+  "types": "es/index.d.ts",
+  "main": "es/index.js",
+  "exports": {
+    ".": {
+      "import": "./es/index.js",
+      "types": "./es/index.d.ts"
+    }
+  },
+  "files": [
+    "es",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "vue-tsc && vite build"
+  },
+  "author": "dufan3715",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "@qin-ui/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "antdv-next": "^1.1.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
+    "antdv-next": "^1.1.0",
+    "lodash-es": "^4.17.21",
+    "vue": "^3.5.29",
+    "vue-component-type-helpers": "^3.2.5"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
