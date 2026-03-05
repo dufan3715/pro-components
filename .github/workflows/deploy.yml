@@ -47,13 +47,13 @@ jobs:
         run: pnpm install # 或 pnpm install / yarn install / bun install
       - name: Build with VitePress
         run: |
-          cd docs/antd-vue-pro-docs
+          cd docs
           pnpm run docs:build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/antd-vue-pro-docs/.vitepress/dist
+          path: docs/.vitepress/dist
 
   # 部署工作
   deploy:
