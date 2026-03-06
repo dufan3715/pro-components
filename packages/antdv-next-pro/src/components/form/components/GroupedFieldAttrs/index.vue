@@ -38,7 +38,7 @@ const groupedAttributes = computed<GroupedFieldAttrs>(() => {
   if (isPlainObject(props.field)) {
     // prettier-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { path, name, fields, formItemClass, formItemStyle, formItemContainer, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, ...rest } =
+    const { path, name, fields, formItemClass, formItemStyle, formItemContainer, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, ...rest } =
     props.field as any;
     const {
       class: injectClassName,
@@ -63,22 +63,22 @@ const groupedAttributes = computed<GroupedFieldAttrs>(() => {
     formItemProps = mergeProps(
       injectRest as any,
       { class: injectClassName, style: injectStyle },
-      { class: toValue(formItemClass), style: toValue(formItemStyle) }
+      { class: toValue(formItemClass), style: toValue(formItemStyle) },
+      formItemDataAttrs
     );
     formItemProps.container = formItemContainer ?? injectFormItemContainer;
 
     Object.keys(rest).forEach(k => {
       if (gridItemPropKeys.includes(k)) {
         gridItemProps[k] = rest[k];
-      } else if (
-        formItemPropKeys.includes(k) ||
-        k.startsWith('data-form-item')
-      ) {
+      } else if (formItemPropKeys.includes(k)) {
         (formItemProps as any)[k] = rest[k];
       } else {
         componentProps[k] = rest[k];
       }
     });
+    // 将 componentDataAttrs 展开到组件 props 中
+    Object.assign(componentProps, componentDataAttrs);
     Object.keys(slots).forEach(k => {
       if (FORM_ITEM_SLOT_KEYS.includes(k as any)) {
         formItemSlots[k] = slots[k];

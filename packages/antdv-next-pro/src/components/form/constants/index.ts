@@ -3,6 +3,7 @@ import {
   Cascader,
   CheckboxGroup,
   DatePicker,
+  AutoComplete,
   Input,
   InputNumber,
   InputPassword,
@@ -25,13 +26,14 @@ import type { BaseComponentStringName } from '../types';
 export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help', 'tooltip'] as const;
 
 // prettier-ignore
-export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
+export const COMPONENT_MAP =  new Map<BaseComponentStringName | string, Component>([
   ['input', Input],
   ['textarea', TextArea],
   ['input-search', InputSearch],
   ['input-password', InputPassword],
   ['input-number', InputNumber],
   ['input-otp', InputOTP],
+  ['auto-complete', AutoComplete],
   ['select', Select],
   ['cascader', Cascader],
   ['date-picker', DatePicker],
@@ -45,6 +47,15 @@ export const COMPONENT_MAP =  new Map<BaseComponentStringName, Component>([
   ['tree-select', TreeSelect],
   ['transfer', Transfer],
 ])
+
+/**
+ * 注册自定义组件
+ * @param name 组件名称标识
+ * @param component Vue组件
+ */
+export const registerComponent = (name: string, component: Component) => {
+  COMPONENT_MAP.set(name, component);
+};
 
 export const TeleportComponentNamePrefix = 'TeleportComponent_';
 
