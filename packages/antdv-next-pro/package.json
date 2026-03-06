@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antdv-next-pro",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "基于 antdv-next 的二次封装组件",
   "type": "module",
   "module": "es/index.js",
@@ -17,6 +17,11 @@
     "README.md",
     "LICENSE"
   ],
+  "homepage": "https://dufan3715.github.io/pro-components/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dufan3715/pro-components.git"
+  },
   "scripts": {
     "build": "vue-tsc && vite build"
   },

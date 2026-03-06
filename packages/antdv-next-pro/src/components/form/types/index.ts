@@ -2,42 +2,35 @@ import type {
   FormItemProps,
   GridProps,
   GridItemProps,
-  InputProps,
-  InputNumberProps,
-  InputOTPProps,
-  SelectProps,
-  CascaderProps,
-  DatePickerProps,
-  TimePickerProps,
-  TimeRangePickerProps,
-  CheckboxGroupProps,
-  RadioGroupProps,
-  SwitchProps,
-  SliderProps,
-  TreeSelectProps,
-  TransferProps,
-  TextAreaProps,
   FormInstance,
   FormItemInstance,
-  TextAreaSlots,
-  PasswordSlots,
-  OPTSlots,
-  SearchSlots,
-  InputNumberSlots,
-  RangePickerSlots,
-  TimePickerSlots,
-  SliderSlots,
-  CascaderSlots,
-  DatePickerSlots,
-  InputPasswordProps,
-  InputSearchProps,
-  InputSlots,
-  RangePickerProps,
-  SelectSlots,
-  SwitchSlots,
-  TransferSlots,
-  TreeSelectSlots,
 } from '../../../shared/ui';
+import {
+  FormItem,
+  Input,
+  TextArea,
+  InputPassword,
+  InputSearch,
+  InputNumber,
+  InputOTP,
+  AutoComplete,
+  Select,
+  Cascader,
+  DatePicker,
+  RangePicker,
+  TimePicker,
+  TimeRangePicker,
+  CheckboxGroup,
+  RadioGroup,
+  Switch,
+  Slider,
+  TreeSelect,
+  Transfer,
+} from '../../../shared/ui';
+import type {
+  ComponentProps,
+  ComponentSlots,
+} from 'vue-component-type-helpers';
 import {
   type CSSProperties,
   type Component,
@@ -46,7 +39,6 @@ import {
   type ComputedRef,
   VNode,
 } from 'vue';
-import { FORM_ITEM_SLOT_KEYS } from '../constants';
 import type { Data, Path } from '../../../shared/core';
 
 export type { FormInstance };
@@ -127,19 +119,7 @@ export interface Base<D extends Data = Data> {
    * }
    * ```
    */
-  slots?: Partial<
-    Record<(typeof FORM_ITEM_SLOT_KEYS)[number], SlotComponentType>
-  >;
-  /**
-   * @description 字段formItem样式属性
-   * @example { marginBottom: '8px', padding: '12px' }
-   */
-  formItemStyle?: CSSProperties;
-  /**
-   * @description 字段formItem样式类名
-   * @example 'custom-form-item' | 'required-field'
-   */
-  formItemClass?: string;
+  slots?: Partial<ComponentSlots<typeof FormItem>>;
   /**
    * @description 嵌套子字段配置
    * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
@@ -151,10 +131,25 @@ export interface Base<D extends Data = Data> {
    */
   grid?: Grid;
   /**
+   * @description 字段formItem样式属性
+   * @example { marginBottom: '8px', padding: '12px' }
+   */
+  formItemStyle?: CSSProperties;
+  /**
+   * @description 字段formItem样式类名
+   * @example 'custom-form-item' | 'required-field'
+   */
+  formItemClass?: string;
+  /**
    * @description 字段formItem容器包裹组件
    * @example (props, ctx) => h('div', { class: 'custom-container' }, ctx.slots.default?.())
    */
   formItemContainer?: ContainerComponent;
+  /**
+   * @description 将属性附加到 FormItem 的 DOM 节点
+   * @example { 'data-form-item-test': 'test-value', 'aria-label': 'name' }
+   */
+  formItemDataAttrs?: Record<string, string>;
   /**
    * @description 字段component样式属性
    * @example { width: '100%', borderColor: '#d9d9d9' }
@@ -171,6 +166,11 @@ export interface Base<D extends Data = Data> {
    */
   componentContainer?: ContainerComponent;
   /**
+   * @description 将属性附加到表单组件的 DOM 节点
+   * @example { 'data-test': 'input-value', 'aria-label': 'name' }
+   */
+  componentDataAttrs?: Record<string, string>;
+  /**
    * @description 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值，也可设置get和set函数，用于处理字段值
    * @example (val) => val?.trim()
    */
@@ -179,17 +179,21 @@ export interface Base<D extends Data = Data> {
    * @description 组件v-model双向绑定更新属性名，默认'value'
    */
   modelProp?: string;
-  /**
-   * @description 以data-form-item-开始的属性名将会被渲染至formItem的dom节点
-   * @example { 'data-form-item-test': 'test-value' }
-   */
-  [key: `data-form-item-${string}`]: string;
-  /**
-   * @description 以data-component-开始的属性名将会被渲染至component的dom节点
-   * @example { 'data-component-test': 'test-value' }
-   */
-  [key: `data-component-${string}`]: string;
 }
+
+/**
+ * @description 暴露给外部扩充自定义组件类型的接口
+ * @example
+ * ```ts
+ * declare module 'antdv-next-pro' {
+ *   interface CustomFieldTypeMap {
+ *     'my-custom-input': typeof MyCustomInput;
+ *   }
+ * }
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unused-vars
+export interface CustomFieldTypeMap<D extends Data = Data> {}
 
 /**
  * @type {FieldTypeMap} 字段类型集合
@@ -197,44 +201,46 @@ export interface Base<D extends Data = Data> {
 // prettier-ignore
 export type FieldTypeMap<D extends Data = Data> = {
   /** 文本框 */
-  'input': WithCommon<{ slots?: InputSlots } & InputProps, D>;
+  'input': WithComponent<typeof Input, D>;
   /** 文本域 */
-  'textarea': WithCommon<{ slots?: TextAreaSlots } & TextAreaProps, D>;
+  'textarea': WithComponent<typeof TextArea, D>;
   /** 文本框-密码 */
-  'input-password': WithCommon<{ slots?: PasswordSlots } & InputPasswordProps, D>;
+  'input-password': WithComponent<typeof InputPassword, D>;
   /* 文本框-一次性密码输入框 */
-  'input-otp': WithCommon<{ slots?: OPTSlots } & InputOTPProps, D>;
+  'input-otp': WithComponent<typeof InputOTP, D>;
   /** 文本框-搜索 */
-  'input-search': WithCommon<{ slots?: SearchSlots } & InputSearchProps, D>;
+  'input-search': WithComponent<typeof InputSearch, D>;
   /** 数字文本框 */
-  'input-number': WithCommon<{ slots?: InputNumberSlots } & InputNumberProps, D>;
+  'input-number': WithComponent<typeof InputNumber, D>;
   /** 下拉选择器 */
-  'select': WithCommon<{ slots?: SelectSlots } & SelectProps, D>;
+  'select': WithComponent<typeof Select, D>;
+  /** 自动完成 */
+  'auto-complete': WithComponent<typeof AutoComplete, D>;
   /** 级联选择器 */
-  'cascader': WithCommon<{ slots?: CascaderSlots } & CascaderProps, D>;
+  'cascader': WithComponent<typeof Cascader, D>;
   /** 日期选择器 */
-  'date-picker': WithCommon<{ slots?: DatePickerSlots } & DatePickerProps, D>;
+  'date-picker': WithComponent<typeof DatePicker, D>;
   /** 日期选择器-范围 */
-  'range-picker': WithCommon<{ slots?: RangePickerSlots } & RangePickerProps, D>;
+  'range-picker': WithComponent<typeof RangePicker, D>;
   /** 时间选择器 */
-  'time-picker': WithCommon<{ slots?: TimePickerSlots } & TimePickerProps, D>;
-  /** 时间选择器 */
-  'time-range-picker': WithCommon<TimeRangePickerProps, D>;
+  'time-picker': WithComponent<typeof TimePicker, D>;
+  /** 时间范围选择器 */
+  'time-range-picker': WithComponent<typeof TimeRangePicker, D>;
   /** 复选框组 */
-  'checkbox-group': WithCommon<CheckboxGroupProps, D>;
+  'checkbox-group': WithComponent<typeof CheckboxGroup, D>;
   /** 单选框组 */
-  'radio-group': WithCommon<RadioGroupProps, D>;
+  'radio-group': WithComponent<typeof RadioGroup, D>;
   /** 开关 */
-  'switch': WithCommon<{ slots?: SwitchSlots } & SwitchProps, D>;
+  'switch': WithComponent<typeof Switch, D>;
   /** 滑块 */
-  'slider': WithCommon<{ slots?: SliderSlots } & SliderProps, D>;
+  'slider': WithComponent<typeof Slider, D>;
   /** 树形选择器 */
-  'tree-select': WithCommon<{ slots?: TreeSelectSlots } & TreeSelectProps, D>;
+  'tree-select': WithComponent<typeof TreeSelect, D>;
   /** 穿梭框 */
-  'transfer': WithCommon<{ slots?: TransferSlots } & TransferProps, D>;
+  'transfer': WithComponent<typeof Transfer, D>;
   /** 自定义组件 */
   'custom': { component?: RenderComponentType | Raw<RenderComponentType> } & WithCommon<{ slots?: Slots } & Record<string, any>, D>;
-};
+} & { [K in keyof CustomFieldTypeMap<D>]: WithComponent<CustomFieldTypeMap[K], D> };
 
 /**
  * @description 不支持响应式的属性名
@@ -263,8 +269,18 @@ export type WithRef<T> = {
 };
 
 type WithCommon<T, D extends Data = Data> = WithRef<
-  T & Omit<FormItemProps, 'label'> & GridItemProps & Base<D>
+  T & FormItemProps & GridItemProps & Base<D>
 >;
+
+/**
+ * @description 自动从 Vue 组件提取 Props 和 Slots，并加上公共表单字段属性
+ * @template T - Vue 组件类型
+ * @template D - 数据对象类型
+ */
+type WithComponent<
+  T extends abstract new (...args: any) => any,
+  D extends Data = Data,
+> = WithCommon<{ slots?: ComponentSlots<T> } & ComponentProps<T>, D>;
 
 /**
  * @description 字段配置类型，包含所有字段属性和响应式支持

@@ -1,29 +1,31 @@
 import {
-  CascaderProps,
-  CheckboxGroupProps,
   GridItemProps,
-  DatePickerProps,
   FormItemProps,
-  InputNumberProps,
-  InputProps,
-  RadioGroupProps,
-  SelectProps,
-  SliderProps,
-  SwitchProps,
   TableProps,
-  TextAreaProps,
-  TimePickerProps,
-  TransferProps,
-  TreeSelectProps,
-  InputOTPProps,
-  RangePickerProps,
-  MonthPickerProps,
-  WeekPickerProps,
-  TimeRangePickerProps,
+  Input,
+  InputPassword,
+  InputSearch,
+  InputNumber,
+  InputOTP,
+  AutoComplete,
+  Select,
+  Cascader,
+  DatePicker,
+  RangePicker,
+  TimePicker,
+  TimeRangePicker,
+  CheckboxGroup,
+  RadioGroup,
+  Switch,
+  Slider,
+  TreeSelect,
+  Transfer,
+  TextArea,
 } from '../../../shared/ui';
 import { Base, Grid, ProFormProps } from '../../form';
 import { ProTableProps } from '../../table';
 import { AllowedComponentProps } from 'vue';
+import type { ComponentProps } from 'vue-component-type-helpers';
 
 type PP<T extends Record<string, any>> = Partial<T & AllowedComponentProps>;
 
@@ -46,29 +48,30 @@ export type RequiredComponentVars = {
   'pro-form': PP<Omit<ProFormProps, 'form' | 'grid'> & { grid: Exclude<Grid, undefined | boolean>}>;
   'pro-form-item': PP<FormItemProps & Pick<GridItemProps, 'span' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl'> & Pick<Base, 'formItemContainer'>>;
   // field
-  'input': FP<InputProps>;
-  'textarea': FP<TextAreaProps>;
-  'input-password': FP<InputProps>;
-  'input-search': FP<InputProps>;
-  'input-number': FP<InputNumberProps>;
-  'input-otp': FP<InputOTPProps>
-  'select': FP<SelectProps>;
-  'cascader': FP<CascaderProps>;
-  'date-picker': FP<DatePickerProps>;
-  'date-picker.date': FP<DatePickerProps>;
-  'date-picker.week': FP<WeekPickerProps>;
-  'date-picker.month': FP<MonthPickerProps>;
-  'date-picker.year': FP<DatePickerProps>;
-  'date-picker.quarter': FP<DatePickerProps>;
-  'range-picker': FP<RangePickerProps>;
-  'time-picker': FP<TimePickerProps>;
-  'time-range-picker': FP<TimeRangePickerProps>;
-  'checkbox-group': FP<CheckboxGroupProps>;
-  'radio-group': FP<RadioGroupProps>;
-  'switch': FP<SwitchProps>;
-  'slider': FP<SliderProps>;
-  'tree-select': FP<TreeSelectProps>;
-  'transfer': FP<TransferProps>;
+  'input': FP<ComponentProps<typeof Input>>;
+  'textarea': FP<ComponentProps<typeof TextArea>>;
+  'input-password': FP<ComponentProps<typeof InputPassword>>;
+  'input-search': FP<ComponentProps<typeof InputSearch>>;
+  'input-number': FP<ComponentProps<typeof InputNumber>>;
+  'input-otp': FP<ComponentProps<typeof InputOTP>>;
+  'auto-complete': FP<ComponentProps<typeof AutoComplete>>;
+  'select': FP<ComponentProps<typeof Select>>;
+  'cascader': FP<ComponentProps<typeof Cascader>>;
+  'date-picker': FP<ComponentProps<typeof DatePicker>>;
+  'date-picker.date': FP<ComponentProps<typeof DatePicker>>;
+  'date-picker.week': FP<ComponentProps<typeof DatePicker>>;
+  'date-picker.month': FP<ComponentProps<typeof DatePicker>>;
+  'date-picker.year': FP<ComponentProps<typeof DatePicker>>;
+  'date-picker.quarter': FP<ComponentProps<typeof DatePicker>>;
+  'range-picker': FP<ComponentProps<typeof RangePicker>>;
+  'time-picker': FP<ComponentProps<typeof TimePicker>>;
+  'time-range-picker': FP<ComponentProps<typeof TimeRangePicker>>;
+  'checkbox-group': FP<ComponentProps<typeof CheckboxGroup>>;
+  'radio-group': FP<ComponentProps<typeof RadioGroup>>;
+  'switch': FP<ComponentProps<typeof Switch>>;
+  'slider': FP<ComponentProps<typeof Slider>>;
+  'tree-select': FP<ComponentProps<typeof TreeSelect>>;
+  'transfer': FP<ComponentProps<typeof Transfer>>;
 };
 
 export type ComponentVars = Partial<RequiredComponentVars>;

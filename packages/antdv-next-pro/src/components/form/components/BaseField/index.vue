@@ -80,7 +80,7 @@ const groupedAttrs = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { valueFormatter, modelProp, slots, componentClass, componentStyle, componentContainer, ...rest } = mergedProps
   const modelBindingProp = modelProp ?? 'value';
-  const bindAttrs = omit(rest, [
+  const bindAttrs = omit(rest as Record<string, any>, [
     modelBindingProp,
     `onUpdate:${modelBindingProp}`,
   ]);

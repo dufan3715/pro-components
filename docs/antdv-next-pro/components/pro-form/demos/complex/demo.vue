@@ -7,10 +7,26 @@ import {
   RadioGroup,
   RadioButton,
   Flex,
+  Rate,
 } from 'antdv-next';
-import { ProForm, useForm } from '@qin-ui/antdv-next-pro';
+import type { RateProps } from 'antdv-next';
+import {
+  Fields,
+  ProForm,
+  useForm,
+  registerComponent,
+} from '@qin-ui/antdv-next-pro';
 import { computed, h, ref, watch } from 'vue';
 import { useData } from 'vitepress';
+
+declare module '@qin-ui/antdv-next-pro' {
+  interface CustomFieldTypeMap {
+    'custom-rate': RateProps;
+  }
+}
+
+registerComponent('custom-rate', Rate);
+
 const { isDark } = useData();
 
 type User = {
@@ -38,11 +54,12 @@ type Education = {
 };
 
 type FormData = User & {
+  rating?: number;
   family: Family;
   educations: Education[];
 };
 
-const getEducationFields = (index: number) => [
+const getEducationFields = (index: number): Fields => [
   {
     path: `educations.${index}.school`,
     label: '学校名称',
@@ -91,7 +108,7 @@ const getEducationFields = (index: number) => [
         {
           justify: 'flex-end',
           align: 'center',
-          style: { height: '100%', paddingTop: '30px' },
+          formItemStyle: { height: '100%', paddingTop: '30px' },
         },
         ctx.slots
       ),
@@ -115,7 +132,7 @@ const getEducationFields = (index: number) => [
 // 嵌套字段多模块表单
 const form = useForm<FormData>({}, [
   {
-    container: (_, ctx) => h(Card, { title: '个人信息' }, ctx.slots),
+    formItemContainer: (_, ctx) => h(Card, { title: '个人信息' }, ctx.slots),
     fields: [
       {
         path: 'name',
@@ -147,12 +164,21 @@ const form = useForm<FormData>({}, [
       },
       { path: 'phone', label: '手机号码', component: 'input' },
       { path: 'email', label: '邮箱', component: 'input' },
+      {
+        path: 'rating',
+        label: '满意度',
+        component: 'custom-rate',
+      },
     ],
   },
   {
     path: 'family',
-    container: (_, ctx) =>
-      h(Card, { title: '家庭信息', style: { margin: '24px 0' } }, ctx.slots),
+    formItemContainer: (_, ctx) =>
+      h(
+        Card,
+        { title: '家庭信息', formItemStyle: { margin: '24px 0' } },
+        ctx.slots
+      ),
     fields: [
       {
         path: 'family.maritalStatus',
@@ -171,7 +197,7 @@ const form = useForm<FormData>({}, [
   {
     path: 'educations',
     grid: { gutter: 4 },
-    container: (_, ctx) => h(Card, { title: '教育信息' }, ctx.slots),
+    formItemContainer: (_, ctx) => h(Card, { title: '教育信息' }, ctx.slots),
     fields: [],
   },
 ]);
@@ -184,7 +210,7 @@ watch(
   () => getFormData('educations'),
   val => {
     const values = val?.length > 0 ? val : [{} as any];
-    const educationFields = values.reduce((preVal, _, i) => {
+    const educationFields: Fields = values.reduce((preVal, _, i) => {
       return [...preVal, ...getEducationFields(i)];
     }, [] as any[]);
     educationFields.push({
@@ -223,7 +249,7 @@ function deleteEducation(index: number) {
 const grid = ref(false);
 // [!code highlight]
 // 动态调整表单 layout 布局
-const layout = ref('horizontal');
+const layout = ref<'horizontal' | 'vertical'>('horizontal');
 
 const reset = () => {
   formRef.value?.resetFields();

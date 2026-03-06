@@ -14,7 +14,7 @@ import Demo from './demo.vue'
 
 - **grid 布局**：通过 `grid` prop 启用多栏（2/3/4列）自适应布局
 - **嵌套字段**：通过 `fields` 配置子字段，实现表单分组
-- **container**：每个字段可指定外层容器组件
+- **formItemContainer**：每个字段可指定外层容器组件
 
 :::
 

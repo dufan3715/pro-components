@@ -73,6 +73,10 @@ export const INJECT_CONFIG: {
     injectionKey: Symbol(''),
     default: {},
   },
+  'auto-complete': {
+    injectionKey: Symbol(''),
+    default: { allowClear: true, placeholder: '请选择', getPopupContainer },
+  },
   select: {
     injectionKey: Symbol(''),
     default: { allowClear: true, placeholder: '请选择', getPopupContainer },
