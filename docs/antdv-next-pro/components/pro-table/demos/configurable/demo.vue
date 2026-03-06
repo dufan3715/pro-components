@@ -145,9 +145,8 @@ const { formData, getFormData, setFormData } = form;
   <!-- eslint-disable vue/valid-v-slot -->
   <Card
     class="pro-table-demo"
-    :body-style="{
-      background: isDark ? '#141414' : '#f7f8f9',
-      overflow: 'hidden',
+    :styles="{
+      body: { background: isDark ? '#141414' : '#f7f8f9', overflow: 'hidden' },
     }"
   >
     <Space align="start">

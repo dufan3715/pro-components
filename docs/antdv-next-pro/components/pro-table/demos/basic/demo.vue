@@ -62,7 +62,7 @@ const search = async () => {
 <template>
   <Card
     class="pro-table-demo"
-    :body-style="{ background: isDark ? '#141414' : '#f7f8f9' }"
+    :styles="{ body: { background: isDark ? '#141414' : '#f7f8f9' } }"
   >
     <!-- [!code highlight] -->
     <!-- 4. 向ProTable传入table对象和search方法 -->
