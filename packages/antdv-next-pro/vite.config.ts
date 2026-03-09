@@ -27,7 +27,10 @@ const componentsName = getComponentsName();
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), dts({ rollupTypes: true })],
+  plugins: [
+    vue(),
+    dts({ rollupTypes: true, bundledPackages: ['@qin-ui/core'] }),
+  ],
   build: {
     target: 'modules',
     outDir: 'es',
