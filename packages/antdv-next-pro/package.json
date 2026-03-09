@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antdv-next-pro",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "基于 antdv-next 的二次封装组件",
   "type": "module",
   "module": "es/index.js",
@@ -28,14 +28,12 @@
   "author": "dufan3715",
   "license": "MIT",
   "private": false,
-  "dependencies": {
-    "@qin-ui/core": "workspace:^"
-  },
   "peerDependencies": {
     "antdv-next": "^1.1.0",
     "vue": "^3.5.0"
   },
   "devDependencies": {
+    "@qin-ui/core": "workspace:^",
     "@types/lodash-es": "^4.17.12",
     "antdv-next": "^1.1.0",
     "lodash-es": "^4.17.21",

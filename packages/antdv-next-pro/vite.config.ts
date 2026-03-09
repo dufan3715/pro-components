@@ -66,6 +66,9 @@ export default defineConfig({
             }
             return 'vendor';
           }
+          if (id.includes('packages/core') || id.includes('@qin-ui/core')) {
+            return 'core/index';
+          }
           if (componentsName.length > 0) {
             for (const name of componentsName) {
               if (id.includes(`${componentsDir}/${name}`)) {
