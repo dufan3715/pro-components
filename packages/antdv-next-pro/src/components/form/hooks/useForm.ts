@@ -15,6 +15,10 @@ export type Form<D extends Data = Data, F extends Field<D> = Field<D>> = _Form<
   FormInstance
 >;
 
+type NormalizeField<D extends Data, F extends Field<D>> = [F] extends [never]
+  ? Field<D>
+  : F;
+
 /**
  * 类型断言 re-export @qin-ui/core 的 useForm，
  * 将默认返回的 Form<D, BaseField<D>> 覆盖为本地的 Form<D, Field<D>>。
@@ -24,8 +28,8 @@ export const useForm = _useForm as {
     initFormData?: ExtendWithAny<DeepPartial<D>>,
     initFields?: F[],
     root?: boolean
-  ): Form<D, F>;
+  ): Form<D, NormalizeField<D, F>>;
   <D extends Data = Data, F extends Field<D> = Field<D>>(
     root?: boolean
-  ): Form<D, F>;
+  ): Form<D, NormalizeField<D, F>>;
 };

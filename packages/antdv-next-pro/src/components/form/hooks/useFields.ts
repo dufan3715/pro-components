@@ -2,6 +2,10 @@ import { useFields as _useFields } from '../../../shared/core';
 import type { Data } from '../../../shared/core';
 import type { Field } from '../types';
 
+type NormalizeField<D extends Data, F extends Field<D>> = [F] extends [never]
+  ? Field<D>
+  : F;
+
 /**
  * 类型断言 re-export @qin-ui/core 的 useFields，
  * 将泛型参数 F 的默认值覆盖为本地的 Field<D>，
@@ -10,7 +14,7 @@ import type { Field } from '../types';
 export const useFields = _useFields as {
   <D extends Data = Data, F extends Field<D> = Field<D>>(
     initFields?: F[]
-  ): ReturnType<typeof _useFields<D, F>>;
+  ): ReturnType<typeof _useFields<D, NormalizeField<D, F>>>;
 };
 
 /** useFields 返回值类型，F 默认绑定为本地 Field<D> */
