@@ -113,7 +113,7 @@ const getEducationFields = (index: number): Fields<Education> => [
 // 嵌套字段多模块表单
 const form = useForm<FormData>({}, [
   {
-    container: (_, ctx) => h(Card, { title: '个人信息' }, ctx.slots),
+    formItemContainer: (_, ctx) => h(Card, { title: '个人信息' }, ctx.slots),
     fields: [
       {
         path: 'name',
@@ -171,7 +171,7 @@ const form = useForm<FormData>({}, [
   },
   {
     path: 'family',
-    container: (_, ctx) =>
+    formItemContainer: (_, ctx) =>
       h(Card, { title: '家庭信息', style: { margin: '24px 0' } }, ctx.slots),
     fields: [
       { path: 'family.city', label: '所在城市', component: 'cascader' },
@@ -192,7 +192,7 @@ const form = useForm<FormData>({}, [
   {
     path: 'educations',
     grid: { gutter: 4 },
-    container: (_, ctx) => h(Card, { title: '教育信息' }, ctx.slots),
+    formItemContainer: (_, ctx) => h(Card, { title: '教育信息' }, ctx.slots),
     fields: [],
   },
 ]);

@@ -5,28 +5,7 @@ import type {
   FormInstance,
   FormItemInstance,
 } from '../../../shared/ui';
-import {
-  FormItem,
-  Input,
-  TextArea,
-  InputPassword,
-  InputSearch,
-  InputNumber,
-  InputOTP,
-  AutoComplete,
-  Select,
-  Cascader,
-  DatePicker,
-  RangePicker,
-  TimePicker,
-  TimeRangePicker,
-  CheckboxGroup,
-  RadioGroup,
-  Switch,
-  Slider,
-  TreeSelect,
-  Transfer,
-} from '../../../shared/ui';
+import { FormItem } from '../../../shared/ui';
 import type {
   ComponentProps,
   ComponentSlots,
@@ -40,6 +19,7 @@ import {
   VNode,
 } from 'vue';
 import type { Data, Path } from '../../../shared/core';
+import { ComponentName, GetComponentType } from '../constants';
 
 export type { FormInstance };
 
@@ -182,65 +162,14 @@ export interface Base<D extends Data = Data> {
 }
 
 /**
- * @description 暴露给外部扩充自定义组件类型的接口
- * @example
- * ```ts
- * declare module 'antdv-next-pro' {
- *   interface CustomFieldTypeMap {
- *     'my-custom-input': typeof MyCustomInput;
- *   }
- * }
- * ```
- */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unused-vars
-export interface CustomFieldTypeMap<D extends Data = Data> {}
-
-/**
  * @type {FieldTypeMap} 字段类型集合
  */
-// prettier-ignore
 export type FieldTypeMap<D extends Data = Data> = {
-  /** 文本框 */
-  'input': WithComponent<typeof Input, D>;
-  /** 文本域 */
-  'textarea': WithComponent<typeof TextArea, D>;
-  /** 文本框-密码 */
-  'input-password': WithComponent<typeof InputPassword, D>;
-  /* 文本框-一次性密码输入框 */
-  'input-otp': WithComponent<typeof InputOTP, D>;
-  /** 文本框-搜索 */
-  'input-search': WithComponent<typeof InputSearch, D>;
-  /** 数字文本框 */
-  'input-number': WithComponent<typeof InputNumber, D>;
-  /** 下拉选择器 */
-  'select': WithComponent<typeof Select, D>;
-  /** 自动完成 */
-  'auto-complete': WithComponent<typeof AutoComplete, D>;
-  /** 级联选择器 */
-  'cascader': WithComponent<typeof Cascader, D>;
-  /** 日期选择器 */
-  'date-picker': WithComponent<typeof DatePicker, D>;
-  /** 日期选择器-范围 */
-  'range-picker': WithComponent<typeof RangePicker, D>;
-  /** 时间选择器 */
-  'time-picker': WithComponent<typeof TimePicker, D>;
-  /** 时间范围选择器 */
-  'time-range-picker': WithComponent<typeof TimeRangePicker, D>;
-  /** 复选框组 */
-  'checkbox-group': WithComponent<typeof CheckboxGroup, D>;
-  /** 单选框组 */
-  'radio-group': WithComponent<typeof RadioGroup, D>;
-  /** 开关 */
-  'switch': WithComponent<typeof Switch, D>;
-  /** 滑块 */
-  'slider': WithComponent<typeof Slider, D>;
-  /** 树形选择器 */
-  'tree-select': WithComponent<typeof TreeSelect, D>;
-  /** 穿梭框 */
-  'transfer': WithComponent<typeof Transfer, D>;
   /** 自定义组件 */
-  'custom': { component?: RenderComponentType | Raw<RenderComponentType> } & WithCommon<{ slots?: Slots } & Record<string, any>, D>;
-} & { [K in keyof CustomFieldTypeMap<D>]: WithComponent<CustomFieldTypeMap[K], D> };
+  custom: {
+    component?: RenderComponentType | Raw<RenderComponentType>;
+  } & WithCommon<{ slots?: Slots } & Record<string, any>, D>;
+} & { [K in ComponentName]: WithComponent<GetComponentType<K>, D> };
 
 /**
  * @description 不支持响应式的属性名
@@ -286,25 +215,19 @@ type WithComponent<
  * @description 字段配置类型，包含所有字段属性和响应式支持
  * @template D - 数据对象类型
  */
-export type Field<D extends Data = Data> = {
-  [K in keyof FieldTypeMap]: {
-    component?: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
-  } & FieldTypeMap<D>[K];
-}[keyof FieldTypeMap];
+export type Field<D extends Data = Data> = WithAdditionalMethodsGetter<
+  {
+    [K in keyof FieldTypeMap]: {
+      component?: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
+    } & FieldTypeMap<D>[K];
+  }[keyof FieldTypeMap]
+>;
 
 /**
  * @description 字段数组类型
  * @template D - 数据对象类型
  */
 export type Fields<D extends Data = Data> = Array<Field<D>>;
-
-/**
- * @description 基础组件字符串名称类型
- */
-export type BaseComponentStringName = Exclude<
-  Field['component'],
-  RenderComponentType | undefined
->;
 
 export type WithAdditionalMethodsGetter<T> = T & {
   /**

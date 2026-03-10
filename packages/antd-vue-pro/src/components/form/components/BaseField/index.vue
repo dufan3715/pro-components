@@ -14,7 +14,12 @@ import {
 } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
-import { COMPONENT_MAP, TeleportComponentNamePrefix } from '../../constants';
+import {
+  componentMap,
+  ComponentName,
+  TeleportComponentNamePrefix,
+} from '../../constants';
+import { INJECT_COMPONENTS } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
 
@@ -79,20 +84,23 @@ const groupedAttrs = computed(() => {
   const mergedProps = mergeProps(
     initProps,
     attrs,
-    { class: attrs.componentClassName, style: attrs.componentStyle },
-    { class: initProps.componentClassName, style: initProps.componentStyle },
+    { class: attrs.componentClass, style: attrs.componentStyle },
+    { class: initProps.componentClass, style: initProps.componentStyle },
     { disabled: attrs.disabled ?? parentDisabled.value ?? initProps.disabled },
-    { modelName: attrs.modelName ?? initProps.modelName ?? 'value' }
+    { modelProp: attrs.modelProp ?? initProps.modelProp ?? 'value' }
   ) as Required<Field>;
+
   // prettier-ignore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { valueFormatter, modelName, slots, componentClassName, componentStyle, componentContainer, ...rest } = mergedProps
-  const bindAttrs = omit(rest, [modelName, `onUpdate:${modelName}`]);
+  const { valueFormatter, modelProp, slots, componentClass, componentStyle, componentContainer, ...rest } = mergedProps
+
+  const bindAttrs = omit(rest, [modelProp, `onUpdate:${modelProp}`]);
+
   return {
     attrs: bindAttrs,
     slots,
     componentContainer,
-    modelName,
+    modelProp,
     valueFormatter,
   };
 });
@@ -102,8 +110,18 @@ const teleportComponent = inject(
   undefined
 );
 
+const customComponents = inject(INJECT_COMPONENTS, {});
+
 const is = computed(() => {
-  return teleportComponent ?? COMPONENT_MAP.get(component as any) ?? component;
+  if (teleportComponent) return teleportComponent;
+  if (typeof component === 'string') {
+    return (
+      (customComponents as Record<string, any>)[component] ||
+      componentMap[component as ComponentName] ||
+      component
+    );
+  }
+  return component;
 });
 
 defineExpose({
@@ -119,7 +137,7 @@ defineExpose({
       v-if="is"
       v-bind="groupedAttrs.attrs"
       ref="componentRef"
-      v-model:[`${groupedAttrs.modelName}`]="value"
+      v-model:[`${groupedAttrs.modelProp}`]="value"
       :path="path"
     >
       <template

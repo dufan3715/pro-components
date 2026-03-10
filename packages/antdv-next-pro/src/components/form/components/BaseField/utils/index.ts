@@ -1,12 +1,15 @@
 import { Field } from '../../../types';
-import { COMPONENT_MAP } from '../../../constants';
+import { ComponentName, componentMap } from '../../../constants';
 import { INJECT_CONFIG } from '../../../../component-provider';
 import { inject } from 'vue';
 
 export const getInitProps = (field: Field): Record<string, any> => {
   const { component } = field as any;
   const picker = component === 'date-picker' ? '' : (field as any).picker;
-  if (COMPONENT_MAP.has(component)) {
+  if (
+    typeof component === 'string' &&
+    componentMap[component as ComponentName]
+  ) {
     const k = [component, picker]
       .filter(Boolean)
       .join('.') as keyof typeof INJECT_CONFIG;

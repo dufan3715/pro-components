@@ -1,18 +1,26 @@
 <script lang="ts" setup>
 import { ComponentVars } from '../types';
-import { INJECT_CONFIG } from '../constants';
-import { provide } from 'vue';
-import { getObject } from '../../../shared/core';
+import { INJECT_CONFIG, INJECT_COMPONENTS } from '../constants';
+import { provide, Component } from 'vue';
+import { getObject, KeyExpandString } from '../../../shared/core';
+import { ComponentName } from '../../form/constants';
+
+type ComponentMap = Partial<Record<KeyExpandString<ComponentName>, Component>>;
 
 defineOptions({
   inheritAttrs: false,
 });
 
 type Props = {
-  componentVars: ComponentVars;
+  componentVars?: ComponentVars;
+  componentMap?: ComponentMap;
 };
 
 const props = defineProps<Props>();
+
+if (props.componentMap) {
+  provide(INJECT_COMPONENTS, props.componentMap);
+}
 
 if (props.componentVars) {
   Object.entries(props.componentVars).forEach(([key, val]) => {

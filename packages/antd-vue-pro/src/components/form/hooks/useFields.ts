@@ -1,6 +1,6 @@
 import { useFields as _useFields } from '../../../shared/core';
 import type { Data } from '../../../shared/core';
-import type { Field } from '../types';
+import type { Field, Fields } from '../types';
 
 /**
  * 类型断言 re-export @qin-ui/core 的 useFields，
@@ -8,13 +8,10 @@ import type { Field } from '../types';
  * 使得 fields、getField 等方法的类型推断包含 Ant Design Vue 的完整属性签名。
  */
 export const useFields = _useFields as {
-  <D extends Data = Data, F extends Field<D> = Field<D>>(
-    initFields?: F[]
-  ): ReturnType<typeof _useFields<D, F>>;
+  <D extends Data = Data>(
+    initFields?: Fields<D>
+  ): ReturnType<typeof _useFields<D, Field<D>>>;
 };
 
-/** useFields 返回值类型，F 默认绑定为本地 Field<D> */
-export type UseFields<
-  D extends Data = Data,
-  F extends Field<D> = Field<D>,
-> = ReturnType<typeof useFields<D, F>>;
+/** useFields 返回值类型，固定为本地 Fields<D> */
+export type UseFields<D extends Data = Data> = ReturnType<typeof useFields<D>>;

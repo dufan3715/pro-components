@@ -11,7 +11,9 @@ import type { Base, Field } from '../../types';
 import { FORM_ITEM_SLOT_KEYS } from '../../constants';
 import { isPlainObject } from '../../../../shared/core';
 
-const formItemPropKeys = Object.keys(formItemProps()).concat(['container']);
+const formItemPropKeys = Object.keys(formItemProps()).concat([
+  'formItemContainer',
+]);
 const gridItemPropKeys = Object.keys(gridItemProps());
 
 type Props = {
@@ -24,7 +26,7 @@ const injectFormItemProps = inject(config.injectionKey, config.default);
 
 type GroupedFieldAttrs = {
   gridItemProps: GridItemProps;
-  formItemProps: FormItemProps & Pick<Base, 'container'>;
+  formItemProps: FormItemProps & Pick<Base, 'formItemContainer'>;
   formItemSlots: Record<(typeof FORM_ITEM_SLOT_KEYS)[number], any>;
   componentProps: Record<string, any>;
 };
@@ -38,7 +40,7 @@ const groupedAttributes = computed<GroupedFieldAttrs>(() => {
   if (isPlainObject(props.field)) {
     // prettier-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { path, name, fields, className, style, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, ...rest } =
+    const { path, name, fields, formItemClass, formItemStyle, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, ...rest } =
     props.field as any;
     const {
       class: injectClassName,
@@ -62,21 +64,21 @@ const groupedAttributes = computed<GroupedFieldAttrs>(() => {
     formItemProps = mergeProps(
       injectRest,
       { class: injectClassName, style: injectStyle },
-      { class: toValue(className), style: toValue(style) }
+      { class: toValue(formItemClass), style: toValue(formItemStyle) },
+      formItemDataAttrs
     );
 
     Object.keys(rest).forEach(k => {
       if (gridItemPropKeys.includes(k)) {
         gridItemProps[k] = rest[k];
-      } else if (
-        formItemPropKeys.includes(k) ||
-        k.startsWith('data-form-item')
-      ) {
+      } else if (formItemPropKeys.includes(k)) {
         formItemProps[k as keyof FormItemProps] = rest[k];
       } else {
         componentProps[k] = rest[k];
       }
     });
+
+    Object.assign(componentProps, componentDataAttrs);
     Object.keys(slots).forEach(k => {
       if (FORM_ITEM_SLOT_KEYS.includes(k as any)) {
         formItemSlots[k] = slots[k];

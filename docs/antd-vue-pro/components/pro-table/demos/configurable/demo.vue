@@ -97,16 +97,16 @@ const form = useForm<Omit<ProTableProps, 'table'>>(
         key.value += 1;
       },
     },
-    { label: '是否展示control', path: 'control', modelName: 'checked' },
+    { label: '是否展示control', path: 'control', modelProp: 'checked' },
     {
       label: '是否展示sizeControl',
       path: 'control.sizeControl',
-      modelName: 'checked',
+      modelProp: 'checked',
     },
     {
       label: '是否展示columnControl',
       path: 'control.columnControl',
-      modelName: 'checked',
+      modelProp: 'checked',
     },
     {
       label: '搜索表单隐藏（searchFormConfig.hidden）',
@@ -131,7 +131,7 @@ const form = useForm<Omit<ProTableProps, 'table'>>(
     {
       label: '搜索表单展开（searchFormConfig.expand）',
       path: 'searchFormConfig.expand',
-      modelName: 'checked',
+      modelProp: 'checked',
     },
     {
       label: '搜索表单展开行数阈值（searchFormConfig.expand.minExpandRows）',

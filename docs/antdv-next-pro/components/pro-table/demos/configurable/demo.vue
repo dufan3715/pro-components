@@ -86,16 +86,16 @@ const form = useForm<any, Field<any>>(
         key.value += 1;
       },
     },
-    { label: '展示控制栏（control）', path: 'control', modelName: 'checked' },
+    { label: '展示控制栏（control）', path: 'control', modelProp: 'checked' },
     {
       label: '尺寸控制（control.sizeControl）',
       path: 'control.sizeControl',
-      modelName: 'checked',
+      modelProp: 'checked',
     },
     {
       label: '列控制（control.columnControl）',
       path: 'control.columnControl',
-      modelName: 'checked',
+      modelProp: 'checked',
     },
     {
       label: '隐藏搜索表单（searchFormConfig.hidden）',
@@ -119,7 +119,7 @@ const form = useForm<any, Field<any>>(
     {
       label: '展开搜索表单（searchFormConfig.expand）',
       path: 'searchFormConfig.expand',
-      modelName: 'checked',
+      modelProp: 'checked',
     },
     {
       label: '展开行数阈值（expand.minExpandRows）',

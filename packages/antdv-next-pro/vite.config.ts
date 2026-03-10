@@ -27,7 +27,10 @@ const componentsName = getComponentsName();
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), dts({ rollupTypes: true })],
+  plugins: [
+    vue(),
+    dts({ rollupTypes: true, bundledPackages: ['@qin-ui/core'] }),
+  ],
   build: {
     target: 'modules',
     outDir: 'es',
@@ -65,6 +68,9 @@ export default defineConfig({
               return 'vendor/utils/lodash-es';
             }
             return 'vendor';
+          }
+          if (id.includes('packages/core') || id.includes('@qin-ui/core')) {
+            return 'core/index';
           }
           if (componentsName.length > 0) {
             for (const name of componentsName) {
