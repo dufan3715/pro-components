@@ -1,9 +1,12 @@
-/* 初始化组件配置inject keys default */
 import { RequiredComponentVars } from '../types';
-import { InjectionKey } from 'vue';
+import { InjectionKey, Component } from 'vue';
 
 const getPopupContainer = (triggerNode: any) =>
   triggerNode.closest('.ant-form');
+
+export const INJECT_COMPONENTS: InjectionKey<
+  Partial<Record<string, Component>>
+> = Symbol('INJECT_COMPONENTS');
 
 export const INJECT_CONFIG: {
   [key in keyof RequiredComponentVars]: {
@@ -119,7 +122,7 @@ export const INJECT_CONFIG: {
   },
   switch: {
     injectionKey: Symbol(''),
-    default: { modelName: 'checked' },
+    default: { modelProp: 'checked' },
   },
   slider: {
     injectionKey: Symbol(''),

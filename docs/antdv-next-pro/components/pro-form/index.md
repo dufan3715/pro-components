@@ -108,3 +108,35 @@ const form = useForm<DataType>(initData, initFields);
 | `tree-select`       | TreeSelect 树形选择      | `treeData`、`multiple`...                        |
 | `transfer`          | Transfer 穿梭框          | `dataSource`、`titles`...                        |
 | `custom`            | 完全自定义               | 需同时传入 Vue 组件 `component: markRaw(MyComp)` |
+
+---
+
+### 高级：TypeScript 类型推导与覆盖
+
+为了在使用 ProForm 的 `fields` 时能够获得自定义组件的类型推导，或强制覆盖内置组件（如 `input`）的属性提示，你可以利用 TypeScript 的**声明合并**来扩展全局的 `ComponentMap`。
+
+在你的业务项目（如 `env.d.ts` 或 `components.d.ts`）中补充如下内容：
+
+```typescript
+import 'antdv-next-pro';
+// 映入你的自定义组件或覆盖组件
+import type MyCustomUpload from '@/components/MyCustomUpload.vue';
+import type MySuperInput from '@/components/MySuperInput.vue';
+
+declare module 'antdv-next-pro' {
+  // 扩展 ComponentMap
+  interface ComponentMap {
+    // 1. 新增一个全新的组件 name（如 'custom-upload'），会自动带有 MyCustomUpload 的 Props 提示
+    'custom-upload': typeof MyCustomUpload;
+
+    // 2. 蓄意覆盖原生内置组件的类型（比如彻底替换内置 'input' 的类型提示）
+    input: typeof MySuperInput;
+  }
+}
+```
+
+配置完成后：
+
+1. `component` 字段会自动提示 `'custom-upload'`。
+2. 当你在 `fields` 数组中设置 `component: 'custom-upload'` 时，会自动出现 `MyCustomUpload` 组件所接受的各项 `Props`。
+3. 当你设置 `component: 'input'` 时，弹出的将是 `MySuperInput` 的 `Props`（原版 AntD Input 的提示会被熔断覆盖）。

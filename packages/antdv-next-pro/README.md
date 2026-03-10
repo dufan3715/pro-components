@@ -135,19 +135,28 @@ const form = useForm<FormData>({}, [
 
 #### 注册可复用自定义组件
 
-```ts
-import { registerComponent } from '@qin-ui/antdv-next-pro';
+```vue
+<script setup lang="ts">
+import { ProComponentProvider } from '@qin-ui/antdv-next-pro';
 import MyRateComponent from './MyRate.vue';
 
-// 注册后在 schema 中即可使用字符串引用
-registerComponent('my-rate', MyRateComponent);
+const componentMap = {
+  'my-rate': MyRateComponent,
+};
+</script>
+
+<template>
+  <ProComponentProvider :component-map="componentMap">
+    <RouterView />
+  </ProComponentProvider>
+</template>
 ```
 
 配合 TypeScript 模块扩充获得完整类型提示：
 
 ```ts
 declare module '@qin-ui/antdv-next-pro' {
-  interface CustomFieldTypeMap {
+  interface ComponentMap {
     'my-rate': typeof MyRateComponent;
   }
 }

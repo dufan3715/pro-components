@@ -82,7 +82,7 @@ const onComponentMounted = (index: number) => {
           <template
             #default="{
               gridItemProps,
-              formItemProps: { container, ...formItemProps },
+              formItemProps: { formItemContainer, ...formItemProps },
               componentProps,
               formItemSlots,
             }"
@@ -91,7 +91,7 @@ const onComponentMounted = (index: number) => {
               :component="enableGrid ? UIGridItem : undefined"
               v-bind="gridItemProps"
             >
-              <ContainerFragment :component="container" :path="path">
+              <ContainerFragment :component="formItemContainer" :path="path">
                 <FormItem
                   v-bind="formItemProps"
                   :ref="el => (formItemRefs[index] = el)"

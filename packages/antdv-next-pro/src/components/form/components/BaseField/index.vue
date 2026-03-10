@@ -11,7 +11,12 @@ import { cloneDeep, omit } from '../../../../shared/core';
 import { useDisabledContext } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
-import { COMPONENT_MAP, TeleportComponentNamePrefix } from '../../constants';
+import {
+  ComponentName,
+  componentMap,
+  TeleportComponentNamePrefix,
+} from '../../constants';
+import { INJECT_COMPONENTS } from '../../../component-provider';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
 
@@ -98,8 +103,18 @@ const teleportComponent = inject(
   undefined
 );
 
+const customComponents = inject(INJECT_COMPONENTS, {});
+
 const is = computed(() => {
-  return teleportComponent ?? COMPONENT_MAP.get(component as any) ?? component;
+  if (teleportComponent) return teleportComponent;
+  if (typeof component === 'string') {
+    return (
+      (customComponents as any)[component] ||
+      componentMap[component as ComponentName] ||
+      component
+    );
+  }
+  return component;
 });
 
 defineExpose({

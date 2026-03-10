@@ -1,25 +1,14 @@
 import type {
-  FormItemProps,
   GridProps,
   GridItemProps,
-  InputProps,
-  InputNumberProps,
-  SelectProps,
-  CascaderProps,
-  DatePickerProps,
-  TimePickerProps,
-  CheckboxGroupProps,
-  RadioGroupProps,
-  SwitchProps,
-  SliderProps,
-  TreeSelectProps,
-  TransferProps,
-  TextAreaProps,
-  Select,
-  FormItemInstance,
   FormInstance,
-  RangePickerProps,
+  FormItemInstance,
 } from '../../../shared/ui';
+import { FormItem } from '../../../shared/ui';
+import type {
+  ComponentProps,
+  ComponentSlots,
+} from 'vue-component-type-helpers';
 import {
   type CSSProperties,
   type Component,
@@ -28,8 +17,8 @@ import {
   type ComputedRef,
   VNode,
 } from 'vue';
-import { FORM_ITEM_SLOT_KEYS } from '../constants';
-import type { Data, KeyExpandString, Path } from '../../../shared/core';
+import { ComponentName, GetComponentType } from '../constants';
+import type { Data, Path } from '../../../shared/core';
 
 export type { FormInstance };
 
@@ -109,19 +98,17 @@ export interface Base<D extends Data = Data> {
    * }
    * ```
    */
-  slots?: Partial<
-    Record<(typeof FORM_ITEM_SLOT_KEYS)[number], SlotComponentType>
-  >;
+  slots?: Partial<ComponentSlots<typeof FormItem>>;
   /**
    * @description 字段formItem样式属性
    * @example { marginBottom: '8px', padding: '12px' }
    */
-  style?: CSSProperties;
+  formItemStyle?: CSSProperties;
   /**
    * @description 字段formItem样式类名
    * @example 'custom-form-item' | 'required-field'
    */
-  className?: string;
+  formItemClass?: string;
   /**
    * @description 嵌套子字段配置
    * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
@@ -136,7 +123,12 @@ export interface Base<D extends Data = Data> {
    * @description 字段formItem容器包裹组件
    * @example (props, ctx) => h('div', { class: 'custom-container' }, ctx.slots.default?.())
    */
-  container?: ContainerComponent;
+  formItemContainer?: ContainerComponent;
+  /**
+   * @description 将属性附加到 FormItem 的 DOM 节点
+   * @example { 'data-form-item-test': 'test-value', 'aria-label': 'name' }
+   */
+  formItemDataAttrs?: Record<string, string>;
   /**
    * @description 字段component样式属性
    * @example { width: '100%', borderColor: '#d9d9d9' }
@@ -146,7 +138,7 @@ export interface Base<D extends Data = Data> {
    * @description 字段component样式类名
    * @example 'custom-input' | 'error-input'
    */
-  componentClassName?: string;
+  componentClass?: string;
   /**
    * @description 字段component容器包裹组件
    * @example (props, ctx) => h('div', { class: 'input-wrapper' }, ctx.slots.default?.())
@@ -160,101 +152,35 @@ export interface Base<D extends Data = Data> {
   /**
    * @description 组件v-model双向绑定更新属性名，默认'value'
    */
-  modelName?: string;
+  modelProp?: string;
   /**
-   * @description 以data-form-item-开始的属性名将会被渲染至formItem的dom节点
-   * @example { 'data-form-item-test': 'test-value' }
+   * @description 将属性附加到表单组件的 DOM 节点
+   * @example { 'data-test': 'input-value', 'aria-label': 'name' }
    */
-  [key: `data-form-item-${string}`]: string;
-  /**
-   * @description 以data-component-开始的属性名将会被渲染至component的dom节点
-   * @example { 'data-component-test': 'test-value' }
-   */
-  [key: `data-component-${string}`]: string;
+  componentDataAttrs?: Record<string, string>;
 }
-
-/**
- * @description 字段插槽类型
- * @template T - 插槽名称联合类型
- */
-type CompSlot<T extends string> = Partial<
-  Record<KeyExpandString<T>, SlotComponentType>
->;
-// prettier-ignore
-type InputSlots = CompSlot<'addonAfter' | 'addonBefore' | 'clearIcon' | 'prefix' | 'suffix'>;
-// prettier-ignore
-type InputNumberSlots = CompSlot<'addonAfter' | 'addonBefore' | 'prefix' | 'upIcon' | 'downIcon'>
-// prettier-ignore
-type SelectSlots = CompSlot<keyof InstanceType<typeof Select>['$slots']>
-// prettier-ignore
-type CascaderSlots = CompSlot<'clearIcon' | 'expandIcon' | 'maxTagPlaceholder' | 'notFoundContent' | 'removeIcon' | 'suffixIcon' | 'tagRender'>
-// prettier-ignore
-type DatePickerSlots = CompSlot<'dateRender' | 'renderExtraFooter' | 'separator' | 'monthCellRender'>
-// prettier-ignore
-type RangePickerSlots = CompSlot<'dateRender' | 'renderExtraFooter' | 'separator'>
-// prettier-ignore
-type TimePickerSlots = CompSlot<'clearIcon' | 'renderExtraFooter' | 'suffixIcon'>
-// prettier-ignore
-type SwitchSlots = CompSlot<'checkedChildren' | 'unCheckedChildren'>
-// prettier-ignore
-type SliderSlots = CompSlot<'mark'>
-// prettier-ignore
-type TreeSelectSlots = CompSlot<'maxTagPlaceholder' | 'notFoundContent' | 'placeholder' | 'searchPlaceholder' | 'suffixIcon' |'tagRender' | 'title'>
-// prettier-ignore
-type TransferSlots = CompSlot<'footer' | 'render'>
 
 /**
  * @type {FieldTypeMap} 字段类型集合
  */
-// prettier-ignore
 export type FieldTypeMap<D extends Data = Data> = {
-  /** 文本框 */
-  'input': WithCommon<{ slots?: InputSlots } & InputProps, D>;
-  /** 文本域 */
-  'textarea': WithCommon<{ slots?: InputSlots } & TextAreaProps, D>;
-  /** 文本框-密码 */
-  'input-password': WithCommon<{ slots?: InputSlots } & InputProps, D>;
-  /** 文本框-搜索 */
-  'input-search': WithCommon<{ slots?: InputSlots } & InputProps, D>;
-  /** 数字文本框 */
-  'input-number': WithCommon<{ slots?: InputNumberSlots } & InputNumberProps, D>;
-  /** 下拉选择器 */
-  'select': WithCommon<{ slots?: SelectSlots } & SelectProps, D>;
-  /** 级联选择器 */
-  'cascader': WithCommon<{ slots?: CascaderSlots } & CascaderProps, D>;
-  /** 日期选择器 */
-  'date-picker': WithCommon<{ slots?: DatePickerSlots } & DatePickerProps, D>;
-  /** 日期选择器-范围 */
-  'range-picker': WithCommon<{ slots?: RangePickerSlots } & RangePickerProps, D>;
-  /** 时间选择器 */
-  'time-picker': WithCommon<{ slots?: TimePickerSlots } & TimePickerProps, D>;
-  /** 复选框组 */
-  'checkbox-group': WithCommon<CheckboxGroupProps, D>;
-  /** 单选框组 */
-  'radio-group': WithCommon<RadioGroupProps, D>;
-  /** 开关 */
-  'switch': WithCommon<{ slots?: SwitchSlots } & SwitchProps, D>;
-  /** 滑块 */
-  'slider': WithCommon<{ slots?: SliderSlots } & SliderProps, D>;
-  /** 树形选择器 */
-  'tree-select': WithCommon<{ slots?: TreeSelectSlots } & TreeSelectProps, D>;
-  /** 穿梭框 */
-  'transfer': WithCommon<{ slots?: TransferSlots } & TransferProps, D>;
   /** 自定义组件 */
-  'custom': { component?: RenderComponentType | Raw<RenderComponentType> } & WithCommon<{ slots?: Slots } & Record<string, any>, D>;
-};
+  custom: {
+    component?: RenderComponentType | Raw<RenderComponentType>;
+  } & WithCommon<{ slots?: Slots } & Record<string, any>, D>;
+} & { [K in ComponentName]: WithComponent<GetComponentType<K>, D> };
 
 /**
  * @description 不支持响应式的属性名
  */
 type NotSupportedRefOrGetterProps =
   | 'component'
-  | 'container'
+  | 'formItemContainer'
   | 'componentContainer'
   | 'valueFormatter'
   | 'fields'
   | 'slots'
-  | 'modelName';
+  | 'modelProp';
 
 type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
 
@@ -270,9 +196,22 @@ export type WithRef<T> = {
       : MaybeRefOrComputedRef<T[P]>;
 };
 
+type ReadonlyFormItemProps =
+  import('vue-component-type-helpers').ComponentProps<typeof FormItem>;
+
 type WithCommon<T, D extends Data = Data> = WithRef<
-  T & Omit<FormItemProps, 'label'> & GridItemProps & Base<D>
+  T & Omit<ReadonlyFormItemProps, 'label'> & GridItemProps & Base<D>
 >;
+
+/**
+ * @description 自动从 Vue 组件提取 Props 和 Slots，并加上公共表单字段属性
+ * @template T - Vue 组件类型
+ * @template D - 数据对象类型
+ */
+type WithComponent<
+  T extends abstract new (...args: any) => any,
+  D extends Data = Data,
+> = WithCommon<{ slots?: ComponentSlots<T> } & ComponentProps<T>, D>;
 
 /**
  * @description 字段配置类型，包含所有字段属性和响应式支持
@@ -292,14 +231,6 @@ export type Field<D extends Data = Data> = WithAdditionalMethodsGetter<
  */
 export type Fields<D extends Data = Data> = Array<Field<D>>;
 
-/**
- * @description 基础组件字符串名称类型
- */
-export type BaseComponentStringName = Exclude<
-  Field['component'],
-  RenderComponentType | undefined
->;
-
 export type WithAdditionalMethodsGetter<T> = T & {
   /**
    * @description 获取FormItem实例的方法
@@ -308,7 +239,7 @@ export type WithAdditionalMethodsGetter<T> = T & {
   /**
    * @description 获取传入FormItem组件的属性
    */
-  getFormItemComputedProps?: () => Readonly<FormItemProps>;
+  getFormItemComputedProps?: () => Readonly<{ [x: string]: any }>;
   /**
    * @description 获取组件实例的方法
    */

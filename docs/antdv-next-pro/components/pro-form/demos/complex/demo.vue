@@ -9,23 +9,24 @@ import {
   Flex,
   Rate,
 } from 'antdv-next';
-import type { RateProps } from 'antdv-next';
 import {
   Fields,
   ProForm,
+  ProComponentProvider,
   useForm,
-  registerComponent,
 } from '@qin-ui/antdv-next-pro';
 import { computed, h, ref, watch } from 'vue';
 import { useData } from 'vitepress';
 
 declare module '@qin-ui/antdv-next-pro' {
-  interface CustomFieldTypeMap {
-    'custom-rate': RateProps;
+  interface ComponentMap {
+    'custom-rate': typeof Rate;
   }
 }
 
-registerComponent('custom-rate', Rate);
+const componentMap = {
+  'custom-rate': Rate,
+};
 
 const { isDark } = useData();
 
@@ -262,32 +263,36 @@ const submit = async () => {
 </script>
 
 <template>
-  <Card
-    title="复杂表单"
-    :body-style="{ background: isDark ? '#141414' : '#f7f8f9' }"
-  >
-    <Space direction="vertical" :size="24" style="margin-bottom: 24px">
-      <div>
-        <span style="margin-right: 8px; font-weight: 600">表单布局：</span>
-        <RadioGroup v-model:value="layout">
-          <RadioButton value="horizontal">水平</RadioButton>
-          <RadioButton value="vertical">垂直</RadioButton>
-        </RadioGroup>
-      </div>
-      <div>
-        <span style="margin-right: 8px; font-weight: 600"
-          >启用 grid 网格布局：</span
-        >
-        <Switch v-model:value="grid" />
-      </div>
-    </Space>
-    <ProForm :form="form" :grid="grid" :layout="layout">
-      <Space>
-        <Button @click="reset">重置表单</Button>
-        <Button type="primary" html-type="submit" @click="submit">提交</Button>
+  <ProComponentProvider :component-map="componentMap">
+    <Card
+      title="复杂表单"
+      :body-style="{ background: isDark ? '#141414' : '#f7f8f9' }"
+    >
+      <Space direction="vertical" :size="24" style="margin-bottom: 24px">
+        <div>
+          <span style="margin-right: 8px; font-weight: 600">表单布局：</span>
+          <RadioGroup v-model:value="layout">
+            <RadioButton value="horizontal">水平</RadioButton>
+            <RadioButton value="vertical">垂直</RadioButton>
+          </RadioGroup>
+        </div>
+        <div>
+          <span style="margin-right: 8px; font-weight: 600"
+            >启用 grid 网格布局：</span
+          >
+          <Switch v-model:value="grid" />
+        </div>
       </Space>
-    </ProForm>
-    <br />
-    <div style="white-space: pre">表单数据对象：{{ formData }}</div>
-  </Card>
+      <ProForm :form="form" :grid="grid" :layout="layout">
+        <Space>
+          <Button @click="reset">重置表单</Button>
+          <Button type="primary" html-type="submit" @click="submit"
+            >提交</Button
+          >
+        </Space>
+      </ProForm>
+      <br />
+      <div style="white-space: pre">表单数据对象：{{ formData }}</div>
+    </Card>
+  </ProComponentProvider>
 </template>
