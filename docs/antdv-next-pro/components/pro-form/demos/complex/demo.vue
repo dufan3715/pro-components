@@ -175,11 +175,7 @@ const form = useForm<FormData>({}, [
   {
     path: 'family',
     formItemContainer: (_, ctx) =>
-      h(
-        Card,
-        { title: '家庭信息', formItemStyle: { margin: '24px 0' } },
-        ctx.slots
-      ),
+      h(Card, { title: '家庭信息', style: { margin: '24px 0' } }, ctx.slots),
     fields: [
       {
         path: 'family.maritalStatus',
