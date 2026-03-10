@@ -286,11 +286,13 @@ type WithComponent<
  * @description 字段配置类型，包含所有字段属性和响应式支持
  * @template D - 数据对象类型
  */
-export type Field<D extends Data = Data> = {
-  [K in keyof FieldTypeMap]: {
-    component?: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
-  } & FieldTypeMap<D>[K];
-}[keyof FieldTypeMap];
+export type Field<D extends Data = Data> = WithAdditionalMethodsGetter<
+  {
+    [K in keyof FieldTypeMap]: {
+      component?: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
+    } & FieldTypeMap<D>[K];
+  }[keyof FieldTypeMap]
+>;
 
 /**
  * @description 字段数组类型
