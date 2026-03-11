@@ -8,6 +8,11 @@ export const INJECT_COMPONENTS: InjectionKey<
   Partial<Record<string, Component>>
 > = Symbol('INJECT_COMPONENTS');
 
+export type InjectConfigEntry<T = any> = {
+  injectionKey: InjectionKey<T>;
+  default: T;
+};
+
 export const INJECT_CONFIG: {
   [key in keyof RequiredComponentVars]: {
     injectionKey: InjectionKey<RequiredComponentVars[key]>;
@@ -136,4 +141,25 @@ export const INJECT_CONFIG: {
     injectionKey: Symbol(''),
     default: {},
   },
+};
+
+const DYNAMIC_INJECT_CONFIG: Record<string, InjectConfigEntry> =
+  Object.create(null);
+
+export const getInjectConfig = (key: string): InjectConfigEntry | undefined => {
+  return (
+    (INJECT_CONFIG as Record<string, InjectConfigEntry>)[key] ||
+    DYNAMIC_INJECT_CONFIG[key]
+  );
+};
+
+export const ensureInjectConfig = (key: string): InjectConfigEntry => {
+  const existing = getInjectConfig(key);
+  if (existing) return existing;
+  const created: InjectConfigEntry = {
+    injectionKey: Symbol(`dynamic:${key}`),
+    default: {},
+  };
+  DYNAMIC_INJECT_CONFIG[key] = created;
+  return created;
 };

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { ComponentVars } from '../types';
-import { INJECT_CONFIG, INJECT_COMPONENTS } from '../constants';
-import { provide, Component } from 'vue';
-import { getObject, KeyExpandString } from '../../../shared/core';
+import { INJECT_COMPONENTS, ensureInjectConfig } from '../constants';
+import { provide } from 'vue';
+import { getObject } from '../../../shared/core';
 import { ComponentName } from '../../form/constants';
 
-type ComponentMap = Partial<Record<KeyExpandString<ComponentName>, Component>>;
+type ComponentMap = Partial<Record<ComponentName, any>>;
 
 defineOptions({
   inheritAttrs: false,
@@ -24,8 +24,7 @@ if (props.componentMap) {
 
 if (props.componentVars) {
   Object.entries(props.componentVars).forEach(([key, val]) => {
-    const config = INJECT_CONFIG[key as keyof ComponentVars];
-    if (!config) return;
+    const config = ensureInjectConfig(key);
     provide(config.injectionKey, { ...config.default, ...getObject(val) });
   });
 }
