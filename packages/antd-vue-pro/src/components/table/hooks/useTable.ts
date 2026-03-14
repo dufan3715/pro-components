@@ -7,9 +7,9 @@ import type {
   ExtendWithAny,
   DeepPartial,
   PageParam,
-  Fields,
 } from '../../../shared/core';
 import type { Column, Columns } from '../types';
+import { Fields } from '../../form/types';
 
 /**
  * 重新定义 Table 类型，将 Column 类型绑定为 antd-vue-pro 的 Column<D>

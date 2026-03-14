@@ -4,8 +4,8 @@ import type {
   ExtendWithAny,
   DeepPartial,
   PageParam,
-  Fields,
 } from '../../shared/core';
+import { Fields } from '../form/types';
 import type { Column, Columns } from './types';
 
 /**
