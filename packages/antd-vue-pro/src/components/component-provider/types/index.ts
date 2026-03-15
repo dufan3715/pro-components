@@ -44,7 +44,9 @@ export type RequiredComponentVars = {
   'date-picker.quarter': FP<ComponentProps<GetComponentType<'date-picker'>>>;
 } & {
   // field
-  [K in ComponentName]: FP<ComponentProps<GetComponentType<K>>>;
+  [K in Exclude<ComponentName, 'custom'>]: FP<
+    ComponentProps<GetComponentType<K>>
+  >;
 };
 
 export type ComponentVars = Partial<RequiredComponentVars>;

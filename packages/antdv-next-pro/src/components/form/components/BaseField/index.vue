@@ -11,11 +11,7 @@ import { cloneDeep, omit } from '../../../../shared/core';
 import { useDisabledContext } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
-import {
-  ComponentName,
-  componentMap,
-  TeleportComponentNamePrefix,
-} from '../../constants';
+import { componentMap, TeleportComponentNamePrefix } from '../../constants';
 import { INJECT_COMPONENTS } from '../../../component-provider';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
@@ -110,7 +106,7 @@ const is = computed(() => {
   if (typeof component === 'string') {
     return (
       (customComponents as any)[component] ||
-      componentMap[component as ComponentName] ||
+      (componentMap as any)[component] ||
       component
     );
   }

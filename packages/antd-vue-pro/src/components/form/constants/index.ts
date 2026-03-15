@@ -58,7 +58,10 @@ export type BaseComponentMap = {
   'transfer': typeof Transfer;
 }
 
-export type ComponentName = keyof BaseComponentMap | keyof ComponentMap;
+export type ComponentName =
+  | keyof BaseComponentMap
+  | keyof ComponentMap
+  | 'custom';
 
 export type GetComponentType<K extends ComponentName> =
   K extends keyof ComponentMap

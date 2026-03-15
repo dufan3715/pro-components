@@ -2,7 +2,7 @@ import type {
   GridProps,
   GridItemProps,
   FormInstance,
-  FormItemInstance,
+  FormItemProps,
 } from '../../../shared/ui';
 import { FormItem } from '../../../shared/ui';
 import type {
@@ -16,6 +16,7 @@ import {
   type MaybeRef,
   type ComputedRef,
   VNode,
+  VNodeProps,
 } from 'vue';
 import { ComponentName, GetComponentType } from '../constants';
 import type { Data, Path } from '../../../shared/core';
@@ -158,17 +159,19 @@ export interface Base<D extends Data = Data> {
    * @example { 'data-test': 'input-value', 'aria-label': 'name' }
    */
   componentDataAttrs?: Record<string, string>;
+  [x: string]: any;
 }
 
 /**
  * @type {FieldTypeMap} 字段类型集合
  */
 export type FieldTypeMap<D extends Data = Data> = {
-  /** 自定义组件 */
-  custom: {
-    component?: RenderComponentType | Raw<RenderComponentType>;
-  } & WithCommon<{ slots?: Slots } & Record<string, any>, D>;
-} & { [K in ComponentName]: WithComponent<GetComponentType<K>, D> };
+  [K in ComponentName]: K extends 'custom'
+    ? WithCommon<{ slots?: Slots }, D> & {
+        component?: RenderComponentType | Raw<RenderComponentType>;
+      }
+    : WithComponent<GetComponentType<K>, D> & { component?: K };
+};
 
 /**
  * @description 不支持响应式的属性名
@@ -196,11 +199,8 @@ export type WithRef<T> = {
       : MaybeRefOrComputedRef<T[P]>;
 };
 
-type ReadonlyFormItemProps =
-  import('vue-component-type-helpers').ComponentProps<typeof FormItem>;
-
 type WithCommon<T, D extends Data = Data> = WithRef<
-  T & Omit<ReadonlyFormItemProps, 'label'> & GridItemProps & Base<D>
+  T & Omit<FormItemProps, 'label'> & GridItemProps & Base<D>
 >;
 
 /**
@@ -211,44 +211,22 @@ type WithCommon<T, D extends Data = Data> = WithRef<
 type WithComponent<
   T extends abstract new (...args: any) => any,
   D extends Data = Data,
-> = WithCommon<{ slots?: ComponentSlots<T> } & ComponentProps<T>, D>;
+> = WithCommon<
+  { slots?: ComponentSlots<T> } & Omit<ComponentProps<T>, keyof VNodeProps>,
+  D
+>;
 
 /**
  * @description 字段配置类型，包含所有字段属性和响应式支持
  * @template D - 数据对象类型
  */
-export type Field<D extends Data = Data> = WithAdditionalMethodsGetter<
-  {
-    [K in keyof FieldTypeMap]: {
-      component?: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
-    } & FieldTypeMap<D>[K];
-  }[keyof FieldTypeMap]
->;
+export type Field<
+  C extends ComponentName = ComponentName,
+  D extends Data = Data,
+> = FieldTypeMap<D>[C];
 
 /**
  * @description 字段数组类型
  * @template D - 数据对象类型
  */
-export type Fields<D extends Data = Data> = Array<Field<D>>;
-
-export type WithAdditionalMethodsGetter<T> = T & {
-  /**
-   * @description 获取FormItem实例的方法
-   */
-  getFormItemRef?: () => FormItemInstance;
-  /**
-   * @description 获取传入FormItem组件的属性
-   */
-  getFormItemComputedProps?: () => Readonly<{ [x: string]: any }>;
-  /**
-   * @description 获取组件实例的方法
-   */
-  getComponentRef?: () => any;
-  /**
-   * @description 获取传入Component组件的属性
-   */
-  getComponentComputedProps?: () => Readonly<{
-    disabled?: boolean;
-    [x: string]: any;
-  }>;
-};
+export type Fields<D extends Data = Data> = Array<Field<ComponentName, D>>;

@@ -1,6 +1,8 @@
+import { FormItemInstance } from '../../../shared/ui';
 import { useFields as _useFields } from '../../../shared/core';
 import type { Data } from '../../../shared/core';
 import type { Field, Fields } from '../types';
+import type { ComponentName } from '../constants';
 
 /**
  * 类型断言 re-export @qin-ui/core 的 useFields，
@@ -10,7 +12,9 @@ import type { Field, Fields } from '../types';
 export const useFields = _useFields as {
   <D extends Data = Data>(
     initFields?: Fields<D>
-  ): ReturnType<typeof _useFields<D, Field<D>>>;
+  ): ReturnType<
+    typeof _useFields<D, Field<ComponentName, D>, FormItemInstance>
+  >;
 };
 
 /** useFields 返回值类型，固定为本地 Fields<D> */
