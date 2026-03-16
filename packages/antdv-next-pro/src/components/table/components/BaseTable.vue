@@ -325,8 +325,8 @@ onMounted(() => {
     }
   }
 
-  :deep(.ant-pagination) {
-    .ant-pagination-total-text {
+  :deep([class*='-pagination']) {
+    [class*='-pagination-total-text'] {
       flex: 1;
     }
   }

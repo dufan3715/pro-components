@@ -2,7 +2,7 @@ import { RequiredComponentVars } from '../types';
 import { InjectionKey, Component } from 'vue';
 
 const getPopupContainer = (triggerNode: any) =>
-  triggerNode.closest('.ant-form');
+  triggerNode.closest("form[class*='-form']");
 
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;
