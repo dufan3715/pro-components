@@ -159,7 +159,11 @@ export interface Base<D extends Data = Data> {
    * @description 组件v-model双向绑定更新属性名，默认'value'
    */
   modelProp?: string;
-  [x: string]: any;
+  /**
+   * @description 额外的自定义属性，不会被当作组件参数，仅用做给字段添加标识属性等功能
+   * @example { group: 'group-1' }
+   */
+  extraProps?: Record<string, any>;
 }
 
 /**
@@ -167,7 +171,7 @@ export interface Base<D extends Data = Data> {
  */
 export type FieldTypeMap<D extends Data = Data> = {
   [K in ComponentName]: K extends 'custom'
-    ? WithCommon<{ slots?: Slots }, D> & {
+    ? WithCommon<{ slots?: Slots; [x: string]: any }, D> & {
         component?: RenderComponentType | Raw<RenderComponentType>;
       }
     : WithComponent<GetComponentType<K>, D> & { component?: K };
