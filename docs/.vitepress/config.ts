@@ -34,6 +34,10 @@ const antdVueProSidebar = [
                 text: '处理逻辑联动',
                 link: '/antd-vue-pro/components/pro-form/demos/linkage/',
               },
+              {
+                text: '高级：拓展、覆盖组件',
+                link: '/antd-vue-pro/components/pro-form/demos/advanced-component-typing/',
+              },
             ],
           },
         ],
@@ -112,6 +116,10 @@ const antdvNextProSidebar = [
               {
                 text: '处理逻辑联动',
                 link: '/antdv-next-pro/components/pro-form/demos/linkage/',
+              },
+              {
+                text: '高级：拓展、覆盖自定义组件',
+                link: '/antdv-next-pro/components/pro-form/demos/advanced-component-typing/',
               },
             ],
           },

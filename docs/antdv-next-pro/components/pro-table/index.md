@@ -2,101 +2,132 @@
 
 基于 antdv-next Table 的高级表格封装，集成搜索联动、分页、列显隐控制、尺寸切换等功能。
 
-## 基础示例
+## 何时使用
 
-::: demo 通过 useTable 创建表格对象，绑定到 ProTable
-antdv-next-pro/components/pro-table/demos/basic
+- 需要通过配置生成表格而不是编写大量模板代码
+- 需要集成搜索表单和工具栏
+- 需要统一表格布局和样式
+
+::: tip 配合 useTable 使用
+antdv-next-pro 导出了一个名为 `useTable` 的自定义 Hook，用于处理表格数据和列配置，配合 `useTable` 可以更轻松地使用 ProTable。
 :::
 
-## 高级配置示例
+## 架构与数据流
 
-::: demo 搜索联动、列控制、尺寸控制、自定义搜索区域容器
-antdv-next-pro/components/pro-table/demos/configurable
-:::
+![ProTable 架构图](/diagrams/ProTable.jpg)
+
+ProTable 的核心结构可以理解为三块：
+
+- `ProTable(BaseTable)` 负责整合 table props、搜索表单、控制按钮
+- `SearchForm` 基于 `ProForm` 渲染搜索字段
+- `UITable`（antdv-next Table）负责最终表格渲染
+
+数据流的核心路径如下：
+
+- `useTable` 生成 `columns` / `dataSource` / `pageParam` / `searchForm`
+- `ProTable` 读取 `searchForm.fields` 决定是否展示搜索区域
+- 调用 `search` 时触发加载，并根据分页更新再次请求
+- `Table` 的 `onChange` 会同步 `pageParam` 并触发 `search`
+
+## 快速开始
+
+最小使用步骤：
+
+1. 使用 `useTable` 创建表格对象
+2. 传入 `search` 方法并渲染 `ProTable`
+
+```vue
+<script setup lang="ts">
+import { ProTable, useTable } from '@qin-ui/antdv-next-pro';
+
+type Row = { name: string; age: number };
+
+const table = useTable<Row>({
+  columns: [
+    { title: '姓名', dataIndex: 'name' },
+    { title: '年龄', dataIndex: 'age' },
+  ],
+  searchFields: [{ label: '姓名', path: 'name', component: 'input' }],
+});
+
+const search = async () => {
+  // 请求数据并更新 table.dataSource
+};
+</script>
+
+<template>
+  <ProTable :table="table" :search="search" />
+</template>
+```
 
 ## API
 
-### useTable
+### Props
 
-```ts
-import { useTable } from '@qin-ui/antdv-next-pro';
+| 参数名           | 说明                                                       | 类型                                                          | 默认值 |
+| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------- | ------ |
+| table            | useTable 返回对象                                          | Object                                                        | -      |
+| search           | 表格数据查询获取方法                                       | Function                                                      | -      |
+| addIndexColumn   | 是否添加索引列                                             | boolean                                                       | -      |
+| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                       | -      |
+| control          | 是否展示表格 size 和 column 控制按钮                       | boolean \| { sizeControl?: boolean; columnControl?: boolean } | -      |
+| searchFormConfig | 搜索表单配置                                               | Object                                                        | -      |
+| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component                                                     | -      |
+| v-model:size     | 表格尺寸双向绑定                                           | 'large' \| 'middle' \| 'small'                                | -      |
+| v-model:loading  | 加载状态双向绑定                                           | boolean                                                       | -      |
+| ...              | 继承 antdv-next Table 组件的所有参数                       | [TableProps](https://antdv.com/components/table-cn/#api)      | -      |
 
-const table = useTable<DataType>({
-  columns,
-  dataSource,
-  pageParam,
-  searchParam,
-  searchFields,
-});
-```
+### Slots
 
-#### 参数
+| 插槽名      | 说明           |
+| ----------- | -------------- |
+| search-form | 自定义搜索表单 |
+| button-bar  | 自定义按钮组   |
+| toolbar     | 自定义工具栏   |
+| table       | 自定义表格     |
 
-| 参数           | 类型             | 说明                                           |
-| -------------- | ---------------- | ---------------------------------------------- |
-| `columns`      | `Column<D>[]`    | 列配置（见下方 Column 说明）                   |
-| `dataSource`   | `T[]`            | 静态数据源（不使用接口时）                     |
-| `pageParam`    | `PageParam`      | 分页初始参数（`{ current, pageSize, total }`） |
-| `searchParam`  | `DeepPartial<D>` | 搜索表单初始参数                               |
-| `searchFields` | `Fields<D>`      | 搜索表单字段配置（与 ProForm Field 完全一致）  |
+## 列配置（Column）
 
-#### 返回值
+`Column` 基于 antdv-next `ColumnType` 扩展而来，常用字段如下：
 
-| 属性                  | 类型                  | 说明                           |
-| --------------------- | --------------------- | ------------------------------ |
-| `columns`             | `Ref<Column<D>[]>`    | 响应式列配置                   |
-| `dataSource`          | `Ref<T[]>`            | 响应式数据源                   |
-| `searchForm`          | `Form<D>`             | 搜索表单实例（useForm 返回值） |
-| `pageParam`           | `Reactive<PageParam>` | 当前分页参数                   |
-| `setPageParam(param)` | `-`                   | 更新分页参数                   |
-| `resetQueryParams()`  | `-`                   | 重置所有搜索条件和分页         |
+| 字段        | 说明                            |
+| ----------- | ------------------------------- |
+| `dataIndex` | 列字段，支持路径数组            |
+| `key`       | 列标识，默认由 `dataIndex` 推导 |
+| `hidden`    | 是否隐藏该列                    |
 
----
+其余字段均继承 antdv-next `ColumnType`。
 
-### ProTable Props
+## 搜索表单
 
-| 属性               | 类型                                                            | 默认值  | 说明                                                                 |
-| ------------------ | --------------------------------------------------------------- | ------- | -------------------------------------------------------------------- |
-| `table`            | `Table<D>`                                                      | -       | `useTable` 返回的实例                                                |
-| `search`           | `() => Promise<any>`                                            | -       | 触发数据查询的回调（分页变化、搜索、重置时自动调用）                 |
-| `addIndexColumn`   | `boolean`                                                       | `false` | 在首列自动插入序号列（从 1 开始）                                    |
-| `immediateSearch`  | `boolean`                                                       | `false` | 组件挂载后是否立即调用一次 `search`                                  |
-| `control`          | `boolean \| { sizeControl?: boolean; columnControl?: boolean }` | `true`  | 是否显示右上角工具栏（尺寸切换 / 列显隐控制）                        |
-| `searchFormConfig` | `SearchFormConfig`                                              | -       | 搜索区域配置（见下方）                                               |
-| `tableContainer`   | `Component \| false`                                            | -       | 表格区域外层包裹容器，传 `false` 禁用默认容器                        |
-| `v-model:size`     | `'large' \| 'middle' \| 'small'`                                | -       | 表格尺寸双向绑定                                                     |
-| `v-model:loading`  | `boolean`                                                       | -       | 加载状态双向绑定                                                     |
-| 其余               | `TableProps`                                                    | -       | 透传至 antdv-next `Table`（如 `bordered`、`scroll`、`rowSelection`） |
+### searchFields
 
-#### SearchFormConfig
+`useTable` 的 `searchFields` 复用 ProForm 的 `Field` 配置，用于生成搜索区域。
 
-| 属性        | 类型                                     | 说明                              |
-| ----------- | ---------------------------------------- | --------------------------------- |
-| `layout`    | `'inline' \| 'horizontal' \| 'vertical'` | 搜索表单布局                      |
-| `grid`      | `boolean \| GridProps`                   | 是否启用 Grid 布局                |
-| `expand`    | `boolean`                                | 是否展开全部搜索项                |
-| `hidden`    | `boolean`                                | 是否完全隐藏搜索区域              |
-| `container` | `Component \| false`                     | 搜索区域外层容器，传 `false` 禁用 |
+### searchFormConfig
 
-### ProTable Slots
+搜索表单的行为配置，常用字段：
 
-| 插槽名        | 说明                                                              |
-| ------------- | ----------------------------------------------------------------- |
-| `search-form` | 完全替换搜索区域                                                  |
-| `button-bar`  | 表格右上角左侧按钮区                                              |
-| `toolbar`     | 表格右上角右侧工具区（在 control 按钮左侧）                       |
-| `table`       | 完全替换表格区域                                                  |
-| 其余          | 透传至 antdv-next `Table` 所有插槽（如 `bodyCell`、`headerCell`） |
+| 字段           | 说明                       |
+| -------------- | -------------------------- |
+| `layout`       | `grid` 或 `inline`         |
+| `expand`       | 是否可展开，或配置展开行数 |
+| `hidden`       | 隐藏搜索表单               |
+| `container`    | 搜索区域容器组件或 `false` |
+| `searchButton` | 自定义搜索按钮组件         |
+| `resetButton`  | 自定义重置按钮组件         |
+| `expandButton` | 自定义展开按钮组件         |
 
----
+其余字段会透传到内部的 `SearchForm`/`ProForm`。
 
-### Column 配置
+## Types
 
-`Column` 继承自 antdv-next `ColumnType`，并扩展了以下属性：
+- `Table`：`useTable` 的返回类型，包含 `columns` / `dataSource` / `pageParam` / `searchForm` 等
+- `Column` / `Columns`：表格列配置类型，扩展 `ColumnType` 并新增 `hidden`
+- `Fields`：搜索表单字段类型（复用 ProForm 的 `Field`）
 
-| 属性        | 类型         | 说明                                    |
-| ----------- | ------------ | --------------------------------------- |
-| `dataIndex` | `Path<D>`    | 支持 `'a.b.c'` 嵌套路径，IDE 有类型提示 |
-| `key`       | `Path<D>`    | 列唯一标识                              |
-| `hidden`    | `boolean`    | 是否在列控制面板中隐藏该列（不渲染）    |
-| 其余        | `ColumnType` | 同 antdv-next Table Column 所有属性     |
+## 扩展点与最佳实践（简版）
+
+- 搜索表单复用 `Field` 配置，复杂联动请参考 ProForm 的字段策略
+- 使用 `control` 开启列控制与尺寸切换
+- 如需统一默认配置，可使用 `ProComponentProvider` 注入 `pro-table`
