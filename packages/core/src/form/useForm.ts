@@ -33,7 +33,7 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   if (args.length === 1) {
     root = args[0] as boolean;
   } else if (args.length >= 2) {
-    initFormData = args[0];
+    initFormData = args[0] ?? {};
     initFields = args[1];
     root = (args[2] as boolean) ?? root;
   }

@@ -3,7 +3,6 @@ import type {
   GridProps,
   GridItemProps,
   FormInstance,
-  FormItemInstance,
 } from '../../../shared/ui';
 import { FormItem } from '../../../shared/ui';
 import type {
@@ -17,6 +16,7 @@ import {
   type MaybeRef,
   type ComputedRef,
   VNode,
+  VNodeProps,
 } from 'vue';
 import type { Data, Path } from '../../../shared/core';
 import { ComponentName, GetComponentType } from '../constants';
@@ -70,10 +70,7 @@ export type Options = Array<Option>;
 
 export type Grid = boolean | (GridProps & {});
 
-/**
- * @type {Object} Base - 基础公共字段类型
- */
-export interface Base<D extends Data = Data> {
+type BaseCommon<D extends Data = Data> = {
   /**
    * @description 字段标识namePath, 同name
    * @example 'name' | 'age' | 'sex' | ...
@@ -83,6 +80,10 @@ export interface Base<D extends Data = Data> {
    * @description 字段是否隐藏
    */
   hidden?: boolean;
+  /**
+   * @description 字段是否禁用
+   */
+  disabled?: boolean;
   /**
    * @description 字段中文名称，支持字符串或组件
    * @example '姓名' | '年龄' | '性别' | () => h('span', '自定义标签')
@@ -100,16 +101,6 @@ export interface Base<D extends Data = Data> {
    * ```
    */
   slots?: Partial<ComponentSlots<typeof FormItem>>;
-  /**
-   * @description 嵌套子字段配置
-   * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
-   */
-  fields?: Fields<D>;
-  /**
-   * @description 网格布局属性，true表示使用默认网格布局，针对具有嵌套字段的字段
-   * @example boolean | { gutter: 24 }
-   */
-  grid?: Grid;
   /**
    * @description 字段formItem样式属性
    * @example { marginBottom: '8px', padding: '12px' }
@@ -130,6 +121,59 @@ export interface Base<D extends Data = Data> {
    * @example { 'data-form-item-test': 'test-value', 'aria-label': 'name' }
    */
   formItemDataAttrs?: Record<string, string>;
+  /**
+   * @description 额外的自定义属性，不会被当作组件参数，仅用做给字段添加标识属性等功能
+   * @example { group: 'group-1' }
+   */
+  extraProps?: Record<string, any>;
+};
+
+type BaseWithFields<D extends Data = Data> = BaseCommon<D> & {
+  /**
+   * @description 嵌套子字段配置
+   * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
+   */
+  fields: Fields<D>;
+  /**
+   * @description 网格布局属性，true表示使用默认网格布局，针对具有嵌套字段的字段
+   * @example boolean | { gutter: 24 }
+   */
+  grid?: Grid;
+  component?: never;
+  /**
+   * @description 字段component样式属性
+   * @example { width: '100%', borderColor: '#d9d9d9' }
+   */
+  componentStyle?: never;
+  /**
+   * @description 字段component样式类名
+   * @example 'custom-input' | 'error-input'
+   */
+  componentClass?: never;
+  /**
+   * @description 字段component容器包裹组件
+   * @example (props, ctx) => h('div', { class: 'input-wrapper' }, ctx.slots.default?.())
+   */
+  componentContainer?: never;
+  /**
+   * @description 将属性附加到表单组件的 DOM 节点
+   * @example { 'data-test': 'input-value', 'aria-label': 'name' }
+   */
+  componentDataAttrs?: never;
+  /**
+   * @description 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值，也可设置get和set函数，用于处理字段值
+   * @example (val) => val?.trim()
+   */
+  valueFormatter?: never;
+  /**
+   * @description 组件v-model双向绑定更新属性名，默认'value'
+   */
+  modelProp?: never;
+};
+
+type BaseWithoutFields<D extends Data = Data> = BaseCommon<D> & {
+  fields?: undefined;
+  grid?: never;
   /**
    * @description 字段component样式属性
    * @example { width: '100%', borderColor: '#d9d9d9' }
@@ -159,17 +203,25 @@ export interface Base<D extends Data = Data> {
    * @description 组件v-model双向绑定更新属性名，默认'value'
    */
   modelProp?: string;
-}
+};
+
+/**
+ * @type {Object} Base - 基础公共字段类型
+ */
+export type Base<D extends Data = Data> =
+  | BaseWithFields<D>
+  | BaseWithoutFields<D>;
 
 /**
  * @type {FieldTypeMap} 字段类型集合
  */
 export type FieldTypeMap<D extends Data = Data> = {
-  /** 自定义组件 */
-  custom: {
-    component?: RenderComponentType | Raw<RenderComponentType>;
-  } & WithCommon<{ slots?: Slots } & Record<string, any>, D>;
-} & { [K in ComponentName]: WithComponent<GetComponentType<K>, D> };
+  [K in ComponentName]: K extends 'custom'
+    ? WithCommon<{ slots?: Slots; [x: string]: any }, D> & {
+        component?: RenderComponentType | Raw<RenderComponentType>;
+      }
+    : WithComponent<GetComponentType<K>, D> & { component?: K };
+};
 
 /**
  * @description 不支持响应式的属性名
@@ -197,8 +249,16 @@ export type WithRef<T> = {
       : MaybeRefOrComputedRef<T[P]>;
 };
 
+type WithCommonBase<T = unknown> = T &
+  Omit<FormItemProps, 'label'> &
+  GridItemProps;
+
 type WithCommon<T, D extends Data = Data> = WithRef<
-  T & FormItemProps & GridItemProps & Base<D>
+  WithCommonBase<T> & BaseWithoutFields<D>
+>;
+
+type WithFields<D extends Data = Data> = WithRef<
+  WithCommonBase & BaseWithFields<D>
 >;
 
 /**
@@ -209,44 +269,26 @@ type WithCommon<T, D extends Data = Data> = WithRef<
 type WithComponent<
   T extends abstract new (...args: any) => any,
   D extends Data = Data,
-> = WithCommon<{ slots?: ComponentSlots<T> } & ComponentProps<T>, D>;
+> = WithCommon<
+  { slots?: ComponentSlots<T> } & Omit<ComponentProps<T>, keyof VNodeProps>,
+  D
+>;
 
 /**
  * @description 字段配置类型，包含所有字段属性和响应式支持
  * @template D - 数据对象类型
  */
-export type Field<D extends Data = Data> = WithAdditionalMethodsGetter<
-  {
-    [K in keyof FieldTypeMap]: {
-      component?: K extends 'custom' ? FieldTypeMap<D>[K]['component'] : K;
-    } & FieldTypeMap<D>[K];
-  }[keyof FieldTypeMap]
->;
+export type Field<
+  C extends ComponentName = ComponentName,
+  D extends Data = Data,
+> =
+  | (FieldTypeMap<D>[C] & {
+      component?: C extends 'custom' ? FieldTypeMap<D>[C]['component'] : C;
+    })
+  | WithFields<D>;
 
 /**
  * @description 字段数组类型
  * @template D - 数据对象类型
  */
-export type Fields<D extends Data = Data> = Array<Field<D>>;
-
-export type WithAdditionalMethodsGetter<T> = T & {
-  /**
-   * @description 获取FormItem实例的方法
-   */
-  getFormItemRef?: () => FormItemInstance;
-  /**
-   * @description 获取传入FormItem组件的属性
-   */
-  getFormItemComputedProps?: () => Readonly<FormItemProps>;
-  /**
-   * @description 获取组件实例的方法
-   */
-  getComponentRef?: () => any;
-  /**
-   * @description 获取传入Component组件的属性
-   */
-  getComponentComputedProps?: () => Readonly<{
-    disabled?: boolean;
-    [x: string]: any;
-  }>;
-};
+export type Fields<D extends Data = Data> = Array<Field<ComponentName, D>>;

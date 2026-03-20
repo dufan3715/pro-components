@@ -14,11 +14,7 @@ import {
 } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
-import {
-  componentMap,
-  ComponentName,
-  TeleportComponentNamePrefix,
-} from '../../constants';
+import { componentMap, TeleportComponentNamePrefix } from '../../constants';
 import { INJECT_COMPONENTS } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
@@ -79,7 +75,7 @@ const parentDisabled = useInjectDisabled();
 const groupedAttrs = computed(() => {
   const initProps = getInitProps({
     component: component,
-    type: attrs.type,
+    picker: attrs.picker,
   } as Field);
   const mergedProps = mergeProps(
     initProps,
@@ -116,8 +112,8 @@ const is = computed(() => {
   if (teleportComponent) return teleportComponent;
   if (typeof component === 'string') {
     return (
-      (customComponents as Record<string, any>)[component] ||
-      componentMap[component as ComponentName] ||
+      (customComponents as any)[component] ||
+      (componentMap as any)[component] ||
       component
     );
   }

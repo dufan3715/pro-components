@@ -2,7 +2,12 @@ import { RequiredComponentVars } from '../types';
 import { InjectionKey, Component } from 'vue';
 
 const getPopupContainer = (triggerNode: any) =>
-  triggerNode.closest('.ant-form');
+  triggerNode.closest("form[class*='-form']");
+
+export type InjectConfigEntry<T = any> = {
+  injectionKey: InjectionKey<T>;
+  default: T;
+};
 
 export const INJECT_CONFIG: {
   [key in keyof RequiredComponentVars]: {
@@ -149,3 +154,24 @@ export const INJECT_CONFIG: {
 export const INJECT_COMPONENTS: InjectionKey<
   Partial<Record<string, Component>>
 > = Symbol('INJECT_COMPONENTS');
+
+const DYNAMIC_INJECT_CONFIG: Record<string, InjectConfigEntry> =
+  Object.create(null);
+
+export const getInjectConfig = (key: string): InjectConfigEntry | undefined => {
+  return (
+    (INJECT_CONFIG as Record<string, InjectConfigEntry>)[key] ||
+    DYNAMIC_INJECT_CONFIG[key]
+  );
+};
+
+export const ensureInjectConfig = (key: string): InjectConfigEntry => {
+  const existing = getInjectConfig(key);
+  if (existing) return existing;
+  const created: InjectConfigEntry = {
+    injectionKey: Symbol(`dynamic:${key}`),
+    default: {},
+  };
+  DYNAMIC_INJECT_CONFIG[key] = created;
+  return created;
+};

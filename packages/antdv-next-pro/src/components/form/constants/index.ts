@@ -60,7 +60,10 @@ export type BaseComponentMap = {
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ComponentMap {}
 
-export type ComponentName = keyof BaseComponentMap | keyof ComponentMap;
+export type ComponentName =
+  | keyof BaseComponentMap
+  | keyof ComponentMap
+  | 'custom';
 
 export type GetComponentType<K extends ComponentName> =
   K extends keyof ComponentMap

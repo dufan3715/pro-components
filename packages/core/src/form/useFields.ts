@@ -1,7 +1,12 @@
 import { Ref, ref } from 'vue';
 import { Data, Path } from '../shared/types';
 import { get, toPath } from '../shared/utils';
-import { BaseField, FieldFindBy, FieldUpdater } from './types';
+import {
+  AdditionalMethods as AM,
+  BaseField,
+  FieldFindBy,
+  FieldUpdater,
+} from './types';
 
 type UpdateFieldOptions = {
   all?: boolean;
@@ -12,6 +17,7 @@ type MapPathValue = Array<number | 'fields'>;
 const useFields = <
   D extends Data = Data,
   F extends BaseField<D> = BaseField<D>,
+  FormInstance = any,
 >(
   initFields?: F[]
 ) => {
@@ -85,15 +91,17 @@ const useFields = <
     }
   };
 
-  function getField(path: Path<D> | FieldFindBy<D, F>): Readonly<F> | undefined;
+  type FR = Readonly<F & AM<FormInstance>>;
+
+  function getField(path: Path<D> | FieldFindBy<D, F>): FR | undefined;
   function getField(
     path: Path<D> | FieldFindBy<D, F>,
     options?: { all?: false }
-  ): Readonly<F> | undefined;
+  ): FR | undefined;
   function getField(
     path: Path<D> | FieldFindBy<D, F>,
     options: { all: true }
-  ): Readonly<F>[] | undefined;
+  ): FR[] | undefined;
   function getField(
     path: Path<D> | FieldFindBy<D, F>,
     options?: { all?: boolean }
@@ -192,15 +200,15 @@ const useFields = <
     addFields(path, newFields, options, 'before');
   }
 
-  function getParentField(path: Path<D> | FieldFindBy<D, F>): F | undefined;
+  function getParentField(path: Path<D> | FieldFindBy<D, F>): FR | undefined;
   function getParentField(
     path: Path<D> | FieldFindBy<D, F>,
     options: { all?: false }
-  ): F | undefined;
+  ): FR | undefined;
   function getParentField(
     path: Path<D> | FieldFindBy<D, F>,
     options: { all: true }
-  ): F[] | undefined;
+  ): FR[] | undefined;
   function getParentField(
     path: Path<D> | FieldFindBy<D, F>,
     options?: { all?: boolean }

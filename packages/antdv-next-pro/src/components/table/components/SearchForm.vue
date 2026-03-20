@@ -94,7 +94,9 @@ const setInitExpandStatus = () => {
   expandStatus.value = false;
   if (formRef.value && expand) {
     const formEl = (formRef.value as any).$el;
-    const formItemsEl = formEl.querySelectorAll('.ant-form-item>[path]');
+    const formItemsEl = formEl.querySelectorAll(
+      "[class*='-form-item'] > [path]"
+    );
     const observer = new IntersectionObserver(
       entries => {
         expandStatus.value = entries.some(e => {
@@ -126,7 +128,7 @@ watch(
     const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
     proFormHeight.value = height;
     rowHeight = proFormEl
-      ?.querySelector('.ant-form-item')
+      ?.querySelector("[class*='-form-item']")
       ?.getBoundingClientRect?.()?.height;
   },
   { flush: 'post', immediate: true }
@@ -239,7 +241,7 @@ const onSearch = () => {
 <style scoped lang="less">
 .pro-table_search-form {
   :deep {
-    .ant-form-item {
+    [class*='-form-item'] {
       margin: 0;
     }
   }

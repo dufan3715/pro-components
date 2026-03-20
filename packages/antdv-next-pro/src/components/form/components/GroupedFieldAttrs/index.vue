@@ -15,7 +15,7 @@ const formItemPropKeys = Object.keys(formItemProps());
 const gridItemPropKeys = Object.keys(gridItemProps());
 
 type Props = {
-  field: Field<any>;
+  field: Field;
 };
 const props = defineProps<Props>();
 
@@ -38,7 +38,7 @@ const groupedAttributes = computed<GroupedFieldAttrs>(() => {
   if (isPlainObject(props.field)) {
     // prettier-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { path, name, fields, formItemClass, formItemStyle, formItemContainer, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, ...rest } =
+    const { path, name, fields, formItemClass, formItemStyle, formItemContainer, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, extraProps, ...rest } =
     props.field as any;
     const {
       class: injectClassName,

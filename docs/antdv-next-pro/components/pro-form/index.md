@@ -1,19 +1,232 @@
 # ProForm
 
-基于 antdv-next Form 的高级表单封装，通过 Schema 配置驱动，内置所有常用输入组件，支持响应式属性、Grid 布局、嵌套字段、自定义组件等。
+基于 antdv-next Form 的高级表单封装，通过 Schema 配置驱动，内置常用输入组件，支持响应式属性、Grid 布局、嵌套字段、自定义组件等。
+
+## 何时使用
+
+- 需要通过配置生成表单而不是编写大量模板代码
+- 需要表单字段的动态增减
+- 需要统一表单布局和样式
+
+::: tip 配合 useForm 使用
+antdv-next-pro 导出了一个名为 `useForm` 的自定义 Hook，用于处理表单数据和字段配置，配合 `useForm` 可以更轻松地使用 ProForm。
+:::
+
+## 架构与数据流
+
+![ProForm 架构图](/diagrams/ProForm.jpg)
+
+ProForm 的渲染链路可以理解为三层组件协作：
+
+- `ProForm(BaseForm)` 负责承接 `useForm` 的 `formData` 和 `fields`
+- `BaseFormItem` 负责将 `fields` 拆分为 FormItem / GridItem / 组件 props，并递归渲染
+- `BaseField` 负责把字段配置映射为具体 UI 组件并处理 v-model
+
+数据流的核心路径如下：
+
+- `useForm` 创建 `formData` + `fields`
+- `ProForm` 将 `formData` 作为 `Form` 的 `model`
+- `BaseField` 使用 `v-model:[modelProp]` 双向绑定字段值
+- `valueFormatter` 在值回写前处理数据，再由 `setFormData` 更新
+- `FormItem` 在字段更新时触发校验（通过内部 `onFieldChange`）
+
+## 快速开始
+
+最小使用步骤：
+
+1. 使用 `useForm` 创建表单对象
+2. 将表单对象传给 `ProForm`
+
+```vue
+<script setup lang="ts">
+import { ProForm, useForm } from '@qin-ui/antdv-next-pro';
+
+type FormData = {
+  name: string;
+};
+
+const form = useForm<FormData>({ name: '' }, [
+  { label: '姓名', path: 'name', component: 'input' },
+]);
+</script>
+
+<template>
+  <ProForm :form="form" />
+</template>
+```
 
 ## API
 
-### useForm
+### Props
+
+| 参数名 | 说明                                | 类型                 | 默认值 |
+| ------ | ----------------------------------- | -------------------- | ------ |
+| form   | useForm 返回对象                    | Form                 | -      |
+| grid   | 是否启用栅格布局                    | boolean \| GridProps | false  |
+| ...    | 继承 antdv-next Form 组件的所有参数 | FormProps            | -      |
+
+### Events
+
+| 事件名 | 说明                                | 类型 |
+| ------ | ----------------------------------- | ---- |
+| ...    | 继承 antdv-next Form 组件的所有事件 | -    |
+
+### Methods
+
+| 方法名 | 说明                                | 类型 |
+| ------ | ----------------------------------- | ---- |
+| ...    | 继承 antdv-next Form 组件的所有方法 | -    |
+
+## Field 配置
+
+`Field` 是 ProForm 的字段配置入口，单个字段的属性会被拆分到 FormItem / GridItem / 具体组件等层级。
+
+### Base（公共字段）
+
+去向：公共属性会被 `BaseFormItem`/`BaseField` 解析并分发到对应层级。
+
+| 字段                 | 说明                                     |
+| -------------------- | ---------------------------------------- |
+| `path`               | 字段标识 namePath，同 FormItem 的 `name` |
+| `hidden`             | 字段是否隐藏                             |
+| `disabled`           | 字段是否禁用                             |
+| `label`              | 字段标题，支持字符串或 VNode             |
+| `component`          | 指定渲染组件名称或组件对象               |
+| `slots`              | 字段插槽配置（FormItem 与组件插槽）      |
+| `formItemStyle`      | FormItem 样式                            |
+| `formItemClass`      | FormItem 类名                            |
+| `formItemContainer`  | FormItem 外层包裹组件                    |
+| `formItemDataAttrs`  | 附加到 FormItem DOM 的属性               |
+| `componentStyle`     | 组件样式                                 |
+| `componentClass`     | 组件类名                                 |
+| `componentContainer` | 组件外层包裹组件                         |
+| `componentDataAttrs` | 附加到组件 DOM 的属性                    |
+| `valueFormatter`     | 值格式化（get/set 或单函数）             |
+| `modelProp`          | v-model 属性名，默认 `value`             |
+| `extraProps`         | 不参与渲染，仅用于业务侧自定义标识       |
+
+### Nested（嵌套字段）
+
+去向：递归进入下一层 `BaseFormItem`。
+
+| 字段     | 说明                         |
+| -------- | ---------------------------- |
+| `fields` | 嵌套子字段配置               |
+| `grid`   | 嵌套字段的网格布局开关或参数 |
+
+### FormItem 透传
+
+去向：传给 `FormItem`。
+
+- 继承 `FormItemProps`（不包含 `label`）
+- 常用字段：`rules`、`validateStatus`、`help`、`extra`、`required` 等
+
+### GridItem 透传
+
+去向：传给 `GridItem`。
+
+- 继承 `GridItemProps`
+- 常用字段：`span`、`xs`、`sm`、`md`、`lg`、`xl`、`xxl`
+
+### 组件透传
+
+去向：传给具体表单组件。
+
+- 除以上分组之外的字段会被当作组件 props 透传
+
+### 关键示例
+
+示例 1：字段 + `valueFormatter`
 
 ```ts
-import { useForm } from '@qin-ui/antdv-next-pro';
-
-// 初始化数据 + 字段配置
-const form = useForm<DataType>(initData, initFields);
+const form = useForm({ name: '' }, [
+  {
+    path: 'name',
+    component: 'input',
+    valueFormatter: val => (val ? val.trim() : val),
+  },
+]);
 ```
 
-#### 参数
+示例 2：嵌套字段 + `grid`
+
+```ts
+const form = useForm({ user: { first: '', last: '' } }, [
+  {
+    path: 'user',
+    grid: true,
+    fields: [
+      { path: 'first', component: 'input', span: 12 },
+      { path: 'last', component: 'input', span: 12 },
+    ],
+  },
+]);
+```
+
+## 字段属性分流规则
+
+字段属性会被拆分为四类：`GridItem`、`FormItem`、具体组件、容器/插槽。
+
+**分流规则**
+
+- `grid`/GridItem 相关 props 会传给 `GridItem`
+- `formItem*`/校验/提示等会传给 `FormItem`
+- `component*`/`modelProp`/`valueFormatter` 与其余 props 会传给具体组件
+- `formItemContainer`/`componentContainer`/`slots` 走容器或插槽
+- `fields` 进入下一层 `BaseFormItem`
+
+**优先级说明**
+
+- 同名插槽优先于 `component` 渲染
+- `modelProp` 默认 `value`
+- `valueFormatter` 在值回写前执行
+- `slots` 中 `label/extra/help/tooltip` 归属 `FormItem`，其余归属组件
+
+## Types
+
+- `Field`：字段配置入口，组合组件参数 / FormItem 参数 / GridItem 参数
+- `Base`：字段公共能力集合（path、slots、容器、样式、格式化等）
+- `Fields`：字段数组，支持嵌套
+- `ValueFormatter`：字段值处理函数，支持 `get/set` 或单函数
+- `modelProp`：自定义 v-model 绑定字段名
+
+## 高级：TypeScript 类型推导与覆盖
+
+为了在使用 ProForm 的 `fields` 时能够获得自定义组件的类型推导，或强制覆盖内置组件（如 `input`）的属性提示，你可以利用 TypeScript 的声明合并来扩展全局的 `ComponentMap`。
+
+在你的业务项目（如 `env.d.ts` 或 `components.d.ts`）中补充如下内容：
+
+```typescript
+import 'antdv-next-pro';
+import type MyCustomUpload from '@/components/MyCustomUpload.vue';
+import type MySuperInput from '@/components/MySuperInput.vue';
+
+declare module 'antdv-next-pro' {
+  interface ComponentMap {
+    'custom-upload': typeof MyCustomUpload;
+    input: typeof MySuperInput;
+  }
+}
+```
+
+配置完成后：
+
+1. `component` 字段会自动提示 `'custom-upload'`。
+2. 当你在 `fields` 数组中设置 `component: 'custom-upload'` 时，会自动出现 `MyCustomUpload` 组件所接受的各项 Props。
+3. 当你设置 `component: 'input'` 时，提示将替换为 `MySuperInput` 的 Props。
+
+## 扩展点与最佳实践（简版）
+
+- 动态字段：使用 `setField` 更新字段配置
+- 字段联动：用 `setFormData` + `setField` 实现显隐、禁用、规则联动
+- 自定义组件接入：`component` + `ProComponentProvider` 注册，插槽优先级高于 `component`
+- 值格式化：使用 `valueFormatter` 与 `modelProp` 对齐组件的 v-model 习惯
+
+## useForm
+
+创建表单对象的 hook。
+
+### 参数
 
 | 参数         | 类型             | 说明                                     |
 | ------------ | ---------------- | ---------------------------------------- |
@@ -21,7 +234,7 @@ const form = useForm<DataType>(initData, initFields);
 | `initFields` | `Field<D>[]`     | 表单字段初始配置                         |
 | `root`       | `boolean`        | 是否为根 form 实例（用于嵌套 form 场景） |
 
-#### 返回值
+### 返回值
 
 | 属性                       | 类型                             | 说明                                                                    |
 | -------------------------- | -------------------------------- | ----------------------------------------------------------------------- |
@@ -32,111 +245,3 @@ const form = useForm<DataType>(initData, initFields);
 | `setFormData(path, value)` | `-`                              | 设置字段值，value 支持函数形式 `(prev) => next`                         |
 | `setField(path, patch)`    | `-`                              | 动态更新指定字段的配置项                                                |
 | `resetFormData()`          | `-`                              | 将表单数据重置为初始值                                                  |
-
----
-
-### ProForm Props
-
-| 属性   | 类型                   | 默认值  | 说明                                                             |
-| ------ | ---------------------- | ------- | ---------------------------------------------------------------- |
-| `form` | `Form<D>`              | -       | `useForm` 返回的实例                                             |
-| `grid` | `boolean \| GridProps` | `false` | 是否启用 Grid 网格布局，传入 `GridProps` 可定制 gutter、align 等 |
-| 其余   | `FormProps`            | -       | 透传至 antdv-next `Form`（如 `layout`、`labelCol`、`colon` 等）  |
-
-### ProForm Slots
-
-| 插槽名    | 说明                                                                                                |
-| --------- | --------------------------------------------------------------------------------------------------- |
-| `default` | 表单尾部内容（通常放提交 / 重置按钮）                                                               |
-| `[path]`  | 按字段 path 命名的具名插槽，接管该字段的渲染。插槽 props 包含 `modelValue` 和 `onUpdate:modelValue` |
-
----
-
-### 字段配置（Field）
-
-所有字段共享 `Base` 公共属性，并叠加所选组件自身的 Props。
-
-#### 公共属性（Base）
-
-| 属性                 | 类型                                | 说明                                                                                        |
-| -------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| `path`               | `Path<D>`                           | 字段标识，对应 formData 中的键路径（支持 `'a.b.c'` 嵌套）                                   |
-| `name`               | `Path<D>`                           | 别名，优先于 `path` 作为 FormItem name（用于与 formData 解耦）                              |
-| `label`              | `string \| Component`               | 字段标签，支持传入 Vue 组件                                                                 |
-| `component`          | 见内置组件表                        | 所用组件名或 Vue 组件实例                                                                   |
-| `hidden`             | `MaybeRef<boolean>`                 | 是否隐藏，支持 `ref` / `computed`                                                           |
-| `rules`              | `RuleObject[]`                      | 校验规则（antdv-next FormItem rules）                                                       |
-| `span`               | `number`                            | Grid 列宽（仅 grid 模式生效，1–24）                                                         |
-| `xs/sm/md/lg/xl/xxl` | `number \| { span, offset }`        | 响应式列宽（同 antdv-next Col）                                                             |
-| `fields`             | `Fields<D>`                         | 嵌套子字段，设置后当前字段表现为分组容器                                                    |
-| `grid`               | `boolean \| GridProps`              | 子字段的 Grid 配置（仅 `fields` 不为空时有效）                                              |
-| `slots`              | `Partial<ComponentSlots<FormItem>>` | FormItem 插槽（`label`、`extra`、`help`、`tooltip`）                                        |
-| `formItemStyle`      | `MaybeRef<CSSProperties>`           | FormItem 样式                                                                               |
-| `formItemClass`      | `MaybeRef<string>`                  | FormItem 类名                                                                               |
-| `formItemContainer`  | `RenderComponentType`               | FormItem 外层包裹组件（函数式或 Vue 组件）                                                  |
-| `formItemDataAttrs`  | `Record<string, string>`            | 附加到 FormItem DOM 节点的属性（如 `data-*`、`aria-*`）                                     |
-| `componentStyle`     | `MaybeRef<CSSProperties>`           | 组件本身的样式                                                                              |
-| `componentClass`     | `MaybeRef<string>`                  | 组件本身的类名                                                                              |
-| `componentContainer` | `RenderComponentType`               | 组件外层包裹组件                                                                            |
-| `componentDataAttrs` | `Record<string, string>`            | 附加到组件 DOM 节点的属性                                                                   |
-| `valueFormatter`     | `ValueFormatter`                    | 值转换函数，在 v-model 读写时执行。支持函数 `(val, oldVal) => newVal` 或对象 `{ get, set }` |
-| `modelProp`          | `string`                            | v-model 绑定属性名，默认 `'value'`                                                          |
-
-> **响应式支持**：除 `component`、`fields`、`slots`、`modelProp`、`formItemContainer`、`componentContainer`、`valueFormatter` 外，所有属性均支持 `Ref` 或 `ComputedRef`。
-
-#### 内置组件（component 取值）
-
-| 值                  | 组件                     | 额外 Props                                       |
-| ------------------- | ------------------------ | ------------------------------------------------ |
-| `input`             | Input 文本框             | `maxlength`、`allowClear`、`prefix`、`suffix`... |
-| `textarea`          | TextArea 文本域          | `autoSize`、`showCount`...                       |
-| `input-password`    | InputPassword 密码框     | `visibilityToggle`...                            |
-| `input-otp`         | InputOTP 一次性密码      | `length`...                                      |
-| `input-search`      | InputSearch 搜索框       | `enterButton`、`onSearch`...                     |
-| `input-number`      | InputNumber 数字输入     | `min`、`max`、`precision`、`step`...             |
-| `select`            | Select 下拉选择          | `options`、`mode`、`allowClear`...               |
-| `auto-complete`     | AutoComplete 自动完成    | `options`、`filterOption`...                     |
-| `cascader`          | Cascader 级联选择        | `options`、`fieldNames`...                       |
-| `date-picker`       | DatePicker 日期选择      | `picker`、`format`、`disabledDate`...            |
-| `range-picker`      | RangePicker 日期范围     | `placeholder: [string, string]`...               |
-| `time-picker`       | TimePicker 时间选择      | `format`、`minuteStep`...                        |
-| `time-range-picker` | TimeRangePicker 时间范围 | 同上                                             |
-| `checkbox-group`    | CheckboxGroup 复选框组   | `options`                                        |
-| `radio-group`       | RadioGroup 单选框组      | `options`、`optionType`...                       |
-| `switch`            | Switch 开关              | `checkedChildren`、`unCheckedChildren`...        |
-| `slider`            | Slider 滑块              | `min`、`max`、`step`、`range`...                 |
-| `tree-select`       | TreeSelect 树形选择      | `treeData`、`multiple`...                        |
-| `transfer`          | Transfer 穿梭框          | `dataSource`、`titles`...                        |
-| `custom`            | 完全自定义               | 需同时传入 Vue 组件 `component: markRaw(MyComp)` |
-
----
-
-### 高级：TypeScript 类型推导与覆盖
-
-为了在使用 ProForm 的 `fields` 时能够获得自定义组件的类型推导，或强制覆盖内置组件（如 `input`）的属性提示，你可以利用 TypeScript 的**声明合并**来扩展全局的 `ComponentMap`。
-
-在你的业务项目（如 `env.d.ts` 或 `components.d.ts`）中补充如下内容：
-
-```typescript
-import 'antdv-next-pro';
-// 映入你的自定义组件或覆盖组件
-import type MyCustomUpload from '@/components/MyCustomUpload.vue';
-import type MySuperInput from '@/components/MySuperInput.vue';
-
-declare module 'antdv-next-pro' {
-  // 扩展 ComponentMap
-  interface ComponentMap {
-    // 1. 新增一个全新的组件 name（如 'custom-upload'），会自动带有 MyCustomUpload 的 Props 提示
-    'custom-upload': typeof MyCustomUpload;
-
-    // 2. 蓄意覆盖原生内置组件的类型（比如彻底替换内置 'input' 的类型提示）
-    input: typeof MySuperInput;
-  }
-}
-```
-
-配置完成后：
-
-1. `component` 字段会自动提示 `'custom-upload'`。
-2. 当你在 `fields` 数组中设置 `component: 'custom-upload'` 时，会自动出现 `MyCustomUpload` 组件所接受的各项 `Props`。
-3. 当你设置 `component: 'input'` 时，弹出的将是 `MySuperInput` 的 `Props`（原版 AntD Input 的提示会被熔断覆盖）。

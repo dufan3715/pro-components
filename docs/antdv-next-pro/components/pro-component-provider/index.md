@@ -2,11 +2,13 @@
 
 全局组件默认配置提供者，通过 `componentVars` 统一设置所有 Pro 组件的默认属性，避免在每处重复传入相同的 Props。
 
-## 介绍
+## 何时使用
 
-`ProComponentProvider` 利用 Vue 的 `provide/inject` 机制向下提供全局默认配置。子组件会将全局配置与局部 Props **深度合并**，局部 Props 优先级更高。
+- 需要为 ProForm/ProTable 统一默认配置
+- 需要在项目级统一输入组件的默认 props
+- 需要注册或覆盖内置表单组件
 
-## 示例
+## 快速开始
 
 ```vue
 <script setup lang="ts">
@@ -56,7 +58,13 @@ const componentVars = {
 | `componentVars` | `ComponentVars` | 各组件的默认 Props 配置（见下方支持的 key） |
 | `componentMap`  | `ComponentMap`  | 注册新增自定义组件，或覆盖内置原生组件      |
 
-### ComponentVars 支持的 key
+### 合并规则
+
+- 全局配置通过 `provide/inject` 注入
+- 子组件会将全局配置与局部 Props 深度合并
+- 局部 Props 优先级更高
+
+## ComponentVars 支持的 key
 
 | Key                   | 对应组件                       | 类型说明                                                                                        |
 | --------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
@@ -88,20 +96,17 @@ const componentVars = {
 | `tree-select`         | TreeSelect                     | `ComponentProps<typeof TreeSelect>` + Base                                                      |
 | `transfer`            | Transfer                       | `ComponentProps<typeof Transfer>` + Base                                                        |
 
-> 其中 **Base** 公共属性包含：`valueFormatter`、`componentContainer`、`modelProp`、`componentClass`、`componentStyle`。
+> Base 公共属性包含：`valueFormatter`、`componentContainer`、`modelProp`、`componentClass`、`componentStyle`。
 
-## 进阶用法：注册与覆盖组件
+## 进阶：注册与覆盖组件
 
-`ProComponentProvider` 除了能够统一下发配置，还可以用于**扩展内置表单组件库**。借助 `componentMap` 属性，你可以向作用域内的 `ProForm` 和 `ProTable` 注入属于你的业务组件，甚至拦截并重写基础组件。
-
-### 1. 注册新组件
+### 注册新组件
 
 ```vue
 <script setup lang="ts">
 import { ProComponentProvider } from '@qin-ui/antdv-next-pro';
 import MyCustomUpload from '@/components/MyCustomUpload.vue';
 
-// 注入全新的自定义组件
 const customComponents = {
   'custom-upload': MyCustomUpload,
 };
@@ -114,19 +119,15 @@ const customComponents = {
 </template>
 ```
 
-注册后，作用域内的 `ProForm` 就可以直接在 Schema 中写 `component: 'custom-upload'` 进行渲染。  
-_(注：为使 TypeScript 类型完美推断，请结合文档中 TypeScript 类型推导与覆盖 章节进行全局类型声明扩展。)_
+注册后，作用域内的 `ProForm` 可以在字段配置中直接写 `component: 'custom-upload'`。
 
-### 2. 覆盖默认组件
-
-如果你想给所有的、或者是某个页面域内的 `input` 增加特定逻辑（如添加全局的 XSS 过滤、或者默认带上某个自定义前缀图标），你可以写一个壳子组件，并直接用它**覆盖默认配置**：
+### 覆盖默认组件
 
 ```vue
 <script setup lang="ts">
 import { ProComponentProvider } from '@qin-ui/antdv-next-pro';
 import SafeInput from '@/components/SafeInput.vue';
 
-// 直接拦截原生组件
 const overrideComponents = {
   input: SafeInput,
 };
@@ -139,4 +140,10 @@ const overrideComponents = {
 </template>
 ```
 
-此时页面内所有声明为 `component: 'input'` 的字段，都会静默代理为你编写的 `SafeInput` 组件。
+此时页面内所有声明为 `component: 'input'` 的字段，都会渲染为 `SafeInput` 组件。
+
+## 扩展点与最佳实践（简版）
+
+- 优先在 App 级包裹，避免重复配置
+- 需要局部差异时，可在局部再次包裹覆盖
+- 组件注册解决运行时渲染，类型提示请配合 TS 声明合并
