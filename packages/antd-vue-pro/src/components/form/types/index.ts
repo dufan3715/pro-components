@@ -70,10 +70,7 @@ export type Options = Array<Option>;
 
 export type Grid = boolean | (GridProps & {});
 
-/**
- * @type {Object} Base - 基础公共字段类型
- */
-export interface Base<D extends Data = Data> {
+type BaseCommon<D extends Data = Data> = {
   /**
    * @description 字段标识namePath, 同name
    * @example 'name' | 'age' | 'sex' | ...
@@ -83,6 +80,10 @@ export interface Base<D extends Data = Data> {
    * @description 字段是否隐藏
    */
   hidden?: boolean;
+  /**
+   * @description 字段是否禁用
+   */
+  disabled?: boolean;
   /**
    * @description 字段中文名称，支持字符串或组件
    * @example '姓名' | '年龄' | '性别' | () => h('span', '自定义标签')
@@ -111,16 +112,6 @@ export interface Base<D extends Data = Data> {
    */
   formItemClass?: string;
   /**
-   * @description 嵌套子字段配置
-   * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
-   */
-  fields?: Fields<D>;
-  /**
-   * @description 网格布局属性，true表示使用默认网格布局，针对具有嵌套字段的字段
-   * @example boolean | { gutter: 24 }
-   */
-  grid?: Grid;
-  /**
    * @description 字段formItem容器包裹组件
    * @example (props, ctx) => h('div', { class: 'custom-container' }, ctx.slots.default?.())
    */
@@ -130,6 +121,36 @@ export interface Base<D extends Data = Data> {
    * @example { 'data-form-item-test': 'test-value', 'aria-label': 'name' }
    */
   formItemDataAttrs?: Record<string, string>;
+  /**
+   * @description 额外的自定义属性，不会被当作组件参数，仅用做给字段添加标识属性等功能
+   * @example { group: 'group-1' }
+   */
+  extraProps?: Record<string, any>;
+};
+
+type BaseWithFields<D extends Data = Data> = BaseCommon<D> & {
+  /**
+   * @description 嵌套子字段配置
+   * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
+   */
+  fields: Fields<D>;
+  /**
+   * @description 网格布局属性，true表示使用默认网格布局，针对具有嵌套字段的字段
+   * @example boolean | { gutter: 24 }
+   */
+  grid?: Grid;
+  component?: never;
+  componentStyle?: never;
+  componentClass?: never;
+  componentContainer?: never;
+  valueFormatter?: never;
+  modelProp?: never;
+  componentDataAttrs?: never;
+};
+
+type BaseWithoutFields<D extends Data = Data> = BaseCommon<D> & {
+  fields?: undefined;
+  grid?: never;
   /**
    * @description 字段component样式属性
    * @example { width: '100%', borderColor: '#d9d9d9' }
@@ -159,12 +180,14 @@ export interface Base<D extends Data = Data> {
    * @example { 'data-test': 'input-value', 'aria-label': 'name' }
    */
   componentDataAttrs?: Record<string, string>;
-  /**
-   * @description 额外的自定义属性，不会被当作组件参数，仅用做给字段添加标识属性等功能
-   * @example { group: 'group-1' }
-   */
-  extraProps?: Record<string, any>;
-}
+};
+
+/**
+ * @type {Object} Base - 基础公共字段类型
+ */
+export type Base<D extends Data = Data> =
+  | BaseWithFields<D>
+  | BaseWithoutFields<D>;
 
 /**
  * @type {FieldTypeMap} 字段类型集合
@@ -203,8 +226,16 @@ export type WithRef<T> = {
       : MaybeRefOrComputedRef<T[P]>;
 };
 
+type WithCommonBase<T = unknown> = T &
+  Omit<FormItemProps, 'label'> &
+  GridItemProps;
+
 type WithCommon<T, D extends Data = Data> = WithRef<
-  T & Omit<FormItemProps, 'label'> & GridItemProps & Base<D>
+  WithCommonBase<T> & BaseWithoutFields<D>
+>;
+
+type WithFields<D extends Data = Data> = WithRef<
+  WithCommonBase & BaseWithFields<D>
 >;
 
 /**
@@ -227,7 +258,7 @@ type WithComponent<
 export type Field<
   C extends ComponentName = ComponentName,
   D extends Data = Data,
-> = FieldTypeMap<D>[C];
+> = FieldTypeMap<D>[C] | WithFields<D>;
 
 /**
  * @description 字段数组类型

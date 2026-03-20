@@ -114,7 +114,7 @@ const onComponentMounted = (index: number) => {
                     <BaseFormItem
                       :grid="(field as any).grid ?? grid"
                       :fields="field.fields"
-                      :disabled="field.disabled"
+                      :disabled="toValue(field.disabled)"
                     />
                   </template>
                   <template v-else>

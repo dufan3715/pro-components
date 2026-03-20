@@ -75,7 +75,7 @@ const parentDisabled = useInjectDisabled();
 const groupedAttrs = computed(() => {
   const initProps = getInitProps({
     component: component,
-    type: attrs.type,
+    picker: attrs.picker,
   } as Field);
   const mergedProps = mergeProps(
     initProps,

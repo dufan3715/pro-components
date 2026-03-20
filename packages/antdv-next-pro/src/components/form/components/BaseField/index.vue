@@ -66,7 +66,7 @@ const parentDisabled = useDisabledContext();
 const groupedAttrs = computed(() => {
   const initProps = getInitProps({
     component: component,
-    type: attrs.type,
+    picker: attrs.picker,
   } as Field);
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'value';
   const mergedProps = mergeProps(
