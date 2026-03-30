@@ -1,0 +1,49 @@
+{
+  "name": "@qin-ui/element-plus-pro",
+  "version": "1.0.1",
+  "description": "基于 element-plus 的二次封装组件",
+  "type": "module",
+  "module": "es/index.js",
+  "types": "es/index.d.ts",
+  "main": "es/index.js",
+  "exports": {
+    ".": {
+      "import": "./es/index.js",
+      "types": "./es/index.d.ts"
+    }
+  },
+  "files": [
+    "es",
+    "README.md",
+    "LICENSE"
+  ],
+  "homepage": "https://dufan3715.github.io/pro-components/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dufan3715/pro-components.git"
+  },
+  "scripts": {
+    "build": "vue-tsc && vite build"
+  },
+  "author": "dufan3715",
+  "license": "MIT",
+  "private": false,
+  "peerDependencies": {
+    "element-plus": "^2.13.6",
+    "vue": "^3.5.0"
+  },
+  "dependencies": {
+    "vue-component-type-helpers": "^3.2.5"
+  },
+  "devDependencies": {
+    "@qin-ui/core": "workspace:^",
+    "@types/lodash-es": "^4.17.12",
+    "element-plus": "^2.13.6",
+    "lodash-es": "^4.17.21",
+    "vue": "^3.5.29"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

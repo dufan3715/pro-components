@@ -3,30 +3,15 @@ import {
   Card,
   Space,
   Button,
+  TypographyText,
   Switch,
   RadioGroup,
   RadioButton,
   Flex,
-  Rate,
 } from 'antdv-next';
-import {
-  Fields,
-  ProForm,
-  ProComponentProvider,
-  useForm,
-} from '@qin-ui/antdv-next-pro';
-import { computed, h, ref, watch } from 'vue';
+import { Field, Fields, ProForm, useForm } from '@qin-ui/antdv-next-pro';
+import { computed, h, markRaw, ref, toValue, watch } from 'vue';
 import { useData } from 'vitepress';
-
-declare module '@qin-ui/antdv-next-pro' {
-  interface ComponentMap {
-    'custom-rate': typeof Rate;
-  }
-}
-
-const componentMap = {
-  'custom-rate': Rate,
-};
 
 const { isDark } = useData();
 
@@ -55,76 +40,73 @@ type Education = {
 };
 
 type FormData = User & {
-  rating?: number;
   family: Family;
   educations: Education[];
 };
 
-const getEducationFields = (index: number): Fields => [
+const getEducationFields = (index: number): Fields<Education> => [
+  {
+    path: `educations.${index}.no`,
+    component: () =>
+      h(TypographyText, { strong: true }, () => `经历${index + 1}`),
+    span: 2,
+  },
   {
     path: `educations.${index}.school`,
-    label: '学校名称',
     component: 'input',
     placeholder: '请输入学校名称',
     rules: [{ required: true, message: '请输入学校名称' }],
-    span: 6,
-  },
-  {
-    path: `educations.${index}.stage`,
-    label: '教育阶段',
-    component: 'select',
-    placeholder: '请选择',
-    options: computed(() => [
-      { label: '初中', value: 'middle' },
-      { label: '高中', value: 'high' },
-      { label: '大学', value: 'university' },
-    ]),
-    rules: [{ required: true, message: '请选择教育阶段' }],
     span: 5,
   },
   {
+    path: `educations.${index}.stage`,
+    component: 'select',
+    placeholder: '请选择教育阶段',
+    options: computed(() => {
+      return [
+        { label: '初中', value: 'middle' },
+        { label: '高中', value: 'high' },
+        { label: '大学', value: 'university' },
+      ].map(item => ({
+        ...item,
+        disabled: getFormData('educations')?.some(
+          education => education.stage === item.value
+        ),
+      }));
+    }),
+    rules: [{ required: true, message: '请选择教育阶段' }],
+    span: 4,
+  },
+  {
     path: `educations.${index}.discipline`,
-    label: '专业',
     component: 'input',
     placeholder: '请输入专业',
+    rules: [{ required: true, message: '请输入专业' }],
+    span: 5,
     // [!code highlight]
     // 表单字段、数据逻辑关联
     hidden: computed(() =>
       ['middle', 'high'].includes(getFormData(`educations.${index}.stage`))
     ),
-    span: 5,
   },
   {
     path: `educations.${index}.dateRange`,
-    label: '在校时间',
     component: 'range-picker',
     placeholder: ['入学时间', '毕业时间'],
     span: 6,
   },
   {
-    span: 2,
-    componentContainer: (_, ctx) =>
-      h(
-        Flex,
-        {
-          justify: 'flex-end',
-          align: 'center',
-          formItemStyle: { height: '100%', paddingTop: '30px' },
-        },
-        ctx.slots
-      ),
+    span: computed(() => {
+      const disciplineField = getField(`educations.${index}.discipline`);
+      return toValue(disciplineField?.hidden) ? 7 : 2;
+    }),
+    componentContainer: (_, ctx) => h(Flex, { justify: 'flex-end' }, ctx.slots),
+    type: 'text',
+    danger: true,
+    onClick: () => deleteEducation(index),
     component: props =>
       getFormData('educations')?.length > 1
-        ? h(
-            Button,
-            {
-              ...props,
-              type: 'link',
-              danger: true,
-              onClick: () => deleteEducation(index),
-            },
-            () => '删除'
-          )
+        ? h(Button, props, () => '删除')
         : undefined,
   },
 ];
@@ -156,19 +138,37 @@ const form = useForm<FormData>({}, [
         label: '出生日期',
         component: 'date-picker',
         rules: [{ required: true, message: '请选择出生日期' }],
+        slots: { extra: '选择出生日期时自动填入年龄' },
+        disabledDate: current => {
+          return (current as any)?.isAfter?.(new Date()) ?? false;
+        },
+        onChange: val => {
+          setFormData(
+            'age',
+            val &&
+              new Date().getFullYear() -
+                new Date((val as any).valueOf()).getFullYear()
+          );
+        },
       },
       {
         path: 'age',
         label: '年龄',
         component: 'input-number',
         rules: [{ required: true, message: '请输入年龄' }],
+        slots: { addonAfter: '岁' },
       },
-      { path: 'phone', label: '手机号码', component: 'input' },
-      { path: 'email', label: '邮箱', component: 'input' },
       {
-        path: 'rating',
-        label: '满意度',
-        component: 'custom-rate',
+        path: 'phone',
+        label: '手机号码',
+        component: 'input',
+        rules: [{ required: true, message: '请输入' }],
+      },
+      {
+        path: 'email',
+        label: '邮箱',
+        component: 'input',
+        rules: [{ required: true, message: '请输入' }],
       },
     ],
   },
@@ -177,6 +177,8 @@ const form = useForm<FormData>({}, [
     formItemContainer: (_, ctx) =>
       h(Card, { title: '家庭信息', style: { margin: '24px 0' } }, ctx.slots),
     fields: [
+      { path: 'family.city', label: '所在城市', component: 'cascader' },
+      { path: 'family.address', label: '家庭地址', component: 'textarea' },
       {
         path: 'family.maritalStatus',
         label: '婚姻状况',
@@ -188,7 +190,6 @@ const form = useForm<FormData>({}, [
       },
       { path: 'family.spouseName', label: '配偶姓名', component: 'input' },
       { path: 'family.spousePhone', label: '配偶联系方式', component: 'input' },
-      { path: 'family.address', label: '家庭地址', component: 'textarea' },
     ],
   },
   {
@@ -199,33 +200,34 @@ const form = useForm<FormData>({}, [
   },
 ]);
 
-const { formRef, formData, getFormData, setFormData, setField } = form;
+const { formRef, formData, getFormData, setFormData, setField, getField } =
+  form;
+
+const getAddEducationButtonField = (): Field => ({
+  span: 24,
+  hidden: getFormData('educations')?.length >= 3,
+  noStyle: true,
+  type: 'primary',
+  block: true,
+  ghost: true,
+  onClick: addEducation,
+  component: markRaw(Button),
+  slots: {
+    default: '添加教育经历',
+  },
+});
 
 // [!code highlight]
 // 表单字段、数据动态增删
 watch(
   () => getFormData('educations'),
   val => {
-    const values = val?.length > 0 ? val : [{} as any];
-    const educationFields: Fields = values.reduce((preVal, _, i) => {
-      return [...preVal, ...getEducationFields(i)];
-    }, [] as any[]);
-    educationFields.push({
-      span: 24,
-      hidden: getFormData('educations')?.length >= 3,
-      component: props =>
-        h(
-          Button,
-          {
-            ...props,
-            type: 'primary',
-            block: true,
-            ghost: true,
-            onClick: addEducation,
-          },
-          () => '添加教育经历'
-        ),
-    });
+    const values: Education[] = val?.length > 0 ? val : [{} as any];
+    const educationFields = values
+      .reduce((preVal, curVal, i) => {
+        return [...preVal, ...getEducationFields(i)];
+      }, [] as Fields)
+      .concat(getAddEducationButtonField());
     setField('educations', { fields: educationFields });
   },
   { immediate: true }
@@ -259,36 +261,30 @@ const submit = async () => {
 </script>
 
 <template>
-  <ProComponentProvider :component-map="componentMap">
-    <Card
-      title="复杂表单"
-      :body-style="{ background: isDark ? '#141414' : '#f7f8f9' }"
-    >
-      <Space direction="vertical" :size="24" style="margin-bottom: 24px">
-        <div>
-          <span style="margin-right: 8px; font-weight: 600">表单布局：</span>
-          <RadioGroup v-model:value="layout">
-            <RadioButton value="horizontal">水平</RadioButton>
-            <RadioButton value="vertical">垂直</RadioButton>
-          </RadioGroup>
-        </div>
-        <div>
-          <span style="margin-right: 8px; font-weight: 600"
-            >启用 grid 网格布局：</span
-          >
-          <Switch v-model:value="grid" />
-        </div>
+  <Card
+    title="复杂表单"
+    :body-style="{ background: isDark ? '#141414' : '#f7f8f9' }"
+  >
+    <Space direction="vertical" :size="24" style="margin-bottom: 24px">
+      <div>
+        <TypographyText strong>antdv-next 表单布局：</TypographyText>
+        <RadioGroup v-model:value="layout">
+          <RadioButton value="horizontal">水平</RadioButton>
+          <RadioButton value="vertical">垂直</RadioButton>
+        </RadioGroup>
+      </div>
+      <div>
+        <TypographyText strong>启用 grid 网格布局：</TypographyText>
+        <Switch v-model:value="grid" />
+      </div>
+    </Space>
+    <ProForm :form="form" :grid="grid" :layout="layout">
+      <Space>
+        <Button @click="reset">重置表单</Button>
+        <Button type="primary" html-type="submit" @click="submit">提交</Button>
       </Space>
-      <ProForm :form="form" :grid="grid" :layout="layout">
-        <Space>
-          <Button @click="reset">重置表单</Button>
-          <Button type="primary" html-type="submit" @click="submit"
-            >提交</Button
-          >
-        </Space>
-      </ProForm>
-      <br />
-      <div style="white-space: pre">表单数据对象：{{ formData }}</div>
-    </Card>
-  </ProComponentProvider>
+    </ProForm>
+    <br />
+    <div style="white-space: pre">表单数据对象：{{ formData }}</div>
+  </Card>
 </template>

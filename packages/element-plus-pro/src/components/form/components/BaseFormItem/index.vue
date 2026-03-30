@@ -1,0 +1,143 @@
+<script lang="ts" setup>
+import { getObject, toPath } from '../../../../shared/core';
+import {
+  FormItem,
+  Grid as UIGrid,
+  GridItem as UIGridItem,
+  GridProps,
+  useDisabledContextProvider,
+} from '../../../../shared/ui';
+import { computed, inject, toValue } from 'vue';
+import type { Fields, Grid } from '../../types';
+import { BaseField, SlotComponent, ContainerFragment } from '..';
+import PathProvider from '../PathProvider/index.vue';
+import GroupedFieldAttrs from '../GroupedFieldAttrs/index.vue';
+import { INJECT_CONFIG } from '../../../component-provider';
+
+defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
+
+type Props = {
+  grid?: Grid;
+  fields?: Fields;
+  disabled?: boolean;
+};
+const {
+  grid = undefined,
+  fields = [],
+  disabled = undefined,
+} = defineProps<Props>();
+
+const validFields = computed(() => fields.filter?.(field => !field.hidden));
+
+useDisabledContextProvider(computed(() => disabled) as any);
+
+const config = INJECT_CONFIG['pro-form'];
+
+const { grid: injectGrid } = inject(config.injectionKey, config.default);
+
+const enableGrid = computed(() => {
+  if (grid !== undefined) return !!grid;
+  return !!injectGrid;
+});
+
+const computedGridProps = computed<GridProps>(() => {
+  return enableGrid.value
+    ? { ...getObject(injectGrid), ...getObject(grid) }
+    : {};
+});
+
+const formItemRefs: any[] = [];
+const componentRefs: any[] = [];
+
+const onFormItemMounted = (index: number, formItemProps?: any) => {
+  const field = validFields.value[index];
+  Object.assign(field, {
+    getFormItemRef: () => formItemRefs[index],
+    getFormItemComputedProps: () => formItemProps,
+  });
+};
+
+const onComponentMounted = (index: number) => {
+  const field = validFields.value[index];
+  Object.assign(field, {
+    getComponentRef: () => componentRefs[index]?.getComponentRef(),
+    getComponentComputedProps: () =>
+      componentRefs[index]?.getComponentComputedProps(),
+  });
+};
+</script>
+
+<template>
+  <ContainerFragment
+    :component="enableGrid ? UIGrid : undefined"
+    v-bind="computedGridProps"
+    style="width: 100%"
+  >
+    <PathProvider
+      v-for="({ path: _path, ...field }, index) of validFields"
+      :key="toPath(toValue((_path ?? index) as any)).join('.') || index"
+      v-bind="{ path: _path as any }"
+    >
+      <template #default="{ path }">
+        <GroupedFieldAttrs :field="field">
+          <template
+            #default="{
+              gridItemProps,
+              formItemProps: { container, ...formItemProps },
+              componentProps,
+              formItemSlots,
+            }"
+          >
+            <ContainerFragment
+              :component="enableGrid ? UIGridItem : undefined"
+              v-bind="gridItemProps"
+            >
+              <ContainerFragment :component="container" :path="path">
+                <FormItem
+                  v-bind="formItemProps"
+                  :ref="el => (formItemRefs[index] = el)"
+                  :prop="toPath(path).join('.')"
+                  :path="path"
+                  @vue:mounted="onFormItemMounted(index, formItemProps)"
+                >
+                  <template
+                    v-for="(slot, name) in formItemSlots"
+                    :key="name"
+                    #[name]="scoped"
+                  >
+                    <SlotComponent
+                      :path="path"
+                      :component="slot"
+                      v-bind="scoped"
+                    />
+                  </template>
+                  <template v-if="field.fields">
+                    <BaseFormItem
+                      :grid="(field as any).grid ?? grid"
+                      :fields="field.fields"
+                      :disabled="toValue(field.disabled)"
+                    />
+                  </template>
+                  <template v-else>
+                    <BaseField
+                      :ref="el => (componentRefs[index] = el)"
+                      v-bind="componentProps"
+                      :path="path"
+                      @vue:mounted="onComponentMounted(index)"
+                    />
+                  </template>
+                </FormItem>
+              </ContainerFragment>
+            </ContainerFragment>
+          </template>
+        </GroupedFieldAttrs>
+      </template>
+    </PathProvider>
+  </ContainerFragment>
+</template>
+
+<style scoped lang="less">
+[class*='-form-item'] [class*='-form-item'] {
+  margin-bottom: 18px;
+}
+</style>

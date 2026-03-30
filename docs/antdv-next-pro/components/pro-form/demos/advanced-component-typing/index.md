@@ -1,4 +1,4 @@
-# 高级：拓展、覆盖自定义组件
+# 高级：拓展、覆盖组件
 
 本示例展示如何在 ProForm 中**拓展自定义组件**并**覆盖内置组件类型提示**，对应 `/antdv-next-pro/components/pro-form/#高级-typescript-类型推导与覆盖` 的进阶用法。
 

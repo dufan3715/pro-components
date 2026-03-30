@@ -12,6 +12,9 @@ hero:
     - theme: alt
       text: antd-vue-pro
       link: /antd-vue-pro/guide/introduction
+    - theme: alt
+      text: element-plus-pro
+      link: /element-plus-pro/guide/introduction
 
 features:
   - title: antdv-next-pro
@@ -20,4 +23,7 @@ features:
   - title: antd-vue-pro
     details: 基于 Ant Design Vue 4.x 的高级组件库，提供 ProForm、ProTable 等封装组件。
     link: /antd-vue-pro/guide/introduction
+  - title: element-plus-pro
+    details: 基于 Element Plus 2.13.6+ 的高级组件库，支持 columns 配置驱动的 ProTable。
+    link: /element-plus-pro/guide/introduction
 ---
