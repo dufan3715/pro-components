@@ -44,7 +44,7 @@ const componentVars = {
     :component-map="componentMap"
     :component-vars="componentVars"
   >
-    <Card title="高级：拓展、覆盖自定义组件">
+    <Card title="高级：拓展、覆盖组件">
       <ProForm :form="form" />
     </Card>
   </ProComponentProvider>
