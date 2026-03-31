@@ -247,7 +247,9 @@ type WithComponent<
   T extends abstract new (...args: any) => any,
   D extends Data = Data,
 > = WithCommon<
-  { slots?: ComponentSlots<T> } & Omit<ComponentProps<T>, keyof VNodeProps>,
+  { slots?: Partial<ComponentSlots<T>> } & Partial<
+    Omit<ComponentProps<T>, keyof VNodeProps>
+  >,
   D
 >;
 
