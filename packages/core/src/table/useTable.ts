@@ -125,8 +125,6 @@ const useTable = <
           ? columnItem.dataIndex.join('.')
           : (columnItem.dataIndex as string);
         matched = dataIndexKey === key;
-      } else {
-        matched = key === i;
       }
       if (matched) {
         updater({
