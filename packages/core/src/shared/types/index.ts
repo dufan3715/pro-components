@@ -17,18 +17,26 @@ export type DeepPartial<T> = T extends object
   : T;
 
 type AllowStringKey<T, Prefix extends string = ''> = {
-  [K in keyof T]: K extends string
-    ? T[K] extends (infer U)[]
+  [K in keyof T as string extends K
+    ? never
+    : number extends K
+      ? never
+      : K extends string
+        ? K
+        : never]: T[K] extends (infer U)[]
+    ?
+        | `${Prefix}${K & string}`
+        | (IsRecord<U> extends true
+            ? AllowStringKey<U, `${Prefix}${K & string}[index].`>
+            : never)
+    : IsRecord<T[K]> extends true
       ?
-          | `${Prefix}${K}`
-          | (IsRecord<U> extends true
-              ? AllowStringKey<U, `${Prefix}${K}[index].`>
-              : never)
-      : IsRecord<T[K]> extends true
-        ? `${Prefix}${K}` | AllowStringKey<T[K], `${Prefix}${K}.`>
-        : `${Prefix}${K}`
-    : never;
-}[keyof T];
+          | `${Prefix}${K & string}`
+          | AllowStringKey<T[K], `${Prefix}${K & string}.`>
+      : `${Prefix}${K & string}`;
+} extends infer Obj
+  ? Obj[keyof Obj]
+  : never;
 
 export type KeyPathString<D extends Data> = KeyExpandString<AllowStringKey<D>>;
 
