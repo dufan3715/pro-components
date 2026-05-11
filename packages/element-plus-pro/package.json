@@ -39,8 +39,7 @@
     "@qin-ui/core": "workspace:^",
     "@types/lodash-es": "^4.17.12",
     "element-plus": "^2.13.6",
-    "lodash-es": "^4.17.21",
-    "vue": "^3.5.29"
+    "lodash-es": "^4.17.21"
   },
   "publishConfig": {
     "access": "public",

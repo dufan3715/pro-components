@@ -253,6 +253,70 @@ const elementPlusProSidebar = [
   },
 ];
 
+const vantProSidebar = [
+  {
+    text: '指南',
+    items: [
+      { text: '介绍', link: '/vant-pro/guide/introduction' },
+      { text: '快速开始', link: '/vant-pro/guide/getting-started' },
+    ],
+  },
+  {
+    text: '组件',
+    items: [
+      {
+        text: 'ProForm',
+        items: [
+          { text: 'ProForm文档', link: '/vant-pro/components/pro-form/' },
+          {
+            text: '使用示例',
+            items: [
+              {
+                text: '基础表单',
+                link: '/vant-pro/components/pro-form/demos/basic/',
+              },
+              {
+                text: '复杂表单',
+                link: '/vant-pro/components/pro-form/demos/complex/',
+              },
+              {
+                text: '使用自定义组件',
+                link: '/vant-pro/components/pro-form/demos/custom-component/',
+              },
+              {
+                text: '处理逻辑联动',
+                link: '/vant-pro/components/pro-form/demos/linkage/',
+              },
+              {
+                text: '高级：拓展、覆盖组件',
+                link: '/vant-pro/components/pro-form/demos/advanced-component-typing/',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        text: 'ProComponentProvider',
+        items: [
+          {
+            text: 'ProComponentProvider文档',
+            link: '/vant-pro/components/pro-component-provider/',
+          },
+          {
+            text: '使用示例',
+            items: [
+              {
+                text: '基础使用',
+                link: '/vant-pro/components/pro-component-provider/demos/basic/',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   base: process.env.GITHUB_REPOSITORY
@@ -281,8 +345,14 @@ export default defineConfig({
         link: '/element-plus-pro/guide/introduction',
         activeMatch: '^/element-plus-pro/',
       },
+      {
+        text: 'vant-pro',
+        link: '/vant-pro/guide/introduction',
+        activeMatch: '^/vant-pro/',
+      },
     ],
     sidebar: {
+      '/vant-pro/': vantProSidebar,
       '/antdv-next-pro/': antdvNextProSidebar,
       '/antd-vue-pro/': antdVueProSidebar,
       '/element-plus-pro/': elementPlusProSidebar,
@@ -297,6 +367,8 @@ export default defineConfig({
   vite: {
     optimizeDeps: {
       include: [
+        'vant',
+        '@qin-ui/vant-pro',
         'ant-design-vue',
         '@ant-design/icons-vue',
         '@qin-ui/antd-vue-pro',
@@ -308,6 +380,8 @@ export default defineConfig({
     },
     ssr: {
       noExternal: [
+        'vant',
+        '@qin-ui/vant-pro',
         'ant-design-vue',
         '@ant-design/icons-vue',
         '@qin-ui/antd-vue-pro',
