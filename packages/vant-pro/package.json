@@ -1,0 +1,64 @@
+{
+  "name": "@qin-ui/vant-pro",
+  "version": "1.0.2",
+  "description": "基于 vant 和 @qin-ui/core 封装的高级表单和列表组件库",
+  "type": "module",
+  "module": "es/index.js",
+  "types": "es/index.d.ts",
+  "main": "es/index.js",
+  "exports": {
+    ".": {
+      "import": "./es/index.js",
+      "types": "./es/index.d.ts"
+    }
+  },
+  "files": [
+    "es",
+    "README.md",
+    "LICENSE"
+  ],
+  "homepage": "https://dufan3715.github.io/pro-components/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dufan3715/pro-components.git"
+  },
+  "scripts": {
+    "build": "vue-tsc && vite build"
+  },
+  "author": "dufan3715",
+  "bugs": {
+    "url": "https://github.com/dufan3715/pro-components/issues"
+  },
+  "license": "MIT",
+  "private": false,
+  "peerDependencies": {
+    "vant": "^4.0.0",
+    "vue": "^3.5.0"
+  },
+  "dependencies": {
+    "vue-component-type-helpers": "^3.2.5"
+  },
+  "devDependencies": {
+    "@qin-ui/core": "workspace:^",
+    "@types/lodash-es": "^4.17.12",
+    "lodash-es": "^4.17.21",
+    "vant": "^4.9.15"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": [
+    "vue",
+    "vant",
+    "vant-pro",
+    "pro-components",
+    "ui",
+    "form",
+    "pro-form"
+  ]
+}

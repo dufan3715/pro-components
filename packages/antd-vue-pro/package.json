@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "description": "二次封装antd vue组件",
   "type": "module",
   "module": "es/index.js",
@@ -43,8 +43,7 @@
     "@types/lodash-es": "^4.17.12",
     "ant-design-vue": "^4",
     "lodash-es": "^4.17.21",
-    "scroll-into-view-if-needed": "^3.1.0",
-    "vue": "^3.5.18"
+    "scroll-into-view-if-needed": "^3.1.0"
   },
   "sideEffects": false,
   "publishConfig": {
