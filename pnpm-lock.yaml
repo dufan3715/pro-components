@@ -4,6 +4,13 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@qin-ui/antd-vue-pro': workspace:*
+  '@qin-ui/antdv-next-pro': workspace:*
+  '@qin-ui/element-plus-pro': workspace:*
+  '@qin-ui/vant-pro': workspace:*
+  '@qin-ui/core': workspace:*
+
 importers:
 
   .:
@@ -127,17 +134,17 @@ importers:
   docs:
     dependencies:
       '@qin-ui/antd-vue-pro':
-        specifier: ^2.1.8
-        version: 2.1.8(ant-design-vue@4.2.6(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))
+        specifier: workspace:*
+        version: link:../packages/antd-vue-pro
       '@qin-ui/antdv-next-pro':
-        specifier: ^1.1.8
-        version: 1.1.8(antdv-next@1.1.0(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))
+        specifier: workspace:*
+        version: link:../packages/antdv-next-pro
       '@qin-ui/element-plus-pro':
-        specifier: ^1.0.1
-        version: 1.0.1(element-plus@2.13.6(typescript@5.9.3)(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))
+        specifier: workspace:*
+        version: link:../packages/element-plus-pro
       '@qin-ui/vant-pro':
-        specifier: ^1.0.2
-        version: 1.0.2(vant@4.9.24(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))
+        specifier: workspace:*
+        version: link:../packages/vant-pro
       ant-design-vue:
         specifier: ^4.2.6
         version: 4.2.6(vue@3.5.34(typescript@5.9.3))
@@ -158,13 +165,13 @@ importers:
   examples:
     dependencies:
       '@qin-ui/antd-vue-pro':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../packages/antd-vue-pro
       '@qin-ui/antdv-next-pro':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../packages/antdv-next-pro
       '@qin-ui/vant-pro':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../packages/vant-pro
       ant-design-vue:
         specifier: ^4.2.5
@@ -186,7 +193,7 @@ importers:
         version: 3.2.5
     devDependencies:
       '@qin-ui/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -211,7 +218,7 @@ importers:
         version: 3.2.5
     devDependencies:
       '@qin-ui/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -258,7 +265,7 @@ importers:
         version: 3.2.6
     devDependencies:
       '@qin-ui/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -280,7 +287,7 @@ importers:
         version: 3.2.6
     devDependencies:
       '@qin-ui/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -1111,32 +1118,6 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
-
-  '@qin-ui/antd-vue-pro@2.1.8':
-    resolution: {integrity: sha512-e/Nq19fQl0KymeML8dK6OafBd8iSMRtXlfMJ+eNbuwd3rUz1jyUBBxq6Gdd/J5kPAupwP/M9qJ/sDG1Rx7mB8g==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      ant-design-vue: ^4
-      vue: ^3.5.0
-
-  '@qin-ui/antdv-next-pro@1.1.8':
-    resolution: {integrity: sha512-Ulh7sqc7GNThWAlyhcShzFLM0BF3ul9jvG8QFSiz+DSPPcJ1Ru/iz/xvHiRThZQT1B8WnhSIAHq4hGe51Kc2Pg==}
-    peerDependencies:
-      antdv-next: ^1.1.0
-      vue: ^3.5.0
-
-  '@qin-ui/element-plus-pro@1.0.1':
-    resolution: {integrity: sha512-4jOA77lLt1C+yXpBz0RWimhG7AdBTrNRsd+UxcpmRwF+R+bnc4EE75mjbi4aZffDNvNa/pyoltkN3T42rVJ0mg==}
-    peerDependencies:
-      element-plus: ^2.13.6
-      vue: ^3.5.0
-
-  '@qin-ui/vant-pro@1.0.2':
-    resolution: {integrity: sha512-oNcDkiMq21Y1pHLgnZYHEDGn+U1XOYHCi+Yuidk5O0SRFOCA456/H9K1fMSeNZKLhjxVyqtUhcRpTmV/fvXAMg==}
-    engines: {node: '>=16'}
-    peerDependencies:
-      vant: ^4.0.0
-      vue: ^3.5.0
 
   '@rollup/pluginutils@5.3.0':
     resolution: {integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==}
@@ -4683,9 +4664,6 @@ packages:
   vue-component-type-helpers@3.2.6:
     resolution: {integrity: sha512-O02tnvIfOQVmnvoWwuSydwRoHjZVt8UEBR+2p4rT35p8GAy5VTlWP8o5qXfJR/GWCN0nVZoYWsVUvx2jwgdBmQ==}
 
-  vue-component-type-helpers@3.2.8:
-    resolution: {integrity: sha512-9689efAXhN/EV86plgkL/XFiJSXhGtWPG6JDboZ+QnjlUWUUQrQ0ILKQtw4iQsuwIwu5k6Aw+JnehDe7161e7A==}
-
   vue-eslint-parser@10.2.0:
     resolution: {integrity: sha512-CydUvFOQKD928UzZhTp4pr2vWz1L+H99t7Pkln2QSPdvmURT0MoC4wUccfCnuEaihNsu9aYYyk+bep8rlfkUXw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -5639,30 +5617,6 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
-
-  '@qin-ui/antd-vue-pro@2.1.8(ant-design-vue@4.2.6(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))':
-    dependencies:
-      ant-design-vue: 4.2.6(vue@3.5.34(typescript@5.9.3))
-      vue: 3.5.34(typescript@5.9.3)
-      vue-component-type-helpers: 3.2.8
-
-  '@qin-ui/antdv-next-pro@1.1.8(antdv-next@1.1.0(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))':
-    dependencies:
-      antdv-next: 1.1.0(vue@3.5.34(typescript@5.9.3))
-      vue: 3.5.34(typescript@5.9.3)
-      vue-component-type-helpers: 3.2.8
-
-  '@qin-ui/element-plus-pro@1.0.1(element-plus@2.13.6(typescript@5.9.3)(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))':
-    dependencies:
-      element-plus: 2.13.6(typescript@5.9.3)(vue@3.5.34(typescript@5.9.3))
-      vue: 3.5.34(typescript@5.9.3)
-      vue-component-type-helpers: 3.2.6
-
-  '@qin-ui/vant-pro@1.0.2(vant@4.9.24(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))':
-    dependencies:
-      vant: 4.9.24(vue@3.5.34(typescript@5.9.3))
-      vue: 3.5.34(typescript@5.9.3)
-      vue-component-type-helpers: 3.2.8
 
   '@rollup/pluginutils@5.3.0(rollup@4.52.5)':
     dependencies:
@@ -9560,8 +9514,6 @@ snapshots:
   vue-component-type-helpers@3.2.5: {}
 
   vue-component-type-helpers@3.2.6: {}
-
-  vue-component-type-helpers@3.2.8: {}
 
   vue-eslint-parser@10.2.0(eslint@9.39.0(jiti@2.6.1)):
     dependencies:
