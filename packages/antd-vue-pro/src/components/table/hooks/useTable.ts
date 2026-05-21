@@ -12,22 +12,22 @@ import type { Column, Columns } from '../types';
 import { Fields } from '../../form/types';
 
 /**
- * 重新定义 Table 类型，将 Column 类型绑定为 antd-vue-pro 的 Column<D>
+ * 重新定义 Table 类型，将 Column 类型绑定为 antd-vue-pro 的 Column<T>
  */
 export type Table<
   D extends Data = Data,
-  T extends object = ExtendWithAny<D>,
-> = _Table<D, T, Column<D>>;
+  T extends Data = ExtendWithAny<D>,
+> = _Table<D, T, Column<T>>;
 
 /**
  * 类型断言 re-export @qin-ui/core 的 useTable，
- * 将默认的 BaseColumn<D> 覆盖为本地的 Column<D>。
+ * 将默认的 BaseColumn<T> 覆盖为本地的 Column<T>。
  */
 export const useTable: <
   D extends Data = Data,
-  T extends object = ExtendWithAny<D>,
+  T extends Data = ExtendWithAny<D>,
 >(params: {
-  columns?: Columns<D>;
+  columns?: Columns<T>;
   dataSource?: T[];
   pageParam?: PageParam;
   searchParam?: ExtendWithAny<DeepPartial<D>>;

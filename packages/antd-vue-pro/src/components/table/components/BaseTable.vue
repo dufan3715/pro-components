@@ -11,7 +11,6 @@ import {
   nextTick,
   useAttrs,
   onMounted,
-  CSSProperties,
   inject,
   type Slot,
 } from 'vue';
@@ -173,8 +172,8 @@ const computedColumns = computed(
   () =>
     [
       ...((addIndexColumn ?? injectProps.addIndexColumn) ? [indexColumn] : []),
-      ...(tableAttrs.value.columns ?? columns?.value ?? []).flatMap(
-        (item: ColumnType<RecordType>, index) => {
+      ...(tableAttrs.value.columns ?? columns?.value ?? ([] as any)).flatMap(
+        (item: ColumnType<RecordType>, index: number) => {
           if (item.key) return [{ ...item, key: item.key }];
           if (item.dataIndex) {
             const dataIndexKey = Array.isArray(item.dataIndex)
@@ -236,11 +235,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="pro-table"
-    :class="$attrs.class"
-    :style="$attrs.style as CSSProperties"
-  >
+  <div class="pro-table" :class="$attrs.class" :style="$attrs.style">
     <ContainerFragment
       v-if="showSearch"
       :component="computedSearchFormConfig.container"

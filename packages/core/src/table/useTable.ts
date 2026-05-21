@@ -26,10 +26,10 @@ type SetPageParam = (
 ) => void;
 
 type SetColumn<
-  D extends Data = Data,
-  C extends BaseColumn<D> = BaseColumn<D>,
+  T extends Data = Data,
+  C extends BaseColumn<T> = BaseColumn<T>,
 > = (
-  key: Path<D>,
+  key: Path<T>,
   column: C | ((pre: Readonly<C>) => C),
   options?: {
     updateType?: 'rewrite' | 'merge';
@@ -38,26 +38,26 @@ type SetColumn<
 
 export type Table<
   D extends Data = Data,
-  T extends object = ExtendWithAny<D>,
-  C extends BaseColumn<D> = BaseColumn<D>,
+  T extends Data = ExtendWithAny<D>,
+  C extends BaseColumn<T> = BaseColumn<T>,
 > = {
-  columns: Ref<Columns<D, C>>;
+  columns: Ref<Columns<T, C>>;
   dataSource: Ref<T[]>;
   pageParam: Reactive<PageParam>;
   searchForm: Form<D>;
-  setColumn: SetColumn<D, C>;
+  setColumn: SetColumn<T, C>;
   deleteColumn: (
-    path: Path<D> | ColumnFindBy<D, C>,
+    path: Path<T> | ColumnFindBy<T, C>,
     options?: UpdateColumnOptions
   ) => void;
   appendColumn: (
-    path: Path<D> | ColumnFindBy<D, C> | undefined,
-    column: C | Columns<D, C>,
+    path: Path<T> | ColumnFindBy<T, C> | undefined,
+    column: C | Columns<T, C>,
     options?: UpdateColumnOptions
   ) => void;
   prependColumn: (
-    path: Path<D> | ColumnFindBy<D, C> | undefined,
-    column: C | Columns<D, C>,
+    path: Path<T> | ColumnFindBy<T, C> | undefined,
+    column: C | Columns<T, C>,
     options?: UpdateColumnOptions
   ) => void;
   setPageParam: SetPageParam;
@@ -66,10 +66,10 @@ export type Table<
 
 const useTable = <
   D extends Data = Data,
-  T extends object = ExtendWithAny<D>,
-  C extends BaseColumn<D> = BaseColumn<D>,
+  T extends Data = ExtendWithAny<D>,
+  C extends BaseColumn<T> = BaseColumn<T>,
 >(params: {
-  columns?: Columns<D, C>;
+  columns?: Columns<T, C>;
   dataSource?: T[];
   pageParam?: PageParam;
   searchParam?: ExtendWithAny<DeepPartial<D>>;
@@ -84,7 +84,7 @@ const useTable = <
   } = params;
   const _initSearchParam = cloneDeep(toValue(initSearchParam));
 
-  const columns = ref<Columns<D, C>>([]) as Ref<Columns<D, C>>;
+  const columns = ref<Columns<T, C>>([]) as Ref<Columns<T, C>>;
   columns.value = initColumns;
 
   const dataSource = ref<T[]>(initDataSource);
@@ -107,8 +107,8 @@ const useTable = <
   };
 
   const updaterMatch = (
-    key: Path<D> | ColumnFindBy<D, C>,
-    updater: ColumnUpdater<D, C>,
+    key: Path<T> | ColumnFindBy<T, C>,
+    updater: ColumnUpdater<T, C>,
     options: UpdateColumnOptions = {}
   ) => {
     if (!key) return;
@@ -137,7 +137,7 @@ const useTable = <
     }
   };
 
-  const setColumn: SetColumn<D, C> = (key, column, options) => {
+  const setColumn: SetColumn<T, C> = (key, column, options) => {
     if (!key || !column) return;
     const { updateType = 'merge', ...rest } = options || {};
     updaterMatch(
@@ -159,7 +159,7 @@ const useTable = <
   };
 
   function deleteColumn(
-    path: Path<D> | ColumnFindBy<D, C>,
+    path: Path<T> | ColumnFindBy<T, C>,
     options?: UpdateColumnOptions
   ) {
     if (!path) return;
@@ -173,8 +173,8 @@ const useTable = <
   }
 
   function addColumns(
-    path: Path<D> | ColumnFindBy<D, C> | undefined,
-    newColumns: Columns<D, C>,
+    path: Path<T> | ColumnFindBy<T, C> | undefined,
+    newColumns: Columns<T, C>,
     options?: UpdateColumnOptions,
     placement?: 'before' | 'after'
   ) {
@@ -196,8 +196,8 @@ const useTable = <
   }
 
   function appendColumn(
-    path: Path<D> | ColumnFindBy<D, C> | undefined,
-    column: C | Columns<D, C>,
+    path: Path<T> | ColumnFindBy<T, C> | undefined,
+    column: C | Columns<T, C>,
     options?: UpdateColumnOptions
   ) {
     const newColumns = Array.isArray(column) ? column : [column];
@@ -205,8 +205,8 @@ const useTable = <
   }
 
   function prependColumn(
-    path: Path<D> | ColumnFindBy<D, C> | undefined,
-    column: C | Columns<D, C>,
+    path: Path<T> | ColumnFindBy<T, C> | undefined,
+    column: C | Columns<T, C>,
     options?: UpdateColumnOptions
   ) {
     const newColumns = Array.isArray(column) ? column : [column];
