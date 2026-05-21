@@ -158,7 +158,7 @@ const computedTableContainer = computed(() => {
   return container ? container : undefined;
 });
 
-type ReturnGenericParameterTypes<V> = V extends Table<infer U> ? U : never;
+type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
 type RecordType = ReturnGenericParameterTypes<T>;
 
 const indexColumn: ColumnType = {
