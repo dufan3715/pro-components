@@ -16,6 +16,10 @@ import {
   RadioGroup,
 } from '../../../shared/ui';
 
+/**
+ * 内置组件映射表
+ * @description Vant 内置支持的组件类型映射
+ */
 export type BaseComponentMap = {
   field: typeof Field;
   switch: typeof Switch;
@@ -34,14 +38,39 @@ export type BaseComponentMap = {
   button: typeof Button;
 };
 
+/**
+ * 组件映射扩展接口
+ * @description 通过 TypeScript 声明合并添加自定义组件
+ *
+ * @example
+ * ```ts
+ * declare module '@qin-ui/vant-pro' {
+ *   interface ComponentMap {
+ *     'my-custom': typeof MyComponent;
+ *   }
+ * }
+ * ```
+ 
+ * @public
+ */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ComponentMap {}
 
+/**
+ * 组件名称联合类型
+ * @description 所有支持的组件名称
+ 
+ * @public
+ */
 export type ComponentName =
   | keyof BaseComponentMap
   | keyof ComponentMap
   | 'custom';
 
+/**
+ * 根据组件名获取组件类型
+ * @template K - 组件名称
+ */
 export type GetComponentType<K extends ComponentName> =
   K extends keyof ComponentMap
     ? ComponentMap[K]
@@ -49,6 +78,9 @@ export type GetComponentType<K extends ComponentName> =
       ? BaseComponentMap[K]
       : never;
 
+/**
+ * 组件名称到 Vant 组件的映射
+ */
 export const componentMap: BaseComponentMap = {
   field: Field,
   switch: Switch,
@@ -67,6 +99,10 @@ export const componentMap: BaseComponentMap = {
   button: Button,
 };
 
+/**
+ * Teleport 组件名称前缀
+ * @description 用于通过插槽动态替换指定 path 的组件
+ */
 export const TeleportComponentNamePrefix = 'TeleportComponent_';
 
 // inject keys

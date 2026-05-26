@@ -24,6 +24,20 @@ export { ProForm, ProTable, ProComponentProvider };
 const components = [ProForm, ProTable as any, ProComponentProvider];
 
 export default {
+  /**
+   * @qin-ui/antdv-next-pro 安装方法
+   * @description 全局注册所有组件（ProForm、ProTable、ProComponentProvider）
+   *
+   * @param {App} app - Vue 应用实例
+   *
+   * @example
+   * ```ts
+   * import { createApp } from 'vue'
+   * import QinUI from '@qin-ui/antdv-next-pro'
+   * const app = createApp(App)
+   * app.use(QinUI)
+   * ```
+   */
   install(app: App) {
     components.forEach(component => {
       app.component(component.name!, component);

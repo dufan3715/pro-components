@@ -21,6 +21,20 @@ export { ProForm, ProComponentProvider };
 const components = [ProForm, ProComponentProvider];
 
 export default {
+  /**
+   * @qin-ui/vant-pro 安装方法
+   * @description 全局注册所有组件（ProForm、ProComponentProvider）
+   *
+   * @param {App} app - Vue 应用实例
+   *
+   * @example
+   * ```ts
+   * import { createApp } from 'vue'
+   * import QinUI from '@qin-ui/vant-pro'
+   * const app = createApp(App)
+   * app.use(QinUI)
+   * ```
+   */
   install(app: App) {
     components.forEach(component => {
       if (component.name) {

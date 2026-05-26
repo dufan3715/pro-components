@@ -5,13 +5,9 @@ import {
   PaginationProps,
   DatePicker,
 } from '../../../shared/ui';
-import {
-  Base,
-  ComponentName,
-  GetComponentType,
-  Grid,
-  ProFormProps,
-} from '../../form';
+import { ComponentName, GetComponentType } from '../../form/constants';
+import { Base, Grid } from '../../form/types';
+import { ProFormProps } from '../../form';
 import { AllowedComponentProps } from 'vue';
 import type { ComponentProps } from 'vue-component-type-helpers';
 

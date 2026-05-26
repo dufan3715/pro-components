@@ -14,8 +14,9 @@ import {
   inject,
   type Slot,
 } from 'vue';
-import { INJECT_CONFIG } from '../../component-provider';
-import { ContainerFragment, type ContainerComponent } from '../../form';
+import { INJECT_CONFIG } from '../../component-provider/constants';
+import { ContainerFragment } from '../../form';
+import type { ContainerComponent } from '../../form/types';
 import SearchForm from './SearchForm.vue';
 import { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../useTable';
@@ -158,7 +159,7 @@ const computedTableContainer = computed(() => {
   return container ? container : undefined;
 });
 
-type ReturnGenericParameterTypes<V> = V extends Table<infer U> ? U : never;
+type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
 type RecordType = ReturnGenericParameterTypes<T>;
 
 const indexColumn: ColumnType = {

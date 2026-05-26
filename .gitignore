@@ -29,3 +29,7 @@ dist-ssr
 
 docs/**/.vitepress/cache
 docs/**/.vitepress/dist
+
+# Generated API JSON files
+api.json
+packages/*/api.json

@@ -1,4 +1,22 @@
 <script lang="ts" setup>
+/**
+ * @component BaseField
+ * @description @qin-ui/antd-vue-pro 字段组件渲染器（内部组件）
+ *
+ * 负责将字段配置中的 component 属性渲染为实际的 UI 组件，支持：
+ * - 字符串组件名映射（如 'input' → Ant Design Vue 的 Input 组件）
+ * - 直接传入组件对象（自定义组件）
+ * - Teleport 组件替换（通过插槽以 path 命名提供组件）
+ * - 值双向绑定（v-model 绑定到表单数据）
+ * - 值格式化（valueFormatter 处理输入/输出值）
+ * - 组件容器包装（componentContainer 包裹组件）
+ * - 禁用状态继承（从父级 FormItem 继承）
+ *
+ * @param {string | Component} [component] - 组件名或组件对象
+ * @param {string} [path] - 字段路径，用于绑定表单数据
+ *
+ * @slot default - 默认插槽（透传给组件）
+ */
 import {
   type Component,
   computed,

@@ -6,6 +6,42 @@ import { InjectionFormKey } from './constants';
 import { Data, DeepPartial, ExtendWithAny } from '../shared/types';
 import { BaseField } from './types';
 
+/**
+ * 表单实例类型
+ * @template D - 表单数据类型
+ * @template F - 字段配置类型
+ * @template I - 底层 UI 框架 Form 组件实例类型
+ *
+ * 组合了表单数据操作、字段操作和表单 ref 操作的能力。
+ *
+ * @example
+ * ```ts
+ * // 定义数据类型
+ * interface User {
+ *   name: string
+ *   age: number
+ *   address: { city: string; street: string }
+ * }
+ *
+ * // 创建表单实例
+ * const form: Form<User> = useForm({
+ *   name: '张三',
+ *   age: 25,
+ * })
+ *
+ * // 读取数据
+ * form.getFormData('name') // '张三'
+ * form.getFormData('address.city') // 支持深层路径
+ *
+ * // 设置数据
+ * form.setFormData('name', '李四')
+ * form.setFormData({ name: '王五', age: 30 }) // 批量设置
+ *
+ * // 字段操作
+ * form.getField('name') // 获取字段配置
+ * form.setField('name', { label: '用户名' }) // 更新字段配置
+ * ```
+ */
 export type Form<
   D extends Data = Data,
   F extends BaseField<D> = BaseField<D>,
@@ -14,12 +50,56 @@ export type Form<
   ReturnType<typeof useFields<D, F>> &
   ReturnType<typeof useFormRef<I>>;
 
+/**
+ * 创建表单实例的核心 Hook
+ *
+ * @description useForm 是 ProForm 的核心，它组合了三个子 Hook：
+ * - useFormData: 表单数据管理（响应式数据、读取、更新）
+ * - useFields: 字段配置管理（增删改查字段配置）
+ * - useFormRef: 底层 UI 框架 Form 组件实例引用
+ *
+ * @template D - 表单数据类型，应为一个对象类型
+ * @template F - 字段配置类型，应继承 BaseField<D>
+ *
+ * @param {ExtendWithAny<DeepPartial<D>>} [initFormData] - 初始表单数据
+ * @param {F[]} [initFields] - 初始字段配置数组
+ * @param {boolean} [root=true] - 是否为根表单。如果为 false，会尝试从注入中获取父表单实例
+ *
+ * @returns {Form<D, F>} 表单实例，包含数据操作、字段操作和 ref 操作
+ *
+ * @example
+ * ```ts
+ * // 方式一：同时传入初始数据和字段
+ * const form = useForm<User>(
+ *   { name: '张三', age: 25 },
+ *   [
+ *     { path: 'name', label: '姓名', component: 'input' },
+ *     { path: 'age', label: '年龄', component: 'input-number' },
+ *   ],
+ *   true
+ * )
+ *
+ * // 方式二：仅设置 root 标识
+ * const form = useForm<User>(true)
+ *
+ * // 方式三：获取父表单实例（非根）
+ * const form = useForm<User>(false)
+ * ```
+ */
 function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   initFormData?: ExtendWithAny<DeepPartial<D>>,
   initFields?: F[],
   root?: boolean
 ): Form<D, F>;
 
+/**
+ * 创建表单实例的核心 Hook（仅传入 root 标识的重载）
+ *
+ * @template D - 表单数据类型
+ * @template F - 字段配置类型
+ * @param {boolean} root - 是否为根表单
+ * @returns {Form<D, F>} 表单实例
+ */
 function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   root?: boolean
 ): Form<D, F>;

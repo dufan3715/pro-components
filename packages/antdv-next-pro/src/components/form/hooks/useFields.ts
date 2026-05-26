@@ -5,9 +5,25 @@ import type { Field, Fields } from '../types';
 import type { ComponentName } from '../constants';
 
 /**
- * 类型断言 re-export @qin-ui/core 的 useFields，
- * 将泛型参数 F 的默认值覆盖为本地的 Field<D>，
- * 使得 fields、getField 等方法的类型推断包含 UI 库的完整属性签名。
+ * @qin-ui/antdv-next-pro 的字段配置管理 Hook
+ *
+ * @description 类型安全的 re-export。将 core useFields 的泛型参数绑定为本地类型：
+ * - 字段类型 F → Field<ComponentName, D>（支持 antdv-next 组件类型推导）
+ * - FormItem 实例 → antdv-next 的 FormItemInstance
+ *
+ * @template D - 表单数据类型
+ *
+ * @example
+ * ```ts
+ * interface User { name: string; age: number }
+ *
+ * const { fields, getField, setField } = useFields<User>([
+ *   { path: 'name', label: '姓名', component: 'input' },
+ *   { path: 'age', label: '年龄', component: 'input-number' },
+ * ])
+ * ```
+ 
+ * @public
  */
 export const useFields = _useFields as {
   <D extends Data = Data>(
@@ -17,5 +33,7 @@ export const useFields = _useFields as {
   >;
 };
 
-/** useFields 返回值类型，固定为本地 Fields<D> */
+/** useFields 返回值类型，固定为本地 Fields<D>
+ * @public
+ */
 export type UseFields<D extends Data = Data> = ReturnType<typeof useFields<D>>;

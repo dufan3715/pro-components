@@ -6,7 +6,7 @@ import {
   gridItemProps,
   formItemProps,
 } from '../../../../shared/ui';
-import { INJECT_CONFIG } from '../../../component-provider';
+import { INJECT_CONFIG } from '../../../component-provider/constants';
 import type { Base, Field } from '../../types';
 import { FORM_ITEM_SLOT_KEYS } from '../../constants';
 import { isPlainObject } from '../../../../shared/core';

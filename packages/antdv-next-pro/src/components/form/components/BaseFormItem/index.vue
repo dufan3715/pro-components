@@ -12,7 +12,7 @@ import type { Fields, Grid } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
 import PathProvider from '../PathProvider/index.vue';
 import GroupedFieldAttrs from '../GroupedFieldAttrs/index.vue';
-import { INJECT_CONFIG } from '../../../component-provider';
+import { INJECT_CONFIG } from '../../../component-provider/constants';
 
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
