@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.1.10",
+  "version": "2.1.11",
   "description": "二次封装antd vue组件",
   "type": "module",
   "module": "es/index.js",
@@ -15,7 +15,9 @@
   "files": [
     "es",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "api.json",
+    "AI-CONTEXT.md"
   ],
   "homepage": "https://dufan3715.github.io/pro-components/",
   "repository": {
@@ -23,6 +25,7 @@
     "url": "git+https://github.com/dufan3715/pro-components.git"
   },
   "scripts": {
+    "prebuild": "tsx ../../scripts/generate-api-json.ts antd-vue-pro",
     "build": "vue-tsc && vite build"
   },
   "author": "dufan3715",

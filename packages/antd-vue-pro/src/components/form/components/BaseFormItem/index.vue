@@ -1,4 +1,24 @@
 <script lang="ts" setup>
+/**
+ * @component ProFormItem
+ * @description @qin-ui/antd-vue-pro 表单字段渲染组件（内部递归组件）
+ *
+ * 负责将字段配置数组渲染为实际的表单项，支持：
+ * - 字段分组（嵌套 fields 递归渲染）
+ * - 网格布局（grid 属性控制）
+ * - FormItem 包装（label、rules、校验等）
+ * - 组件绑定（通过 BaseField 渲染具体组件）
+ * - 插槽透传（label、extra、help 等 FormItem 插槽）
+ *
+ * @param {Fields<D>} [fields] - 字段配置数组
+ * @param {boolean | GridProps} [grid] - 是否启用网格布局
+ * @param {boolean} [disabled] - 是否禁用所有子字段
+ *
+ * @example
+ * ```vue
+ * <BaseFormItem :fields="fields" :grid="true" />
+ * ```
+ */
 import { getObject, toPath } from '../../../../shared/core';
 import {
   FormItem,
@@ -12,7 +32,7 @@ import type { Fields, Grid } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
 import PathProvider from '../PathProvider/index.vue';
 import GroupedFieldAttrs from '../GroupedFieldAttrs/index.vue';
-import { INJECT_CONFIG } from '../../../component-provider';
+import { INJECT_CONFIG } from '../../../component-provider/constants';
 
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 

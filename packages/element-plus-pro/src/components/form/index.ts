@@ -1,17 +1,29 @@
-import { BaseForm } from './components';
+import BaseForm from './components/BaseForm/index.vue';
 
-// components
-export * from './components';
+// 1. 仅导出核心 Vue 组件包装及外部可重用组件与类型
+export {
+  ContainerFragment,
+  SlotComponent,
+  type ProFormProps,
+  type ProFormInstance,
+  type ProFormItemProps,
+  type ProFormItemInstance,
+} from './components';
 
-// constants
-export * from './constants';
+// 2. 仅导出允许模块合并扩展的 ComponentMap 以及组件名类型
+export { type ComponentMap, type ComponentName } from './constants';
 
-// types
-export * from './types';
+// 3. 仅导出核心表单配置 Schema 类型
+export { type Field, type Fields } from './types';
 
-// hooks
-export * from './hooks';
-
-export * from './components/BaseField/utils';
+// 4. 仅导出核心业务 Hooks
+export {
+  useForm,
+  useFields,
+  useFormRef,
+  useFormData,
+  type Form,
+  type UseFields,
+} from './hooks';
 
 export default BaseForm;

@@ -13,6 +13,7 @@
     "lint:prettier": "prettier --write  \"**/*.{js,ts,json,tsx,css,less,scss,vue,html,md}\"",
     "lint": "pnpm lint:eslint && pnpm lint:stylelint && pnpm lint:prettier",
     "lint:lint-staged": "lint-staged -c lint-staged.config.mjs",
+    "generate:api": "tsx scripts/generate-api-json.ts",
     "clean": "rm -rf node_modules **/*/node_modules"
   },
   "devDependencies": {

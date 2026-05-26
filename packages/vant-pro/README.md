@@ -1,8 +1,15 @@
 # @qin-ui/vant-pro
 
-> 基于 Vant 4 和 @qin-ui/core 二次封装的移动端高级表单组件库。
+> 基于 **Vant 4** 和 **@qin-ui/core** 二次封装的移动端高级表单组件库，专门针对移动端 H5 精细化打造，助您极速构建交互流畅、配置驱动的移动端表单应用。
 
-## [📖 使用示例和文档详情](https://dufan3715.github.io/pro-components/)
+<p align="center">
+  <img src="https://img.shields.io/badge/Vant-4.x-blue" alt="Vant 4.x" />
+  <img src="https://img.shields.io/badge/Vue-3.5%2B-brightgreen" alt="Vue 3.5+" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-blue" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT" />
+</p>
+
+## 📝 [使用示例和文档详细内容](https://dufan3715.github.io/pro-components/)
 
 ---
 

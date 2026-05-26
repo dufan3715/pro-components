@@ -12,7 +12,7 @@ import { useDisabledContext } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import { componentMap, TeleportComponentNamePrefix } from '../../constants';
-import { INJECT_COMPONENTS } from '../../../component-provider';
+import { INJECT_COMPONENTS } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
 

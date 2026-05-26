@@ -1,6 +1,6 @@
 import type { ComponentPublicInstance } from 'vue';
 import type { PaginationProps, TableProps } from '../../shared/ui';
-import type { ContainerComponent } from '../form';
+import type { ContainerComponent } from '../form/types';
 import type { Columns } from './types';
 import type { SearchFormProps } from './components/SearchForm.vue';
 import type { Table } from './useTable';
@@ -30,7 +30,7 @@ export type ProTableProps<T extends Table<any> = Table> = {
 export type ProTableInstance = ComponentPublicInstance;
 
 // types
-export * from './types';
+export { type Column, type Columns } from './types';
 
 // hooks
 export { useTable, type Table } from './useTable';

@@ -1,5 +1,5 @@
 import { Field } from '../../../types';
-import { getInjectConfig } from '../../../../component-provider';
+import { getInjectConfig } from '../../../../component-provider/constants';
 import { inject } from 'vue';
 
 export const getInitProps = (field: Field): Record<string, any> => {

@@ -36,34 +36,148 @@ type SetColumn<
   } & UpdateColumnOptions
 ) => void;
 
+/**
+ * 表格实例类型
+ * @template D - 搜索表单数据类型
+ * @template T - 表格数据类型（表格行数据类型），默认为 ExtendWithAny<D>
+ * @template C - 列配置类型，继承自 BaseColumn<T>
+ *
+ * 组合了列操作、数据源管理、分页管理和搜索表单的能力。
+ *
+ * @example
+ * ```ts
+ * interface User { name: string; age: number; }
+ * interface SearchParams { keyword: string }
+ *
+ * const table: Table<SearchParams, User> = useTable({
+ *   columns: [
+ *     { key: 'name', title: '姓名' },
+ *     { key: 'age', title: '年龄' },
+ *   ],
+ *   dataSource: [
+ *     { name: '张三', age: 25 },
+ *   ],
+ *   searchFields: [
+ *     { path: 'keyword', label: '关键词', component: 'input' },
+ *   ],
+ * })
+ *
+ * // 列操作
+ * table.setColumn('name', { title: '用户名' })
+ * table.appendColumn('name', { key: 'email', title: '邮箱' })
+ * table.deleteColumn('age')
+ *
+ * // 分页操作
+ * table.setPageParam({ current: 2, pageSize: 20 })
+ * table.resetQueryParams()
+ *
+ * // 搜索表单
+ * table.searchForm.getFormData('keyword')
+ * table.searchForm.setFormData('keyword', '张三')
+ * ```
+ */
 export type Table<
   D extends Data = Data,
   T extends Data = ExtendWithAny<D>,
   C extends BaseColumn<T> = BaseColumn<T>,
 > = {
+  /** 列配置数组（响应式） */
   columns: Ref<Columns<T, C>>;
+  /** 数据源数组（响应式） */
   dataSource: Ref<T[]>;
+  /** 分页参数（响应式） */
   pageParam: Reactive<PageParam>;
+  /** 搜索表单实例 */
   searchForm: Form<D>;
+  /** 设置列配置 */
   setColumn: SetColumn<T, C>;
+  /** 删除列 */
   deleteColumn: (
     path: Path<T> | ColumnFindBy<T, C>,
     options?: UpdateColumnOptions
   ) => void;
+  /** 在指定列后追加列 */
   appendColumn: (
     path: Path<T> | ColumnFindBy<T, C> | undefined,
     column: C | Columns<T, C>,
     options?: UpdateColumnOptions
   ) => void;
+  /** 在指定列前插入列 */
   prependColumn: (
     path: Path<T> | ColumnFindBy<T, C> | undefined,
     column: C | Columns<T, C>,
     options?: UpdateColumnOptions
   ) => void;
+  /** 设置分页参数 */
   setPageParam: SetPageParam;
+  /** 重置查询参数（重置分页和搜索条件到初始值） */
   resetQueryParams: () => void;
 };
 
+/**
+ * 创建表格实例的核心 Hook
+ *
+ * @description useTable 是 ProTable 的核心，提供了：
+ * - 列配置管理（增删改查）
+ * - 数据源管理
+ * - 分页管理
+ * - 搜索表单集成（内部使用 useForm）
+ * - 查询参数重置
+ *
+ * @template D - 搜索表单数据类型
+ * @template T - 表格数据类型（行数据类型），默认与搜索表单数据一致并扩展
+ * @template C - 列配置类型，继承自 BaseColumn<T>
+ *
+ * @param {object} params - 表格配置参数
+ * @param {Columns<T, C>} [params.columns] - 初始列配置
+ * @param {T[]} [params.dataSource] - 初始数据源
+ * @param {PageParam} [params.pageParam] - 初始分页参数
+ * @param {ExtendWithAny<DeepPartial<D>>} [params.searchParam] - 初始搜索参数
+ * @param {Fields<D>} [params.searchFields] - 搜索表单字段配置
+ *
+ * @returns {Table<D, T, C>} 表格实例
+ *
+ * @example
+ * ```ts
+ * interface SearchParams { keyword: string; status: string }
+ * interface User { name: string; age: number; email: string }
+ *
+ * const table = useTable<SearchParams, User>({
+ *   // 列配置
+ *   columns: [
+ *     { key: 'name', title: '姓名' },
+ *     { key: 'age', title: '年龄' },
+ *     { key: 'email', title: '邮箱' },
+ *   ],
+ *   // 数据源
+ *   dataSource: [],
+ *   // 分页
+ *   pageParam: { current: 1, pageSize: 20, total: 0 },
+ *   // 搜索表单
+ *   searchParam: { keyword: '', status: '' },
+ *   searchFields: [
+ *     { path: 'keyword', label: '关键词', component: 'input' },
+ *     { path: 'status', label: '状态', component: 'select' },
+ *   ],
+ * })
+ *
+ * // 查询
+ * const handleSearch = async () => {
+ *   const res = await fetchUserList({
+ *     ...table.searchForm.formData,
+ *     ...table.pageParam,
+ *   })
+ *   table.dataSource.value = res.data
+ *   table.setPageParam({ total: res.total })
+ * }
+ *
+ * // 重置
+ * const handleReset = () => {
+ *   table.resetQueryParams()
+ *   handleSearch()
+ * }
+ * ```
+ */
 const useTable = <
   D extends Data = Data,
   T extends Data = ExtendWithAny<D>,
@@ -137,6 +251,23 @@ const useTable = <
     }
   };
 
+  /**
+   * 设置列配置
+   *
+   * @param {Path<T>} key - 列字段路径
+   * @param {C | ((pre: Readonly<C>) => C)} column - 新的列配置或更新函数
+   * @param {object} [options] - 更新选项
+   * @param {'rewrite' | 'merge'} [options.updateType='merge'] - 更新方式：merge 合并、rewrite 覆盖
+   *
+   * @example
+   * ```ts
+   * // 合并更新列属性
+   * table.setColumn('name', { title: '用户名', width: 150 })
+   *
+   * // 覆盖更新
+   * table.setColumn('name', { key: 'name', title: '姓名' }, { updateType: 'rewrite' })
+   * ```
+   */
   const setColumn: SetColumn<T, C> = (key, column, options) => {
     if (!key || !column) return;
     const { updateType = 'merge', ...rest } = options || {};
@@ -158,6 +289,22 @@ const useTable = <
     );
   };
 
+  /**
+   * 删除列
+   *
+   * @param {Path<T> | ColumnFindBy<T, C>} path - 列字段路径或查找函数
+   * @param {object} [options] - 删除选项
+   * @param {boolean} [options.all] - 是否删除所有匹配，默认只删除第一个
+   *
+   * @example
+   * ```ts
+   * // 删除单个列
+   * table.deleteColumn('email')
+   *
+   * // 删除所有隐藏列
+   * table.deleteColumn(c => c.hidden, { all: true })
+   * ```
+   */
   function deleteColumn(
     path: Path<T> | ColumnFindBy<T, C>,
     options?: UpdateColumnOptions
@@ -170,6 +317,62 @@ const useTable = <
       },
       options
     );
+  }
+
+  /**
+   * 在指定列后追加列
+   *
+   * @param {Path<T> | ColumnFindBy<T, C> | undefined} path - 目标列路径，传 undefined 则在末尾追加
+   * @param {C | Columns<T, C>} column - 要追加的列配置或列数组
+   * @param {object} [options] - 追加选项
+   *
+   * @example
+   * ```ts
+   * // 在 name 列后追加 email 列
+   * table.appendColumn('name', { key: 'email', title: '邮箱' })
+   *
+   * // 在末尾追加
+   * table.appendColumn(undefined, { key: 'remark', title: '备注' })
+   *
+   * // 批量追加
+   * table.appendColumn('name', [
+   *   { key: 'email', title: '邮箱' },
+   *   { key: 'phone', title: '电话' },
+   * ])
+   * ```
+   */
+  function appendColumn(
+    path: Path<T> | ColumnFindBy<T, C> | undefined,
+    column: C | Columns<T, C>,
+    options?: UpdateColumnOptions
+  ) {
+    const newColumns = Array.isArray(column) ? column : [column];
+    addColumns(path, newColumns, options, 'after');
+  }
+
+  /**
+   * 在指定列前插入列
+   *
+   * @param {Path<T> | ColumnFindBy<T, C> | undefined} path - 目标列路径，传 undefined 则在开头插入
+   * @param {C | Columns<T, C>} column - 要插入的列配置或列数组
+   * @param {object} [options] - 插入选项
+   *
+   * @example
+   * ```ts
+   * // 在 name 列前插入 id 列
+   * table.prependColumn('name', { key: 'id', title: 'ID' })
+   *
+   * // 在开头插入
+   * table.prependColumn(undefined, { key: 'id', title: 'ID' })
+   * ```
+   */
+  function prependColumn(
+    path: Path<T> | ColumnFindBy<T, C> | undefined,
+    column: C | Columns<T, C>,
+    options?: UpdateColumnOptions
+  ) {
+    const newColumns = Array.isArray(column) ? column : [column];
+    addColumns(path, newColumns, options, 'before');
   }
 
   function addColumns(
@@ -193,24 +396,6 @@ const useTable = <
     } else {
       columns.value.unshift(...(newColumns as any));
     }
-  }
-
-  function appendColumn(
-    path: Path<T> | ColumnFindBy<T, C> | undefined,
-    column: C | Columns<T, C>,
-    options?: UpdateColumnOptions
-  ) {
-    const newColumns = Array.isArray(column) ? column : [column];
-    addColumns(path, newColumns, options, 'after');
-  }
-
-  function prependColumn(
-    path: Path<T> | ColumnFindBy<T, C> | undefined,
-    column: C | Columns<T, C>,
-    options?: UpdateColumnOptions
-  ) {
-    const newColumns = Array.isArray(column) ? column : [column];
-    addColumns(path, newColumns, options, 'before');
   }
 
   return {

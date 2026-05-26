@@ -1,5 +1,6 @@
 {
   "name": "@qin-ui/core",
+  "private": true,
   "version": "1.0.0",
   "description": "Core logic for pro-components",
   "type": "module",

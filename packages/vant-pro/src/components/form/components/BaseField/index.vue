@@ -12,7 +12,7 @@ import { cloneDeep, omit } from '../../../../shared/core';
 import type { Field as FieldType } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import { componentMap, TeleportComponentNamePrefix } from '../../constants';
-import { INJECT_COMPONENTS } from '../../../component-provider';
+import { INJECT_COMPONENTS } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
 import { Field as UIField } from '../../../../shared/ui';

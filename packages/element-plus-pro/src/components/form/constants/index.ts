@@ -15,9 +15,17 @@ import {
   TreeSelect,
 } from '../../../shared/ui';
 
+/**
+ * FormItem 插槽名称列表
+ * @description 用于在字段配置中透传 FormItem 的插槽（Element Plus 版本）
+ */
 // prettier-ignore
 export const FORM_ITEM_SLOT_KEYS = ['label', 'error'] as const;
 
+/**
+ * 内置组件映射表
+ * @description Element Plus 内置支持的组件类型映射
+ */
 // prettier-ignore
 export type BaseComponentMap = {
   'input': typeof Input;
@@ -37,7 +45,10 @@ export type BaseComponentMap = {
 }
 
 /**
- * @description 暴露给外部扩充自定义组件类型的接口
+ * 组件映射扩展接口
+ * @description 暴露给外部扩充自定义组件类型的接口。
+ * 用户可通过 TypeScript 的声明合并（module augmentation）添加自定义组件。
+ *
  * @example
  * ```ts
  * declare module '@qin-ui/element-plus-pro' {
@@ -46,15 +57,27 @@ export type BaseComponentMap = {
  *   }
  * }
  * ```
+ 
+ * @public
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ComponentMap {}
 
+/**
+ * 组件名称联合类型
+ * @description 所有支持的组件名称
+ 
+ * @public
+ */
 export type ComponentName =
   | keyof BaseComponentMap
   | keyof ComponentMap
   | 'custom';
 
+/**
+ * 根据组件名获取组件类型
+ * @template K - 组件名称
+ */
 export type GetComponentType<K extends ComponentName> =
   K extends keyof ComponentMap
     ? ComponentMap[K]
@@ -62,6 +85,9 @@ export type GetComponentType<K extends ComponentName> =
       ? BaseComponentMap[K]
       : never;
 
+/**
+ * 组件名称到 Element Plus 组件的映射
+ */
 // prettier-ignore
 export const componentMap: BaseComponentMap = {
   'input': Input,
@@ -80,6 +106,10 @@ export const componentMap: BaseComponentMap = {
   'transfer': Transfer,
 }
 
+/**
+ * Teleport 组件名称前缀
+ * @description 用于通过插槽动态替换指定 path 的组件
+ */
 export const TeleportComponentNamePrefix = 'TeleportComponent_';
 
 // inject keys

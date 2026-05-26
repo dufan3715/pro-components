@@ -279,6 +279,8 @@ type WithComponent<
 /**
  * @description 字段配置类型，包含所有字段属性和响应式支持
  * @template D - 数据对象类型
+ 
+ * @public
  */
 export type Field<
   C extends ComponentName = ComponentName,
@@ -292,5 +294,7 @@ export type Field<
 /**
  * @description 字段数组类型
  * @template D - 数据对象类型
+ 
+ * @public
  */
 export type Fields<D extends Data = Data> = Array<Field<ComponentName, D>>;

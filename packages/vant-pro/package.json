@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/vant-pro",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "基于 vant 和 @qin-ui/core 封装的高级表单和列表组件库",
   "type": "module",
   "module": "es/index.js",
@@ -15,7 +15,9 @@
   "files": [
     "es",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "api.json",
+    "AI-CONTEXT.md"
   ],
   "homepage": "https://dufan3715.github.io/pro-components/",
   "repository": {
@@ -23,6 +25,7 @@
     "url": "git+https://github.com/dufan3715/pro-components.git"
   },
   "scripts": {
+    "prebuild": "tsx ../../scripts/generate-api-json.ts vant-pro",
     "build": "vue-tsc && vite build"
   },
   "author": "dufan3715",
