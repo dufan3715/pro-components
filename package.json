@@ -8,6 +8,7 @@
     "dev": "pnpm run examples:dev",
     "examples:dev": "pnpm -F examples dev",
     "prepare": "husky install",
+    "build": "pnpm --filter \"./packages/**\" build",
     "lint:eslint": "eslint --cache --max-warnings 0 \"**/*.{vue,js,ts,tsx}\" --fix",
     "lint:stylelint": "stylelint --cache --fix \"**/*.{vue,css,scss,less}\" --cache --cache-location node_modules/.cache/stylelint/",
     "lint:prettier": "prettier --write  \"**/*.{js,ts,json,tsx,css,less,scss,vue,html,md}\"",

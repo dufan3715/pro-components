@@ -45,6 +45,8 @@ jobs:
         uses: actions/configure-pages@v4
       - name: Install dependencies
         run: pnpm install # 或 pnpm install / yarn install / bun install
+      - name: Build packages
+        run: pnpm build
       - name: Build with VitePress
         run: |
           cd docs
