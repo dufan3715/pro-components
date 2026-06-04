@@ -122,9 +122,10 @@ watch(
   [
     () => form?.fields.value?.filter((f: any) => !f.hidden)?.length,
     () => formRef.value,
+    () => expand,
   ],
   () => {
-    if (!expandStatus.value || !formRef.value) return;
+    if (!expand || !expandStatus.value || !formRef.value) return;
     const proFormEl = (formRef.value as any)?.$el;
     const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
     proFormHeight.value = height;
