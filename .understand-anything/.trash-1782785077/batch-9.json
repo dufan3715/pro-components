@@ -1,0 +1,104 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/vant-pro/src/components/component-provider/components/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/component-provider/components/index.vue",
+      "summary": "ProComponentProvider 全局配置提供者组件，通过 provide/inject 模式向子组件树注入组件变量(componentVars)和自定义组件映射(componentMap)，模板仅渲染默认插槽。",
+      "tags": ["component", "provider", "vue", "provide-inject", "configuration"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/component-provider/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/component-provider/index.ts",
+      "summary": "component-provider 模块的 barrel 入口文件，默认导出 ComponentProvider 组件并重新暴露 ComponentVars 类型供外部消费。",
+      "tags": ["barrel", "entry-point", "re-export", "type-definition"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "summary": "ProForm 配置驱动表单核心组件，支持泛型表单实例、字段联动、嵌套字段与 Popup 弹出层表单，通过 provide 向下传递表单实例和字段插槽实现跨层级通信。",
+      "tags": ["component", "form", "vue", "popup", "configuration-driven", "generic"],
+      "complexity": "complex",
+      "languageNotes": "使用 Vue 3 泛型组件(generic='F extends Form<any> = Form')实现类型安全的表单实例推导，结合 provide/inject 实现跨层级字段插槽传送。"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/components/index.ts",
+      "summary": "form 子组件模块的 barrel 入口文件，集中导出 BaseField、ContainerFragment、SlotComponent 等内部组件及 ProFormInstance/ProFormProps 实例类型。",
+      "tags": ["barrel", "re-export", "type-definition", "typescript"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/index.ts",
+      "summary": "form 模块的主入口文件，分类组织导出：组件(ContainerFragment/SlotComponent)、常量(ComponentName)、类型(Field/Fields)和 Hooks(useForm/useFields 等)，构成完整的表单公共 API 表面。",
+      "tags": ["barrel", "entry-point", "api-surface", "re-export", "typescript"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/index.ts",
+      "summary": "@qin-ui/vant-pro 包的主入口，通过 withInstall 包装器为 ProForm 和 ProComponentProvider 添加 install 方法使其成为 Vue 插件，导出默认全局安装对象和命名组件供按需引入。",
+      "tags": ["entry-point", "vue-plugin", "barrel", "install", "typescript"],
+      "complexity": "moderate",
+      "languageNotes": "使用 withInstall 高阶函数模式为组件附加 app.component() 安装能力，符合 Vue 插件规范，支持 app.use() 全局注册和按需导入两种使用方式。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/components/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/components/index.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

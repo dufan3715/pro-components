@@ -1,0 +1,393 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/form/components/PathProvider/index.vue",
+      "summary": "路径提供者组件，通过 provide 向子组件注入当前表单字段的路径信息(namePath)，并通过作用域插槽暴露路径值，用于表单嵌套字段的路径传递。",
+      "tags": ["provider", "dependency-injection", "form", "path", "vue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/form/components/SlotComponent/index.vue",
+      "summary": "插槽渲染辅助组件，根据传入的 component 类型(VNode、渲染函数或字符串)动态渲染内容，用于表单自定义插槽中的灵活内容展示。",
+      "tags": ["slot", "renderer", "dynamic-component", "vnode", "vue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/hooks/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/index.ts",
+      "summary": "表单钩子模块的统一导出入口(barrel)，集中 re-export useForm、useFields、useFormRef 等表单相关组合式函数以及 useFormData。",
+      "tags": ["barrel", "entry-point", "hooks", "form", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "type": "file",
+      "name": "ColumnControl.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "summary": "表格列显示控制组件，基于 ElDropdown 和 Checkbox 实现列的显示/隐藏切换，支持全选操作和半选状态(indeterminate)管理。",
+      "tags": ["table", "column-control", "dropdown", "checkbox", "visibility-toggle"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "type": "file",
+      "name": "DefaultSearchFormContainer.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "summary": "默认搜索表单容器组件，提供带背景色、圆角和内边距的 div 容器，用于包裹 ProTable 的搜索表单区域。",
+      "tags": ["container", "search-form", "layout", "table"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/DefaultTableContainer.vue",
+      "type": "file",
+      "name": "DefaultTableContainer.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/DefaultTableContainer.vue",
+      "summary": "默认表格容器组件，提供 flex 自适应布局的 div 容器，用于包裹 ProTable 的表格主体区域。",
+      "tags": ["container", "table", "layout", "flex"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "type": "file",
+      "name": "ColumnHeightOutlined.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "summary": "列高(行高)SVG 图标组件，用于表格行高切换按钮的视觉标识。",
+      "tags": ["icon", "svg", "table", "column-height"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/icons/DownOutlined.vue",
+      "type": "file",
+      "name": "DownOutlined.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/DownOutlined.vue",
+      "summary": "向下箭头 SVG 图标组件，用于表格下拉菜单等展开操作的视觉标识。",
+      "tags": ["icon", "svg", "arrow", "dropdown"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "type": "file",
+      "name": "FilterOutlined.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "summary": "筛选漏斗 SVG 图标组件，用于表格列筛选/列显示控制按钮的视觉标识。",
+      "tags": ["icon", "svg", "filter", "table"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/table/components/index.ts",
+      "summary": "表格子组件模块的统一导出入口(barrel)，集中 re-export DefaultSearchFormContainer、DefaultTableContainer、SizeControl、ColumnControl。",
+      "tags": ["barrel", "entry-point", "table", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/SizeControl.vue",
+      "type": "file",
+      "name": "SizeControl.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/SizeControl.vue",
+      "summary": "表格尺寸切换组件，基于 ElDropdown 提供默认、中等、紧凑三种表格行高切换，通过 defineModel 双向绑定 size 值。",
+      "tags": ["table", "size-control", "dropdown", "define-model"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue",
+      "type": "file",
+      "name": "TableColumnRenderer.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue",
+      "summary": "表格列动态渲染器，使用 Vue 泛型组件(generic D)根据 columns 配置动态渲染 ElTableColumn，支持隐藏列过滤、自定义 render 函数和 cellValue 获取。",
+      "tags": ["table", "column-renderer", "dynamic-rendering", "generic", "vue"],
+      "complexity": "moderate",
+      "languageNotes": "使用 Vue 3.3+ generic 泛型组件语法定义行数据类型 D，支持类型安全的列渲染。"
+    },
+    {
+      "id": "file:packages/element-plus-pro/vite.config.ts",
+      "type": "file",
+      "name": "vite.config.ts",
+      "filePath": "packages/element-plus-pro/vite.config.ts",
+      "summary": "element-plus-pro 包的 Vite 构建配置，设置 ES 模块库模式构建，自动扫描 src/components 子目录作为独立入口，配置 vendor/core 代码分割和外部依赖。",
+      "tags": ["build-system", "vite", "configuration", "library", "element-plus"],
+      "complexity": "moderate",
+      "languageNotes": "使用 vite-plugin-dts 生成类型声明文件，rollupOptions.manualChunks 将 lodash-es 和 @qin-ui/core 分离为独立 chunk。"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "summary": "vant-pro 表单基础字段组件，负责单个字段的完整渲染逻辑：包括 v-model 双向绑定、值格式化(valueFormatter/displayFormatter)、Popup 弹窗模式、Teleport 传送、自定义组件映射和只读状态展示。",
+      "tags": ["form", "field", "popup", "value-formatter", "teleport", "complex-component"],
+      "complexity": "complex",
+      "languageNotes": "通过 mergeProps 合并组件属性，支持 field/cascader/signature 等不同组件的弹窗事件名映射，使用 inject 获取全局自定义组件注册表。"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseFormItem/index.vue",
+      "summary": "vant-pro 表单字段项组件，遍历 fields 配置数组并过滤隐藏字段，对每个有效字段通过 PathProvider 注入路径后递归渲染嵌套字段或委托 BaseField 渲染。",
+      "tags": ["form", "form-item", "field-iteration", "recursive", "nested-fields"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/ContainerFragment/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/ContainerFragment/index.vue",
+      "summary": "容器分片组件，根据传入的 component 动态渲染布局容器(如 Grid 行/列)，无容器时直接透传 slot 内容，用于表单字段的灵活布局包装。",
+      "tags": ["container", "fragment", "dynamic-component", "layout"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "summary": "字段属性分组组件，从 Field 配置对象中剔除路径(path)、隐藏(hidden)、嵌套字段(fields)等元数据，提取纯组件属性通过作用域插槽向下传递。",
+      "tags": ["form", "field-attrs", "grouping", "props-filtering"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/PathProvider/index.vue",
+      "summary": "vant-pro 路径提供者组件，通过 provide 向子组件注入当前表单字段路径(namePath)，支持数组路径 join 为点分隔字符串，通过作用域插槽暴露路径值。",
+      "tags": ["provider", "dependency-injection", "form", "path", "vue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/SlotComponent/index.vue",
+      "summary": "vant-pro 插槽渲染辅助组件，与 element-plus-pro 版本功能一致：根据 component 类型(VNode/函数/字符串)动态渲染内容。",
+      "tags": ["slot", "renderer", "dynamic-component", "vnode", "vue"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/index.ts",
+      "summary": "vant-pro 表单钩子模块的统一导出入口(barrel)，集中 re-export useForm、useFields、useFormRef、useFormPopup 以及 useFormData。",
+      "tags": ["barrel", "entry-point", "hooks", "form", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/vite.config.ts",
+      "type": "file",
+      "name": "vite.config.ts",
+      "filePath": "packages/vant-pro/vite.config.ts",
+      "summary": "vant-pro 包的 Vite 构建配置，ES 模块库模式构建，自动扫描 src/components 子目录作为独立入口，外部依赖为 vue 和 vant，配置 vendor/core 代码分割。",
+      "tags": ["build-system", "vite", "configuration", "library", "vant"],
+      "complexity": "moderate",
+      "languageNotes": "与 element-plus-pro/vite.config.ts 结构几乎一致，差异仅在于外部依赖(vant 替代 element-plus)和注释掉的 CSS intro 注入。"
+    },
+    {
+      "id": "file:stylelint.config.mjs",
+      "type": "file",
+      "name": "stylelint.config.mjs",
+      "filePath": "stylelint.config.mjs",
+      "summary": "monorepo 根目录的 Stylelint 配置，集成 Less、Rational Order、Vue 和 Prettier 推荐规则，关闭 no-empty-source 规则以避免空样式块报错。",
+      "tags": ["linting", "stylelint", "configuration", "less", "monorepo"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/table/components/ColumnControl.vue:checkedColumnsOptions",
+      "type": "function",
+      "name": "checkedColumnsOptions",
+      "filePath": "packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "lineRange": [30, 39],
+      "summary": "计算属性，将 columns 配置映射为下拉选项列表，包含 label(显示名)、value(列标识)和 checked(可见状态)，用于渲染列控制复选框。",
+      "tags": ["computed", "column-options", "table", "mapping"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/table/components/ColumnControl.vue:checkedColumnKeys",
+      "type": "function",
+      "name": "checkedColumnKeys",
+      "filePath": "packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "lineRange": [41, 54],
+      "summary": "可写计算属性(get/set)，get 返回当前可见列的 key 数组，set 通过 table.setColumn 同步更新所有列的 hidden 状态，驱动列显示/隐藏。",
+      "tags": ["computed", "getter-setter", "column-visibility", "table"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue:getColumnProps",
+      "type": "function",
+      "name": "getColumnProps",
+      "filePath": "packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue",
+      "lineRange": [34, 47],
+      "summary": "从 Column 配置中提取 ElTableColumn 的绑定属性，过滤掉 hidden/render/key 等内部字段，将数组 prop 转为点分隔字符串，生成 columnKey。",
+      "tags": ["props-extraction", "column-config", "table", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:value",
+      "type": "function",
+      "name": "value",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "lineRange": [43, 67],
+      "summary": "可写计算属性(get/set)实现表单字段的 v-model 双向绑定，get 时通过 valueFormatter.get 转换输出值，set 时通过 valueFormatter(函数或对象形式)转换后写入表单数据。",
+      "tags": ["computed", "getter-setter", "v-model", "value-formatter", "form"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:popupCloseEventName",
+      "type": "function",
+      "name": "popupCloseEventName",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "lineRange": [69, 79],
+      "summary": "计算属性，根据当前组件类型(field/cascader/signature)返回对应的弹窗确认和取消事件名，cascader 使用 onFinish/onClose，signature 使用 onSubmit。",
+      "tags": ["computed", "popup", "event-mapping", "form"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:groupedAttrs",
+      "type": "function",
+      "name": "groupedAttrs",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "lineRange": [81, 142],
+      "summary": "核心计算属性，合并初始化属性与外部传入的 attrs，分离出 modelProp、fieldAttrs、slots、valueFormatter 等分组属性，处理 popup 弹窗事件的确认/取消回调重写。",
+      "tags": ["computed", "props-merging", "form", "popup", "core-logic"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:is",
+      "type": "function",
+      "name": "is",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "lineRange": [151, 161],
+      "summary": "计算属性，解析最终要渲染的动态组件：优先使用 Teleport 注入的组件，其次从自定义组件注册表查找，最后回退到 componentMap 或原始字符串组件名。",
+      "tags": ["computed", "component-resolution", "dynamic-component", "form"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:onFieldClick",
+      "type": "function",
+      "name": "onFieldClick",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "lineRange": [180, 191],
+      "summary": "字段点击事件处理器，当 popup 模式启用且字段非禁用/只读时，保存当前值到 popupFieldValue，将弹窗属性传递给 formPopup 并打开指定路径的弹窗。",
+      "tags": ["event-handler", "popup", "form", "click"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "target": "function:packages/element-plus-pro/src/components/table/components/ColumnControl.vue:checkedColumnsOptions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "target": "function:packages/element-plus-pro/src/components/table/components/ColumnControl.vue:checkedColumnKeys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue",
+      "target": "function:packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue:getColumnProps",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "target": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:value",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "target": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:popupCloseEventName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "target": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:groupedAttrs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "target": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:is",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "target": "function:packages/vant-pro/src/components/form/components/BaseField/index.vue:onFieldClick",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/DefaultTableContainer.vue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/SizeControl.vue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/PathProvider/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/SlotComponent/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:packages/vant-pro/vite.config.ts",
+      "target": "file:packages/element-plus-pro/vite.config.ts",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

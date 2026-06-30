@@ -1,0 +1,4105 @@
+{
+  "fileNodes": [
+    {
+      "id": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "tags": [
+        "config",
+        "dependency-injection",
+        "component-provider",
+        "constants"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "tags": [
+        "type-definition",
+        "component-provider",
+        "dependency-injection",
+        "mapped-types"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "tags": [
+        "utility",
+        "form",
+        "dependency-injection",
+        "field-props"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/constants/index.ts",
+      "tags": [
+        "config",
+        "component-mapping",
+        "form",
+        "type-definition",
+        "constants"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "type": "file",
+      "name": "useFields.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "tags": [
+        "hook",
+        "form",
+        "type-definition",
+        "re-export",
+        "field-management"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "type": "file",
+      "name": "useForm.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "tags": [
+        "hook",
+        "form",
+        "type-definition",
+        "re-export",
+        "form-instance"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "type": "file",
+      "name": "useFormRef.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "tags": [
+        "hook",
+        "form",
+        "type-definition",
+        "re-export",
+        "form-ref"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/types/index.ts",
+      "tags": [
+        "type-definition",
+        "form",
+        "data-model",
+        "schema-driven",
+        "core-types"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "type": "file",
+      "name": "BaseTable.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "tags": [
+        "component",
+        "table",
+        "data-display",
+        "vue-sfc",
+        "generic-component"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "type": "file",
+      "name": "SearchForm.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "tags": [
+        "component",
+        "search-form",
+        "table",
+        "vue-sfc",
+        "expand-collapse"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/table/index.ts",
+      "tags": [
+        "barrel",
+        "table",
+        "entry-point",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/table/types/index.ts",
+      "tags": [
+        "type-definition",
+        "table",
+        "data-model",
+        "column-config"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "type": "file",
+      "name": "useTable.ts",
+      "filePath": "packages/element-plus-pro/src/components/table/useTable.ts",
+      "tags": [
+        "hook",
+        "table",
+        "adapter",
+        "data-management",
+        "api-adaptation"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/shared/core/index.ts",
+      "tags": [
+        "barrel",
+        "re-export",
+        "dependency-facade",
+        "core"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/shared/ui/index.ts",
+      "tags": [
+        "barrel",
+        "ui-components",
+        "element-plus",
+        "re-export",
+        "provide-inject"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/component-provider/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/constants/index.ts",
+      "tags": [
+        "依赖注入",
+        "组件配置",
+        "常量定义",
+        "configuration",
+        "provider"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "tags": [
+        "类型定义",
+        "全局配置",
+        "泛型",
+        "组件属性",
+        "类型推导"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts",
+      "tags": [
+        "工具函数",
+        "字段初始化",
+        "依赖注入",
+        "utility"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "tags": [
+        "常量定义",
+        "组件映射",
+        "类型推导",
+        "表单配置",
+        "barrel"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "type": "file",
+      "name": "useFields.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "tags": [
+        "hook",
+        "字段管理",
+        "类型安全",
+        "re-export",
+        "泛型"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "type": "file",
+      "name": "useForm.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "tags": [
+        "hook",
+        "表单管理",
+        "类型安全",
+        "re-export",
+        "泛型"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/hooks/useFormRef.ts",
+      "type": "file",
+      "name": "useFormRef.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/hooks/useFormRef.ts",
+      "tags": [
+        "hook",
+        "表单引用",
+        "类型安全",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/types/index.ts",
+      "tags": [
+        "类型定义",
+        "表单字段",
+        "泛型",
+        "类型推导",
+        "Schema驱动"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "type": "file",
+      "name": "useTable.ts",
+      "filePath": "packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "tags": [
+        "hook",
+        "表格管理",
+        "类型安全",
+        "re-export",
+        "泛型"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/table/types/index.ts",
+      "tags": [
+        "类型定义",
+        "表格列",
+        "泛型",
+        "类型推导"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/shared/core/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/shared/core/index.ts",
+      "tags": [
+        "barrel",
+        "re-export",
+        "统一入口",
+        "core",
+        "依赖管理"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/shared/ui/index.ts",
+      "tags": [
+        "barrel",
+        "re-export",
+        "ui组件",
+        "ant-design-vue",
+        "类型导出"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "tags": [
+        "dependency-injection",
+        "component-provider",
+        "常量定义",
+        "vue",
+        "配置"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "tags": [
+        "type-definition",
+        "component-provider",
+        "vue",
+        "泛型"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "tags": [
+        "utility",
+        "form-field",
+        "dependency-injection"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "tags": [
+        "constants",
+        "组件映射",
+        "form",
+        "type-definition"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "type": "file",
+      "name": "useFields.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "tags": [
+        "hook",
+        "form",
+        "字段管理",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "type": "file",
+      "name": "useForm.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "tags": [
+        "hook",
+        "form",
+        "状态管理",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "type": "file",
+      "name": "useFormRef.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "tags": [
+        "hook",
+        "form",
+        "ref-management",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/types/index.ts",
+      "tags": [
+        "type-definition",
+        "form",
+        "字段配置",
+        "vue",
+        "泛型"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/table/types/index.ts",
+      "tags": [
+        "type-definition",
+        "table",
+        "列配置"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "type": "file",
+      "name": "useTable.ts",
+      "filePath": "packages/antdv-next-pro/src/components/table/useTable.ts",
+      "tags": [
+        "hook",
+        "table",
+        "状态管理",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/shared/core/index.ts",
+      "tags": [
+        "barrel",
+        "re-export",
+        "core",
+        "shared-module"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/shared/ui/index.ts",
+      "tags": [
+        "barrel",
+        "re-export",
+        "ui-components",
+        "antdv-next"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/form/constants.ts",
+      "type": "file",
+      "name": "constants.ts",
+      "filePath": "packages/core/src/form/constants.ts",
+      "tags": [
+        "constants",
+        "dependency-injection",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/form/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/core/src/form/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "exports"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/form/types.ts",
+      "type": "file",
+      "name": "types.ts",
+      "filePath": "packages/core/src/form/types.ts",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "generic-programming"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/form/useFields.ts",
+      "type": "file",
+      "name": "useFields.ts",
+      "filePath": "packages/core/src/form/useFields.ts",
+      "tags": [
+        "hook",
+        "field-management",
+        "crud",
+        "vue-composable"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/form/useForm.ts",
+      "type": "file",
+      "name": "useForm.ts",
+      "filePath": "packages/core/src/form/useForm.ts",
+      "tags": [
+        "hook",
+        "composition",
+        "dependency-injection",
+        "vue-composable"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/form/useFormData.ts",
+      "type": "file",
+      "name": "useFormData.ts",
+      "filePath": "packages/core/src/form/useFormData.ts",
+      "tags": [
+        "hook",
+        "data-management",
+        "reactive",
+        "vue-composable"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/form/useFormRef.ts",
+      "type": "file",
+      "name": "useFormRef.ts",
+      "filePath": "packages/core/src/form/useFormRef.ts",
+      "tags": [
+        "hook",
+        "ref-management",
+        "vue-composable"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/shared/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/core/src/shared/types/index.ts",
+      "tags": [
+        "type-definition",
+        "utility",
+        "generic-programming",
+        "data-model"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/shared/utils/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/core/src/shared/utils/index.ts",
+      "tags": [
+        "utility",
+        "barrel",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/table/types.ts",
+      "type": "file",
+      "name": "types.ts",
+      "filePath": "packages/core/src/table/types.ts",
+      "tags": [
+        "type-definition",
+        "data-model",
+        "generic-programming"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/table/useTable.ts",
+      "type": "file",
+      "name": "useTable.ts",
+      "filePath": "packages/core/src/table/useTable.ts",
+      "tags": [
+        "hook",
+        "table-management",
+        "crud",
+        "pagination",
+        "vue-composable"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "tags": [
+        "injection",
+        "configuration",
+        "component-provider",
+        "constants"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/component-provider/types/index.ts",
+      "tags": [
+        "type-definition",
+        "component-provider",
+        "injection",
+        "generic"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "tags": [
+        "utility",
+        "field",
+        "injection",
+        "form"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/constants/index.ts",
+      "tags": [
+        "constants",
+        "component-map",
+        "type-definition",
+        "form",
+        "barrel"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "type": "file",
+      "name": "useFields.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "tags": [
+        "hook",
+        "form",
+        "re-export",
+        "type-definition"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "type": "file",
+      "name": "useForm.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "tags": [
+        "hook",
+        "form",
+        "popup",
+        "entry-point",
+        "composable"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "type": "file",
+      "name": "useFormPopup.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "tags": [
+        "hook",
+        "popup",
+        "form",
+        "provide-inject",
+        "mobile"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "type": "file",
+      "name": "useFormRef.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "tags": [
+        "hook",
+        "form",
+        "re-export",
+        "type-definition"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/types/index.ts",
+      "tags": [
+        "type-definition",
+        "form",
+        "field",
+        "generic",
+        "slots"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/shared/core/index.ts",
+      "tags": [
+        "barrel",
+        "re-export",
+        "core",
+        "shared"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/shared/ui/index.ts",
+      "tags": [
+        "barrel",
+        "re-export",
+        "ui-components",
+        "vant"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "tags": [
+        "vue-component",
+        "dependency-injection",
+        "config-provider",
+        "global-config"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "type-export"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "tags": [
+        "form",
+        "config-driven",
+        "vue-component",
+        "generic",
+        "slot-teleport"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "tags": [
+        "form-item",
+        "recursive",
+        "config-driven",
+        "vue-component",
+        "grid-layout"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/index.ts",
+      "tags": [
+        "barrel",
+        "component-export",
+        "type-export"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "public-api",
+        "form-module"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "type": "file",
+      "name": "BaseTable.vue",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "tags": [
+        "table",
+        "config-driven",
+        "search",
+        "pagination",
+        "vue-component"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/table/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "public-api",
+        "table-module"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/index.ts",
+      "tags": [
+        "entry-point",
+        "plugin",
+        "installer",
+        "package-entry"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/component-provider/components/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/components/index.vue",
+      "tags": [
+        "component",
+        "provider",
+        "dependency-injection",
+        "vue",
+        "configuration"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/component-provider/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "type-export"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseForm/index.vue",
+      "tags": [
+        "form",
+        "component",
+        "configuration-driven",
+        "generic",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseFormItem/index.vue",
+      "tags": [
+        "form-item",
+        "rendering",
+        "grid-layout",
+        "recursive",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "type-export"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "api-surface",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/BaseTable.vue",
+      "type": "file",
+      "name": "BaseTable.vue",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/BaseTable.vue",
+      "tags": [
+        "table",
+        "component",
+        "configuration-driven",
+        "search",
+        "pagination",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/table/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "type-export"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/index.ts",
+      "tags": [
+        "entry-point",
+        "plugin",
+        "barrel",
+        "vue",
+        "package-entry"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/component-provider/components/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/components/index.vue",
+      "tags": [
+        "provider",
+        "configuration",
+        "vue-component",
+        "dependency-injection"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/component-provider/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "type-definition"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "tags": [
+        "form",
+        "vue-component",
+        "configuration-driven",
+        "generic",
+        "slot-teleport"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "tags": [
+        "form-item",
+        "vue-component",
+        "recursive",
+        "grid-layout",
+        "field-renderer"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/components/index.ts",
+      "tags": [
+        "barrel",
+        "type-definition",
+        "exports"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "api-surface",
+        "hooks"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/index.ts",
+      "tags": [
+        "entry-point",
+        "plugin",
+        "factory",
+        "vue-plugin",
+        "barrel"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/component-provider/components/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/component-provider/components/index.vue",
+      "tags": [
+        "component",
+        "provider",
+        "vue",
+        "provide-inject",
+        "configuration"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/component-provider/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/component-provider/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "re-export",
+        "type-definition"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "tags": [
+        "component",
+        "form",
+        "vue",
+        "popup",
+        "configuration-driven",
+        "generic"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/components/index.ts",
+      "tags": [
+        "barrel",
+        "re-export",
+        "type-definition",
+        "typescript"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "api-surface",
+        "re-export",
+        "typescript"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/index.ts",
+      "tags": [
+        "entry-point",
+        "vue-plugin",
+        "barrel",
+        "install",
+        "typescript"
+      ]
+    },
+    {
+      "id": "pipeline:.github/workflows/deploy.yml",
+      "type": "pipeline",
+      "name": "deploy.yml",
+      "filePath": ".github/workflows/deploy.yml",
+      "tags": [
+        "ci-cd",
+        "deployment",
+        "vitepress",
+        "github-pages",
+        "documentation"
+      ]
+    },
+    {
+      "id": "document:AI-CONTEXT.md",
+      "type": "document",
+      "name": "AI-CONTEXT.md",
+      "filePath": "AI-CONTEXT.md",
+      "tags": [
+        "documentation",
+        "api-reference",
+        "developer-guide",
+        "ai-context"
+      ]
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "overview",
+        "contributing"
+      ]
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "tags": [
+        "configuration",
+        "monorepo",
+        "build-system",
+        "dependencies"
+      ]
+    },
+    {
+      "id": "config:pnpm-workspace.yaml",
+      "type": "config",
+      "name": "pnpm-workspace.yaml",
+      "filePath": "pnpm-workspace.yaml",
+      "tags": [
+        "configuration",
+        "monorepo",
+        "workspace",
+        "package-management"
+      ]
+    },
+    {
+      "id": "config:tsconfig.base.json",
+      "type": "config",
+      "name": "tsconfig.base.json",
+      "filePath": "tsconfig.base.json",
+      "tags": [
+        "configuration",
+        "typescript",
+        "compilation"
+      ]
+    },
+    {
+      "id": "document:packages/antd-vue-pro/AI-CONTEXT.md",
+      "type": "document",
+      "name": "AI-CONTEXT.md",
+      "filePath": "packages/antd-vue-pro/AI-CONTEXT.md",
+      "tags": [
+        "documentation",
+        "ai-context",
+        "api-reference",
+        "chinese"
+      ]
+    },
+    {
+      "id": "document:packages/antd-vue-pro/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "packages/antd-vue-pro/README.md",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "readme",
+        "api-reference",
+        "chinese"
+      ]
+    },
+    {
+      "id": "config:packages/antd-vue-pro/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/antd-vue-pro/package.json",
+      "tags": [
+        "configuration",
+        "package-manifest",
+        "npm",
+        "build-system"
+      ]
+    },
+    {
+      "id": "config:packages/antd-vue-pro/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/antd-vue-pro/tsconfig.json",
+      "tags": [
+        "configuration",
+        "typescript",
+        "build-system"
+      ]
+    },
+    {
+      "id": "document:packages/antdv-next-pro/AI-CONTEXT.md",
+      "type": "document",
+      "name": "AI-CONTEXT.md",
+      "filePath": "packages/antdv-next-pro/AI-CONTEXT.md",
+      "tags": [
+        "documentation",
+        "ai-context",
+        "schema-driven",
+        "component-library"
+      ]
+    },
+    {
+      "id": "document:packages/antdv-next-pro/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "packages/antdv-next-pro/README.md",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "readme",
+        "component-library",
+        "schema-driven"
+      ]
+    },
+    {
+      "id": "config:packages/antdv-next-pro/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/antdv-next-pro/package.json",
+      "tags": [
+        "configuration",
+        "npm-package",
+        "build-system",
+        "es-module"
+      ]
+    },
+    {
+      "id": "config:packages/antdv-next-pro/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/antdv-next-pro/tsconfig.json",
+      "tags": [
+        "configuration",
+        "typescript",
+        "build-system",
+        "declaration-files"
+      ]
+    },
+    {
+      "id": "document:packages/element-plus-pro/AI-CONTEXT.md",
+      "type": "document",
+      "name": "AI-CONTEXT.md",
+      "filePath": "packages/element-plus-pro/AI-CONTEXT.md",
+      "tags": [
+        "documentation",
+        "ai-context",
+        "component-overview",
+        "reference"
+      ]
+    },
+    {
+      "id": "document:packages/element-plus-pro/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "packages/element-plus-pro/README.md",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "getting-started",
+        "api-reference",
+        "component-library"
+      ]
+    },
+    {
+      "id": "config:packages/element-plus-pro/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/element-plus-pro/package.json",
+      "tags": [
+        "configuration",
+        "npm",
+        "package-manifest",
+        "build-system",
+        "esm"
+      ]
+    },
+    {
+      "id": "config:packages/element-plus-pro/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/element-plus-pro/tsconfig.json",
+      "tags": [
+        "configuration",
+        "typescript",
+        "compiler-options",
+        "declaration-files"
+      ]
+    },
+    {
+      "id": "document:packages/vant-pro/AI-CONTEXT.md",
+      "type": "document",
+      "name": "AI-CONTEXT.md",
+      "filePath": "packages/vant-pro/AI-CONTEXT.md",
+      "tags": [
+        "文档",
+        "ai-上下文",
+        "组件库",
+        "参考手册"
+      ]
+    },
+    {
+      "id": "document:packages/vant-pro/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "packages/vant-pro/README.md",
+      "tags": [
+        "文档",
+        "readme",
+        "组件库",
+        "api-参考",
+        "入门指南"
+      ]
+    },
+    {
+      "id": "config:packages/vant-pro/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/vant-pro/package.json",
+      "tags": [
+        "配置",
+        "npm-包",
+        "构建系统",
+        "组件库",
+        "es模块"
+      ]
+    },
+    {
+      "id": "config:packages/vant-pro/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/vant-pro/tsconfig.json",
+      "tags": [
+        "配置",
+        "typescript",
+        "构建系统"
+      ]
+    },
+    {
+      "id": "file:.commitlintrc.js",
+      "type": "file",
+      "name": ".commitlintrc.js",
+      "filePath": ".commitlintrc.js",
+      "tags": [
+        "configuration",
+        "commitlint",
+        "git-hooks",
+        "代码规范"
+      ]
+    },
+    {
+      "id": "file:.husky/commit-msg",
+      "type": "file",
+      "name": "commit-msg",
+      "filePath": ".husky/commit-msg",
+      "tags": [
+        "git-hooks",
+        "husky",
+        "commitlint",
+        "提交校验"
+      ]
+    },
+    {
+      "id": "file:.husky/pre-commit",
+      "type": "file",
+      "name": "pre-commit",
+      "filePath": ".husky/pre-commit",
+      "tags": [
+        "git-hooks",
+        "husky",
+        "lint-staged",
+        "预提交检查"
+      ]
+    },
+    {
+      "id": "file:.prettierignore",
+      "type": "file",
+      "name": ".prettierignore",
+      "filePath": ".prettierignore",
+      "tags": [
+        "configuration",
+        "prettier",
+        "格式化"
+      ]
+    },
+    {
+      "id": "file:.stylelintignore",
+      "type": "file",
+      "name": ".stylelintignore",
+      "filePath": ".stylelintignore",
+      "tags": [
+        "configuration",
+        "stylelint",
+        "样式检查"
+      ]
+    },
+    {
+      "id": "file:.understand-anything/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".understand-anything/.understandignore",
+      "tags": [
+        "configuration",
+        "ignore-rules",
+        "代码分析"
+      ]
+    },
+    {
+      "id": "config:.understand-anything/config.json",
+      "type": "config",
+      "name": "config.json",
+      "filePath": ".understand-anything/config.json",
+      "tags": [
+        "configuration",
+        "代码分析",
+        "中文"
+      ]
+    },
+    {
+      "id": "file:eslint.config.mjs",
+      "type": "file",
+      "name": "eslint.config.mjs",
+      "filePath": "eslint.config.mjs",
+      "tags": [
+        "configuration",
+        "eslint",
+        "代码规范",
+        "typescript",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:lint-staged.config.mjs",
+      "type": "file",
+      "name": "lint-staged.config.mjs",
+      "filePath": "lint-staged.config.mjs",
+      "tags": [
+        "configuration",
+        "lint-staged",
+        "代码规范",
+        "格式化"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/BaseField/index.vue",
+      "type": "file",
+      "name": "BaseField",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseField/index.vue",
+      "tags": [
+        "component",
+        "form",
+        "field-renderer",
+        "dynamic-component",
+        "双向绑定"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/ContainerFragment/index.vue",
+      "type": "file",
+      "name": "ContainerFragment",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/ContainerFragment/index.vue",
+      "tags": [
+        "component",
+        "utility",
+        "layout",
+        "容器渲染"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "type": "file",
+      "name": "GroupedFieldAttrs",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "tags": [
+        "component",
+        "form",
+        "属性拆分",
+        "作用域插槽"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "file",
+      "name": "PathProvider",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/PathProvider/index.vue",
+      "tags": [
+        "component",
+        "utility",
+        "provide-inject",
+        "form-path"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "file",
+      "name": "SlotComponent",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/SlotComponent/index.vue",
+      "tags": [
+        "component",
+        "utility",
+        "slot-renderer",
+        "插槽渲染"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/hooks/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/hooks/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "hooks",
+        "form"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/ColumnControl.vue",
+      "type": "file",
+      "name": "ColumnControl",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/ColumnControl.vue",
+      "tags": [
+        "component",
+        "table",
+        "column-control",
+        "dropdown",
+        "checkbox"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "type": "file",
+      "name": "DefaultSearchFormContainer",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "tags": [
+        "component",
+        "table",
+        "container",
+        "search-form",
+        "主题"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/DefaultTableContainer.vue",
+      "type": "file",
+      "name": "DefaultTableContainer",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/DefaultTableContainer.vue",
+      "tags": [
+        "component",
+        "table",
+        "container",
+        "主题"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "type": "file",
+      "name": "ColumnHeightOutlined",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "tags": [
+        "component",
+        "icon",
+        "svg",
+        "table"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/icons/DownOutlined.vue",
+      "type": "file",
+      "name": "DownOutlined",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/icons/DownOutlined.vue",
+      "tags": [
+        "component",
+        "icon",
+        "svg",
+        "arrow"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "type": "file",
+      "name": "FilterOutlined",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "tags": [
+        "component",
+        "icon",
+        "svg",
+        "filter"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "table",
+        "components"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/SearchForm.vue",
+      "type": "file",
+      "name": "SearchForm",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/SearchForm.vue",
+      "tags": [
+        "component",
+        "table",
+        "search-form",
+        "pro-form",
+        "展开收起"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/SizeControl.vue",
+      "type": "file",
+      "name": "SizeControl",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/SizeControl.vue",
+      "tags": [
+        "component",
+        "table",
+        "size-control",
+        "dropdown"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/hooks/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/table/hooks/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "hooks",
+        "table"
+      ]
+    },
+    {
+      "id": "file:packages/antd-vue-pro/vite.config.ts",
+      "type": "file",
+      "name": "vite.config.ts",
+      "filePath": "packages/antd-vue-pro/vite.config.ts",
+      "tags": [
+        "build-system",
+        "configuration",
+        "component-library",
+        "typescript"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/BaseField/index.vue",
+      "type": "file",
+      "name": "BaseField",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseField/index.vue",
+      "tags": [
+        "form-component",
+        "dynamic-rendering",
+        "value-formatter",
+        "field-wrapper",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/ContainerFragment/index.vue",
+      "type": "file",
+      "name": "ContainerFragment",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/ContainerFragment/index.vue",
+      "tags": [
+        "layout-container",
+        "dynamic-rendering",
+        "slot-wrapper",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "type": "file",
+      "name": "GroupedFieldAttrs",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "tags": [
+        "form-component",
+        "property-grouping",
+        "slot-based",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "file",
+      "name": "PathProvider",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/PathProvider/index.vue",
+      "tags": [
+        "context-provider",
+        "path-resolution",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "file",
+      "name": "SlotComponent",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/SlotComponent/index.vue",
+      "tags": [
+        "slot-renderer",
+        "dynamic-rendering",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/hooks/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/index.ts",
+      "tags": [
+        "barrel",
+        "hooks",
+        "re-exports"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/ColumnControl.vue",
+      "type": "file",
+      "name": "ColumnControl",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/ColumnControl.vue",
+      "tags": [
+        "table-component",
+        "column-management",
+        "dropdown",
+        "checkbox",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "type": "file",
+      "name": "DefaultSearchFormContainer",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "tags": [
+        "layout-container",
+        "search-form",
+        "theme-aware",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/DefaultTableContainer.vue",
+      "type": "file",
+      "name": "DefaultTableContainer",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/DefaultTableContainer.vue",
+      "tags": [
+        "layout-container",
+        "table",
+        "theme-aware",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "type": "file",
+      "name": "ColumnHeightOutlined",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "tags": [
+        "icon",
+        "svg",
+        "table-toolbar",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/icons/DownOutlined.vue",
+      "type": "file",
+      "name": "DownOutlined",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/icons/DownOutlined.vue",
+      "tags": [
+        "icon",
+        "svg",
+        "expand-arrow",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "type": "file",
+      "name": "FilterOutlined",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "tags": [
+        "icon",
+        "svg",
+        "filter",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/index.ts",
+      "tags": [
+        "barrel",
+        "component-export",
+        "re-exports"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/SearchForm.vue",
+      "type": "file",
+      "name": "SearchForm",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/SearchForm.vue",
+      "tags": [
+        "search-form",
+        "expand-collapse",
+        "table-filter",
+        "layout-grid",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/components/SizeControl.vue",
+      "type": "file",
+      "name": "SizeControl",
+      "filePath": "packages/antdv-next-pro/src/components/table/components/SizeControl.vue",
+      "tags": [
+        "table-component",
+        "size-control",
+        "dropdown",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/antdv-next-pro/vite.config.ts",
+      "type": "file",
+      "name": "vite.config.ts",
+      "filePath": "packages/antdv-next-pro/vite.config.ts",
+      "tags": [
+        "build-system",
+        "configuration",
+        "component-library",
+        "typescript"
+      ]
+    },
+    {
+      "id": "config:packages/core/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/core/package.json",
+      "tags": [
+        "configuration",
+        "package-manifest",
+        "core-library"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/core/src/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "re-exports"
+      ]
+    },
+    {
+      "id": "file:packages/core/src/table/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/core/src/table/index.ts",
+      "tags": [
+        "barrel",
+        "table",
+        "hook-export"
+      ]
+    },
+    {
+      "id": "config:packages/core/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/core/tsconfig.json",
+      "tags": [
+        "configuration",
+        "typescript",
+        "build-system"
+      ]
+    },
+    {
+      "id": "file:packages/core/vite.config.ts",
+      "type": "file",
+      "name": "vite.config.ts",
+      "filePath": "packages/core/vite.config.ts",
+      "tags": [
+        "build-system",
+        "configuration",
+        "library-build",
+        "typescript"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/BaseField/index.vue",
+      "type": "file",
+      "name": "BaseField",
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseField/index.vue",
+      "tags": [
+        "form-component",
+        "dynamic-rendering",
+        "value-formatter",
+        "field-wrapper",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/ContainerFragment/index.vue",
+      "type": "file",
+      "name": "ContainerFragment",
+      "filePath": "packages/element-plus-pro/src/components/form/components/ContainerFragment/index.vue",
+      "tags": [
+        "layout-container",
+        "dynamic-rendering",
+        "slot-wrapper",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "type": "file",
+      "name": "GroupedFieldAttrs",
+      "filePath": "packages/element-plus-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "tags": [
+        "form-component",
+        "property-grouping",
+        "slot-based",
+        "vue-sfc"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/form/components/PathProvider/index.vue",
+      "tags": [
+        "provider",
+        "dependency-injection",
+        "form",
+        "path",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/form/components/SlotComponent/index.vue",
+      "tags": [
+        "slot",
+        "renderer",
+        "dynamic-component",
+        "vnode",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/hooks/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "hooks",
+        "form",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "type": "file",
+      "name": "ColumnControl.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "tags": [
+        "table",
+        "column-control",
+        "dropdown",
+        "checkbox",
+        "visibility-toggle"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "type": "file",
+      "name": "DefaultSearchFormContainer.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "tags": [
+        "container",
+        "search-form",
+        "layout",
+        "table"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/DefaultTableContainer.vue",
+      "type": "file",
+      "name": "DefaultTableContainer.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/DefaultTableContainer.vue",
+      "tags": [
+        "container",
+        "table",
+        "layout",
+        "flex"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "type": "file",
+      "name": "ColumnHeightOutlined.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "tags": [
+        "icon",
+        "svg",
+        "table",
+        "column-height"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/icons/DownOutlined.vue",
+      "type": "file",
+      "name": "DownOutlined.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/DownOutlined.vue",
+      "tags": [
+        "icon",
+        "svg",
+        "arrow",
+        "dropdown"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "type": "file",
+      "name": "FilterOutlined.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "tags": [
+        "icon",
+        "svg",
+        "filter",
+        "table"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/table/components/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "table",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/SizeControl.vue",
+      "type": "file",
+      "name": "SizeControl.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/SizeControl.vue",
+      "tags": [
+        "table",
+        "size-control",
+        "dropdown",
+        "define-model"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue",
+      "type": "file",
+      "name": "TableColumnRenderer.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue",
+      "tags": [
+        "table",
+        "column-renderer",
+        "dynamic-rendering",
+        "generic",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/element-plus-pro/vite.config.ts",
+      "type": "file",
+      "name": "vite.config.ts",
+      "filePath": "packages/element-plus-pro/vite.config.ts",
+      "tags": [
+        "build-system",
+        "vite",
+        "configuration",
+        "library",
+        "element-plus"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "tags": [
+        "form",
+        "field",
+        "popup",
+        "value-formatter",
+        "teleport",
+        "complex-component"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseFormItem/index.vue",
+      "tags": [
+        "form",
+        "form-item",
+        "field-iteration",
+        "recursive",
+        "nested-fields"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/ContainerFragment/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/ContainerFragment/index.vue",
+      "tags": [
+        "container",
+        "fragment",
+        "dynamic-component",
+        "layout"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "tags": [
+        "form",
+        "field-attrs",
+        "grouping",
+        "props-filtering"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/PathProvider/index.vue",
+      "tags": [
+        "provider",
+        "dependency-injection",
+        "form",
+        "path",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/vant-pro/src/components/form/components/SlotComponent/index.vue",
+      "tags": [
+        "slot",
+        "renderer",
+        "dynamic-component",
+        "vnode",
+        "vue"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/index.ts",
+      "tags": [
+        "barrel",
+        "entry-point",
+        "hooks",
+        "form",
+        "re-export"
+      ]
+    },
+    {
+      "id": "file:packages/vant-pro/vite.config.ts",
+      "type": "file",
+      "name": "vite.config.ts",
+      "filePath": "packages/vant-pro/vite.config.ts",
+      "tags": [
+        "build-system",
+        "vite",
+        "configuration",
+        "library",
+        "vant"
+      ]
+    },
+    {
+      "id": "file:stylelint.config.mjs",
+      "type": "file",
+      "name": "stylelint.config.mjs",
+      "filePath": "stylelint.config.mjs",
+      "tags": [
+        "linting",
+        "stylelint",
+        "configuration",
+        "less",
+        "monorepo"
+      ]
+    },
+    {
+      "id": "file:scripts/generate-api-json.ts",
+      "type": "file",
+      "name": "generate-api-json.ts",
+      "filePath": "scripts/generate-api-json.ts",
+      "tags": [
+        "script",
+        "code-generation",
+        "api-extraction",
+        "jsdoc",
+        "cli"
+      ]
+    }
+  ],
+  "importEdges": [
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/useTable.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/types/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/types/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/types/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/types.ts",
+      "target": "file:packages/core/src/shared/types/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useFields.ts",
+      "target": "file:packages/core/src/form/types.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useFields.ts",
+      "target": "file:packages/core/src/shared/types/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useFields.ts",
+      "target": "file:packages/core/src/shared/utils/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/constants.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/types.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFields.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFormData.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFormRef.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/shared/types/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useFormData.ts",
+      "target": "file:packages/core/src/shared/types/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/form/useFormData.ts",
+      "target": "file:packages/core/src/shared/utils/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/table/types.ts",
+      "target": "file:packages/core/src/shared/types/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/form/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/shared/types/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/shared/utils/index.ts"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/table/types.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/types/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/constants/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/components/index.vue"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/BaseTable.vue"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/index.ts"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/components/index.vue"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/components/BaseForm/index.vue"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/components/BaseFormItem/index.vue"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/components/BaseForm/index.vue"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/BaseTable.vue"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/index.ts"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/components/index.vue"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/index.ts"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/components/index.vue"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/components/BaseForm/index.vue"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/components/BaseForm/index.vue"
+    },
+    {
+      "source": "file:packages/vant-pro/src/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/index.ts"
+    },
+    {
+      "source": "file:packages/vant-pro/src/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/index.ts"
+    }
+  ],
+  "allEdges": [
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "target": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/types.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useFields.ts",
+      "target": "file:packages/core/src/form/types.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useFields.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useFields.ts",
+      "target": "file:packages/core/src/shared/utils/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/constants.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/types.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFields.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFormData.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFormRef.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useFormData.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useFormData.ts",
+      "target": "file:packages/core/src/shared/utils/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/table/types.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/shared/utils/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/table/types.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFields.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFormData.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/core/src/form/useForm.ts",
+      "target": "file:packages/core/src/form/useFormRef.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/form/index.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/core/src/form/useFormData.ts",
+      "target": "file:packages/core/src/shared/utils/index.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/core/src/form/useFields.ts",
+      "target": "file:packages/core/src/shared/utils/index.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/core/src/form/index.ts",
+      "target": "file:packages/core/src/form/types.ts",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/core/src/form/index.ts",
+      "target": "file:packages/core/src/form/constants.ts",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/core/src/form/types.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/core/src/table/types.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/core/src/form/useFormData.ts",
+      "target": "file:packages/core/src/shared/types/index.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/core/src/form/useFields.ts",
+      "target": "file:packages/core/src/form/types.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/core/src/table/useTable.ts",
+      "target": "file:packages/core/src/table/types.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/components/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/BaseTable.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/components/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/components/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/index.ts",
+      "type": "imports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/components/index.ts",
+      "type": "depends_on"
+    },
+    {
+      "source": "config:pnpm-workspace.yaml",
+      "target": "config:package.json",
+      "type": "configures"
+    },
+    {
+      "source": "config:package.json",
+      "target": "config:pnpm-workspace.yaml",
+      "type": "depends_on"
+    },
+    {
+      "source": "config:tsconfig.base.json",
+      "target": "config:package.json",
+      "type": "related"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:AI-CONTEXT.md",
+      "type": "related"
+    },
+    {
+      "source": "document:AI-CONTEXT.md",
+      "target": "document:README.md",
+      "type": "related"
+    },
+    {
+      "source": "document:packages/antd-vue-pro/AI-CONTEXT.md",
+      "target": "document:packages/antd-vue-pro/README.md",
+      "type": "related"
+    },
+    {
+      "source": "config:packages/antd-vue-pro/tsconfig.json",
+      "target": "config:packages/antd-vue-pro/package.json",
+      "type": "configures"
+    },
+    {
+      "source": "config:packages/antd-vue-pro/package.json",
+      "target": "document:packages/antd-vue-pro/README.md",
+      "type": "related"
+    },
+    {
+      "source": "document:packages/antdv-next-pro/README.md",
+      "target": "file:packages/antdv-next-pro/src/index.ts",
+      "type": "documents"
+    },
+    {
+      "source": "document:packages/antdv-next-pro/AI-CONTEXT.md",
+      "target": "file:packages/antdv-next-pro/src/index.ts",
+      "type": "documents"
+    },
+    {
+      "source": "config:packages/antdv-next-pro/tsconfig.json",
+      "target": "file:packages/antdv-next-pro/src/index.ts",
+      "type": "configures"
+    },
+    {
+      "source": "config:packages/antdv-next-pro/package.json",
+      "target": "config:packages/antdv-next-pro/tsconfig.json",
+      "type": "depends_on"
+    },
+    {
+      "source": "document:packages/antdv-next-pro/AI-CONTEXT.md",
+      "target": "document:packages/antdv-next-pro/README.md",
+      "type": "related"
+    },
+    {
+      "source": "document:packages/element-plus-pro/AI-CONTEXT.md",
+      "target": "document:packages/element-plus-pro/README.md",
+      "type": "related"
+    },
+    {
+      "source": "document:packages/element-plus-pro/README.md",
+      "target": "config:packages/element-plus-pro/package.json",
+      "type": "documents"
+    },
+    {
+      "source": "document:packages/element-plus-pro/AI-CONTEXT.md",
+      "target": "config:packages/element-plus-pro/package.json",
+      "type": "documents"
+    },
+    {
+      "source": "config:packages/element-plus-pro/tsconfig.json",
+      "target": "config:tsconfig.base.json",
+      "type": "depends_on"
+    },
+    {
+      "source": "document:packages/vant-pro/README.md",
+      "target": "config:packages/vant-pro/package.json",
+      "type": "documents"
+    },
+    {
+      "source": "document:packages/vant-pro/AI-CONTEXT.md",
+      "target": "config:packages/vant-pro/package.json",
+      "type": "documents"
+    },
+    {
+      "source": "document:packages/vant-pro/README.md",
+      "target": "document:packages/vant-pro/AI-CONTEXT.md",
+      "type": "related"
+    },
+    {
+      "source": "config:packages/vant-pro/package.json",
+      "target": "config:packages/vant-pro/tsconfig.json",
+      "type": "related"
+    },
+    {
+      "source": "file:eslint.config.mjs",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseField/index.vue",
+      "type": "configures"
+    },
+    {
+      "source": "file:eslint.config.mjs",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/SearchForm.vue",
+      "type": "configures"
+    },
+    {
+      "source": "file:eslint.config.mjs",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/ColumnControl.vue",
+      "type": "configures"
+    },
+    {
+      "source": "file:eslint.config.mjs",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "type": "configures"
+    },
+    {
+      "source": "file:eslint.config.mjs",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/SizeControl.vue",
+      "type": "configures"
+    },
+    {
+      "source": "file:.husky/commit-msg",
+      "target": "file:.commitlintrc.js",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:.husky/pre-commit",
+      "target": "file:lint-staged.config.mjs",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseField/index.vue",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/ContainerFragment/index.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseField/index.vue",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseField/index.vue",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/components/SearchForm.vue",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/icons/DownOutlined.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/components/ColumnControl.vue",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/components/SizeControl.vue",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/DefaultTableContainer.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/SizeControl.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/ColumnControl.vue",
+      "type": "exports"
+    },
+    {
+      "source": "config:.understand-anything/config.json",
+      "target": "file:.understand-anything/.understandignore",
+      "type": "related"
+    },
+    {
+      "source": "config:packages/core/tsconfig.json",
+      "target": "file:packages/core/src/index.ts",
+      "type": "configures"
+    },
+    {
+      "source": "config:packages/core/tsconfig.json",
+      "target": "file:packages/core/src/table/index.ts",
+      "type": "configures"
+    },
+    {
+      "source": "config:packages/core/package.json",
+      "target": "file:packages/core/vite.config.ts",
+      "type": "configures"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/components/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/components/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/DefaultTableContainer.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/components/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/SizeControl.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/components/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/ColumnControl.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/index.vue",
+      "target": "file:packages/antdv-next-pro/src/components/form/components/ContainerFragment/index.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/index.vue",
+      "target": "file:packages/antdv-next-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/components/ColumnControl.vue",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/components/SizeControl.vue",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/components/SearchForm.vue",
+      "target": "file:packages/antdv-next-pro/src/components/table/components/icons/DownOutlined.vue",
+      "type": "depends_on"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseField/index.vue",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/ContainerFragment/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/ContainerFragment/index.vue",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/antd-vue-pro/vite.config.ts",
+      "target": "file:packages/antdv-next-pro/vite.config.ts",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/DefaultTableContainer.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/SizeControl.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "type": "exports"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/PathProvider/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/PathProvider/index.vue",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/SlotComponent/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/SlotComponent/index.vue",
+      "type": "related"
+    },
+    {
+      "source": "file:packages/vant-pro/vite.config.ts",
+      "target": "file:packages/element-plus-pro/vite.config.ts",
+      "type": "related"
+    },
+    {
+      "source": "config:packages/element-plus-pro/package.json",
+      "target": "file:scripts/generate-api-json.ts",
+      "type": "depends_on"
+    }
+  ]
+}

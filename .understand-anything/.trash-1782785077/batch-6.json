@@ -1,0 +1,283 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "summary": "ProComponentProvider 全局配置提供者组件，通过 Vue provide/inject 机制向子组件树注入全局组件默认属性（componentVars）和自定义组件映射（componentMap），模板仅提供一个默认插槽用于包裹子组件。",
+      "tags": ["vue-component", "dependency-injection", "config-provider", "global-config"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "summary": "component-provider 模块入口文件，导入 ProComponentProvider 组件并作为默认导出，同时导出 ComponentVars 类型供外部使用。",
+      "tags": ["barrel", "entry-point", "type-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "summary": "ProForm 配置驱动表单组件，使用泛型约束表单实例类型，支持字段联动、嵌套字段、自定义组件、网格布局和动态插槽，通过 provide 注入表单实例，模板中将配置通过 BaseFormItem 递归渲染。",
+      "tags": ["form", "config-driven", "vue-component", "generic", "slot-teleport"],
+      "complexity": "moderate",
+      "languageNotes": "使用 Vue 3 generic 属性实现泛型组件，F extends Form<any> = Form 约束表单数据类型推导"
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "summary": "BaseFormItem 表单字段递归渲染组件，将字段配置数组渲染为实际表单项，支持字段分组（嵌套 fields 触发自身递归）、网格布局控制、FormItem 包装校验、组件绑定（通过 BaseField）及插槽透传。",
+      "tags": ["form-item", "recursive", "config-driven", "vue-component", "grid-layout"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/index.ts",
+      "summary": "表单内部组件集 Barrel 文件，集中导出 BaseForm、BaseFormItem、BaseField、ContainerFragment、SlotComponent 组件及其 Props/Instance 类型定义。",
+      "tags": ["barrel", "component-export", "type-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/form/index.ts",
+      "summary": "表单模块公共 API 入口，按分类组织导出：组件包装与类型（ContainerFragment 等）、组件映射类型（ComponentMap）、表单 Schema 类型（Field/Fields）及核心 Hooks（useForm、useFields 等）。默认导出 BaseForm 组件。",
+      "tags": ["barrel", "entry-point", "public-api", "form-module"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "type": "file",
+      "name": "BaseTable.vue",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "summary": "ProTable 配置驱动表格组件（331行），集成了搜索表单（SearchForm）、分页、列控制（ColumnControl）、尺寸切换（SizeControl）、序号列注入、插槽系统（search-form/button-bar/toolbar/table）及全局配置注入，通过 useTable hook 管理表格状态。",
+      "tags": ["table", "config-driven", "search", "pagination", "vue-component"],
+      "complexity": "complex",
+      "languageNotes": "使用 Vue 3 generic 属性实现泛型表格组件，T extends Table<any> = Table 约束表格数据类型；使用 defineModel 双向绑定 size 和 loading；模板中通过 ContainerFragment 动态切换包裹容器"
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/components/table/index.ts",
+      "summary": "表格模块公共 API 入口，导出 ProTable 组件的 Props/Instance 类型、列配置类型（Column/Columns）及核心 Hook（useTable、Table 类型），默认导出 BaseTable 组件。",
+      "tags": ["barrel", "entry-point", "public-api", "table-module"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/antd-vue-pro/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antd-vue-pro/src/index.ts",
+      "summary": "@qin-ui/antd-vue-pro 包顶层入口，通过 withInstall 为 ProForm、ProTable、ProComponentProvider 添加 Vue 插件 install 方法，导出具名安装版组件及默认插件对象（含 app.use 全局注册逻辑），同时 re-export 所有子模块公共 API。",
+      "tags": ["entry-point", "plugin", "installer", "package-entry"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/antd-vue-pro/src/components/component-provider/components/index.vue:ProComponentProvider",
+      "type": "function",
+      "name": "ProComponentProvider",
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "lineRange": [1, 74],
+      "summary": "全局配置提供者组件，接收 componentVars（组件全局配置）和 componentMap（自定义组件映射），通过 provide 向下注入配置，使所有子 Pro 组件和内置组件自动获取默认属性。",
+      "tags": ["dependency-injection", "config", "vue-component", "provider"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue:ProForm",
+      "type": "function",
+      "name": "ProForm",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "lineRange": [1, 90],
+      "summary": "配置驱动表单组件，使用泛型 F 约束表单实例类型，接收 form 实例和 grid 网格配置，通过 provide 注入表单对象，渲染 Ant Design Vue Form 并委托 BaseFormItem 递归渲染字段列表，同时支持以字段 path 命名的动态插槽透传。",
+      "tags": ["form", "config-driven", "generic", "provide-inject", "slot-teleport"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue:BaseFormItem",
+      "type": "function",
+      "name": "BaseFormItem",
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "lineRange": [1, 156],
+      "summary": "表单字段递归渲染组件，遍历 fields 配置数组，通过 PathProvider 提供路径上下文，GroupedFieldAttrs 解析分组属性，对嵌套 fields 递归渲染自身，叶子字段委托 BaseField 渲染具体控件，支持网格布局和 FormItem 校验包装。",
+      "tags": ["recursive", "grid-layout", "form-rendering", "field-mapping"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/antd-vue-pro/src/components/table/components/BaseTable.vue:ProTable",
+      "type": "function",
+      "name": "ProTable",
+      "filePath": "packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "lineRange": [1, 331],
+      "summary": "配置驱动 Pro 表格组件，集成搜索表单（SearchForm）、分页状态管理、列显隐控制（ColumnControl）、尺寸切换（SizeControl）、序号列自动注入、双向绑定 loading/size、全局配置注入及完整的插槽系统（search-form/button-bar/toolbar/table/bodyCell），通过 useTable hook 驱动数据查询流程。",
+      "tags": ["table", "search-filter", "column-control", "pagination", "data-display"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "target": "function:packages/antd-vue-pro/src/components/component-provider/components/index.vue:ProComponentProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "target": "function:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue:ProForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "target": "function:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue:BaseFormItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "target": "function:packages/antd-vue-pro/src/components/table/components/BaseTable.vue:ProTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "target": "function:packages/antd-vue-pro/src/components/component-provider/components/index.vue:ProComponentProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "target": "function:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue:ProForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "target": "function:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue:BaseFormItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "target": "function:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue:ProForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/table/index.ts",
+      "target": "function:packages/antd-vue-pro/src/components/table/components/BaseTable.vue:ProTable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "function:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue:ProForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "function:packages/antd-vue-pro/src/components/table/components/BaseTable.vue:ProTable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/index.ts",
+      "target": "function:packages/antd-vue-pro/src/components/component-provider/components/index.vue:ProComponentProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:packages/antd-vue-pro/src/components/form/index.ts",
+      "target": "file:packages/antd-vue-pro/src/components/form/components/index.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

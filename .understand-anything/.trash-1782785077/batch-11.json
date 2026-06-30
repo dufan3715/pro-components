@@ -1,0 +1,86 @@
+{
+  "nodes": [
+    {
+      "id": "document:AI-CONTEXT.md",
+      "type": "document",
+      "name": "AI-CONTEXT.md",
+      "filePath": "AI-CONTEXT.md",
+      "summary": "面向AI助手的项目上下文文档，详细描述了useForm和useTable核心API、ProComponentProvider全局配置、字段配置(Field)与表格列配置(Column)的使用方式，涵盖类型扩展和自定义组件集成。",
+      "tags": ["documentation", "api-reference", "developer-guide", "ai-context"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Qin UI Pro Components项目总览文档，包含组件库家族矩阵(antd-vue-pro/antdv-next-pro/element-plus-pro/vant-pro)、项目目录结构、统一开发指引(pnpm脚本)和贡献指南。",
+      "tags": ["documentation", "entry-point", "overview", "contributing"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "summary": "Monorepo根配置文件，定义项目级scripts(dev/lint/generate:api)、devDependencies(eslint/stylelint/prettier/vite/typescript)、pnpm overrides映射workspace包及Volta Node.js版本锁定。",
+      "tags": ["configuration", "monorepo", "build-system", "dependencies"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:pnpm-workspace.yaml",
+      "type": "config",
+      "name": "pnpm-workspace.yaml",
+      "filePath": "pnpm-workspace.yaml",
+      "summary": "pnpm工作空间定义文件，声明packages/*、docs、docs/*、examples及examples-next为monorepo子包，启用跨包联调与统一依赖管理。",
+      "tags": ["configuration", "monorepo", "workspace", "package-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tsconfig.base.json",
+      "type": "config",
+      "name": "tsconfig.base.json",
+      "filePath": "tsconfig.base.json",
+      "summary": "基础TypeScript编译器配置，设定ESNext目标、严格模式、JSX保留、ES模块解析，供各子包继承扩展。",
+      "tags": ["configuration", "typescript", "compilation"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "config:pnpm-workspace.yaml",
+      "target": "config:package.json",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:package.json",
+      "target": "config:pnpm-workspace.yaml",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:tsconfig.base.json",
+      "target": "config:package.json",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:AI-CONTEXT.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:AI-CONTEXT.md",
+      "target": "document:README.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'pipeline:.github/workflows/deploy.yml' has no edges (orphan)",
+    "Node 'file:.prettierignore' has no edges (orphan)",
+    "Node 'file:.stylelintignore' has no edges (orphan)",
+    "Node 'file:packages/antd-vue-pro/src/components/form/hooks/index.ts' has no edges (orphan)",
+    "Node 'file:packages/antd-vue-pro/src/components/table/hooks/index.ts' has no edges (orphan)",
+    "Node 'file:packages/antdv-next-pro/src/components/form/components/PathProvider/index.vue' has no edges (orphan)",
+    "Node 'file:packages/antdv-next-pro/src/components/form/hooks/index.ts' has no edges (orphan)",
+    "Node 'file:packages/element-plus-pro/src/components/form/hooks/index.ts' has no edges (orphan)",
+    "Node 'file:packages/element-plus-pro/src/components/table/components/icons/ColumnHeightOutlined.vue' has no edges (orphan)",
+    "Node 'file:packages/element-plus-pro/src/components/table/components/icons/DownOutlined.vue' has no edges (orphan)",
+    "Node 'file:packages/element-plus-pro/src/components/table/components/icons/FilterOutlined.vue' has no edges (orphan)",
+    "Node 'file:packages/vant-pro/src/components/form/components/BaseFormItem/index.vue' has no edges (orphan)",
+    "Node 'file:packages/vant-pro/src/components/form/components/ContainerFragment/index.vue' has no edges (orphan)",
+    "Node 'file:packages/vant-pro/src/components/form/components/GroupedFieldAttrs/index.vue' has no edges (orphan)",
+    "Node 'file:packages/vant-pro/src/components/form/hooks/index.ts' has no edges (orphan)",
+    "Node 'file:stylelint.config.mjs' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 253,
+    "totalEdges": 374,
+    "totalLayers": 6,
+    "tourSteps": 11,
+    "nodeTypes": {
+      "file": 162,
+      "function": 66,
+      "pipeline": 1,
+      "document": 10,
+      "config": 14
+    },
+    "edgeTypes": {
+      "imports": 155,
+      "contains": 66,
+      "exports": 58,
+      "calls": 24,
+      "depends_on": 33,
+      "related": 21,
+      "configures": 11,
+      "documents": 6
+    }
+  }
+}

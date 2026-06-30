@@ -1,0 +1,127 @@
+[
+  {
+    "order": 1,
+    "title": "项目概览",
+    "description": "从项目根 README.md 开始，了解 Qin UI Pro Components 的整体定位——这是一个基于主流 UI 框架二次封装的 Monorepo 组件库，提供 Schema 驱动的 ProForm 和 ProTable 高级组件。README 展示了四个框架适配包（antd-vue-pro、antdv-next-pro、element-plus-pro、vant-pro）的家族矩阵，以及统一的 pnpm workspace 开发工作流。从这里你将获得对整个项目的宏观认知，为接下来的深度探索打下基础。",
+    "nodeIds": ["document:README.md"]
+  },
+  {
+    "order": 2,
+    "title": "核心类型基石",
+    "description": "在深入任何业务逻辑之前，需要先理解 @qin-ui/core 包中的共享基础类型系统。shared/types 定义了 Data、Path、Paths、DeepPartial 等泛型工具类型，利用 TypeScript 条件类型、模板字面量类型和递归映射类型，实现了编译时的深层路径安全推导。这些类型是后续 form/types 和 table/types 中字段路径、列 key 等核心泛型的基础。同时 shared/utils 提供了 lodash-es 的再导出和 camelizeProperties 等自定义工具函数，形成完整的底层支撑。",
+    "nodeIds": [
+      "file:packages/core/src/shared/types/index.ts",
+      "file:packages/core/src/shared/utils/index.ts"
+    ],
+    "languageLesson": "TypeScript 的 Paths<T> 递归工具类型通过模板字面量（template literal types）和映射类型（mapped types）组合，实现了对嵌套对象任意层级路径的编译时推导，例如 'address.city.street' 这样的点分隔路径可以获得完整的类型检查和自动补全。"
+  },
+  {
+    "order": 3,
+    "title": "核心表单系统：Composable 模式",
+    "description": "核心表单系统是框架无关的纯逻辑层，基于 Vue 3 Composition API 实现。useFormData 管理响应式表单数据（深层路径读写、函数式更新、父子表单 provide/inject 共享）；useFields 提供字段配置数组的增删改查（使用 BFS 遍历嵌套字段树并缓存路径查找结果）；useFormRef 管理底层 UI 框架 Form 组件实例的引用。useForm 作为门面 Composable，组合上述三个子 Hook，通过函数重载支持根表单创建和子表单依赖注入两种模式。这套设计使得任何 UI 框架只需替换类型绑定即可复用全部逻辑。",
+    "nodeIds": [
+      "file:packages/core/src/form/useFormData.ts",
+      "file:packages/core/src/form/useFields.ts",
+      "file:packages/core/src/form/useFormRef.ts",
+      "file:packages/core/src/form/useForm.ts",
+      "file:packages/core/src/form/types.ts"
+    ],
+    "languageLesson": "Vue Composable 模式通过「组合优于继承」的方式组织有状态逻辑。useForm 内部调用 useFormData、useFields、useFormRef 三个独立 composable，每个负责单一职责，最后组合成一个完整的表单实例对象。非根表单通过 Vue inject 获取父级实例实现表单嵌套，利用 TypeScript 函数重载提供灵活的参数签名。"
+  },
+  {
+    "order": 4,
+    "title": "核心表格系统：useTable 与搜索集成",
+    "description": "useTable 是核心表格管理的 Composable，它不仅是列配置管理器（支持 setColumn、deleteColumn、appendColumn、prependColumn 等 CRUD 操作），还内部集成了 useForm 来创建搜索表单实例。表格系统与表单系统的深度耦合体现在：表格的搜索区域直接使用表单的字段配置体系，分页参数（pageParam）和搜索参数（searchParam）统一管理，resetQueryParams 重置查询时同步清除搜索表单。列的查找匹配支持 key、dataIndex（字符串/数组）和自定义函数三种模式。",
+    "nodeIds": [
+      "file:packages/core/src/table/useTable.ts",
+      "file:packages/core/src/table/types.ts",
+      "file:packages/core/src/form/constants.ts"
+    ],
+    "languageLesson": "useTable 在内部调用 useForm 创建管理搜索表单的独立表单实例。这种「组合已有 composable」的方式避免了代码重复——搜索表单的字段管理、数据绑定、校验等全部复用已有的表单系统能力，表格只需额外管理列配置、数据源和分页状态。"
+  },
+  {
+    "order": 5,
+    "title": "框架适配层：门面模式与类型绑定",
+    "description": "每个 UI 框架适配包都遵循相同的三层架构模式。以 antd-vue-pro 为例：shared/core 作为 @qin-ui/core 的统一再导出「门面」（barrel file），避免包内文件散列依赖外部包，便于将来统一维护和迁移；shared/ui 同样作为 Ant Design Vue 组件的统一再导出门面。在此基础上，各 Hook 文件（如 useForm.ts、useFields.ts）将 core 泛型参数绑定为本地 UI 框架的具体类型（如 FormInstance、Field<ComponentName, D>），实现类型安全的适配。这种模式在所有四个适配包中保持一致——从 antd-vue-pro、antdv-next-pro、element-plus-pro 到 vant-pro，结构完全相同，差异仅在 UI 库的类型和组件名称上。",
+    "nodeIds": [
+      "file:packages/antd-vue-pro/src/shared/core/index.ts",
+      "file:packages/antd-vue-pro/src/shared/ui/index.ts",
+      "file:packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "file:packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "file:packages/element-plus-pro/src/shared/core/index.ts"
+    ],
+    "languageLesson": "门面模式（Facade Pattern）在此处的应用：通过 shared/core/index.ts 集中 re-export @qin-ui/core 的所有导出，包内的其他文件统一从这个门面导入而非直接依赖 @qin-ui/core。这样做的好处是：如果将来 core 包的导出路径变更，只需修改一个文件；包内代码的依赖关系清晰可追溯。"
+  },
+  {
+    "order": 6,
+    "title": "组件全局配置注入：ComponentProvider DI 机制",
+    "description": "ProComponentProvider 是整个组件库的「配置中心」，基于 Vue 的 provide/inject 机制实现跨层级的依赖注入。constants 层定义了所有内置组件（Input、Select、DatePicker 等 20+ 组件）的 InjectionKey 和默认属性值，同时提供 getInjectConfig（静态/动态双层查询）和 ensureInjectConfig（懒初始化）两个工具函数。types 层通过 TypeScript 映射类型 RequiredComponentVars 为每个组件声明可配置的全局默认 props 类型签名。用户只需在应用根组件包裹 ProComponentProvider 并传入 componentVars，所有子孙 Pro 组件即可自动获取统一默认属性，无需逐处传递。这一模式在 antd-vue-pro、antdv-next-pro、element-plus-pro、vant-pro 四个包中完全一致。",
+    "nodeIds": [
+      "file:packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "file:packages/antd-vue-pro/src/components/component-provider/constants/index.ts",
+      "file:packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts"
+    ],
+    "languageLesson": "Vue 3 的 provide/inject 机制是实现跨层级依赖注入的核心手段。ProComponentProvider 通过 provide 向整个子组件树注入全局配置，任意深度的子组件通过 inject 获取，无需通过 props 逐层传递。配合 TypeScript 的 InjectionKey<T> 泛型，提供方和消费方共享强类型约束，杜绝配置键名拼写错误。ensureInjectConfig 模式使用 Symbol 动态创建 injection key，支持第三方库或用户为自定义组件动态注册全局配置，无需修改库源码。"
+  },
+  {
+    "order": 7,
+    "title": "表单类型系统与组件映射",
+    "description": "ProForm 的类型系统是整个 Schema 驱动架构的基石。form/types 定义了 Field（字段联合类型，通过 discriminated union 区分带嵌套字段的 BaseWithFields 和独立字段的 BaseWithoutFields）、Fields（字段数组）、FieldTypeMap（组件名称到组件 Props 类型的自动映射）以及 WithRef（为所有属性添加 MaybeRef 响应式支持）等关键类型。form/constants 中的 ComponentMap 接口利用 TypeScript 声明合并（declaration merging）暴露扩展入口，允许用户在外部模块添加自定义组件映射而无需修改库源码。getInitProps 工具函数在运行时根据字段配置的 component 名称从注入配置中获取该组件的全局默认 props。",
+    "nodeIds": [
+      "file:packages/antd-vue-pro/src/components/form/types/index.ts",
+      "file:packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "file:packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts"
+    ],
+    "languageLesson": "TypeScript 声明合并（Declaration Merging）允许接口在多个文件中被扩展。ComponentMap 接口被声明为可扩展的（通过 declare module 或同名接口），用户可以在自己的 d.ts 文件中添加自定义组件映射，编译后会自动合并到类型系统中。WithRef<T> 泛型工具类型通过 Exclude 排除 component、valueFormatter 等特殊属性后，为其余所有属性自动添加 MaybeRef 包装——这是编译时「批量响应式化」的优雅实现。"
+  },
+  {
+    "order": 8,
+    "title": "ProForm 渲染管线：从配置到视图",
+    "description": "ProForm 的渲染分为三层递归结构。第一层 BaseForm（Vue 泛型 SFC），接收表单实例和 grid 网格配置，通过 provide 注入表单上下文，渲染底层 UI 框架的 Form 组件并委托 BaseFormItem 递归渲染字段；第二层 BaseFormItem 遍历 fields 数组，对每个字段调用 GroupedFieldAttrs 将配置拆分为 gridItemProps、formItemProps、componentProps 和 formItemSlots 四组属性，嵌套 fields 触发自身递归，叶子字段委托 BaseField 渲染；第三层 BaseField 根据 component 配置动态解析并渲染实际控件（支持字符串映射、自定义组件、Teleport 替换），通过 computed get/set 实现 v-model 双向绑定和 valueFormatter 值格式化。整条管线通过 PathProvider 提供路径上下文，ContainerFragment 实现网格布局动态切换。",
+    "nodeIds": [
+      "file:packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "file:packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "file:packages/antd-vue-pro/src/components/form/components/BaseField/index.vue",
+      "file:packages/antd-vue-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "file:packages/antd-vue-pro/src/components/form/components/PathProvider/index.vue"
+    ],
+    "languageLesson": "Vue 3 泛型 SFC（<script setup generic=\"F extends Form<any> = Form\">）使得组件可以接受类型参数，ProForm 组件根据传入的 form 实例类型自动推导表单数据类型。BaseFormItem 的递归自引用模式（模板中直接使用 <BaseFormItem> 渲染自身）配合 v-if 条件终止，优雅地处理了任意深度的嵌套字段配置。ContainerFragment 通过动态 component（<component :is=\"...\">）实现布局容器的灵活替换，无需在模板中硬编码 if/else 分支。"
+  },
+  {
+    "order": 9,
+    "title": "ProTable 组件：搜索表单联动与列管理",
+    "description": "ProTable（BaseTable.vue）是配置驱动的泛型表格组件，集成了六大功能模块：SearchForm 搜索表单（基于 ProForm 封装，支持 grid/inline 双布局、IntersectionObserver 自动展开收起）、数据表格渲染、Pagination 分页、ColumnControl 列显隐控制（全选/反选/indeterminate 中间态）、SizeControl 尺寸切换（large/middle/small）以及完整的插槽系统（search-form/button-bar/toolbar/table/bodyCell）。组件通过 useTable hook 驱动数据查询流程，defineModel 实现 size 和 loading 的双向绑定，computed 管道将注入配置与本地属性合并后传递给底层 Table 组件。SearchForm 组件通过 IntersectionObserver 监听折叠区域内已填写字段的可见性，自动决定是否展开搜索表单，避免用户遗漏填写内容。",
+    "nodeIds": [
+      "file:packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "file:packages/antd-vue-pro/src/components/table/components/SearchForm.vue",
+      "file:packages/antd-vue-pro/src/components/table/components/ColumnControl.vue",
+      "file:packages/antd-vue-pro/src/components/table/components/SizeControl.vue"
+    ],
+    "languageLesson": "ProTable 使用 Vue 3.3+ 的 defineModel 宏实现 v-model:size 和 v-model:loading 的双向绑定，替代了传统的 props + emit 模式，代码更简洁。IntersectionObserver 在 SearchForm 中的应用是一个精巧的 UX 模式：将隐藏的表单字段放入折叠区域，当用户填写字段后该区域被折叠隐藏时，IntersectionObserver 检测到已填写字段不可见，自动展开搜索表单——避免用户提交时遗漏不可见的搜索条件。"
+  },
+  {
+    "order": 10,
+    "title": "入口配置与 Monorepo 工程化",
+    "description": "每个框架适配包都有统一的包级入口（src/index.ts），通过 withInstall 工厂函数为 ProForm、ProTable、ProComponentProvider 添加 Vue 插件 install 方法，支持 app.use() 全局注册和按需导入两种使用方式。根目录的 pnpm-workspace.yaml 定义 Monorepo 子包范围，tsconfig.base.json 提供公共 TypeScript 编译配置供各子包继承。各子包的 package.json 通过 peerDependencies 声明对 UI 框架和 Vue 的依赖约束，vite.config.ts 使用 Vite 库模式构建并配合 vite-plugin-dts 生成类型声明文件、通过 manualChunks 分离 vendor 和 core chunk 优化产物。",
+    "nodeIds": [
+      "file:packages/antd-vue-pro/src/index.ts",
+      "config:pnpm-workspace.yaml",
+      "config:tsconfig.base.json",
+      "config:package.json"
+    ],
+    "languageLesson": "withInstall 是高阶函数模式的一个典型应用：接收一个 Vue SFC 组件对象，返回交叉类型 T & Plugin，使组件同时具备原有属性和 Vue 插件安装能力。pnpm workspace 通过 workspace 协议（如 \"@qin-ui/core\": \"workspace:*\"）实现跨包直接引用源码，无需发布即可联调。Vite 库模式的 manualChunks 配置将 lodash-es 和 @qin-ui/core 分离为独立 chunk，避免多入口重复打包，减少总体积。"
+  },
+  {
+    "order": 11,
+    "title": "文档体系与持续部署",
+    "description": "项目的文档体系分为两层：项目根目录的 README.md 提供整体概览，而每个子包都有自己的 README.md（详细的安装指南、API 参考、代码示例）和 AI-CONTEXT.md（面向 AI 编程助手的结构化上下文文档）。scripts/generate-api-json.ts 是一个自动化工具，扫描各 UI 包的源码 JSDoc 注释，提取导出的函数、类型、组件和 Hook 的签名信息，为每个包生成 api.json 文件并聚合为全局 API 参考数据，供 VitePress 文档站点使用。GitHub Actions 的 deploy.yml 在推送到 main 分支时自动构建并部署文档站点到 GitHub Pages。",
+    "nodeIds": [
+      "document:packages/antd-vue-pro/README.md",
+      "document:AI-CONTEXT.md",
+      "pipeline:.github/workflows/deploy.yml",
+      "file:scripts/generate-api-json.ts"
+    ],
+    "languageLesson": "API JSON 自动生成脚本通过解析 JSDoc 注释提取 API 元数据，避免了手工维护文档与源码同步的痛点。GitHub Actions 工作流使用 actions/deploy-pages 部署到 GitHub Pages，通过 concurrency 配置防止并发部署冲突——当有新的 push 时自动取消正在运行的旧部署。"
+  }
+]

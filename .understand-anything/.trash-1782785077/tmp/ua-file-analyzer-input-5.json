@@ -1,0 +1,62 @@
+{
+  "projectRoot": "/Users/dufan/Desktop/Code/My_project/pro-components",
+  "batchFiles": [
+    {"path": "packages/vant-pro/src/components/component-provider/constants/index.ts", "language": "typescript", "sizeLines": 110, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/components/component-provider/types/index.ts", "language": "typescript", "sizeLines": 31, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/components/form/components/BaseField/utils/index.ts", "language": "typescript", "sizeLines": 14, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/components/form/constants/index.ts", "language": "typescript", "sizeLines": 109, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/components/form/hooks/useFields.ts", "language": "typescript", "sizeLines": 37, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/components/form/hooks/useForm.ts", "language": "typescript", "sizeLines": 71, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/components/form/hooks/useFormPopup.ts", "language": "typescript", "sizeLines": 111, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/components/form/hooks/useFormRef.ts", "language": "typescript", "sizeLines": 23, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/components/form/types/index.ts", "language": "typescript", "sizeLines": 220, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/shared/core/index.ts", "language": "typescript", "sizeLines": 32, "fileCategory": "code"},
+    {"path": "packages/vant-pro/src/shared/ui/index.ts", "language": "typescript", "sizeLines": 26, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "packages/vant-pro/src/components/component-provider/constants/index.ts": [
+      "packages/vant-pro/src/components/component-provider/types/index.ts"
+    ],
+    "packages/vant-pro/src/components/component-provider/types/index.ts": [
+      "packages/vant-pro/src/components/form/constants/index.ts",
+      "packages/vant-pro/src/components/form/index.ts",
+      "packages/vant-pro/src/components/form/types/index.ts"
+    ],
+    "packages/vant-pro/src/components/form/components/BaseField/utils/index.ts": [
+      "packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "packages/vant-pro/src/components/form/types/index.ts"
+    ],
+    "packages/vant-pro/src/components/form/constants/index.ts": [
+      "packages/vant-pro/src/shared/ui/index.ts"
+    ],
+    "packages/vant-pro/src/components/form/hooks/useFields.ts": [
+      "packages/vant-pro/src/components/form/constants/index.ts",
+      "packages/vant-pro/src/components/form/types/index.ts",
+      "packages/vant-pro/src/shared/core/index.ts",
+      "packages/vant-pro/src/shared/ui/index.ts"
+    ],
+    "packages/vant-pro/src/components/form/hooks/useForm.ts": [
+      "packages/vant-pro/src/components/form/constants/index.ts",
+      "packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "packages/vant-pro/src/components/form/types/index.ts",
+      "packages/vant-pro/src/shared/core/index.ts",
+      "packages/vant-pro/src/shared/ui/index.ts"
+    ],
+    "packages/vant-pro/src/components/form/hooks/useFormPopup.ts": [
+      "packages/vant-pro/src/components/form/types/index.ts",
+      "packages/vant-pro/src/shared/ui/index.ts"
+    ],
+    "packages/vant-pro/src/components/form/hooks/useFormRef.ts": [
+      "packages/vant-pro/src/shared/core/index.ts",
+      "packages/vant-pro/src/shared/ui/index.ts"
+    ],
+    "packages/vant-pro/src/components/form/types/index.ts": [
+      "packages/vant-pro/src/components/form/constants/index.ts",
+      "packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "packages/vant-pro/src/shared/core/index.ts",
+      "packages/vant-pro/src/shared/ui/index.ts"
+    ],
+    "packages/vant-pro/src/shared/core/index.ts": [],
+    "packages/vant-pro/src/shared/ui/index.ts": []
+  }
+}

@@ -16,6 +16,9 @@ const gitignorePath = path.resolve(__dirname, '.gitignore');
 export default defineConfig([
   includeIgnoreFile(gitignorePath),
   {
+    ignores: ['.understand-anything/'],
+  },
+  {
     files: ['**/*.{js,mjs,cjs,ts,vue}'],
     plugins: { js },
     extends: ['js/recommended'],

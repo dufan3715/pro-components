@@ -1,0 +1,646 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "summary": "定义组件全局默认配置常量与 InjectionKey，通过 Vue 的 provide/inject 机制为 ProTable、ProForm、ProFormItem 及所有内置表单组件提供统一的默认 props 注入。同时提供 getInjectConfig/ensureInjectConfig 动态查询与注册注入配置的工具函数。",
+      "tags": ["config", "dependency-injection", "component-provider", "constants"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "summary": "定义 RequiredComponentVars 及其映射类型，以 mapped type 声明所有组件（pro-table、pro-form、pro-form-item 及全部表单控件）的全局默认 props 类型签名，并导出 ComponentVars 作为 Partial 版本供外部使用。",
+      "tags": ["type-definition", "component-provider", "dependency-injection", "mapped-types"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "summary": "提供 getInitProps 工具函数，根据字段配置中的 component 和 type 拼接 key 来查询 InjectionConfig，并通过 Vue inject 返回该组件的全局默认 props。",
+      "tags": ["utility", "form", "dependency-injection", "field-props"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/constants/index.ts",
+      "summary": "定义表单系统的组件映射常量与类型，包含 BaseComponentMap（15 个 Element Plus 内置组件映射）、ComponentMap 扩展接口（支持声明合并）、ComponentName 联合类型、运行时 componentMap 对象，以及 TeleportComponentNamePrefix 和表单插槽键常量。",
+      "tags": ["config", "component-mapping", "form", "type-definition", "constants"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "type": "file",
+      "name": "useFields.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "summary": "类型安全的 useFields Hook 重导出，将 core 的 _useFields 泛型参数绑定为 Element Plus 本地类型（Field<ComponentName, D> 与 FormItemInstance），提供完整的字段配置管理与组件类型推导。",
+      "tags": ["hook", "form", "type-definition", "re-export", "field-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "type": "file",
+      "name": "useForm.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "summary": "类型安全的 useForm Hook 重导出，将 core 的 _useForm 泛型参数绑定为 Element Plus 本地类型（Field<ComponentName, D> 与 FormInstance），并导出 Form 实例类型供外部消费。",
+      "tags": ["hook", "form", "type-definition", "re-export", "form-instance"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "type": "file",
+      "name": "useFormRef.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "summary": "类型安全的 useFormRef Hook 重导出，将 core 的 _useFormRef 泛型参数绑定为 Element Plus 的 FormInstance，为 formRef 提供完整的 Element Plus Form 组件 API 类型提示。",
+      "tags": ["hook", "form", "type-definition", "re-export", "form-ref"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/types/index.ts",
+      "summary": "表单系统的核心类型定义文件，声明 Field、Fields、Base（含 BaseWithFields/BaseWithoutFields 条件类型）、WithRef 响应式增强、WithComponent 自动组件 Props 提取、FieldTypeMap 字段映射、以及插槽/容器/值格式化器等辅助类型。是整个 ProForm Schema 驱动体系的基础。",
+      "tags": ["type-definition", "form", "data-model", "schema-driven", "core-types"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "type": "file",
+      "name": "BaseTable.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "summary": "ProTable 核心组件（Vue SFC，泛型 T），集成搜索表单（SearchForm）、ElTable、ElPagination 及列/尺寸控件，支持 schema 驱动的列渲染、全局注入配置合并、自定义插槽（search-form/button-bar/toolbar/table），并提供 immediateSearch 首次自动搜索。",
+      "tags": ["component", "table", "data-display", "vue-sfc", "generic-component"],
+      "complexity": "complex",
+      "languageNotes": "使用 Vue 3 <script setup generic=\"T\"> 泛型组件语法，通过 defineModel 实现 size/loading 双向绑定"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "type": "file",
+      "name": "SearchForm.vue",
+      "filePath": "packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "summary": "表格搜索表单组件，基于 ProForm 封装，支持 grid/inline 两种布局、展开/收起动画（IntersectionObserver 自适应检测溢出）、可自定义的搜索/重置/展开按钮，并通过 rowGap/columnGap 控制间距。",
+      "tags": ["component", "search-form", "table", "vue-sfc", "expand-collapse"],
+      "complexity": "complex",
+      "languageNotes": "双 script 块设计：<script lang=\"ts\"> 导出 SearchFormProps 类型，<script setup> 实现组件逻辑"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/table/index.ts",
+      "summary": "ProTable 模块的 barrel 入口文件，导出 ProTableProps 类型、ProTableInstance 类型，并 re-export Column/Columns 类型定义、useTable Hook 及其 Table 类型，默认导出 BaseTable 组件。",
+      "tags": ["barrel", "table", "entry-point", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/table/types/index.ts",
+      "summary": "定义 ProTable 的列配置类型体系：ColumnScope 表格列作用域、Column 列配置（支持 prop/dataIndex 兼容、hidden、render 自定义渲染）、Columns 列数组类型，适配 Element Plus 使用 prop 而非 dataIndex 的惯例。",
+      "tags": ["type-definition", "table", "data-model", "column-config"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "type": "file",
+      "name": "useTable.ts",
+      "filePath": "packages/element-plus-pro/src/components/table/useTable.ts",
+      "summary": "Element Plus 适配版 useTable Hook，封装 core _useTable 并做 API 适配（将 dataSource 重命名为 data 符合 Element Plus 惯例），导出 Table 实例类型（含 data Ref、columns、searchForm、pageParam 等）和 useTable 工厂函数。",
+      "tags": ["hook", "table", "adapter", "data-management", "api-adaptation"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/shared/core/index.ts",
+      "summary": "统一依赖门面（Facade），集中 re-export @qin-ui/core 的所有 hooks（useForm/useTable/useFields/useFormData/useFormRef）、injection keys（InjectionFormKey/InjectionPathKey）、工具函数和核心类型，避免包内文件直接散列依赖 @qin-ui/core。",
+      "tags": ["barrel", "re-export", "dependency-facade", "core"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/shared/ui/index.ts",
+      "summary": "Element Plus UI 组件统一门面，将所有使用的 El 组件重命名导入并 re-export（如 ElForm→Form, ElTable→Table），同时提供 props 提取工具函数（tableProps/paginationProps 等）、禁用上下文 provide/inject 工具（useDisabledContext/useDisabledContextProvider）及 NamePath 类型。",
+      "tags": ["barrel", "ui-components", "element-plus", "re-export", "provide-inject"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "function",
+      "name": "getInjectConfig",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "lineRange": [193, 198],
+      "summary": "根据组件 key 查询注入配置，先从静态 INJECT_CONFIG 查找，找不到再从动态 DYNAMIC_INJECT_CONFIG 中查找，返回 InjectConfigEntry 或 undefined。",
+      "tags": ["utility", "dependency-injection", "config-lookup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "function",
+      "name": "ensureInjectConfig",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "lineRange": [200, 209],
+      "summary": "确保指定 key 的注入配置存在，优先返回已有配置，否则动态创建新的 InjectConfigEntry（含 Symbol injectionKey 和空默认值）并注册到 DYNAMIC_INJECT_CONFIG 中。",
+      "tags": ["utility", "dependency-injection", "config-registration"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "function",
+      "name": "getInitProps",
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "lineRange": [5, 15],
+      "summary": "根据 Field 配置的 component/type 拼接查询 key，通过 getInjectConfig 获取注入配置，再通过 Vue inject 返回组件全局默认 props；若 component 非字符串则返回空对象。",
+      "tags": ["utility", "form", "field-props", "dependency-injection"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/form/hooks/useFields.ts:useFields",
+      "type": "function",
+      "name": "useFields",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "lineRange": [28, 34],
+      "summary": "类型安全的 useFields Hook，将 core _useFields 的泛型绑定为 Element Plus 本地 Field<ComponentName, D> 和 FormItemInstance，返回字段管理对象并提供完整类型推导。",
+      "tags": ["hook", "form", "field-management", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "function",
+      "name": "useForm",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "lineRange": [48, 55],
+      "summary": "类型安全的 useForm Hook，将 core _useForm 泛型绑定为 Element Plus 本地 Field<ComponentName, D> 和 FormInstance，支持两种重载签名（传入初始数据+字段 或 仅传 root 标志）。",
+      "tags": ["hook", "form", "form-instance", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts:useFormRef",
+      "type": "function",
+      "name": "useFormRef",
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "lineRange": [23, 25],
+      "summary": "类型安全的 useFormRef Hook，将 core _useFormRef 泛型绑定为 Element Plus FormInstance，提供 formRef（响应式表单实例引用）和 setFormRef（设置实例）功能。",
+      "tags": ["hook", "form", "form-ref", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/components/table/useTable.ts:useTable",
+      "type": "function",
+      "name": "useTable",
+      "filePath": "packages/element-plus-pro/src/components/table/useTable.ts",
+      "lineRange": [75, 94],
+      "summary": "Element Plus 适配版 useTable Hook 实现，接收 UseTableParams 配置，内部调用 core _useTable 并完成 API 适配（将 data 映射为 dataSource 传给 core，再将返回的 dataSource 映射回 data），返回 Table 实例。",
+      "tags": ["hook", "table", "adapter", "data-management"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/shared/ui/index.ts:useDisabledContext",
+      "type": "function",
+      "name": "useDisabledContext",
+      "filePath": "packages/element-plus-pro/src/shared/ui/index.ts",
+      "lineRange": [89, 95],
+      "summary": "从祖先组件注入禁用上下文，结合 Element Plus 的 useFormDisabled 提供计算属性形式的禁用状态。",
+      "tags": ["utility", "provide-inject", "disabled-state", "context"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/element-plus-pro/src/shared/ui/index.ts:useDisabledContextProvider",
+      "type": "function",
+      "name": "useDisabledContextProvider",
+      "filePath": "packages/element-plus-pro/src/shared/ui/index.ts",
+      "lineRange": [97, 104],
+      "summary": "通过 Vue provide 向下传递禁用上下文（computed 计算属性），接收 MaybeRefOrGetter 类型的 disabled 参数，供后代组件通过 useDisabledContext 消费。",
+      "tags": ["utility", "provide-inject", "disabled-state", "context"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "target": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "function:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "function:packages/element-plus-pro/src/components/form/hooks/useFields.ts:useFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "function:packages/element-plus-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "function:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts:useFormRef",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "function:packages/element-plus-pro/src/components/table/useTable.ts:useTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "target": "function:packages/element-plus-pro/src/shared/ui/index.ts:useDisabledContext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "target": "function:packages/element-plus-pro/src/shared/ui/index.ts:useDisabledContextProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "function:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "target": "function:packages/element-plus-pro/src/components/form/hooks/useFields.ts:useFields",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "target": "function:packages/element-plus-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "function:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts:useFormRef",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/useTable.ts",
+      "target": "function:packages/element-plus-pro/src/components/table/useTable.ts:useTable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "target": "function:packages/element-plus-pro/src/shared/ui/index.ts:useDisabledContext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/shared/ui/index.ts",
+      "target": "function:packages/element-plus-pro/src/shared/ui/index.ts:useDisabledContextProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "target": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "target": "function:packages/element-plus-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/element-plus-pro/src/components/form/hooks/useFields.ts:useFields",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/element-plus-pro/src/components/form/hooks/useForm.ts:useForm",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/element-plus-pro/src/components/form/hooks/useFormRef.ts:useFormRef",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/element-plus-pro/src/components/table/useTable.ts:useTable",
+      "target": "file:packages/element-plus-pro/src/shared/core/index.ts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "target": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}
