@@ -66,7 +66,11 @@
       "@qin-ui/element-plus-pro": "workspace:*",
       "@qin-ui/vant-pro": "workspace:*",
       "@qin-ui/core": "workspace:*"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "core-js",
+      "esbuild"
+    ]
   },
   "dependencies": {
     "vue": "^3.5.34"

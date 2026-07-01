@@ -1,11 +1,11 @@
 # @qin-ui/antdv-next-pro
 
-> 基于 ant-design-vue v4 (next) 的配置驱动表单和表格组件库。
+> 基于 antdv-next 的配置驱动表单和表格组件库。
 
 ## 安装
 
 ```bash
-npm install @qin-ui/antdv-next-pro ant-design-vue vue
+npm install @qin-ui/antdv-next-pro antdv-next vue
 ```
 
 ## 核心导出
@@ -34,4 +34,4 @@ npm install @qin-ui/antdv-next-pro ant-design-vue vue
 - `dataIndex` - 数据路径（优先使用）
 - `key` - 列标识（dataIndex 不满足时使用）
 - `hidden` - 是否隐藏
-- 所有 ant-design-vue ColumnType 属性
+- 所有 antdv-next ColumnType 属性

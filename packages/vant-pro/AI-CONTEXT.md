@@ -25,7 +25,7 @@ npm install @qin-ui/vant-pro vant vue
 
 每个字段支持：`path`, `label`, `component`, `hidden`, `disabled`, `rules`, `valueFormatter`, `fields`, `grid`, `slots`, `componentStyle`, `componentClass`, `componentContainer`, `formItemStyle`, `formItemClass`, `formItemContainer`, `modelProp`
 
-内置组件：input, textarea, input-search, input-password, input-number, select, cascader, date-picker, range-picker, time-picker, checkbox-group, radio-group, switch, slider, tree-select, transfer, custom
+内置组件：field, switch, stepper, rate, slider, uploader, checkbox-group, radio-group, picker, date-picker, time-picker, cascader, area, signature, button, custom
 
 ## 类型扩展
 

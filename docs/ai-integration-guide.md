@@ -2,6 +2,23 @@
 
 > 本文档帮助业务项目开发者配置 AI 编码工具，使其能够充分理解 `@qin-ui/xxx` 相关依赖包。
 
+## 一键初始化 AI 上下文（推荐）
+
+在您的项目中安装了 `@qin-ui/*` 包后，可以通过以下命令快速初始化 AI 配置文件。本项目遵循了最新的 **Agentic Collaboration Standard (ACS)**，所有的规则将被统一写入项目唯一的 `.agents` 目录，不仅让项目根目录保持整洁，也能完美兼容现代 AI 编码工具。
+
+```bash
+# 示例：初始化 antdv-next-pro 的 AI 上下文
+npx @qin-ui/antdv-next-pro init-ai
+```
+
+该命令会在项目中生成如下格式的规则文件：
+
+- `.agents/rules/<pkg>.md`
+
+> 提示：其他包（如 `antd-vue-pro`, `element-plus-pro`, `vant-pro`）使用方式相同。生成后，请将 `.agents/` 目录提交到 Git 代码库。
+
+---
+
 ## 核心原理
 
 本项目已为所有 npm 发布的包提供了：

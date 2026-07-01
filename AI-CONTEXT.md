@@ -6,13 +6,13 @@
 
 此 monorepo 包含以下包：
 
-| 包名                       | UI 框架                    | npm 发布           |
-| -------------------------- | -------------------------- | ------------------ |
-| `@qin-ui/core`             | 无（核心逻辑）             | 否（被 UI 层内联） |
-| `@qin-ui/antd-vue-pro`     | ant-design-vue v4          | 是                 |
-| `@qin-ui/antdv-next-pro`   | ant-design-vue v4.x (next) | 是                 |
-| `@qin-ui/element-plus-pro` | element-plus               | 是                 |
-| `@qin-ui/vant-pro`         | vant v4                    | 是                 |
+| 包名                       | UI 框架           | npm 发布           |
+| -------------------------- | ----------------- | ------------------ |
+| `@qin-ui/core`             | 无（核心逻辑）    | 否（被 UI 层内联） |
+| `@qin-ui/antd-vue-pro`     | ant-design-vue v4 | 是                 |
+| `@qin-ui/antdv-next-pro`   | antdv-next        | 是                 |
+| `@qin-ui/element-plus-pro` | element-plus      | 是                 |
+| `@qin-ui/vant-pro`         | vant v4           | 是                 |
 
 ## 核心 API 概览
 
