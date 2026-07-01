@@ -1,0 +1,17 @@
+{
+  "projectRoot": "/Users/dufan/Desktop/Code/My_project/pro-components",
+  "batchFiles": [
+    {"path": "AI-CONTEXT.md", "language": "markdown", "sizeLines": 191, "fileCategory": "docs"},
+    {"path": "README.md", "language": "markdown", "sizeLines": 83, "fileCategory": "docs"},
+    {"path": "package.json", "language": "json", "sizeLines": 74, "fileCategory": "config"},
+    {"path": "pnpm-workspace.yaml", "language": "yaml", "sizeLines": 6, "fileCategory": "config"},
+    {"path": "tsconfig.base.json", "language": "json", "sizeLines": 16, "fileCategory": "config"}
+  ],
+  "batchImportData": {
+    "AI-CONTEXT.md": [],
+    "README.md": [],
+    "package.json": [],
+    "pnpm-workspace.yaml": [],
+    "tsconfig.base.json": []
+  }
+}

@@ -1,0 +1,4607 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "60217979b460ab5e1eae701ad8ee85077fa24688",
+  "generatedAt": "2026-06-30T02:04:20.146Z",
+  "files": {
+    ".commitlintrc.js": {
+      "filePath": ".commitlintrc.js",
+      "contentHash": "70af958893403dd9885c6264af70245d1ab033471507c9080a41393a85681ca1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/deploy.yml": {
+      "filePath": ".github/workflows/deploy.yml",
+      "contentHash": "5569fd623afbb5bb5db196113a7fc2a05cbbde703ca69ee07daebdb9a1d5a24a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    ".husky/commit-msg": {
+      "filePath": ".husky/commit-msg",
+      "contentHash": "b990611c8ae68075cd1f258a567b01cce7c05adbeccf8624682a9221f760c61f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    ".husky/pre-commit": {
+      "filePath": ".husky/pre-commit",
+      "contentHash": "6be663923532934ae9fbcbcee63cd31ba76e745e4d74b9f7ad78b146a70328a9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    ".prettierignore": {
+      "filePath": ".prettierignore",
+      "contentHash": "083b8218149f83e550ac27821b4afda66f0819a662cf544e58ae19acba8672bc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    ".stylelintignore": {
+      "filePath": ".stylelintignore",
+      "contentHash": "773e35a93407bad1fc08563462ac545f41366eda07784bc99ae5226490deec0c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "1ecfc2f2aa54c41c06d3cd4c5149d1033aac0caeddc5e656493350ae57a23617",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 59,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/config.json": {
+      "filePath": ".understand-anything/config.json",
+      "contentHash": "57ad357f8d13db85695632a844b96ca225ba077d44acc0193195a7ae02097dd9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "AI-CONTEXT.md": {
+      "filePath": "AI-CONTEXT.md",
+      "contentHash": "d785f76f0c0b6f70b490190518d9ee55e84c1b4b3f3fd64e135d730711993c23",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 192,
+      "hasStructuralAnalysis": true
+    },
+    "eslint.config.mjs": {
+      "filePath": "eslint.config.mjs",
+      "contentHash": "9e44649408c8056b936a0c26df522d75a6c0facdd1bc44ffec9c0bb21f5638e4",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@eslint/js",
+          "specifiers": [
+            "js"
+          ]
+        },
+        {
+          "source": "globals",
+          "specifiers": [
+            "globals"
+          ]
+        },
+        {
+          "source": "typescript-eslint",
+          "specifiers": [
+            "tseslint"
+          ]
+        },
+        {
+          "source": "eslint-plugin-vue",
+          "specifiers": [
+            "pluginVue"
+          ]
+        },
+        {
+          "source": "@eslint/json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "@eslint/css",
+          "specifiers": [
+            "css"
+          ]
+        },
+        {
+          "source": "eslint/config",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "eslint-config-prettier",
+          "specifiers": [
+            "prettier"
+          ]
+        },
+        {
+          "source": "@eslint/compat",
+          "specifiers": [
+            "includeIgnoreFile"
+          ]
+        },
+        {
+          "source": "node:path",
+          "specifiers": [
+            "path"
+          ]
+        },
+        {
+          "source": "node:url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "lint-staged.config.mjs": {
+      "filePath": "lint-staged.config.mjs",
+      "contentHash": "ff64aa281394f86ea3b8acf110307c833bae7a76661a9ff75462095a87e62681",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "55c7957b86b8d87fe64de4d4f4e1a3ad36c15ce21314bd794d4589f15e7b5a67",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 75,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/AI-CONTEXT.md": {
+      "filePath": "packages/antd-vue-pro/AI-CONTEXT.md",
+      "contentHash": "5ee9df4ee0cb324d97f59ed40a08d12b3255014f0f0a8eecb65c082d8e103bfb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 124,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/package.json": {
+      "filePath": "packages/antd-vue-pro/package.json",
+      "contentHash": "ff81b5e3a6a9717afb0c07d1d9784399388ebd706570fdd820321c4f14507473",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/README.md": {
+      "filePath": "packages/antd-vue-pro/README.md",
+      "contentHash": "0d02b640acf7b5143ed6c24999855d8d8165894d39b2cf8dd7ce647d1b75b723",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 359,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/component-provider/components/index.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/components/index.vue",
+      "contentHash": "4cd75dfd78301e2008c456f9f4bcbae48c96140fd3ab81253ee52a8b26cc60ed",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 75,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/component-provider/constants/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/constants/index.ts",
+      "contentHash": "aeb362fb560f97b957dbdd69f67471dbaf406f62c896768da24d7ab37c42055d",
+      "functions": [
+        {
+          "name": "getPopupContainer",
+          "params": [
+            "triggerNode"
+          ],
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "getInjectConfig",
+          "params": [
+            "key"
+          ],
+          "returnType": "InjectConfigEntry | undefined",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "ensureInjectConfig",
+          "params": [
+            "key"
+          ],
+          "returnType": "InjectConfigEntry",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../types",
+          "specifiers": [
+            "RequiredComponentVars"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "InjectionKey",
+            "Component"
+          ]
+        }
+      ],
+      "exports": [
+        "INJECT_COMPONENTS",
+        "INJECT_CONFIG",
+        "getInjectConfig",
+        "ensureInjectConfig"
+      ],
+      "totalLines": 166,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/component-provider/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/index.ts",
+      "contentHash": "a091b7df35c6b226227693e13689f99695effd9788fcfdd35aebf167d32c9729",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./components/index.vue",
+          "specifiers": [
+            "ComponentProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ComponentVars"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/component-provider/types/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/component-provider/types/index.ts",
+      "contentHash": "9929582159a43b6fb3908e6ed04f9210796fe826adefb4f90a7de79bfab8e5d8",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "GridItemProps",
+            "FormItemProps",
+            "TableProps"
+          ]
+        },
+        {
+          "source": "../../form/types",
+          "specifiers": [
+            "Base",
+            "Grid"
+          ]
+        },
+        {
+          "source": "../../form",
+          "specifiers": [
+            "ProFormProps"
+          ]
+        },
+        {
+          "source": "../../table",
+          "specifiers": [
+            "ProTableProps"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "AllowedComponentProps"
+          ]
+        },
+        {
+          "source": "../../form/constants",
+          "specifiers": [
+            "GetComponentType",
+            "ComponentName"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 91,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/components/BaseField/index.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseField/index.vue",
+      "contentHash": "bb09746cadd116971d0a217ef750a16134b3753ccab50408b950e3e99f9e8644",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 167,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseField/utils/index.ts",
+      "contentHash": "a482841ad504bc72f747f568faf00476c97373ba7b2cc0eaee9479b386e64377",
+      "functions": [
+        {
+          "name": "getInitProps",
+          "params": [
+            "field"
+          ],
+          "returnType": "Record<string, any>",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../types",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "../../../../component-provider/constants",
+          "specifiers": [
+            "getInjectConfig"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "inject"
+          ]
+        }
+      ],
+      "exports": [
+        "getInitProps"
+      ],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseForm/index.vue",
+      "contentHash": "472f1a5528518660beade4d69a5ddf427b631397b8ce8007dd9e8f98ade29bce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 91,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/BaseFormItem/index.vue",
+      "contentHash": "d41c2eb23ae7271309fe5a67aac7eeb7682112171d0b851463741c4568a639a2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 157,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/form/components/ContainerFragment/index.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/ContainerFragment/index.vue",
+      "contentHash": "effab6f34bd5c47a27b8444d1744b00b824511284a6406f4c93088f9c3ca89e9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/form/components/GroupedFieldAttrs/index.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "contentHash": "85b234925d9c56ff4c7cb22d37a966f6e4021e971bc5f50dbc8a1af1c6f9e84c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 98,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/form/components/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/index.ts",
+      "contentHash": "fc8798a63158203751021166954a22870d4b38da704e3c3a9760ecfac5d47585",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps",
+            "ComponentExposed"
+          ]
+        },
+        {
+          "source": "./BaseForm/index.vue",
+          "specifiers": [
+            "BaseForm"
+          ]
+        },
+        {
+          "source": "./BaseFormItem/index.vue",
+          "specifiers": [
+            "BaseFormItem"
+          ]
+        }
+      ],
+      "exports": [
+        "BaseField",
+        "ContainerFragment",
+        "SlotComponent",
+        "BaseForm",
+        "BaseFormItem"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/components/PathProvider/index.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/PathProvider/index.vue",
+      "contentHash": "54bcd11282b34cb13d45e46c0bbdfda0f8e83e909b4a9b78c6a4d315db47670f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/form/components/SlotComponent/index.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/form/components/SlotComponent/index.vue",
+      "contentHash": "5d178b082291c823779d53262e9cc01b0940d79be790c602cee760c3e530e1b7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/form/constants/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/constants/index.ts",
+      "contentHash": "edda50f32ee673dcb8eeb0323871752311b8f433da66f28f00bb2cb844656fee",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "Cascader",
+            "CheckboxGroup",
+            "DatePicker",
+            "Input",
+            "InputNumber",
+            "InputPassword",
+            "InputSearch",
+            "RadioGroup",
+            "Select",
+            "Slider",
+            "Switch",
+            "Textarea",
+            "TimePicker",
+            "Transfer",
+            "TreeSelect",
+            "RangePicker"
+          ]
+        }
+      ],
+      "exports": [
+        "FORM_ITEM_SLOT_KEYS",
+        "componentMap",
+        "TeleportComponentNamePrefix",
+        "InjectionFormKey",
+        "InjectionPathKey"
+      ],
+      "totalLines": 136,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/hooks/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/hooks/index.ts",
+      "contentHash": "3eb927b7c4b8d64ef093747ba9aa9a36ade429e45f853cdcbef3c417d5e6ecff",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useFormData"
+      ],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/hooks/useFields.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/hooks/useFields.ts",
+      "contentHash": "7b1952e01431b344e79fc5906c902ab2aeb076e33fb28af7aa55df4745a58d4b",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormItemInstance"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useFields"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Field",
+            "Fields"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName"
+          ]
+        }
+      ],
+      "exports": [
+        "useFields"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/hooks/useForm.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/hooks/useForm.ts",
+      "contentHash": "a6feb55ece8b94d7c86ac24575acccd953e1e9ff36b4b03a21b2f0c737090e8f",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useForm",
+            "_Form"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "ExtendWithAny",
+            "DeepPartial"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance"
+          ]
+        }
+      ],
+      "exports": [
+        "useForm"
+      ],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/hooks/useFormRef.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/hooks/useFormRef.ts",
+      "contentHash": "60bd91f300b3489c1d64424235a993f58250da23539c1f51480a2594c3cf3988",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useFormRef"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance"
+          ]
+        }
+      ],
+      "exports": [
+        "useFormRef"
+      ],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/index.ts",
+      "contentHash": "d72b95306cab8537591091c89114220e7a3a4cf50b79973c76facdbd83b9e4ee",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./components/BaseForm/index.vue",
+          "specifiers": [
+            "BaseForm"
+          ]
+        }
+      ],
+      "exports": [
+        "ContainerFragment",
+        "SlotComponent",
+        "ProFormProps",
+        "ProFormInstance",
+        "ProFormItemProps",
+        "ProFormItemInstance",
+        "ComponentMap",
+        "ComponentName",
+        "Field",
+        "Fields",
+        "useForm",
+        "useFields",
+        "useFormRef",
+        "useFormData",
+        "Form",
+        "UseFields"
+      ],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/form/types/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/form/types/index.ts",
+      "contentHash": "a752eff33cc362518b6f8fbeb7d88d9b6681b4797d40b633b1b325f6d9c112eb",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "GridProps",
+            "GridItemProps",
+            "FormInstance",
+            "FormItemProps"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormItem"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps",
+            "ComponentSlots"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "CSSProperties",
+            "Component",
+            "Raw",
+            "MaybeRef",
+            "ComputedRef",
+            "VNode",
+            "VNodeProps"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName",
+            "GetComponentType"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "Path"
+          ]
+        }
+      ],
+      "exports": [
+        "FormInstance"
+      ],
+      "totalLines": 272,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/table/components/BaseTable.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/BaseTable.vue",
+      "contentHash": "9b3b93e0ea67c20e39136dd2a95a393c5d24cf9ffea5e3a318d3b38e80f24f55",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 332,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/components/ColumnControl.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/ColumnControl.vue",
+      "contentHash": "182452853d59a413eee24991bf88b5b8f282d7d15e412c2e56607301aeab39ac",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 133,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/components/DefaultSearchFormContainer.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "contentHash": "1c354a6f6592efa179d1f3a3ea67afdd66fb39e4bea7901bcac7f15bba77aa74",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/components/DefaultTableContainer.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/DefaultTableContainer.vue",
+      "contentHash": "c902e5812031f00e678df4f60cfcb7ff413853a334fa854e5dc7171c9cc4e76c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/components/icons/ColumnHeightOutlined.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "contentHash": "53b1f9a4e187416723beb82666b237ca12ed72166f9ac8acd8ad3e142ea04896",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/components/icons/DownOutlined.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/icons/DownOutlined.vue",
+      "contentHash": "8ac0dea236e6d76d36227571d6394cd20d313a7cde7873b0ba713f8e5f1d3219",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/components/icons/FilterOutlined.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "contentHash": "c18446700fa605b8763b5984090dbd00284dcfc279662531773df981543d24aa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/components/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/index.ts",
+      "contentHash": "6bf03fb3a72b3547b7733897a6d83eddd36608b35d8f1cdda1fab2e51ea4fc4e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "DefaultSearchFormContainer",
+        "DefaultTableContainer",
+        "SizeControl",
+        "ColumnControl"
+      ],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/table/components/SearchForm.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/SearchForm.vue",
+      "contentHash": "a52369964a188716987bed2249c8b10ffabab0706d776bfe5ea01f5d1d42b992",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 268,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/components/SizeControl.vue": {
+      "filePath": "packages/antd-vue-pro/src/components/table/components/SizeControl.vue",
+      "contentHash": "84519ec90e259405a65e12e8b8bc3c0af89ece113250ebc577e98d6935fae65a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 60,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antd-vue-pro/src/components/table/hooks/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/table/hooks/index.ts",
+      "contentHash": "1a81b37be099a8303dc0ce11ab0602f12f1554179dd7c120c8812dd4425814b0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/table/hooks/useTable.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/table/hooks/useTable.ts",
+      "contentHash": "795509ae27f8b933ceae72d04025d8f6eba74a66cddecb10728e0ecc9d035cbf",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useTable",
+            "_Table"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "ExtendWithAny",
+            "DeepPartial",
+            "PageParam"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Column",
+            "Columns"
+          ]
+        },
+        {
+          "source": "../../form/types",
+          "specifiers": [
+            "Fields"
+          ]
+        }
+      ],
+      "exports": [
+        "useTable"
+      ],
+      "totalLines": 81,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/table/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/table/index.ts",
+      "contentHash": "108639e3aebb815a5e8d7e8df1daaaf456fd5cf22d1900d85619946efe47fb90",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentExposed",
+            "ComponentProps"
+          ]
+        },
+        {
+          "source": "./components/BaseTable.vue",
+          "specifiers": [
+            "BaseTable"
+          ]
+        }
+      ],
+      "exports": [
+        "Column",
+        "Columns",
+        "useTable",
+        "Table"
+      ],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/components/table/types/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/components/table/types/index.ts",
+      "contentHash": "62595b409529215a9bc53599e5f40a014e7f42841d901981906fc5877b5c357b",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "ColumnType"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "KeyExpandString",
+            "Paths",
+            "Path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 75,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/index.ts",
+      "contentHash": "2a18bd5e36a30941f33b150705e7eb14e5b659d535643578287ef925463d203b",
+      "functions": [
+        {
+          "name": "withInstall",
+          "params": [
+            "comp"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "App",
+            "Plugin"
+          ]
+        },
+        {
+          "source": "./components/form",
+          "specifiers": [
+            "Form"
+          ]
+        },
+        {
+          "source": "./components/table",
+          "specifiers": [
+            "Table"
+          ]
+        },
+        {
+          "source": "./components/component-provider",
+          "specifiers": [
+            "ComponentProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ProForm",
+        "ProTable",
+        "ProComponentProvider"
+      ],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/shared/core/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/shared/core/index.ts",
+      "contentHash": "6ed1892731e1d6733b1d4170f5c4a77330c3fab92eef0b9a04d46130e905ffa1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useForm",
+        "useTable",
+        "useFields",
+        "useFormData",
+        "useFormRef",
+        "InjectionFormKey",
+        "InjectionPathKey",
+        "getObject",
+        "toPath",
+        "camelizeProperties",
+        "cloneDeep",
+        "omit",
+        "pick",
+        "isPlainObject",
+        "Data",
+        "Path",
+        "Paths",
+        "KeyExpandString",
+        "ExtendWithAny",
+        "DeepPartial",
+        "PageParam",
+        "Fields",
+        "Form",
+        "Table"
+      ],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/src/shared/ui/index.ts": {
+      "filePath": "packages/antd-vue-pro/src/shared/ui/index.ts",
+      "contentHash": "bb5e7229cb0a5a5c77cc1d5553bbf46796acd480efae14737283ee220aeeaf95",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ant-design-vue",
+          "specifiers": [
+            "_FormProps"
+          ]
+        },
+        {
+          "source": "scroll-into-view-if-needed",
+          "specifiers": [
+            "Options"
+          ]
+        }
+      ],
+      "exports": [
+        "theme",
+        "Form",
+        "FormItem",
+        "Grid",
+        "GridItem",
+        "Table",
+        "Space",
+        "MenuDivider",
+        "Dropdown",
+        "Menu",
+        "MenuItem",
+        "Checkbox",
+        "Button",
+        "Cascader",
+        "CheckboxGroup",
+        "DatePicker",
+        "Input",
+        "InputNumber",
+        "InputPassword",
+        "InputSearch",
+        "RadioGroup",
+        "Select",
+        "Slider",
+        "Switch",
+        "Textarea",
+        "TimePicker",
+        "Transfer",
+        "TreeSelect",
+        "RangePicker",
+        "FormItemInstance",
+        "FormInstance",
+        "GridProps",
+        "GridItemProps",
+        "FormItemProps",
+        "TableProps",
+        "PaginationProps",
+        "ColumnType",
+        "tableProps",
+        "RangePickerProps",
+        "useConfigContextInject",
+        "useInjectDisabled",
+        "useProviderDisabled",
+        "gridItemProps",
+        "formItemProps",
+        "useInjectFormItemContext",
+        "NamePath",
+        "MenuItemType"
+      ],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/tsconfig.json": {
+      "filePath": "packages/antd-vue-pro/tsconfig.json",
+      "contentHash": "98d4b03140259b6c7427147ddf507d37e07b2cb4391878e5d9a6a9799806bd56",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antd-vue-pro/vite.config.ts": {
+      "filePath": "packages/antd-vue-pro/vite.config.ts",
+      "contentHash": "b4dce59d2a350244549daf73f4f043e1a485afca1e13215772bf89723dd6e8ea",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vite",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-vue",
+          "specifiers": [
+            "vue"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "path"
+          ]
+        },
+        {
+          "source": "vite-plugin-dts",
+          "specifiers": [
+            "dts"
+          ]
+        },
+        {
+          "source": "fs",
+          "specifiers": [
+            "fs"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/AI-CONTEXT.md": {
+      "filePath": "packages/antdv-next-pro/AI-CONTEXT.md",
+      "contentHash": "932134207aa966ef29bd3b01cd58130fac0655332099b66dbac03bde073bd2e2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/package.json": {
+      "filePath": "packages/antdv-next-pro/package.json",
+      "contentHash": "da9e2bd09d6105bb5e5b0d3211b8d133faa75e9da735cd34e90db242517526ee",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/README.md": {
+      "filePath": "packages/antdv-next-pro/README.md",
+      "contentHash": "7a9fe13a485d13d570e8a0ad0fb39239ce7e51a1dc7775fcab694d0ca4a4925e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 287,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/component-provider/components/index.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/components/index.vue",
+      "contentHash": "1577d6b8a484e98185bea196c45a1162449ec3d7592ed434242845a8ecb91b0c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/component-provider/constants/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "contentHash": "63c568d82d5f7ccba519e104da122e617653cf5ceecc1ae5a6db6c62162068d1",
+      "functions": [
+        {
+          "name": "getPopupContainer",
+          "params": [
+            "triggerNode"
+          ],
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "getInjectConfig",
+          "params": [
+            "key"
+          ],
+          "returnType": "InjectConfigEntry | undefined",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "ensureInjectConfig",
+          "params": [
+            "key"
+          ],
+          "returnType": "InjectConfigEntry",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../types",
+          "specifiers": [
+            "RequiredComponentVars"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "InjectionKey",
+            "Component"
+          ]
+        }
+      ],
+      "exports": [
+        "INJECT_CONFIG",
+        "INJECT_COMPONENTS",
+        "getInjectConfig",
+        "ensureInjectConfig"
+      ],
+      "totalLines": 178,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/component-provider/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/index.ts",
+      "contentHash": "6ec784e3dcf0e0ce5df891183830b932a884a93eaa57b31b5ea31e1a3768a712",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./components/index.vue",
+          "specifiers": [
+            "ComponentProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ComponentVars"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/component-provider/types/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "contentHash": "812be0c8f6c97c246898c81957a14bce6773f66e052fa68a2ef6a86a929344aa",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "GridItemProps",
+            "FormItemProps",
+            "TableProps"
+          ]
+        },
+        {
+          "source": "../../form/constants",
+          "specifiers": [
+            "ComponentName",
+            "GetComponentType"
+          ]
+        },
+        {
+          "source": "../../form/types",
+          "specifiers": [
+            "Base",
+            "Grid"
+          ]
+        },
+        {
+          "source": "../../form",
+          "specifiers": [
+            "ProFormProps"
+          ]
+        },
+        {
+          "source": "../../table",
+          "specifiers": [
+            "ProTableProps"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "AllowedComponentProps"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 60,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/components/BaseField/index.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseField/index.vue",
+      "contentHash": "0f3a01141aca6adccb1b9f783ad619b4e89bc1d1acd849ac5d62b31589ce9b58",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 142,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "contentHash": "a482841ad504bc72f747f568faf00476c97373ba7b2cc0eaee9479b386e64377",
+      "functions": [
+        {
+          "name": "getInitProps",
+          "params": [
+            "field"
+          ],
+          "returnType": "Record<string, any>",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../types",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "../../../../component-provider/constants",
+          "specifiers": [
+            "getInjectConfig"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "inject"
+          ]
+        }
+      ],
+      "exports": [
+        "getInitProps"
+      ],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/components/BaseForm/index.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseForm/index.vue",
+      "contentHash": "af8b96353ea6f8ceb2335a4f2ab4034d632f2e29ebc5b4aefe1f36657ca5671b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/form/components/BaseFormItem/index.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseFormItem/index.vue",
+      "contentHash": "a171e42cbf85196ceaa6523d49b4aadc61505e4bd6de9386c044696e74285aba",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 137,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/form/components/ContainerFragment/index.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/ContainerFragment/index.vue",
+      "contentHash": "effab6f34bd5c47a27b8444d1744b00b824511284a6406f4c93088f9c3ca89e9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/form/components/GroupedFieldAttrs/index.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "contentHash": "f94fa8bb16bca4189960a01070f69039f723f69bd3fdd1dbc138d14529be2a0d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 98,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/form/components/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/index.ts",
+      "contentHash": "fc8798a63158203751021166954a22870d4b38da704e3c3a9760ecfac5d47585",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps",
+            "ComponentExposed"
+          ]
+        },
+        {
+          "source": "./BaseForm/index.vue",
+          "specifiers": [
+            "BaseForm"
+          ]
+        },
+        {
+          "source": "./BaseFormItem/index.vue",
+          "specifiers": [
+            "BaseFormItem"
+          ]
+        }
+      ],
+      "exports": [
+        "BaseField",
+        "ContainerFragment",
+        "SlotComponent",
+        "BaseForm",
+        "BaseFormItem"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/components/PathProvider/index.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/PathProvider/index.vue",
+      "contentHash": "54bcd11282b34cb13d45e46c0bbdfda0f8e83e909b4a9b78c6a4d315db47670f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/form/components/SlotComponent/index.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/form/components/SlotComponent/index.vue",
+      "contentHash": "5d178b082291c823779d53262e9cc01b0940d79be790c602cee760c3e530e1b7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/form/constants/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "contentHash": "33cd692773f357ca80257fe482ca13c67e3263665510e90e05181b4c33258d3a",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "Cascader",
+            "CheckboxGroup",
+            "DatePicker",
+            "AutoComplete",
+            "Input",
+            "InputNumber",
+            "InputPassword",
+            "InputSearch",
+            "RadioGroup",
+            "Select",
+            "Slider",
+            "Switch",
+            "TextArea",
+            "TimePicker",
+            "TimeRangePicker",
+            "Transfer",
+            "TreeSelect",
+            "RangePicker",
+            "InputOTP"
+          ]
+        }
+      ],
+      "exports": [
+        "FORM_ITEM_SLOT_KEYS",
+        "componentMap",
+        "TeleportComponentNamePrefix",
+        "InjectionFormKey",
+        "InjectionPathKey"
+      ],
+      "totalLines": 133,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/hooks/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/index.ts",
+      "contentHash": "3eb927b7c4b8d64ef093747ba9aa9a36ade429e45f853cdcbef3c417d5e6ecff",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useFormData"
+      ],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/hooks/useFields.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "contentHash": "1c844d9d9c88d52ce9f75f867704d439e285bbc5cf7163575feb7d7f3bfbcbdc",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormItemInstance"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useFields"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Field",
+            "Fields"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName"
+          ]
+        }
+      ],
+      "exports": [
+        "useFields"
+      ],
+      "totalLines": 40,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/hooks/useForm.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "contentHash": "2f11f96a54fa5bea4b3df355b22d0dfdfe01141dd20bc5e03fc0b9e77f9d644b",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useForm",
+            "_Form"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "ExtendWithAny",
+            "DeepPartial"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance"
+          ]
+        }
+      ],
+      "exports": [
+        "useForm"
+      ],
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "contentHash": "c645ab5b84871d8a4be2691fccb987c14837364d410a32c88e7792e1a36d2046",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useFormRef"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance"
+          ]
+        }
+      ],
+      "exports": [
+        "useFormRef"
+      ],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/index.ts",
+      "contentHash": "d72b95306cab8537591091c89114220e7a3a4cf50b79973c76facdbd83b9e4ee",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./components/BaseForm/index.vue",
+          "specifiers": [
+            "BaseForm"
+          ]
+        }
+      ],
+      "exports": [
+        "ContainerFragment",
+        "SlotComponent",
+        "ProFormProps",
+        "ProFormInstance",
+        "ProFormItemProps",
+        "ProFormItemInstance",
+        "ComponentMap",
+        "ComponentName",
+        "Field",
+        "Fields",
+        "useForm",
+        "useFields",
+        "useFormRef",
+        "useFormData",
+        "Form",
+        "UseFields"
+      ],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/form/types/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/form/types/index.ts",
+      "contentHash": "3da8f4abe85e64717027e1f1457e99997907a198c9c9fc7782cabc23190878b0",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormItemProps",
+            "GridProps",
+            "GridItemProps",
+            "FormInstance"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormItem"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps",
+            "ComponentSlots"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "CSSProperties",
+            "Component",
+            "Raw",
+            "MaybeRef",
+            "ComputedRef",
+            "VNode",
+            "VNodeProps"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "Path"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName",
+            "GetComponentType"
+          ]
+        }
+      ],
+      "exports": [
+        "FormInstance"
+      ],
+      "totalLines": 301,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/table/components/BaseTable.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/BaseTable.vue",
+      "contentHash": "cee0cd1f03531647873b4d23445bcc016c21fabc2b104e8fa76e68edc7569a33",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 336,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/components/ColumnControl.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/ColumnControl.vue",
+      "contentHash": "d9fbbab5f94b3b3fbd1734c31f29af2dbbb9c7b119939ff6eb767df329d45a45",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 143,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/components/DefaultSearchFormContainer.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "contentHash": "231046547e729e4638825be36974b9a7b126d3212196bb3931a2f35627188c51",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/components/DefaultTableContainer.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/DefaultTableContainer.vue",
+      "contentHash": "76ec302c772006deac65957706ce2a8c053269454561b9188a7f154ee0b2b350",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/components/icons/ColumnHeightOutlined.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "contentHash": "53b1f9a4e187416723beb82666b237ca12ed72166f9ac8acd8ad3e142ea04896",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/components/icons/DownOutlined.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/icons/DownOutlined.vue",
+      "contentHash": "8ac0dea236e6d76d36227571d6394cd20d313a7cde7873b0ba713f8e5f1d3219",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/components/icons/FilterOutlined.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "contentHash": "c18446700fa605b8763b5984090dbd00284dcfc279662531773df981543d24aa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/components/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/index.ts",
+      "contentHash": "6bf03fb3a72b3547b7733897a6d83eddd36608b35d8f1cdda1fab2e51ea4fc4e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "DefaultSearchFormContainer",
+        "DefaultTableContainer",
+        "SizeControl",
+        "ColumnControl"
+      ],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/table/components/SearchForm.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/SearchForm.vue",
+      "contentHash": "2878968d05e7b7e5bbcb08e53d20aab1e36859ba80adfe57b3a358361a39e858",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 268,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/components/SizeControl.vue": {
+      "filePath": "packages/antdv-next-pro/src/components/table/components/SizeControl.vue",
+      "contentHash": "6ff188f7b70c43af8c51276e9cc7b2207073df59fbcd330a402edb74c0d6659c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 55,
+      "hasStructuralAnalysis": false
+    },
+    "packages/antdv-next-pro/src/components/table/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/table/index.ts",
+      "contentHash": "f51f43b68b8a20c5040fc5909d0627acf556e84b63fd33f04bac339fde16d065",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentExposed",
+            "ComponentProps"
+          ]
+        },
+        {
+          "source": "./components/BaseTable.vue",
+          "specifiers": [
+            "BaseTable"
+          ]
+        }
+      ],
+      "exports": [
+        "Column",
+        "Columns",
+        "useTable",
+        "Table"
+      ],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/table/types/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/table/types/index.ts",
+      "contentHash": "eff5985429e960b2708e73b7888519a8db9d92ac3fb42bc8d1702a0f22f0a927",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "ColumnType"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "KeyExpandString",
+            "Paths",
+            "Path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/components/table/useTable.ts": {
+      "filePath": "packages/antdv-next-pro/src/components/table/useTable.ts",
+      "contentHash": "7d55db87caf3107e87b71c7f5b0d8a1a40185dba519f17d7261f7c44cdaa2e3a",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../shared/core",
+          "specifiers": [
+            "_useTable",
+            "_Table"
+          ]
+        },
+        {
+          "source": "../../shared/core",
+          "specifiers": [
+            "Data",
+            "ExtendWithAny",
+            "DeepPartial",
+            "PageParam"
+          ]
+        },
+        {
+          "source": "../form/types",
+          "specifiers": [
+            "Fields"
+          ]
+        },
+        {
+          "source": "./types",
+          "specifiers": [
+            "Column",
+            "Columns"
+          ]
+        }
+      ],
+      "exports": [
+        "useTable"
+      ],
+      "totalLines": 62,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/index.ts",
+      "contentHash": "67ec54a1eb30e233c41db45367ddbf24ac2e1f1fd2fd1671e8c34f533d48be76",
+      "functions": [
+        {
+          "name": "withInstall",
+          "params": [
+            "comp"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "App",
+            "Plugin"
+          ]
+        },
+        {
+          "source": "./components/form",
+          "specifiers": [
+            "Form"
+          ]
+        },
+        {
+          "source": "./components/table",
+          "specifiers": [
+            "Table"
+          ]
+        },
+        {
+          "source": "./components/component-provider",
+          "specifiers": [
+            "ComponentProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ProForm",
+        "ProTable",
+        "ProComponentProvider"
+      ],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/shared/core/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/shared/core/index.ts",
+      "contentHash": "6ed1892731e1d6733b1d4170f5c4a77330c3fab92eef0b9a04d46130e905ffa1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useForm",
+        "useTable",
+        "useFields",
+        "useFormData",
+        "useFormRef",
+        "InjectionFormKey",
+        "InjectionPathKey",
+        "getObject",
+        "toPath",
+        "camelizeProperties",
+        "cloneDeep",
+        "omit",
+        "pick",
+        "isPlainObject",
+        "Data",
+        "Path",
+        "Paths",
+        "KeyExpandString",
+        "ExtendWithAny",
+        "DeepPartial",
+        "PageParam",
+        "Fields",
+        "Form",
+        "Table"
+      ],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/src/shared/ui/index.ts": {
+      "filePath": "packages/antdv-next-pro/src/shared/ui/index.ts",
+      "contentHash": "cda9c8875cc8b8c70d25fd198e0864b68f0a2f672f00a564b72e268b6ac47e03",
+      "functions": [
+        {
+          "name": "tableProps",
+          "params": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "gridItemProps",
+          "params": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "formItemProps",
+          "params": [],
+          "exported": true,
+          "lineCount": 1
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "antdv-next",
+          "specifiers": [
+            "Col",
+            "Table",
+            "FormItem"
+          ]
+        }
+      ],
+      "exports": [
+        "theme",
+        "useConfig",
+        "Form",
+        "FormItem",
+        "Grid",
+        "GridItem",
+        "Table",
+        "Space",
+        "Dropdown",
+        "Menu",
+        "RadioGroup",
+        "Checkbox",
+        "CheckboxGroup",
+        "Button",
+        "AutoComplete",
+        "Cascader",
+        "DatePicker",
+        "RangePicker",
+        "Input",
+        "InputOTP",
+        "TextArea",
+        "InputPassword",
+        "InputNumber",
+        "InputSearch",
+        "Select",
+        "Slider",
+        "Switch",
+        "TimePicker",
+        "TimeRangePicker",
+        "Transfer",
+        "TreeSelect",
+        "FormProps",
+        "FormItemProps",
+        "FormInstance",
+        "TableProps",
+        "PaginationProps",
+        "GridProps",
+        "GridItemProps",
+        "ColumnType",
+        "tableProps",
+        "gridItemProps",
+        "formItemProps",
+        "useDisabledContext",
+        "useDisabledContextProvider"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/tsconfig.json": {
+      "filePath": "packages/antdv-next-pro/tsconfig.json",
+      "contentHash": "c398deed373c1645db1521cc003c9b405509cf1d3faff224ba643877227e15ca",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "packages/antdv-next-pro/vite.config.ts": {
+      "filePath": "packages/antdv-next-pro/vite.config.ts",
+      "contentHash": "973489c86ec218f6df6dc17d5f2ed8f5f6838a4c54e4066e9d3f75d7e339d2d0",
+      "functions": [
+        {
+          "name": "getComponentsName",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vite",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-vue",
+          "specifiers": [
+            "vue"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "path"
+          ]
+        },
+        {
+          "source": "vite-plugin-dts",
+          "specifiers": [
+            "dts"
+          ]
+        },
+        {
+          "source": "fs",
+          "specifiers": [
+            "fs"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/package.json": {
+      "filePath": "packages/core/package.json",
+      "contentHash": "37358b59d9d4a0f3084050395edbabfc9634fade19c18e751ef26e98757736bd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/form/constants.ts": {
+      "filePath": "packages/core/src/form/constants.ts",
+      "contentHash": "8bb03a391f76527e7d3da771a7cc9d25bbbe0de47385106cdc2ba4700cd73bd4",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "ComputedRef",
+            "InjectionKey"
+          ]
+        }
+      ],
+      "exports": [
+        "InjectionFormKey",
+        "InjectionPathKey"
+      ],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/form/index.ts": {
+      "filePath": "packages/core/src/form/index.ts",
+      "contentHash": "205fa38ea981259e3066fbb0b9419bf0ccb43f2bfe536e568fe3c13719a267ec",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useForm",
+        "Form",
+        "useFields",
+        "useFormData",
+        "useFormRef"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/form/types.ts": {
+      "filePath": "packages/core/src/form/types.ts",
+      "contentHash": "9beab235718e19083f549b070872db72162f2a511887db40babe4cdb21a8ee9b",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../shared/types",
+          "specifiers": [
+            "Data",
+            "Path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 123,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/form/useFields.ts": {
+      "filePath": "packages/core/src/form/useFields.ts",
+      "contentHash": "6905e785f07f41a07a80454cf97a6601264f0426df23804728d056441fb1ecef",
+      "functions": [
+        {
+          "name": "useFields",
+          "params": [
+            "initFields"
+          ],
+          "exported": false,
+          "lineCount": 366
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "Ref",
+            "ref"
+          ]
+        },
+        {
+          "source": "../shared/types",
+          "specifiers": [
+            "Data",
+            "Path"
+          ]
+        },
+        {
+          "source": "../shared/utils",
+          "specifiers": [
+            "get",
+            "toPath"
+          ]
+        },
+        {
+          "source": "./types",
+          "specifiers": [
+            "AM",
+            "BaseField",
+            "FieldFindBy",
+            "FieldUpdater"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 444,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/form/useForm.ts": {
+      "filePath": "packages/core/src/form/useForm.ts",
+      "contentHash": "eb2eddf88c64a1a17ad9cdc3d42c0c843d1c7bf9b4f0c9c14a797ec6653ff69c",
+      "functions": [
+        {
+          "name": "useForm",
+          "params": [
+            "...args"
+          ],
+          "exported": false,
+          "lineCount": 23
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "inject"
+          ]
+        },
+        {
+          "source": "./useFields",
+          "specifiers": [
+            "useFields"
+          ]
+        },
+        {
+          "source": "./useFormData",
+          "specifiers": [
+            "useFormData"
+          ]
+        },
+        {
+          "source": "./useFormRef",
+          "specifiers": [
+            "useFormRef"
+          ]
+        },
+        {
+          "source": "./constants",
+          "specifiers": [
+            "InjectionFormKey"
+          ]
+        },
+        {
+          "source": "../shared/types",
+          "specifiers": [
+            "Data",
+            "DeepPartial",
+            "ExtendWithAny"
+          ]
+        },
+        {
+          "source": "./types",
+          "specifiers": [
+            "BaseField"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 132,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/form/useFormData.ts": {
+      "filePath": "packages/core/src/form/useFormData.ts",
+      "contentHash": "94659fae04fae54d81ca967370c1da62f7104079a67a016a58a847d71531ed63",
+      "functions": [
+        {
+          "name": "useFormData",
+          "params": [
+            "initFormData"
+          ],
+          "exported": false,
+          "lineCount": 138
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "inject",
+            "provide",
+            "reactive"
+          ]
+        },
+        {
+          "source": "../shared/types",
+          "specifiers": [
+            "Path",
+            "Data",
+            "ExtendWithAny",
+            "DeepPartial"
+          ]
+        },
+        {
+          "source": "../shared/utils",
+          "specifiers": [
+            "get",
+            "isPlainObject",
+            "set"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 186,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/form/useFormRef.ts": {
+      "filePath": "packages/core/src/form/useFormRef.ts",
+      "contentHash": "580ef7a72e88d454045c8e2312b031e176c5aee089b5988bf7175240cae7cac3",
+      "functions": [
+        {
+          "name": "useFormRef",
+          "params": [],
+          "exported": false,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "ref"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/index.ts": {
+      "filePath": "packages/core/src/index.ts",
+      "contentHash": "af2863683fbb874b98c5fe64d3ea583be331f550aee74fe4100b4094a7d80a0b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/shared/types/index.ts": {
+      "filePath": "packages/core/src/shared/types/index.ts",
+      "contentHash": "9dc3d8cb532b8ec336d0c81018ef3ba3643d0424e57698e48efb04b79c33cdeb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 144,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/shared/utils/index.ts": {
+      "filePath": "packages/core/src/shared/utils/index.ts",
+      "contentHash": "80c09fe84480623b02f6e1b0e2c6d69902b6cd6e8076a40d52bc9624e50a9c2b",
+      "functions": [
+        {
+          "name": "getObject",
+          "params": [
+            "val"
+          ],
+          "returnType": "Record<string, any>",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "camelizeProperties",
+          "params": [
+            "obj"
+          ],
+          "returnType": "Record<string, any>",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lodash-es",
+          "specifiers": [
+            "isPlainObject"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "camelize"
+          ]
+        }
+      ],
+      "exports": [
+        "toPath",
+        "get",
+        "set",
+        "omit",
+        "pick",
+        "cloneDeep",
+        "isPlainObject",
+        "getObject",
+        "camelizeProperties"
+      ],
+      "totalLines": 25,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/table/index.ts": {
+      "filePath": "packages/core/src/table/index.ts",
+      "contentHash": "541e7c528998c887ea309fd6e8c104df04d0cf4a685b88adc27283c17782c926",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useTable",
+        "Table"
+      ],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/table/types.ts": {
+      "filePath": "packages/core/src/table/types.ts",
+      "contentHash": "23ae9be20046ef367683c698cea88a76ff32b2194656b838c2c37d03f8f9710e",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../shared/types",
+          "specifiers": [
+            "Data",
+            "Path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 137,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/src/table/useTable.ts": {
+      "filePath": "packages/core/src/table/useTable.ts",
+      "contentHash": "7c349acb3fbc5ea1ba2dbe0f527cafa3a179a68983dfa08a8ae4e999b4e19567",
+      "functions": [
+        {
+          "name": "getDefaultPageParam",
+          "params": [],
+          "returnType": "PageParam",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "useTable",
+          "params": [
+            "params"
+          ],
+          "returnType": "Table<D, T, C>",
+          "exported": false,
+          "lineCount": 233
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "Reactive",
+            "reactive",
+            "Ref",
+            "ref",
+            "toValue"
+          ]
+        },
+        {
+          "source": "./types",
+          "specifiers": [
+            "BaseColumn",
+            "Columns",
+            "PageParam",
+            "UpdateColumnOptions",
+            "ColumnUpdater",
+            "ColumnFindBy"
+          ]
+        },
+        {
+          "source": "../shared/types",
+          "specifiers": [
+            "Data",
+            "DeepPartial",
+            "ExtendWithAny",
+            "Path"
+          ]
+        },
+        {
+          "source": "../shared/utils",
+          "specifiers": [
+            "cloneDeep",
+            "pick"
+          ]
+        },
+        {
+          "source": "../form",
+          "specifiers": [
+            "Fields",
+            "Form",
+            "useForm"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 416,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/tsconfig.json": {
+      "filePath": "packages/core/tsconfig.json",
+      "contentHash": "93f0d1a4349c8149d66cb1c04dcba7c574d5eb409733b78a6ac302c6b7905494",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": true
+    },
+    "packages/core/vite.config.ts": {
+      "filePath": "packages/core/vite.config.ts",
+      "contentHash": "febdc843c9e3041343d444b34a9745d9bf5448c84010924fbd274e77d72a4379",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vite",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "path"
+          ]
+        },
+        {
+          "source": "vite-plugin-dts",
+          "specifiers": [
+            "dts"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/AI-CONTEXT.md": {
+      "filePath": "packages/element-plus-pro/AI-CONTEXT.md",
+      "contentHash": "7dcee582cd0e24ccd1f18912ad12e72a222c99e0634aadddb20515471242f7e6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/package.json": {
+      "filePath": "packages/element-plus-pro/package.json",
+      "contentHash": "4cc038c981b3b2d7f86ed4860abdb91b6353c4efa048e41f67dd60be76e4c24e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/README.md": {
+      "filePath": "packages/element-plus-pro/README.md",
+      "contentHash": "fe158fb8139d14b6ab02abaf71a24f3b2d1040e53b77da886e6e65f756f6a650",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 374,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/component-provider/components/index.vue": {
+      "filePath": "packages/element-plus-pro/src/components/component-provider/components/index.vue",
+      "contentHash": "12cb2a759480557bff4320d3e8dafbc74dbf56533b8429270e7f570c6c7841b6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/component-provider/constants/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "contentHash": "e39a9f71a78c25839ce063b3bae5b4a0690876ed042faf8baba3a29b9106bf86",
+      "functions": [
+        {
+          "name": "getInjectConfig",
+          "params": [
+            "key"
+          ],
+          "returnType": "InjectConfigEntry | undefined",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "ensureInjectConfig",
+          "params": [
+            "key"
+          ],
+          "returnType": "InjectConfigEntry",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../types",
+          "specifiers": [
+            "RequiredComponentVars"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "InjectionKey",
+            "Component"
+          ]
+        }
+      ],
+      "exports": [
+        "INJECT_CONFIG",
+        "INJECT_COMPONENTS",
+        "getInjectConfig",
+        "ensureInjectConfig"
+      ],
+      "totalLines": 210,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/component-provider/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/component-provider/index.ts",
+      "contentHash": "6ec784e3dcf0e0ce5df891183830b932a884a93eaa57b31b5ea31e1a3768a712",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./components/index.vue",
+          "specifiers": [
+            "ComponentProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ComponentVars"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/component-provider/types/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/component-provider/types/index.ts",
+      "contentHash": "1bda3e561b511e5f4717b2074c3806e1c4ee9404aca9b4f73be75743ada83cec",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "GridItemProps",
+            "FormItemProps",
+            "TableProps",
+            "PaginationProps",
+            "DatePicker"
+          ]
+        },
+        {
+          "source": "../../form/constants",
+          "specifiers": [
+            "ComponentName",
+            "GetComponentType"
+          ]
+        },
+        {
+          "source": "../../form/types",
+          "specifiers": [
+            "Base",
+            "Grid"
+          ]
+        },
+        {
+          "source": "../../form",
+          "specifiers": [
+            "ProFormProps"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "AllowedComponentProps"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/components/BaseField/index.vue": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseField/index.vue",
+      "contentHash": "a9ce3caecc135d3b2509e01b16e7344511e957b7065f72f391034b8b49157992",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 142,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts",
+      "contentHash": "79530c5550d46edd39a4211775bcb5a16804db68ab4aa3f9bcdf34ddea6fbbe7",
+      "functions": [
+        {
+          "name": "getInitProps",
+          "params": [
+            "field"
+          ],
+          "returnType": "Record<string, any>",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../types",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "../../../../component-provider/constants",
+          "specifiers": [
+            "getInjectConfig"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "inject"
+          ]
+        }
+      ],
+      "exports": [
+        "getInitProps"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/components/BaseForm/index.vue": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "contentHash": "b779242bec15be6ff832e2565d26bf36e33e93ccc4916da62cd1650f92df4053",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "contentHash": "fe3a4e5804d77afaf9d40e48690d3ad71e14132cae4064f78ebe2fa6aed66579",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 144,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/form/components/ContainerFragment/index.vue": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/ContainerFragment/index.vue",
+      "contentHash": "effab6f34bd5c47a27b8444d1744b00b824511284a6406f4c93088f9c3ca89e9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/form/components/GroupedFieldAttrs/index.vue": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "contentHash": "25885eee9dc4932cdf143c32252a422256fbecc486af6c2d912f21dd809a21da",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 95,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/form/components/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/index.ts",
+      "contentHash": "fc8798a63158203751021166954a22870d4b38da704e3c3a9760ecfac5d47585",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps",
+            "ComponentExposed"
+          ]
+        },
+        {
+          "source": "./BaseForm/index.vue",
+          "specifiers": [
+            "BaseForm"
+          ]
+        },
+        {
+          "source": "./BaseFormItem/index.vue",
+          "specifiers": [
+            "BaseFormItem"
+          ]
+        }
+      ],
+      "exports": [
+        "BaseField",
+        "ContainerFragment",
+        "SlotComponent",
+        "BaseForm",
+        "BaseFormItem"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/components/PathProvider/index.vue": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/PathProvider/index.vue",
+      "contentHash": "54bcd11282b34cb13d45e46c0bbdfda0f8e83e909b4a9b78c6a4d315db47670f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/form/components/SlotComponent/index.vue": {
+      "filePath": "packages/element-plus-pro/src/components/form/components/SlotComponent/index.vue",
+      "contentHash": "5d178b082291c823779d53262e9cc01b0940d79be790c602cee760c3e530e1b7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/form/constants/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/constants/index.ts",
+      "contentHash": "17f2c3e021a35e8112a05f78d84fe5044d80b87743fac7f2a96433df8b269079",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "Cascader",
+            "CheckboxGroup",
+            "DatePicker",
+            "AutoComplete",
+            "Input",
+            "InputNumber",
+            "RadioGroup",
+            "Select",
+            "Slider",
+            "Switch",
+            "TimePicker",
+            "TimeSelect",
+            "Transfer",
+            "TreeSelect"
+          ]
+        }
+      ],
+      "exports": [
+        "FORM_ITEM_SLOT_KEYS",
+        "componentMap",
+        "TeleportComponentNamePrefix",
+        "InjectionFormKey",
+        "InjectionPathKey"
+      ],
+      "totalLines": 117,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/hooks/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/index.ts",
+      "contentHash": "3eb927b7c4b8d64ef093747ba9aa9a36ade429e45f853cdcbef3c417d5e6ecff",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useFormData"
+      ],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/hooks/useFields.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useFields.ts",
+      "contentHash": "568dac8d8bbea77b3afbc222a2ebeeca45a8c95852fce7cbe9cec1c20ed4e85a",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormItemInstance"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useFields"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Field",
+            "Fields"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName"
+          ]
+        }
+      ],
+      "exports": [
+        "useFields"
+      ],
+      "totalLines": 40,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/hooks/useForm.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useForm.ts",
+      "contentHash": "a4539077ee82f370485ea5cd8e9e66218260a5539fd12c53991816ba319e2f91",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useForm",
+            "_Form"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "ExtendWithAny",
+            "DeepPartial"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance"
+          ]
+        }
+      ],
+      "exports": [
+        "useForm"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/hooks/useFormRef.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/hooks/useFormRef.ts",
+      "contentHash": "8c935fd045704c0e3353c3d2937c5c551e847b586373ad88d9376cecb4e542b9",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useFormRef"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance"
+          ]
+        }
+      ],
+      "exports": [
+        "useFormRef"
+      ],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/index.ts",
+      "contentHash": "d72b95306cab8537591091c89114220e7a3a4cf50b79973c76facdbd83b9e4ee",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./components/BaseForm/index.vue",
+          "specifiers": [
+            "BaseForm"
+          ]
+        }
+      ],
+      "exports": [
+        "ContainerFragment",
+        "SlotComponent",
+        "ProFormProps",
+        "ProFormInstance",
+        "ProFormItemProps",
+        "ProFormItemInstance",
+        "ComponentMap",
+        "ComponentName",
+        "Field",
+        "Fields",
+        "useForm",
+        "useFields",
+        "useFormRef",
+        "useFormData",
+        "Form",
+        "UseFields"
+      ],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/form/types/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/form/types/index.ts",
+      "contentHash": "6e1dc1e7ae552cd581962b9c236bae42ebcfeb693a2a5f8204231fa4959b8e46",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormItemProps",
+            "GridProps",
+            "GridItemProps",
+            "FormInstance"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormItem"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps",
+            "ComponentSlots"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "CSSProperties",
+            "Component",
+            "Raw",
+            "MaybeRef",
+            "ComputedRef",
+            "VNode",
+            "VNodeProps"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "Path"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName",
+            "GetComponentType"
+          ]
+        }
+      ],
+      "exports": [
+        "FormInstance"
+      ],
+      "totalLines": 301,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/table/components/BaseTable.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "contentHash": "1841fc85e010e92dba5dd9204d34b96cd27a40dbf8f516ee42c8ac75cb336ede",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 377,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/ColumnControl.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/ColumnControl.vue",
+      "contentHash": "3f74ad97f8e4e949253fac9e707f26e03a0d9bbb663ced294e340cb18b137c1b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 137,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/DefaultSearchFormContainer.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/DefaultSearchFormContainer.vue",
+      "contentHash": "2f839bd6e937e98ec6d728c71e2b8a262d54218e0ffca81c9d0a2ff1241c655a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/DefaultTableContainer.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/DefaultTableContainer.vue",
+      "contentHash": "90a68ff7ac1090ec60155f904190158ce06b7ba1f11aa27d6e022927f838dd6c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/icons/ColumnHeightOutlined.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/ColumnHeightOutlined.vue",
+      "contentHash": "53b1f9a4e187416723beb82666b237ca12ed72166f9ac8acd8ad3e142ea04896",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/icons/DownOutlined.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/DownOutlined.vue",
+      "contentHash": "8ac0dea236e6d76d36227571d6394cd20d313a7cde7873b0ba713f8e5f1d3219",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/icons/FilterOutlined.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/icons/FilterOutlined.vue",
+      "contentHash": "c18446700fa605b8763b5984090dbd00284dcfc279662531773df981543d24aa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/index.ts",
+      "contentHash": "6bf03fb3a72b3547b7733897a6d83eddd36608b35d8f1cdda1fab2e51ea4fc4e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "DefaultSearchFormContainer",
+        "DefaultTableContainer",
+        "SizeControl",
+        "ColumnControl"
+      ],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/table/components/SearchForm.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "contentHash": "efed1b606449119b0e861a68916e0f3f8ed2f97f5a458cec551ac876199690b2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 275,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/SizeControl.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/SizeControl.vue",
+      "contentHash": "8fdd495017edcda499656f3eb0492e11fc2bdbb8a85a1f23804c96691abf733d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue": {
+      "filePath": "packages/element-plus-pro/src/components/table/components/TableColumnRenderer.vue",
+      "contentHash": "022b6ad9b6da0111e0fd4678c6fd044288655d7ef5ef26dd4a05b8afe4a4ffa5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": false
+    },
+    "packages/element-plus-pro/src/components/table/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/table/index.ts",
+      "contentHash": "99b4f5981250dcd67184f703cf25a582594227c8c91f890fb85cd395f5cb5aea",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "ComponentPublicInstance"
+          ]
+        },
+        {
+          "source": "../../shared/ui",
+          "specifiers": [
+            "PaginationProps",
+            "TableProps"
+          ]
+        },
+        {
+          "source": "../form/types",
+          "specifiers": [
+            "ContainerComponent"
+          ]
+        },
+        {
+          "source": "./types",
+          "specifiers": [
+            "Columns"
+          ]
+        },
+        {
+          "source": "./components/SearchForm.vue",
+          "specifiers": [
+            "SearchFormProps"
+          ]
+        },
+        {
+          "source": "./useTable",
+          "specifiers": [
+            "Table"
+          ]
+        },
+        {
+          "source": "./components/BaseTable.vue",
+          "specifiers": [
+            "BaseTable"
+          ]
+        }
+      ],
+      "exports": [
+        "Column",
+        "Columns",
+        "useTable",
+        "Table"
+      ],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/table/types/index.ts": {
+      "filePath": "packages/element-plus-pro/src/components/table/types/index.ts",
+      "contentHash": "5e8d205d227077fb0e6cf6b422365854815feb3b3d3562ba903f870f629d2048",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "ColumnType"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "ExtendWithAny",
+            "KeyExpandString",
+            "Paths",
+            "Path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 78,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/components/table/useTable.ts": {
+      "filePath": "packages/element-plus-pro/src/components/table/useTable.ts",
+      "contentHash": "17a52fc3fd7b92d316a646591c629e83bec53655b32a9669ea4583ec4ae4f111",
+      "functions": [
+        {
+          "name": "useTable",
+          "params": [
+            "params"
+          ],
+          "returnType": "Table<D, T>",
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../shared/core",
+          "specifiers": [
+            "_useTable",
+            "_Table"
+          ]
+        },
+        {
+          "source": "../../shared/core",
+          "specifiers": [
+            "Data",
+            "ExtendWithAny",
+            "DeepPartial",
+            "PageParam"
+          ]
+        },
+        {
+          "source": "../form/types",
+          "specifiers": [
+            "Fields"
+          ]
+        },
+        {
+          "source": "./types",
+          "specifiers": [
+            "Column",
+            "Columns"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "Ref"
+          ]
+        }
+      ],
+      "exports": [
+        "useTable"
+      ],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/index.ts": {
+      "filePath": "packages/element-plus-pro/src/index.ts",
+      "contentHash": "a78dbed740fa1bf1a55ccef58da3f87d051ca6b869b2ba5b4cb2880abf8fb977",
+      "functions": [
+        {
+          "name": "withInstall",
+          "params": [
+            "comp"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "App",
+            "Plugin"
+          ]
+        },
+        {
+          "source": "./components/form",
+          "specifiers": [
+            "Form"
+          ]
+        },
+        {
+          "source": "./components/table",
+          "specifiers": [
+            "Table"
+          ]
+        },
+        {
+          "source": "./components/component-provider",
+          "specifiers": [
+            "ComponentProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ProForm",
+        "ProTable",
+        "ProComponentProvider"
+      ],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/shared/core/index.ts": {
+      "filePath": "packages/element-plus-pro/src/shared/core/index.ts",
+      "contentHash": "ec58b22e65e332b67e35cab58aa8b5826967c63e332b0c1f8ffb45af4bc9307d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useForm",
+        "useTable",
+        "useFields",
+        "useFormData",
+        "useFormRef",
+        "InjectionFormKey",
+        "InjectionPathKey",
+        "get",
+        "getObject",
+        "toPath",
+        "camelizeProperties",
+        "cloneDeep",
+        "omit",
+        "pick",
+        "isPlainObject",
+        "Data",
+        "Path",
+        "Paths",
+        "KeyExpandString",
+        "ExtendWithAny",
+        "DeepPartial",
+        "PageParam",
+        "Fields",
+        "Form",
+        "Table"
+      ],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/src/shared/ui/index.ts": {
+      "filePath": "packages/element-plus-pro/src/shared/ui/index.ts",
+      "contentHash": "fac167daabebc7e7ce79bffb46e0e51df585a06c6ebe60e770962defa8e48afc",
+      "functions": [
+        {
+          "name": "tableProps",
+          "params": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "paginationProps",
+          "params": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "gridItemProps",
+          "params": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "formItemProps",
+          "params": [],
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "useDisabledContext",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "useDisabledContextProvider",
+          "params": [
+            "disabled"
+          ],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "element-plus",
+          "specifiers": [
+            "Form",
+            "FormItem",
+            "Grid",
+            "GridItem",
+            "Table",
+            "TableColumn",
+            "Space",
+            "Dropdown",
+            "DropdownMenu",
+            "DropdownItem",
+            "Checkbox",
+            "CheckboxGroup",
+            "Button",
+            "AutoComplete",
+            "Cascader",
+            "DatePicker",
+            "Input",
+            "InputNumber",
+            "Select",
+            "Slider",
+            "Switch",
+            "Transfer",
+            "TreeSelect",
+            "RadioGroup",
+            "TimePicker",
+            "TimeSelect",
+            "Pagination",
+            "useFormDisabled",
+            "FormItemInstance",
+            "FormInstance",
+            "FormProps",
+            "FormItemProps",
+            "_TableProps",
+            "ColumnType",
+            "PaginationProps",
+            "GridProps",
+            "GridItemProps"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "MaybeRefOrGetter",
+            "computed",
+            "inject",
+            "provide",
+            "toValue"
+          ]
+        }
+      ],
+      "exports": [
+        "Form",
+        "FormItem",
+        "Grid",
+        "GridItem",
+        "Table",
+        "TableColumn",
+        "Space",
+        "Dropdown",
+        "DropdownMenu",
+        "DropdownItem",
+        "Checkbox",
+        "CheckboxGroup",
+        "Button",
+        "AutoComplete",
+        "Cascader",
+        "DatePicker",
+        "Input",
+        "InputNumber",
+        "Select",
+        "Slider",
+        "Switch",
+        "Transfer",
+        "TreeSelect",
+        "RadioGroup",
+        "TimePicker",
+        "TimeSelect",
+        "Pagination",
+        "FormItemInstance",
+        "FormInstance",
+        "FormProps",
+        "FormItemProps",
+        "PaginationProps",
+        "GridProps",
+        "GridItemProps",
+        "ColumnType",
+        "tableProps",
+        "paginationProps",
+        "gridItemProps",
+        "formItemProps",
+        "useDisabledContext",
+        "useDisabledContextProvider"
+      ],
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/tsconfig.json": {
+      "filePath": "packages/element-plus-pro/tsconfig.json",
+      "contentHash": "033b194260a179ac9b377939c1cabd87862e776df8d728aa87ff8f44da551915",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "packages/element-plus-pro/vite.config.ts": {
+      "filePath": "packages/element-plus-pro/vite.config.ts",
+      "contentHash": "e0253893a2f4b226381b8f3cf438240c89fda973f35167f033fc41ebb0e0eb93",
+      "functions": [
+        {
+          "name": "getComponentsName",
+          "params": [],
+          "exported": false,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vite",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-vue",
+          "specifiers": [
+            "vue"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "path"
+          ]
+        },
+        {
+          "source": "vite-plugin-dts",
+          "specifiers": [
+            "dts"
+          ]
+        },
+        {
+          "source": "fs",
+          "specifiers": [
+            "fs"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/AI-CONTEXT.md": {
+      "filePath": "packages/vant-pro/AI-CONTEXT.md",
+      "contentHash": "d3f65e00ea9d2c9e14b33e31faa97798238ac4b411098cd0d5c79d847d62fe4f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/package.json": {
+      "filePath": "packages/vant-pro/package.json",
+      "contentHash": "70ea70bc1b02ac1f50fa0b92f099bb42ff801c57fed194bffa9655b7cf797a87",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 68,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/README.md": {
+      "filePath": "packages/vant-pro/README.md",
+      "contentHash": "0584b561af7c70fbb1b98c2a363ae4f0e85f92e9821d38a6ba31cc7be5f77381",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 382,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/component-provider/components/index.vue": {
+      "filePath": "packages/vant-pro/src/components/component-provider/components/index.vue",
+      "contentHash": "c55f06c6cca8e0dcd91576e02e4a4e67017a2188ac3528432d18916cf97d2609",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": false
+    },
+    "packages/vant-pro/src/components/component-provider/constants/index.ts": {
+      "filePath": "packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "contentHash": "deefd68fa5a09a54c0c55708dd775e4659fd3e2ad267e14b4483f54b3f55d617",
+      "functions": [
+        {
+          "name": "getInjectConfig",
+          "params": [
+            "key"
+          ],
+          "returnType": "InjectConfigEntry | undefined",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "ensureInjectConfig",
+          "params": [
+            "key"
+          ],
+          "returnType": "InjectConfigEntry",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../types",
+          "specifiers": [
+            "RequiredComponentVars"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "InjectionKey",
+            "Component"
+          ]
+        }
+      ],
+      "exports": [
+        "INJECT_CONFIG",
+        "INJECT_COMPONENTS",
+        "getInjectConfig",
+        "ensureInjectConfig"
+      ],
+      "totalLines": 111,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/component-provider/index.ts": {
+      "filePath": "packages/vant-pro/src/components/component-provider/index.ts",
+      "contentHash": "a091b7df35c6b226227693e13689f99695effd9788fcfdd35aebf167d32c9729",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./components/index.vue",
+          "specifiers": [
+            "ComponentProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ComponentVars"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/component-provider/types/index.ts": {
+      "filePath": "packages/vant-pro/src/components/component-provider/types/index.ts",
+      "contentHash": "70c0d2ec35a1173d23de93bf226f7d1e121eba9c8d010756075a675ddb4ac640",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../form/types",
+          "specifiers": [
+            "Base"
+          ]
+        },
+        {
+          "source": "../../form",
+          "specifiers": [
+            "ProFormProps"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "AllowedComponentProps"
+          ]
+        },
+        {
+          "source": "../../form/constants",
+          "specifiers": [
+            "GetComponentType",
+            "ComponentName"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps"
+          ]
+        },
+        {
+          "source": "vant",
+          "specifiers": [
+            "FormProps"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/components/BaseField/index.vue": {
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/index.vue",
+      "contentHash": "8164c4e884323d9771e5ceb2d56b252b9970e0df2a71087b875cecf3b1a0a152",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 301,
+      "hasStructuralAnalysis": false
+    },
+    "packages/vant-pro/src/components/form/components/BaseField/utils/index.ts": {
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "contentHash": "e80bb76830214268f538dbb3ad4f9e9b7920fca6c95d494737adf0bef1dc0236",
+      "functions": [
+        {
+          "name": "getInitProps",
+          "params": [
+            "field"
+          ],
+          "returnType": "Record<string, any>",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../types",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "../../../../component-provider/constants",
+          "specifiers": [
+            "getInjectConfig"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "inject"
+          ]
+        }
+      ],
+      "exports": [
+        "getInitProps"
+      ],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/components/BaseForm/index.vue": {
+      "filePath": "packages/vant-pro/src/components/form/components/BaseForm/index.vue",
+      "contentHash": "1685bc9fa9267775b7593c43a51322efc5ecde1e88b8a2ad455bd934687c672c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 94,
+      "hasStructuralAnalysis": false
+    },
+    "packages/vant-pro/src/components/form/components/BaseFormItem/index.vue": {
+      "filePath": "packages/vant-pro/src/components/form/components/BaseFormItem/index.vue",
+      "contentHash": "5c052cef4d6a463ba7d3171ef8044b9418e6100dd9b3b26a210d3bb0c7698e39",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 54,
+      "hasStructuralAnalysis": false
+    },
+    "packages/vant-pro/src/components/form/components/ContainerFragment/index.vue": {
+      "filePath": "packages/vant-pro/src/components/form/components/ContainerFragment/index.vue",
+      "contentHash": "effab6f34bd5c47a27b8444d1744b00b824511284a6406f4c93088f9c3ca89e9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": false
+    },
+    "packages/vant-pro/src/components/form/components/GroupedFieldAttrs/index.vue": {
+      "filePath": "packages/vant-pro/src/components/form/components/GroupedFieldAttrs/index.vue",
+      "contentHash": "1c30735503723b1968470c91711bafb13004ed8dbf3b75f1c202c407c6a9b8a4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": false
+    },
+    "packages/vant-pro/src/components/form/components/index.ts": {
+      "filePath": "packages/vant-pro/src/components/form/components/index.ts",
+      "contentHash": "babee02c37273dc9b15768c666d9995a16887d155427fc4c82f730945c1cbf27",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps",
+            "ComponentExposed"
+          ]
+        },
+        {
+          "source": "./BaseForm/index.vue",
+          "specifiers": [
+            "BaseForm"
+          ]
+        }
+      ],
+      "exports": [
+        "BaseField",
+        "ContainerFragment",
+        "SlotComponent",
+        "PathProvider",
+        "GroupedFieldAttrs",
+        "BaseFormItem",
+        "BaseForm"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/components/PathProvider/index.vue": {
+      "filePath": "packages/vant-pro/src/components/form/components/PathProvider/index.vue",
+      "contentHash": "683e2427f2cb3ea62397ff9fae1d75abab9387ff4d09b2ea45c0094d53bd0f0f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": false
+    },
+    "packages/vant-pro/src/components/form/components/SlotComponent/index.vue": {
+      "filePath": "packages/vant-pro/src/components/form/components/SlotComponent/index.vue",
+      "contentHash": "5d178b082291c823779d53262e9cc01b0940d79be790c602cee760c3e530e1b7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": false
+    },
+    "packages/vant-pro/src/components/form/constants/index.ts": {
+      "filePath": "packages/vant-pro/src/components/form/constants/index.ts",
+      "contentHash": "5b5b2d23315388168ca8e15594a436b0ef1a2a03a3b204b0cad7721504d46bb9",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "Field",
+            "Button",
+            "Picker",
+            "DatePicker",
+            "TimePicker",
+            "Cascader",
+            "Area",
+            "Signature",
+            "Switch",
+            "Stepper",
+            "Rate",
+            "Slider",
+            "Uploader",
+            "CheckboxGroup",
+            "RadioGroup"
+          ]
+        }
+      ],
+      "exports": [
+        "componentMap",
+        "TeleportComponentNamePrefix",
+        "InjectionFormKey",
+        "InjectionPathKey"
+      ],
+      "totalLines": 110,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/hooks/index.ts": {
+      "filePath": "packages/vant-pro/src/components/form/hooks/index.ts",
+      "contentHash": "4847d82bec3a2ae4b94eb4f7ea1c5647fcb3b6f4d3a436f7c1c8a7afb6bf1b7e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useFormData"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/hooks/useFields.ts": {
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "contentHash": "14dadbb1b30bccf22a0881fb5536a9be43b564d3397948dbace28dfa5eca64f1",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FieldInstance"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useFields"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Field",
+            "Fields"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName"
+          ]
+        }
+      ],
+      "exports": [
+        "useFields"
+      ],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/hooks/useForm.ts": {
+      "filePath": "packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "contentHash": "8cc501a5ce7341770108a0a6985ad378c9a502e4f0022021d890ffef0830c1ec",
+      "functions": [
+        {
+          "name": "useForm",
+          "params": [
+            "...args"
+          ],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useForm",
+            "_Form"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "ExtendWithAny",
+            "DeepPartial"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "Field"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance"
+          ]
+        },
+        {
+          "source": "./useFormPopup",
+          "specifiers": [
+            "useFormPopup",
+            "FormPopup"
+          ]
+        }
+      ],
+      "exports": [
+        "useForm"
+      ],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/hooks/useFormPopup.ts": {
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "contentHash": "7021f11576e439b20851751b4c70bf087ffbdea9ea147c928959db1348e43172",
+      "functions": [
+        {
+          "name": "useFormPopup",
+          "params": [
+            "initRoot"
+          ],
+          "exported": true,
+          "lineCount": 42
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "computed",
+            "ComputedRef",
+            "inject",
+            "provide",
+            "reactive",
+            "Ref",
+            "ref"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "Popup"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps"
+          ]
+        },
+        {
+          "source": "../types",
+          "specifiers": [
+            "ContainerComponent"
+          ]
+        }
+      ],
+      "exports": [
+        "InjectionPopupKey",
+        "useFormPopup"
+      ],
+      "totalLines": 112,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/hooks/useFormRef.ts": {
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "contentHash": "e64d3d6f7c0e1b5a6d0f9ba7a397728bf3bafa02fe05e7fb5d2ce83f3573bd61",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "_useFormRef"
+          ]
+        },
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance"
+          ]
+        }
+      ],
+      "exports": [
+        "useFormRef"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/index.ts": {
+      "filePath": "packages/vant-pro/src/components/form/index.ts",
+      "contentHash": "d0732046334ffaa9db45209433ed0c0f2ba04b79e230ece3136e8eef7b82cf47",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./components/BaseForm/index.vue",
+          "specifiers": [
+            "BaseForm"
+          ]
+        }
+      ],
+      "exports": [
+        "ContainerFragment",
+        "SlotComponent",
+        "ProFormProps",
+        "ProFormInstance",
+        "ComponentMap",
+        "ComponentName",
+        "Field",
+        "Fields",
+        "useForm",
+        "useFields",
+        "useFormRef",
+        "useFormData",
+        "Form",
+        "UseFields"
+      ],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/components/form/types/index.ts": {
+      "filePath": "packages/vant-pro/src/components/form/types/index.ts",
+      "contentHash": "e7608a147fa5f13315f7e16d994f541df08d5db91957591fa039c977a9e2b190",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../../../shared/ui",
+          "specifiers": [
+            "FormInstance",
+            "FieldProps"
+          ]
+        },
+        {
+          "source": "vue-component-type-helpers",
+          "specifiers": [
+            "ComponentProps",
+            "ComponentSlots"
+          ]
+        },
+        {
+          "source": "vue",
+          "specifiers": [
+            "CSSProperties",
+            "Component",
+            "Raw",
+            "MaybeRef",
+            "ComputedRef",
+            "VNodeProps",
+            "DefineComponent",
+            "VNodeTypes",
+            "VNode"
+          ]
+        },
+        {
+          "source": "../constants",
+          "specifiers": [
+            "ComponentName",
+            "GetComponentType"
+          ]
+        },
+        {
+          "source": "../../../shared/core",
+          "specifiers": [
+            "Data",
+            "Path"
+          ]
+        },
+        {
+          "source": "../hooks/useFormPopup",
+          "specifiers": [
+            "PopupProps"
+          ]
+        }
+      ],
+      "exports": [
+        "FormInstance"
+      ],
+      "totalLines": 221,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/index.ts": {
+      "filePath": "packages/vant-pro/src/index.ts",
+      "contentHash": "ccb725179226b55037e5ceef7fa04d54393d6fc0a86770c79979cd72a36e3702",
+      "functions": [
+        {
+          "name": "withInstall",
+          "params": [
+            "comp"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vue",
+          "specifiers": [
+            "App",
+            "Plugin"
+          ]
+        },
+        {
+          "source": "./components/form",
+          "specifiers": [
+            "Form"
+          ]
+        },
+        {
+          "source": "./components/component-provider",
+          "specifiers": [
+            "ComponentProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ProForm",
+        "ProComponentProvider"
+      ],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/shared/core/index.ts": {
+      "filePath": "packages/vant-pro/src/shared/core/index.ts",
+      "contentHash": "6ed1892731e1d6733b1d4170f5c4a77330c3fab92eef0b9a04d46130e905ffa1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "useForm",
+        "useTable",
+        "useFields",
+        "useFormData",
+        "useFormRef",
+        "InjectionFormKey",
+        "InjectionPathKey",
+        "getObject",
+        "toPath",
+        "camelizeProperties",
+        "cloneDeep",
+        "omit",
+        "pick",
+        "isPlainObject",
+        "Data",
+        "Path",
+        "Paths",
+        "KeyExpandString",
+        "ExtendWithAny",
+        "DeepPartial",
+        "PageParam",
+        "Fields",
+        "Form",
+        "Table"
+      ],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/src/shared/ui/index.ts": {
+      "filePath": "packages/vant-pro/src/shared/ui/index.ts",
+      "contentHash": "7772d7e14a9e001b233c567f7eca7dfc8a8c7dc2d1fcde63269ee93d9dde7c64",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "Form",
+        "Field",
+        "Button",
+        "Popup",
+        "Picker",
+        "DatePicker",
+        "TimePicker",
+        "Cascader",
+        "Area",
+        "Signature",
+        "Switch",
+        "Stepper",
+        "Rate",
+        "Slider",
+        "Uploader",
+        "CheckboxGroup",
+        "Checkbox",
+        "RadioGroup",
+        "Radio",
+        "Space",
+        "FormProps",
+        "FormInstance",
+        "FieldInstance",
+        "FieldProps"
+      ],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/tsconfig.json": {
+      "filePath": "packages/vant-pro/tsconfig.json",
+      "contentHash": "25c210ee8ed68c261f5f2e54d7543bf2935d4d35bb18dac6e380a0749e1e1293",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "packages/vant-pro/vite.config.ts": {
+      "filePath": "packages/vant-pro/vite.config.ts",
+      "contentHash": "44aa22920b512519918d47a933070e335430b4a22fccc69846d3c52f334e6447",
+      "functions": [
+        {
+          "name": "getComponents",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "vite",
+          "specifiers": [
+            "defineConfig"
+          ]
+        },
+        {
+          "source": "@vitejs/plugin-vue",
+          "specifiers": [
+            "vue"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "path"
+          ]
+        },
+        {
+          "source": "vite-plugin-dts",
+          "specifiers": [
+            "dts"
+          ]
+        },
+        {
+          "source": "fs",
+          "specifiers": [
+            "fs"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    "pnpm-workspace.yaml": {
+      "filePath": "pnpm-workspace.yaml",
+      "contentHash": "d03cb6b0e1d69d5f038c6a7538cecee305ff6830b9dddb083eb55c4a58d73839",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "9716771e79e8d159fff3f8d6b38c8435c4ff1b0b692f52650e13289962b0a518",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
+    "stylelint.config.mjs": {
+      "filePath": "stylelint.config.mjs",
+      "contentHash": "f9f048b6d5f17c6046ce89a2392fd127d3390474bf986bc2a835969cf399ff58",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "tsconfig.base.json": {
+      "filePath": "tsconfig.base.json",
+      "contentHash": "982edc33d6492666acb03fab926e9bf93a806ada0c58f20866b22fdeada1663f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

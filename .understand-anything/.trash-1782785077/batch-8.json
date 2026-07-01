@@ -1,0 +1,127 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/element-plus-pro/src/components/component-provider/components/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/components/index.vue",
+      "summary": "ProComponentProvider 全局配置提供者组件，通过 Vue provide 机制向子组件树注入组件全局默认属性（componentVars）与自定义组件映射（componentMap），为所有子组件提供统一的默认配置。",
+      "tags": ["provider", "configuration", "vue-component", "dependency-injection"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/component-provider/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/component-provider/index.ts",
+      "summary": "component-provider 模块的 barrel 入口文件，重新导出 ProComponentProvider 组件作为默认导出，并公开 ComponentVars 类型供外部使用。",
+      "tags": ["barrel", "entry-point", "type-definition"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "summary": "ProForm 配置驱动表单组件，使用泛型约束实现类型安全的表单实例推断，支持字段联动、嵌套字段、网格布局，通过 provide 注入表单上下文并通过具名插槽实现字段级视图分发。",
+      "tags": ["form", "vue-component", "configuration-driven", "generic", "slot-teleport"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "file",
+      "name": "index.vue",
+      "filePath": "packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "summary": "表单字段渲染核心组件，遍历 fields 配置数组并根据 hidden 状态过滤，递归渲染嵌套子字段（fields），支持网格布局动态切换、自定义容器包裹、组件引用注册及表单验证 prop 绑定。",
+      "tags": ["form-item", "vue-component", "recursive", "grid-layout", "field-renderer"],
+      "complexity": "complex",
+      "languageNotes": "组件通过模板递归 <BaseFormItem> 实现嵌套字段渲染，使用 ref 数组管理各字段的表单项与组件引用，配合 GroupedFieldAttrs 完成属性分组分发。"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/components/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/components/index.ts",
+      "summary": "表单子组件层的 barrel 模块，集中导出 BaseForm、BaseFormItem、BaseField、ContainerFragment、SlotComponent 组件，并使用 vue-component-type-helpers 提供 ProFormInstance/ProFormItemInstance 等类型工具。",
+      "tags": ["barrel", "type-definition", "exports"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/components/form/index.ts",
+      "summary": "form 模块的主入口 barrel 文件，分层公开组件包装（components）、类型常量与 ComponentMap（constants）、Schema 字段类型（types）以及业务 Hooks（useForm/useFields/useFormRef/useFormData），以 BaseForm 为默认导出。",
+      "tags": ["barrel", "entry-point", "api-surface", "hooks"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/element-plus-pro/src/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/element-plus-pro/src/index.ts",
+      "summary": "@qin-ui/element-plus-pro 包的顶层入口，通过 withInstall 工厂函数为 ProForm、ProTable、ProComponentProvider 添加 Vue 插件 install 方法，默认导出提供 app.use() 全局注册所有组件的 install 实现。",
+      "tags": ["entry-point", "plugin", "factory", "vue-plugin", "barrel"],
+      "complexity": "moderate",
+      "languageNotes": "使用 withInstall 工厂函数为每个 SFC 组件动态附加 install(app) 方法，实现 Vue 插件模式的批量全局注册。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/element-plus-pro/src/components/component-provider/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/components/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/component-provider/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/form/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/index.ts",
+      "target": "file:packages/element-plus-pro/src/components/table/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/element-plus-pro/src/components/form/components/BaseForm/index.vue",
+      "target": "file:packages/element-plus-pro/src/components/form/components/BaseFormItem/index.vue",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

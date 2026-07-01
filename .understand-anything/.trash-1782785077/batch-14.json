@@ -1,0 +1,77 @@
+{
+  "nodes": [
+    {
+      "id": "document:packages/element-plus-pro/AI-CONTEXT.md",
+      "type": "document",
+      "name": "AI-CONTEXT.md",
+      "filePath": "packages/element-plus-pro/AI-CONTEXT.md",
+      "summary": "AI辅助上下文文档，概述了@qin-ui/element-plus-pro组件库的核心导出（ProForm、ProTable、ProComponentProvider）、Hooks（useForm、useFields、useFormRef、useTable）以及字段和表格列配置体系。",
+      "tags": ["documentation", "ai-context", "component-overview", "reference"],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:packages/element-plus-pro/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "packages/element-plus-pro/README.md",
+      "summary": "完整的组件库使用文档，涵盖安装指南、快速开始示例、ProForm/ProTable/ProComponentProvider组件API说明、useForm/useTable Hooks详解、表格列配置与表单字段配置完整参考、内置组件映射表及自定义组件扩展指南。",
+      "tags": ["documentation", "entry-point", "getting-started", "api-reference", "component-library"],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:packages/element-plus-pro/package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "packages/element-plus-pro/package.json",
+      "summary": "@qin-ui/element-plus-pro的NPM包清单文件，定义ESM模块入口（es/index.js）、peer依赖（element-plus ^2.13.6, vue ^3.5.0）、构建脚本（生成API JSON后执行vue-tsc类型检查与vite构建）。",
+      "tags": ["configuration", "npm", "package-manifest", "build-system", "esm"],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:packages/element-plus-pro/tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "packages/element-plus-pro/tsconfig.json",
+      "summary": "TypeScript编译配置文件，继承根目录tsconfig.base.json，启用声明文件与sourcemap生成、bundler模块解析、JSX保留模式，编译src目录输出至es目录。",
+      "tags": ["configuration", "typescript", "compiler-options", "declaration-files"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:packages/element-plus-pro/AI-CONTEXT.md",
+      "target": "document:packages/element-plus-pro/README.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:packages/element-plus-pro/README.md",
+      "target": "config:packages/element-plus-pro/package.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:packages/element-plus-pro/AI-CONTEXT.md",
+      "target": "config:packages/element-plus-pro/package.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:packages/element-plus-pro/tsconfig.json",
+      "target": "config:tsconfig.base.json",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:packages/element-plus-pro/package.json",
+      "target": "file:scripts/generate-api-json.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    }
+  ]
+}

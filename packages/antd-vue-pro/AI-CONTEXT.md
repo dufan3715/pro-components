@@ -87,7 +87,7 @@ const table = useTable({
 
 - `path` - 数据路径（类型安全）
 - `label` - 字段标签
-- `component` - 组件名（内置支持: input, select, date-picker, cascader 等）
+- `component` - 组件名（内置支持: input, textarea, input-search, input-password, input-number, select, cascader, date-picker, range-picker, time-picker, checkbox-group, radio-group, switch, slider, tree-select, transfer, custom）
 - `hidden` - 是否隐藏
 - `disabled` - 是否禁用
 - `rules` - 校验规则

@@ -1,0 +1,80 @@
+{
+  "projectRoot": "/Users/dufan/Desktop/Code/My_project/pro-components",
+  "batchFiles": [
+    {"path": "packages/element-plus-pro/src/components/component-provider/constants/index.ts", "language": "typescript", "sizeLines": 209, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/component-provider/types/index.ts", "language": "typescript", "sizeLines": 64, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts", "language": "typescript", "sizeLines": 15, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/form/constants/index.ts", "language": "typescript", "sizeLines": 116, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/form/hooks/useFields.ts", "language": "typescript", "sizeLines": 39, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/form/hooks/useForm.ts", "language": "typescript", "sizeLines": 55, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/form/hooks/useFormRef.ts", "language": "typescript", "sizeLines": 25, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/form/types/index.ts", "language": "typescript", "sizeLines": 300, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/table/components/BaseTable.vue", "language": "vue", "sizeLines": 376, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/table/components/SearchForm.vue", "language": "vue", "sizeLines": 274, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/table/index.ts", "language": "typescript", "sizeLines": 38, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/table/types/index.ts", "language": "typescript", "sizeLines": 77, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/components/table/useTable.ts", "language": "typescript", "sizeLines": 94, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/shared/core/index.ts", "language": "typescript", "sizeLines": 33, "fileCategory": "code"},
+    {"path": "packages/element-plus-pro/src/shared/ui/index.ts", "language": "typescript", "sizeLines": 106, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "packages/element-plus-pro/src/components/component-provider/constants/index.ts": [
+      "packages/element-plus-pro/src/components/component-provider/types/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/component-provider/types/index.ts": [
+      "packages/element-plus-pro/src/components/form/constants/index.ts",
+      "packages/element-plus-pro/src/components/form/index.ts",
+      "packages/element-plus-pro/src/components/form/types/index.ts",
+      "packages/element-plus-pro/src/shared/ui/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/form/components/BaseField/utils/index.ts": [
+      "packages/element-plus-pro/src/components/component-provider/constants/index.ts",
+      "packages/element-plus-pro/src/components/form/types/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/form/constants/index.ts": [
+      "packages/element-plus-pro/src/shared/ui/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/form/hooks/useFields.ts": [
+      "packages/element-plus-pro/src/components/form/constants/index.ts",
+      "packages/element-plus-pro/src/components/form/types/index.ts",
+      "packages/element-plus-pro/src/shared/core/index.ts",
+      "packages/element-plus-pro/src/shared/ui/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/form/hooks/useForm.ts": [
+      "packages/element-plus-pro/src/components/form/constants/index.ts",
+      "packages/element-plus-pro/src/components/form/types/index.ts",
+      "packages/element-plus-pro/src/shared/core/index.ts",
+      "packages/element-plus-pro/src/shared/ui/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/form/hooks/useFormRef.ts": [
+      "packages/element-plus-pro/src/shared/core/index.ts",
+      "packages/element-plus-pro/src/shared/ui/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/form/types/index.ts": [
+      "packages/element-plus-pro/src/components/form/constants/index.ts",
+      "packages/element-plus-pro/src/shared/core/index.ts",
+      "packages/element-plus-pro/src/shared/ui/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/table/components/BaseTable.vue": [],
+    "packages/element-plus-pro/src/components/table/components/SearchForm.vue": [],
+    "packages/element-plus-pro/src/components/table/index.ts": [
+      "packages/element-plus-pro/src/components/form/types/index.ts",
+      "packages/element-plus-pro/src/components/table/components/BaseTable.vue",
+      "packages/element-plus-pro/src/components/table/components/SearchForm.vue",
+      "packages/element-plus-pro/src/components/table/types/index.ts",
+      "packages/element-plus-pro/src/components/table/useTable.ts",
+      "packages/element-plus-pro/src/shared/ui/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/table/types/index.ts": [
+      "packages/element-plus-pro/src/shared/core/index.ts",
+      "packages/element-plus-pro/src/shared/ui/index.ts"
+    ],
+    "packages/element-plus-pro/src/components/table/useTable.ts": [
+      "packages/element-plus-pro/src/components/form/types/index.ts",
+      "packages/element-plus-pro/src/components/table/types/index.ts",
+      "packages/element-plus-pro/src/shared/core/index.ts"
+    ],
+    "packages/element-plus-pro/src/shared/core/index.ts": [],
+    "packages/element-plus-pro/src/shared/ui/index.ts": []
+  }
+}

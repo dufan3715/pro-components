@@ -1,0 +1,481 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "summary": "定义所有内置组件的依赖注入配置（InjectionKey 与默认值），并提供动态注入配置的查询与懒初始化方法，是组件提供者体系的核心常量表。",
+      "tags": ["dependency-injection", "component-provider", "常量定义", "vue", "配置"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "summary": "定义 RequiredComponentVars 和 ComponentVars 类型，通过泛型工具类型将 Vue 组件 Props 映射为字段组件的可配置变量，统一 pro-table、pro-form 及各字段组件的默认值类型。",
+      "tags": ["type-definition", "component-provider", "vue", "泛型"],
+      "complexity": "moderate",
+      "languageNotes": "使用 PP<T> 和 FP<T> 泛型工具类型将组件 Props 与 Base 公共字段属性合并，并通过 keyof 映射自动生成所有字段组件的类型补全。"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "summary": "提供 getInitProps 工具函数，根据字段配置中的 component 和 picker 属性查找对应的注入配置，实现字段组件的默认属性注入。",
+      "tags": ["utility", "form-field", "dependency-injection"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "summary": "定义表单内置组件映射表（BaseComponentMap、componentMap）、组件名称联合类型（ComponentName）、类型提取器（GetComponentType）以及插槽键名等常量，是表单组件类型系统的基础。",
+      "tags": ["constants", "组件映射", "form", "type-definition"],
+      "complexity": "moderate",
+      "languageNotes": "通过 TypeScript 声明合并（declaration merging）对外暴露 ComponentMap 扩展接口，允许用户扩充自定义组件类型。"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "type": "file",
+      "name": "useFields.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "summary": "类型安全的 useFields Hook 包装层，将 core 的泛型参数绑定为 antdv-next 本地类型 Field<ComponentName, D>，使字段配置获得组件类型推导。",
+      "tags": ["hook", "form", "字段管理", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "type": "file",
+      "name": "useForm.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "summary": "类型安全的 useForm Hook 包装层，同时导出 Form 类型定义，将 core 的泛型绑定为 antdv-next 的 FormInstance，获得完整的表单实例 API 类型提示。",
+      "tags": ["hook", "form", "状态管理", "re-export"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "type": "file",
+      "name": "useFormRef.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "summary": "类型安全的 useFormRef Hook 包装层，将 core 的泛型参数绑定为 antdv-next 的 FormInstance，使 formRef 获得 validate、resetFields 等完整 API 类型提示。",
+      "tags": ["hook", "form", "ref-management", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/form/types/index.ts",
+      "summary": "表单字段系统的核心类型定义文件，定义了 Field、Fields、Base、FieldTypeMap、WithRef 等关键类型，支持字段配置的响应式属性、嵌套字段、自定义组件以及完整的插槽与容器系统。",
+      "tags": ["type-definition", "form", "字段配置", "vue", "泛型"],
+      "complexity": "complex",
+      "languageNotes": "通过 discriminated union 将带嵌套字段（BaseWithFields）与无嵌套字段（BaseWithoutFields）配置区分，WithRef<T> 为绝大部分属性添加 MaybeRef 响应式支持，排除 component、valueFormatter 等特殊属性。"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/components/table/types/index.ts",
+      "summary": "定义 Column 和 Columns 类型，在 antdv-next ColumnType 基础上扩展了类型安全的 dataIndex（基于泛型 D 推导）、hidden 显隐属性和 key 辅助标识，支持嵌套路径的数据映射。",
+      "tags": ["type-definition", "table", "列配置"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "type": "file",
+      "name": "useTable.ts",
+      "filePath": "packages/antdv-next-pro/src/components/table/useTable.ts",
+      "summary": "类型安全的 useTable Hook 包装层，同时导出 Table 类型，将 core 泛型绑定为本地 Column<T> 列类型，接受 columns、dataSource、pageParam、searchFields 等配置返回完整类型的表格实例。",
+      "tags": ["hook", "table", "状态管理", "re-export"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/shared/core/index.ts",
+      "summary": "@qin-ui/core 的统一再导出 barrel 文件，集中导出所有 Hook（useForm、useTable、useFields 等）、注入 Key、工具函数和类型定义，便于包内统一维护避免散列依赖。",
+      "tags": ["barrel", "re-export", "core", "shared-module"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/antdv-next-pro/src/shared/ui/index.ts",
+      "summary": "antdv-next UI 库的统一再导出 barrel 文件，将组件重命名映射（Row→Grid、Col→GridItem、DateRangePicker→RangePicker），并导出专用类型（FormItemInstance、NamePath）和禁用上下文 Hook。",
+      "tags": ["barrel", "re-export", "ui-components", "antdv-next"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/antdv-next-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "function",
+      "name": "getInjectConfig",
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "lineRange": [161, 166],
+      "summary": "根据组件 key 查找注入配置，优先从静态配置表 INJECT_CONFIG 查找，若未命中则 fallback 到动态配置表 DYNAMIC_INJECT_CONFIG，返回 InjectConfigEntry 或 undefined。",
+      "tags": ["utility", "dependency-injection", "配置查询"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/antdv-next-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "function",
+      "name": "ensureInjectConfig",
+      "filePath": "packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "lineRange": [168, 177],
+      "summary": "确保指定 key 的注入配置存在，不存在时自动创建新的 InjectConfigEntry（使用 Symbol 作为 InjectionKey）并注册到动态配置表，用于扩展自定义组件的注入配置。",
+      "tags": ["utility", "dependency-injection", "懒初始化"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "function",
+      "name": "getInitProps",
+      "filePath": "packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "lineRange": [5, 16],
+      "summary": "根据字段配置中的 component 和 picker 属性拼接注入 key，通过 getInjectConfig 查询对应配置后使用 Vue inject 获取初始化 props，实现字段组件的默认属性注入。",
+      "tags": ["utility", "dependency-injection", "form-field"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/antdv-next-pro/src/components/form/hooks/useFields.ts:useFields",
+      "type": "function",
+      "name": "useFields",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "lineRange": [28, 34],
+      "summary": "类型安全的 useFields 重导出，将 core useFields 的泛型参数绑定为 antdv-next 的 Field<ComponentName, D> 类型和 FormItemInstance，支持组件字段类型的自动推导。",
+      "tags": ["hook", "form", "字段管理", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/antdv-next-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "function",
+      "name": "useForm",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "lineRange": [56, 63],
+      "summary": "类型安全的 useForm 重导出，将字段类型绑定为 Field<ComponentName, D>、表单实例绑定为 antdv-next FormInstance，提供两个重载签名支持有/无初始数据的场景。",
+      "tags": ["hook", "form", "状态管理", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts:useFormRef",
+      "type": "function",
+      "name": "useFormRef",
+      "filePath": "packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "lineRange": [23, 25],
+      "summary": "类型安全的 useFormRef 重导出，将 core useFormRef 返回类型的表单实例绑定为 antdv-next FormInstance，提供 validate、resetFields 等 API 的完整类型提示。",
+      "tags": ["hook", "form", "ref-management", "re-export"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/antdv-next-pro/src/components/table/useTable.ts:useTable",
+      "type": "function",
+      "name": "useTable",
+      "filePath": "packages/antdv-next-pro/src/components/table/useTable.ts",
+      "lineRange": [52, 61],
+      "summary": "类型安全的 useTable 重导出，接受 columns（绑定 Column<T>）、dataSource、pageParam、searchFields 等配置参数，返回绑定本地类型的表格实例 Table<D, T>。",
+      "tags": ["hook", "table", "状态管理", "re-export"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/components/table/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "file:packages/antdv-next-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/antdv-next-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/antdv-next-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "function:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "function:packages/antdv-next-pro/src/components/form/hooks/useFields.ts:useFields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "function:packages/antdv-next-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "function:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts:useFormRef",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "function:packages/antdv-next-pro/src/components/table/useTable.ts:useTable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/antdv-next-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/antdv-next-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "function:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFields.ts",
+      "target": "function:packages/antdv-next-pro/src/components/form/hooks/useFields.ts:useFields",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useForm.ts",
+      "target": "function:packages/antdv-next-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "function:packages/antdv-next-pro/src/components/form/hooks/useFormRef.ts:useFormRef",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/antdv-next-pro/src/components/table/useTable.ts",
+      "target": "function:packages/antdv-next-pro/src/components/table/useTable.ts:useTable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/antdv-next-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "target": "function:packages/antdv-next-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

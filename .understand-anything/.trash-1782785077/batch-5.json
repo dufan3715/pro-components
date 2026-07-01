@@ -1,0 +1,412 @@
+{
+  "nodes": [
+    {
+      "id": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "summary": "定义组件注入配置常量，为所有 Vant Pro 内置组件(field、picker、date-picker 等)提供 InjectionKey 和默认属性，同时支持动态扩展自定义组件的注入配置。",
+      "tags": ["injection", "configuration", "component-provider", "constants"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/component-provider/types/index.ts",
+      "summary": "定义组件注入系统的类型，包括 RequiredComponentVars(各组件必需变量)和 ComponentVars(可选变量)，通过映射 ComponentName 到各 Vant 组件 Props 类型实现类型安全的注入配置。",
+      "tags": ["type-definition", "component-provider", "injection", "generic"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "summary": "提供字段组件初始化属性解析工具，根据字段配置中的 component 名称从注入系统查找对应的 InjectionKey 并 inject 获取默认属性。",
+      "tags": ["utility", "field", "injection", "form"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/constants/index.ts",
+      "summary": "定义表单组件映射表(BaseComponentMap)和组件名称联合类型(ComponentName)，将 Vant UI 组件(field、picker、switch 等)映射为运行时可用组件，并支持通过 TypeScript 声明合并扩展自定义组件。",
+      "tags": ["constants", "component-map", "type-definition", "form", "barrel"],
+      "complexity": "moderate",
+      "languageNotes": "使用 TypeScript 声明合并(declaration merging)扩展 ComponentMap 接口，允许外部模块添加自定义组件映射。"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "type": "file",
+      "name": "useFields.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "summary": "类型安全的 useFields Hook 封装，将 core 层的泛型参数绑定为 Vant Pro 本地类型(Field<ComponentName, D> 和 FieldInstance)，确保字段配置的类型推导正确。",
+      "tags": ["hook", "form", "re-export", "type-definition"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "type": "file",
+      "name": "useForm.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "summary": "Vant Pro 核心表单 Hook，基于 core useForm 封装并额外集成 formPopup(弹出层表单管理)，支持函数重载以兼容不同的初始化参数签名。",
+      "tags": ["hook", "form", "popup", "entry-point", "composable"],
+      "complexity": "moderate",
+      "languageNotes": "使用 TypeScript 函数重载(overload signatures)支持两种调用方式：(formData, fields, root) 和 (root)。"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "type": "file",
+      "name": "useFormPopup.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "summary": "管理 Vant 移动端表单弹出层(Popup)的 Hook，使用 provide/inject 模式实现父子表单间的弹出层状态共享，支持打开/关闭指定路径字段的弹出层并动态更新 Popup 属性。",
+      "tags": ["hook", "popup", "form", "provide-inject", "mobile"],
+      "complexity": "moderate",
+      "languageNotes": "通过 provide/inject 模式实现弹出层状态在组件树中的共享，非根组件通过 inject 获取父级 store 避免重复创建。"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "type": "file",
+      "name": "useFormRef.ts",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "summary": "类型安全的 useFormRef Hook 封装，将 core 层的泛型参数绑定为 Vant 的 FormInstance 类型，用于获取表单组件实例引用。",
+      "tags": ["hook", "form", "re-export", "type-definition"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/components/form/types/index.ts",
+      "summary": "Vant Pro 表单字段类型定义核心文件，定义了 Base、Field、Fields 等核心类型，以及字段配置的完整类型体系(含插槽、弹出层、值格式化器、容器组件等)，通过 FieldTypeMap 实现组件名称到组件属性类型的自动映射。",
+      "tags": ["type-definition", "form", "field", "generic", "slots"],
+      "complexity": "complex",
+      "languageNotes": "大量使用 TypeScript 条件类型和映射类型(Conditional Types、Mapped Types)，FieldTypeMap 通过 ComponentName 分发到不同组件的 Props 类型，实现编译时类型安全。"
+    },
+    {
+      "id": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/shared/core/index.ts",
+      "summary": "@qin-ui/core 的统一 re-export 桶文件，集中导出所有 core 层的 hooks(useForm、useTable、useFields 等)、注入键(InjectionFormKey、InjectionPathKey)、工具函数和核心类型，包内所有文件通过此文件引入 core 内容而非直接依赖 @qin-ui/core。",
+      "tags": ["barrel", "re-export", "core", "shared"],
+      "complexity": "simple",
+      "languageNotes": "采用统一桶文件模式(barrel pattern)，避免包内文件散列依赖外部包，便于将来统一维护和迁移。"
+    },
+    {
+      "id": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "file",
+      "name": "index.ts",
+      "filePath": "packages/vant-pro/src/shared/ui/index.ts",
+      "summary": "Vant UI 组件的统一 re-export 桶文件，集中导出所有 Vant 组件(Form、Field、Picker、Popup 等)及其类型定义(FormInstance、FieldProps 等)，包内所有文件通过此文件引入 Vant 组件。",
+      "tags": ["barrel", "re-export", "ui-components", "vant"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "function",
+      "name": "getInjectConfig",
+      "filePath": "packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "lineRange": [94, 99],
+      "summary": "根据 key 从静态 INJECT_CONFIG 和动态 DYNAMIC_INJECT_CONFIG 中查找注入配置，优先返回静态配置。",
+      "tags": ["utility", "injection", "lookup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "function",
+      "name": "ensureInjectConfig",
+      "filePath": "packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "lineRange": [101, 110],
+      "summary": "获取或动态创建注入配置，若 key 不存在则创建新的 InjectionKey 并存入 DYNAMIC_INJECT_CONFIG，支持自定义组件的注入扩展。",
+      "tags": ["utility", "injection", "dynamic-config"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "function",
+      "name": "getInitProps",
+      "filePath": "packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "lineRange": [5, 14],
+      "summary": "根据字段配置的 component 名称查找注入配置并 inject 获取初始化属性，用于字段组件的属性初始化。",
+      "tags": ["utility", "field", "injection", "props"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "function",
+      "name": "useForm",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "lineRange": [59, 71],
+      "summary": "创建 Vant Pro 表单实例，内部调用 core useForm 并集成 useFormPopup 弹出层管理，通过函数重载支持(formData, fields, root)和(root)两种调用签名。",
+      "tags": ["hook", "form", "popup", "composable"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/vant-pro/src/components/form/hooks/useFormPopup.ts:useFormPopup",
+      "type": "function",
+      "name": "useFormPopup",
+      "filePath": "packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "lineRange": [70, 111],
+      "summary": "管理 Vant Popup 弹出层状态，非根组件通过 inject 获取父级 store，根组件创建 reactive props 和 ref 状态并通过 provide 共享，提供 open/close/updateProps 操作。",
+      "tags": ["hook", "popup", "form", "provide-inject", "composable"],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFields.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "target": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormRef.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/constants/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/shared/core/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/types/index.ts",
+      "target": "file:packages/vant-pro/src/shared/ui/index.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/vant-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/vant-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "function:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "function:packages/vant-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "target": "function:packages/vant-pro/src/components/form/hooks/useFormPopup.ts:useFormPopup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/vant-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/component-provider/constants/index.ts",
+      "target": "function:packages/vant-pro/src/components/component-provider/constants/index.ts:ensureInjectConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts",
+      "target": "function:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useForm.ts",
+      "target": "function:packages/vant-pro/src/components/form/hooks/useForm.ts:useForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/vant-pro/src/components/form/hooks/useFormPopup.ts",
+      "target": "function:packages/vant-pro/src/components/form/hooks/useFormPopup.ts:useFormPopup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/vant-pro/src/components/form/components/BaseField/utils/index.ts:getInitProps",
+      "target": "function:packages/vant-pro/src/components/component-provider/constants/index.ts:getInjectConfig",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/vant-pro/src/components/form/hooks/useForm.ts:useForm",
+      "target": "function:packages/vant-pro/src/components/form/hooks/useFormPopup.ts:useFormPopup",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

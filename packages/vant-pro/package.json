@@ -1,7 +1,10 @@
 {
   "name": "@qin-ui/vant-pro",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "基于 vant 和 @qin-ui/core 封装的高级表单和列表组件库",
+  "bin": {
+    "vant-pro": "./bin/init-ai.mjs"
+  },
   "type": "module",
   "module": "es/index.js",
   "types": "es/index.d.ts",
@@ -14,6 +17,7 @@
   },
   "files": [
     "es",
+    "bin",
     "README.md",
     "LICENSE",
     "api.json",

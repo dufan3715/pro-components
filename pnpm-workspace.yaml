@@ -4,3 +4,6 @@ packages:
   - docs/*
   - examples
   - examples-next
+allowBuilds:
+  core-js: true
+  esbuild: true

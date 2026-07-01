@@ -27,7 +27,7 @@ npm install @qin-ui/element-plus-pro element-plus vue
 
 每个字段支持：`path`, `label`, `component`, `hidden`, `disabled`, `rules`, `valueFormatter`, `fields`, `grid`, `slots`, `componentStyle`, `componentClass`, `componentContainer`, `formItemStyle`, `formItemClass`, `formItemContainer`, `modelProp`
 
-内置组件：input, textarea, input-search, input-password, input-number, select, cascader, date-picker, range-picker, time-picker, checkbox-group, radio-group, switch, slider, tree-select, transfer, custom
+内置组件：input, input-number, autocomplete, select, cascader, date-picker, time-picker, time-select, checkbox-group, radio-group, switch, slider, tree-select, transfer, custom
 
 ## 表格列配置（Column）
 

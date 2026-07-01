@@ -25,11 +25,14 @@ export type SearchFormProps = {
   form: Form;
   layout?: 'grid' | 'inline';
   expand?: boolean | Expand;
-  searchButton?: Component<ButtonProps> | DefineComponent<ButtonProps>;
-  resetButton?: Component<ButtonProps> | DefineComponent<ButtonProps>;
+  searchButton?: Component<ButtonProps> | DefineComponent<ButtonProps> | false;
+  resetButton?: Component<ButtonProps> | DefineComponent<ButtonProps> | false;
   expandButton?:
     | Component<ExpandButtonProps>
-    | DefineComponent<ExpandButtonProps>;
+    | DefineComponent<ExpandButtonProps>
+    | false;
+  rowGap?: number;
+  columnGap?: number;
 } & /* @vue-ignore */ _FormProps &
   AllowedComponentProps;
 </script>
@@ -57,6 +60,8 @@ const {
   searchButton = undefined,
   resetButton = undefined,
   expandButton = undefined,
+  rowGap = 16,
+  columnGap = 24,
   form,
 } = defineProps<SearchFormProps>();
 
@@ -69,8 +74,6 @@ const emit = defineEmits<Emits>();
 const proFormHeight = ref<'unset' | number>('unset');
 const collapseHeight = ref(0);
 let rowHeight = 32;
-const rowGap = 16;
-const columnGap = 24;
 
 const computedExpand = computed(() => {
   if (!expand) return false;
@@ -122,9 +125,10 @@ watch(
   [
     () => form?.fields.value?.filter((f: any) => !f.hidden)?.length,
     () => formRef.value,
+    () => expand,
   ],
   () => {
-    if (!expandStatus.value || !formRef.value) return;
+    if (!expand || !expandStatus.value || !formRef.value) return;
     const proFormEl = (formRef.value as any)?.$el;
     const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
     proFormHeight.value = height;
@@ -198,28 +202,32 @@ const onSearch = () => {
   >
     <Space alignment="start" class="pro-table_search-form_button-group">
       <slot name="reset-button" @click="onReset">
-        <component :is="resetButton" v-if="resetButton" @click="onReset" />
-        <Button
-          v-else
-          class="pro-table_search-form_reset-button"
-          @click="onReset"
-          >重置</Button
-        >
+        <template v-if="resetButton !== false">
+          <component :is="resetButton" v-if="resetButton" @click="onReset" />
+          <Button
+            v-else
+            class="pro-table_search-form_reset-button"
+            @click="onReset"
+            >重置</Button
+          >
+        </template>
       </slot>
       <slot name="search-button" @click="onSearch">
-        <component :is="searchButton" v-if="searchButton" @click="onSearch" />
-        <Button
-          v-else
-          class="pro-table_search-form_search-button"
-          type="primary"
-          native-type="submit"
-          @click="onSearch"
-        >
-          查询
-        </Button>
+        <template v-if="searchButton !== false">
+          <component :is="searchButton" v-if="searchButton" @click="onSearch" />
+          <Button
+            v-else
+            class="pro-table_search-form_search-button"
+            type="primary"
+            native-type="submit"
+            @click="onSearch"
+          >
+            查询
+          </Button>
+        </template>
       </slot>
       <slot name="expand-button" @click="changeExpandStatus">
-        <template v-if="showExpandToggle">
+        <template v-if="expandButton !== false && showExpandToggle">
           <component
             :is="expandButton"
             v-if="expandButton"
