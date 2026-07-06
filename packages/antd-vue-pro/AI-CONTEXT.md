@@ -1,123 +1,236 @@
-# @qin-ui/antd-vue-pro
+# @qin-ui/antd-vue-pro — AI Context
 
-> 基于 ant-design-vue v4 的配置驱动表单和表格组件库。
+> Schema-driven component library wrapping **ant-design-vue v4** (`a-` prefix). Describe UIs as JS objects instead of template tag soup.
 
-## 安装
+---
 
-```bash
-npm install @qin-ui/antd-vue-pro ant-design-vue vue
+## 1. Architecture
+
+### 1.1 Three-layer rendering
+
+```
+Field[] config layer       { path:'name', component:'input', span:8, label:'Name', placeholder:'...' }
+        │
+@qin-ui/antd-vue-pro       Schema parser — strips props layer by layer
+        │
+ant-design-vue v4          a-input / a-select / a-table / a-form-item / a-col  ...
 ```
 
-## 快速开始
+ProForm/ProTable are **rendering engines**, not a component library. All actual UI comes from ant-design-vue. Field props are peeled off and dispatched to different DOM layers.
 
-```typescript
-import { ProForm, ProTable } from '@qin-ui/antd-vue-pro';
-import { useForm, useTable } from '@qin-ui/antd-vue-pro';
+### 1.2 Component resolution
+
+`Field.component` string → `componentMap` → ant-design-vue component.
+
+If not found in the built-in map, the string is resolved against `ProComponentProvider` injected components; a Vue component object is rendered directly (used by `'custom'` internally).
+
+### 1.3 Built-in component map
+
+| Field `component`  | ant-design-vue component | Key pass-through props (verify against https://antdv.com)                              |
+| :----------------- | :----------------------- | :------------------------------------------------------------------------------------- |
+| `'input'`          | Input                    | placeholder, maxlength, allowClear, addonBefore, addonAfter, prefix, suffix, showCount |
+| `'textarea'`       | TextArea                 | rows, maxlength, showCount, autoSize                                                   |
+| `'input-password'` | InputPassword            | placeholder, maxlength, visibilityToggle                                               |
+| `'input-search'`   | InputSearch              | placeholder, loading, onSearch                                                         |
+| `'input-number'`   | InputNumber              | min, max, step, precision, formatter, parser                                           |
+| `'select'`         | Select                   | **options**, mode, showSearch, filterOption, allowClear, loading                       |
+| `'cascader'`       | Cascader                 | **options**, fieldNames, showSearch, allowClear                                        |
+| `'date-picker'`    | DatePicker               | picker, format, showTime, disabledDate, valueFormat                                    |
+| `'range-picker'`   | RangePicker              | format, showTime, disabledDate, allowClear                                             |
+| `'time-picker'`    | TimePicker               | format, showSecond, hourStep, minuteStep                                               |
+| `'checkbox-group'` | CheckboxGroup            | **options**, direction                                                                 |
+| `'radio-group'`    | RadioGroup               | **options**, direction, buttonStyle                                                    |
+| `'switch'`         | Switch                   | checkedChildren, unCheckedChildren, loading                                            |
+| `'slider'`         | Slider                   | min, max, step, marks, range, tooltip                                                  |
+| `'tree-select'`    | TreeSelect               | **treeData**, showSearch, treeCheckable, fieldNames                                    |
+| `'transfer'`       | Transfer                 | **dataSource**, **titles**, **targetKeys**, showSearch, render                         |
+| `'custom'`         | (user-supplied)          | component receives a Vue component or `h()` render function                            |
+
+> The prop column is illustrative. **Always verify prop names/types against [antdv.com](https://antdv.com).**
+
+---
+
+## 2. Property layering (core rule)
+
+Field props are **stripped in layers** and dispatched to different DOM targets.
+
+```
+<a-col :span="8">                   ← Grid layer
+  <a-form-item label="City">        ← FormItem layer
+    <a-select placeholder="..." />  ← Input-control layer
+  </a-form-item>
+</a-col>
 ```
 
-## 核心导出
+### 2.1 Layer dispatch
 
-### 组件
+**Grid layer → `<a-col>`** (only when grid is enabled):
+`span`, `order`, `offset`, `push`, `pull`, `flex`, `xs`, `sm`, `md`, `lg`, `xl`, `xxl`
 
-| 组件名                 | 描述             |
-| ---------------------- | ---------------- |
-| `ProForm`              | 配置驱动表单组件 |
-| `ProTable`             | 配置驱动表格组件 |
-| `ProComponentProvider` | 全局配置提供者   |
+**FormItem layer → `<a-form-item>`**:
+`label`, `rules`, `colon`, `labelAlign`, `labelCol`, `wrapperCol`, `tooltip`, `extra`, `help`, `validateFirst`, `validateTrigger`, `valuePropName`, `normalize`, `formItemClass`→`class`, `formItemStyle`→`style`, `formItemContainer`, `formItemDataAttrs`→`data-*`
 
-### Hooks
+**Input-control layer → the input component** (everything else):
+`disabled`, `placeholder`, `allowClear`, `options`, `showSearch`, `maxlength`, `mode`, `componentClass`→`class`, `componentStyle`→`style`, `componentDataAttrs`→`data-*`, and any ant-design-vue props for that component.
 
-| Hook               | 描述         |
-| ------------------ | ------------ |
-| `useForm<D>()`     | 创建表单实例 |
-| `useFields<D>()`   | 字段配置管理 |
-| `useFormRef()`     | 表单组件引用 |
-| `useTable<D, T>()` | 创建表格实例 |
+**Consumed by ProForm logic, not bound to DOM**: `component`, `fields`, `hidden`, `slots`, `modelProp`, `valueFormatter`, `componentContainer`, `extraProps`.
 
-## ProForm 使用
+### 2.2 modelProp
 
-```vue
-<template>
-  <ProForm :form="form" @submit="onSubmit">
-    <template #name="{ value }">
-      <a-input :value="value" />
-    </template>
-  </ProForm>
-</template>
+Controls the `v-model:xxx` binding name.
 
-<script setup lang="ts">
-interface User {
-  name: string;
-  age: number;
-}
+- Default: `modelProp: 'value'` → `v-model:value`
+- Switch uses `checked` — **ProComponentProvider presets `modelProp: 'checked'` for `'switch'`** so you rarely set it manually.
+- Override per-field when using a custom component that expects a different v-model prop.
 
-const form = useForm<User>({ name: '张三' }, [
-  { path: 'name', label: '姓名', component: 'input' },
-  { path: 'age', label: '年龄', component: 'input-number' },
+---
+
+## 3. Progressive usage
+
+### Level 1: Config-driven (no hand-written a-\* tags)
+
+```ts
+import { ProForm, useForm } from '@qin-ui/antd-vue-pro';
+
+const form = useForm({ username: '', password: '' }, [
+  {
+    path: 'username',
+    component: 'input',
+    label: '用户名',
+    placeholder: '请输入',
+    rules: [{ required: true }],
+  },
+  {
+    path: 'password',
+    component: 'input-password',
+    label: '密码',
+    placeholder: '请输入',
+    rules: [{ required: true }],
+  },
 ]);
-</script>
 ```
 
-## ProTable 使用
+```html
+<ProForm :form="form" />
+```
+
+### Level 2: Field linkage
+
+Control props (`disabled`, `hidden`, `rules`, etc.) support three reactivity patterns:
+
+```ts
+// A) computed() — declarative, for linkages known at init (preferred)
+disabled: computed(() => !form.formData.enabled),
+rules: computed(() => [{ required: form.formData.hasLimit, message: '必填' }]),
+
+// B) ref() — external shared state
+const isDisabled = ref(false);
+
+// C) setField() — imperative, for event-driven changes
+form.setField('limitCount', { disabled: true });
+```
+
+**Rule: pick the simplest. computed() for init-time, setField() for runtime events, ref() for external state.**
+
+### Level 3: Custom component
+
+```ts
+import { h } from 'vue';
+import CustomInput from './CustomInput.vue';
+
+// In field config:
+{ path: 'key', component: (p, ctx) => h(CustomInput, { ...p, ...ctx.attrs }) }
+```
+
+Or via scoped slot in template (all binding params forwarded via `v-bind="scoped"`):
+
+```html
+<ProForm :form="form">
+  <template #agreement="scoped">
+    <a-checkbox v-bind="scoped">同意协议</a-checkbox>
+  </template>
+</ProForm>
+```
+
+---
+
+## 4. Anti-patterns
+
+- **Never hand-write `<a-form-item>` inside `<ProForm>`.** ProForm renders FormItems from Field config automatically.
+- **Never guess pass-through prop names.** Verify against [ant-design-vue docs](https://antdv.com).
+- **Don't confuse Grid props with input props.** `span` goes to `<a-col>`, not the input.
+- **Use `computed()` for reactive Field configs.** Plain values won't track dependencies.
+- **Prefer the simplest linkage pattern.** Don't use `setField()` when `computed()` suffices.
+
+---
+
+## 5. ProComponentProvider — global defaults
+
+Wrap your app to set defaults for all ProForm/ProTable instances. Merged with priority (highest first):
+
+1. **Field-level config** (always wins)
+2. **`componentVars`** passed to ProComponentProvider
+3. **`INJECT_CONFIG`** built-in presets
+
+### Built-in presets (INJECT_CONFIG)
+
+| Component                                      | Preset                                                                                                                                  |
+| :--------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `switch`                                       | `{ modelProp: 'checked' }`                                                                                                              |
+| `input`                                        | `{ maxlength: 100, allowClear: true, placeholder: '请输入' }`                                                                           |
+| `textarea`                                     | `{ maxlength: 200, autoSize: {minRows:3,maxRows:6}, showCount: true, allowClear: true, placeholder: '请输入' }`                         |
+| `select` / `cascader`                          | `{ allowClear: true, placeholder: '请选择', getPopupContainer }`                                                                        |
+| `input-number`                                 | `{ max: 10^15, min: -(10^15), controls: false, placeholder: '请输入', style: {width:'100%'} }`                                          |
+| `date-picker` / `range-picker` / `time-picker` | `{ allowClear: true, getPopupContainer, style: {width:'100%'} }`                                                                        |
+| `pro-table`                                    | `{ pagination: {showTotal, showSizeChanger, showQuickJumper}, searchFormConfig: {layout:'grid'}, control: true, addIndexColumn: true }` |
+| `pro-form`                                     | `{ grid: { gutter: {xs:8, sm:16, md:16, lg:24} } }`                                                                                     |
+| `pro-form-item`                                | `{ validateFirst: true, span: 8 }`                                                                                                      |
+
+### Override example
 
 ```vue
-<template>
+<ProComponentProvider
+  :component-vars="{
+    'pro-form-item': { span: 6 },
+    input: { maxlength: 200 },
+    select: { showSearch: true },
+    'pro-table': { addIndexColumn: false },
+  }"
+>
+  <ProForm :form="form" />
   <ProTable :table="table" />
-</template>
+</ProComponentProvider>
+```
 
-<script setup lang="ts">
-interface User {
-  name: string;
-  age: number;
-}
+---
 
-const table = useTable({
+## 6. ProTable quick reference
+
+```ts
+import { ProTable, useTable } from '@qin-ui/antd-vue-pro';
+
+const table = useTable<Row>({
   columns: [
-    { dataIndex: 'name', title: '姓名' },
-    { dataIndex: 'age', title: '年龄' },
+    { title: 'ID', dataIndex: 'id', width: 80 },
+    { title: 'Name', dataIndex: 'name', width: 120 },
   ],
-  dataSource: [],
+  // searchFields uses the same Field[] format as ProForm
+  searchFields: [
+    { path: 'name', component: 'input', placeholder: 'Search' },
+    { path: 'status', component: 'select', options: [...] },
+  ],
 });
-</script>
+// table.searchForm is a ProForm instance — all form methods available
 ```
 
-## 字段配置（Field）
-
-每个字段支持以下属性：
-
-- `path` - 数据路径（类型安全）
-- `label` - 字段标签
-- `component` - 组件名（内置支持: input, textarea, input-search, input-password, input-number, select, cascader, date-picker, range-picker, time-picker, checkbox-group, radio-group, switch, slider, tree-select, transfer, custom）
-- `hidden` - 是否隐藏
-- `disabled` - 是否禁用
-- `rules` - 校验规则
-- `valueFormatter` - 值格式化函数
-- `fields` - 嵌套子字段
-- `grid` - 网格布局
-- `slots` - FormItem 插槽配置
-- `componentStyle/componentClass` - 组件样式
-- `componentContainer` - 组件容器包装
-- `formItemStyle/formItemClass` - FormItem 样式
-- `formItemContainer` - FormItem 容器包装
-- `modelProp` - v-model 绑定属性名
-
-完整类型定义见 `Field<ComponentName, D>`。
-
-## 表格列配置（Column）
-
-每列支持以下属性：
-
-- `dataIndex` - 数据路径（优先使用）
-- `key` - 列标识（dataIndex 不满足时使用）
-- `hidden` - 是否隐藏
-- 所有 ant-design-vue ColumnType 属性（title, width, fixed, align 等）
-
-## 类型扩展
-
-```typescript
-declare module '@qin-ui/antd-vue-pro' {
-  interface ComponentMap {
-    'my-custom-component': typeof MyComponent;
-  }
-}
+```html
+<ProTable :table="table" :search="fetchData" addIndexColumn immediateSearch />
 ```
+
+---
+
+## 7. References
+
+1. **`node_modules/@qin-ui/antd-vue-pro/api.json`** — Structured API metadata (signatures, types, JSDoc examples)
+2. **`node_modules/@qin-ui/antd-vue-pro/README.md`** — Full usage docs and code examples
+3. **[antdv.com](https://antdv.com)** — ant-design-vue component API reference (always check before writing pass-through props)

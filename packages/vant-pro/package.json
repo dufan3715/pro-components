@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/vant-pro",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "基于 vant 和 @qin-ui/core 封装的高级表单和列表组件库",
   "bin": {
     "vant-pro": "./bin/init-ai.mjs"

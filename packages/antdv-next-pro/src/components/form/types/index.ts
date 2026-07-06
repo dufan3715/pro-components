@@ -206,14 +206,31 @@ type BaseWithoutFields<D extends Data = Data> = BaseCommon<D> & {
 };
 
 /**
- * @type {Object} Base - 基础公共字段类型
+ * 字段配置的基础公共类型
+ * @description 定义了 ProForm 字段配置的**保留属性**（由 ProForm 自身消费，不会透传给底层组件）：
+ * - path, label, component - 字段标识与渲染
+ * - hidden, disabled, rules - 字段状态与校验
+ * - span, slots, grid, fields - 布局与嵌套
+ * - modelProp, valueFormatter - 双向绑定与值转换
+ * - formItemStyle/Class/Container/DataAttrs - FormItem 容器样式
+ * - componentStyle/Class/Container/DataAttrs - 输入组件样式
+ * - extraProps - 自定义扩展属性
+ *
+ * **重要：所有未在此列出的属性将直接 v-bind 透传到底层 antdv-next 组件。**
+ *
+ * @public
  */
 export type Base<D extends Data = Data> =
   | BaseWithFields<D>
   | BaseWithoutFields<D>;
 
 /**
- * @type {FieldTypeMap} 字段类型集合
+ * 字段类型映射集合
+ * @description 将每个 component 字符串映射到其对应的 antdv-next 组件 Props 类型。
+ * 例如 `component: 'select'` 时，Field 获得 Select 组件的所有 Props（options, mode, showSearch 等）作为类型提示。
+ * `component: 'custom'` 支持通过渲染函数或直接传入 Vue 组件进行完全自定义渲染。
+ *
+ * @public
  */
 export type FieldTypeMap<D extends Data = Data> = {
   [K in ComponentName]: K extends 'custom'
