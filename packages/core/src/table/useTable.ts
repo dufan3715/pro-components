@@ -81,11 +81,11 @@ export type Table<
   T extends Data = ExtendWithAny<D>,
   C extends BaseColumn<T> = BaseColumn<T>,
 > = {
-  /** 列配置数组（响应式） */
+  /** 列配置数组（Vue ref） */
   columns: Ref<Columns<T, C>>;
-  /** 数据源数组（响应式） */
+  /** 数据源数组（Vue ref） */
   dataSource: Ref<T[]>;
-  /** 分页参数（响应式） */
+  /** 分页参数（Vue reactive） */
   pageParam: Reactive<PageParam>;
   /** 搜索表单实例 */
   searchForm: Form<D>;

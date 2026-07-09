@@ -26,18 +26,28 @@ const componentsName = getComponentsName();
 export default defineConfig({
   plugins: [
     vue(),
-    dts({ rollupTypes: true, bundledPackages: ['@qin-ui/core'] }),
+    dts({
+      rollupTypes: false,
+      compilerOptions: { declarationMap: true },
+    }),
   ],
   build: {
     target: 'modules',
     outDir: 'es',
     minify: false,
+    sourcemap: true,
     lib: {
       entry,
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['vue', 'element-plus', /^element-plus\/.*/],
+      external: [
+        'vue',
+        'element-plus',
+        /^element-plus\/.*/,
+        '@element-plus/icons-vue',
+        '@qin-ui/pro-components-core',
+      ],
       input: {
         index: entry,
         ...Object.fromEntries(
@@ -64,9 +74,7 @@ export default defineConfig({
             }
             return 'vendor';
           }
-          if (id.includes('packages/core') || id.includes('@qin-ui/core')) {
-            return 'core/index';
-          }
+
           if (componentsName.length > 0) {
             for (const name of componentsName) {
               if (id.includes(`${componentsDir}/${name}`)) {

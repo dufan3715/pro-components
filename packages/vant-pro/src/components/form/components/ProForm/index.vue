@@ -15,7 +15,7 @@
  
  * @public
  */
-import { Form as UIForm, Popup } from '../../../../shared/ui';
+import { Form as VanForm, Popup } from '../../../../shared/ui';
 import {
   inject,
   mergeProps,
@@ -40,6 +40,7 @@ const props = defineProps<Props>();
 
 const form = props.form || (useForm(true) as F);
 
+// 将表单实例通过依赖注入传递给子组件（BaseFormItem、BaseField 等）
 provide(InjectionFormKey, form as F);
 
 const { fields, setFormRef, formPopup } = form as F;
@@ -58,6 +59,8 @@ type FieldSlotProps = VModelProps &
 type FieldSlots = Record<ExtractPath<F>, Slot<FieldSlotProps>>;
 
 const slots = defineSlots<Partial<FieldSlots & { default: Slot }>>();
+// 将非 default 插槽注册为 teleport 组件源，供 BaseField 动态渲染
+// 例如 <template #username> 会注册为 TeleportComponentNamePrefix + 'username'
 watchEffect(() => {
   Object.keys(slots).forEach(name => {
     if (name === 'default') return;
@@ -66,6 +69,7 @@ watchEffect(() => {
 });
 
 const popupProps = computed(() => {
+  // 从 ProComponentProvider 获取全局配置，与传入的 props 合并
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { container, ...rest } = formPopup.props;
   return rest;
@@ -73,7 +77,7 @@ const popupProps = computed(() => {
 </script>
 
 <template>
-  <UIForm
+  <VanForm
     :ref="(el: any) => setFormRef?.(el)"
     v-bind="mergeProps(injectAttrs, camelizeProperties($attrs))"
     class="pro-form"
@@ -89,5 +93,5 @@ const popupProps = computed(() => {
     </Popup>
 
     <slot />
-  </UIForm>
+  </VanForm>
 </template>

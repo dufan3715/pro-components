@@ -65,7 +65,7 @@
       "@qin-ui/antdv-next-pro": "workspace:*",
       "@qin-ui/element-plus-pro": "workspace:*",
       "@qin-ui/vant-pro": "workspace:*",
-      "@qin-ui/core": "workspace:*"
+      "@qin-ui/pro-components-core": "workspace:*"
     },
     "onlyBuiltDependencies": [
       "core-js",

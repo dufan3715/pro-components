@@ -1,6 +1,6 @@
 {
-  "name": "@qin-ui/core",
-  "private": true,
+  "name": "@qin-ui/pro-components-core",
+  "private": false,
   "version": "1.0.0",
   "description": "Core logic for pro-components",
   "type": "module",
@@ -15,9 +15,14 @@
   },
   "files": [
     "es",
+    "src",
     "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "vue-tsc && vite build"
   },
@@ -26,9 +31,11 @@
   "peerDependencies": {
     "vue": "^3.3"
   },
+  "dependencies": {
+    "lodash-es": "^4.17.21"
+  },
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
-    "lodash-es": "^4.17.21",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
     "vite-plugin-dts": "^3.0.0",

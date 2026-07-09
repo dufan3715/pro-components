@@ -1,4 +1,25 @@
 <script lang="ts" setup>
+/**
+ * @component GroupedFieldAttrs
+ * @description 字段属性分组器，将 field 配置对象拆分为三类属性
+ *
+ * ## 属性分发逻辑
+ *
+ * 单个 field 对象包含多种属性，需要分发到不同的渲染目标：
+ *
+ * 1. **gridItemProps** — 网格布局属性（span、xs、sm、md、lg、xl、xxl 等），传递给 GridItem
+ * 2. **formItemProps** — 表单项属性（label、rules、required 等），传递给 FormItem
+ * 3. **componentProps** — 组件属性（placeholder、allowClear 等），传递给输入组件
+ * 4. **formItemSlots** — FormItem 的具名插槽（label、help、extra 等）
+ *
+ * 分组依据：
+ * - 匹配 antdv-next GridItem 的 props key → gridItemProps
+ * - 匹配 antdv-next FormItem 的 props key → formItemProps
+ * - 其余所有属性 → componentProps
+ * - 属于 FORM_ITEM_SLOT_KEYS 的插槽 → formItemSlots
+ * - 其余插槽 → componentProps.slots
+ */
+
 import { computed, inject, mergeProps, toValue } from 'vue';
 import {
   GridItemProps,
@@ -29,6 +50,7 @@ type GroupedFieldAttrs = {
   componentProps: Record<string, any>;
 };
 
+// 将 field 配置按 key 分发到三类属性分组中
 const groupedAttributes = computed<GroupedFieldAttrs>(() => {
   let gridItemProps: Record<string, any> = {};
   let formItemProps: Record<string, any> = {};

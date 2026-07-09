@@ -1,5 +1,19 @@
 import { ref } from 'vue';
 
+export interface UseFormRefReturn<F = any> {
+  /**
+   * 表单组件实例的响应式引用（Vue ref）
+   * @description 通过此 ref 可访问到底层 UI 框架的 Form 实例
+   */
+  formRef: import('vue').Ref<F | undefined>;
+
+  /**
+   * 设置表单组件实例
+   * @description 内部方法，由组件自动调用
+   */
+  setFormRef: (inst: F) => void;
+}
+
 /**
  * 表单组件实例引用 Hook
  *
@@ -8,9 +22,7 @@ import { ref } from 'vue';
  *
  * @template F - 底层 Form 组件实例类型，默认为 any
  *
- * @returns {object} 表单组件实例引用管理对象
- * @returns {Ref<F | undefined>} .formRef - 表单组件实例的响应式引用
- * @returns {Function} .setFormRef(inst) - 设置表单组件实例
+ * @returns {UseFormRefReturn<F>} 表单组件实例引用管理对象
  *
  * @example
  * ```ts
@@ -19,7 +31,7 @@ import { ref } from 'vue';
  * console.log(formRef.value) // 可通过 formRef 访问底层 Form 实例的方法
  * ```
  */
-const useFormRef = <F = any>() => {
+const useFormRef = <F = any>(): UseFormRefReturn<F> => {
   const formRef = ref<F>();
 
   const setFormRef = (inst: F) => {

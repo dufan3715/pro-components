@@ -1,7 +1,40 @@
 <script lang="ts" setup generic="T extends Table<any> = Table">
+/**
+ * @component ProTable
+ * @description 配置驱动的表格组件
+ *
+ * ## 架构概览
+ *
+ * ProTable 是表格系统的顶层容器，负责：
+ * 1. 接收 useTable() 创建的表格实例，驱动列、数据源、分页的渲染
+ * 2. 内部集成 SearchForm 搜索区域（基于 ProForm）
+ * 3. 支持列动态控制（显示/隐藏）和尺寸控制
+ * 4. 将分页变化和搜索事件串联到数据查询流程
+ *
+ * ## 数据流
+ *
+ * ```
+ * useTable({ columns, dataSource, searchFields, ... })
+ *   ↓ 传入 :table prop
+ * ProTable
+ *   ├── SearchForm (使用 table.searchForm 管理搜索条件)
+ *   │     └── ProForm
+ *   ├── SizeControl (表格尺寸切换)
+ *   ├── ColumnControl (列显示/隐藏)
+ *   └── ATable (ant-design-vue Table)
+ *         └── 转发所有 table 插槽
+ * ```
+ *
+ * ## 搜索流程
+ *
+ * 1. 用户点击搜索 → SearchForm @search → searchPage1st()
+ * 2. searchPage1st 重置分页到第一页，触发 _search()
+ * 3. 分页变化 → onTableChange → setPageParam + _search()
+ * 4. 重置 → reset() → resetQueryParams + _search()
+ */
 import {
   PaginationProps,
-  Table as UITable,
+  Table as ATable,
   TableProps,
   ColumnType,
   tableProps,
@@ -19,7 +52,7 @@ import { ContainerFragment } from '../../form';
 import type { ContainerComponent } from '../../form/types';
 import SearchForm from './SearchForm.vue';
 import { SearchFormProps } from './SearchForm.vue';
-import type { Table } from '../useTable';
+import type { Table } from '../hooks/useTable';
 import { camelizeProperties, getObject, pick } from '../../../shared/core';
 import { ComponentSlots } from 'vue-component-type-helpers';
 import {
@@ -98,6 +131,7 @@ const { columns, dataSource, searchForm, pageParam, setPageParam } =
 const size = defineModel<TableProps['size']>('size');
 const loading = defineModel<boolean>('loading');
 
+// 核心搜索方法：设置 loading 状态，调用外部 search 函数
 const _search = async () => {
   try {
     loading.value = true;
@@ -107,6 +141,7 @@ const _search = async () => {
   }
 };
 
+// 重置：恢复查询参数到初始值，重新搜索
 const reset = () => {
   table?.resetQueryParams();
   nextTick(() => {
@@ -117,7 +152,7 @@ const reset = () => {
 type CustomSlots = Readonly<
   Partial<Record<'search-form' | 'button-bar' | 'toolbar' | 'table', Slot>>
 >;
-type TableSlots = Omit<ComponentSlots<typeof UITable>, 'bodyCell'> &
+type TableSlots = Omit<ComponentSlots<typeof ATable>, 'bodyCell'> &
   Readonly<{
     bodyCell?: (props: {
       text: any;
@@ -166,15 +201,15 @@ const indexColumn: ColumnType = {
   title: '序号',
   dataIndex: '_index',
   width: 80,
-  render: (_, __, index) => index + 1,
+  customRender: ({ index }) => index + 1,
 };
 
 const computedColumns = computed(
   () =>
     [
       ...((addIndexColumn ?? injectProps.addIndexColumn) ? [indexColumn] : []),
-      ...(tableAttrs.value.columns ?? columns?.value ?? []).flatMap(
-        (item: any, index) => {
+      ...(tableAttrs.value.columns ?? columns?.value ?? ([] as any)).flatMap(
+        (item: ColumnType<RecordType>, index: number) => {
           if (item.key) return [{ ...item, key: item.key }];
           if (item.dataIndex) {
             const dataIndexKey = Array.isArray(item.dataIndex)
@@ -205,7 +240,7 @@ const computedPagination = computed<PaginationProps | false>(() => {
   };
 });
 
-const onTableChange: any = (...args: any[]) => {
+const onTableChange: TableProps['onChange'] = (...args) => {
   setPageParam?.(args[0]);
   attrs.onChange?.(...args);
   _search();
@@ -236,11 +271,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="pro-table"
-    :class="($attrs as any).class"
-    :style="($attrs as any).style"
-  >
+  <div class="pro-table" :class="$attrs.class" :style="$attrs.style">
     <ContainerFragment
       v-if="showSearch"
       :component="computedSearchFormConfig.container"
@@ -274,12 +305,12 @@ onMounted(() => {
           v-if="computedControl.columnControl"
           class="pro-table_header_column-control"
         >
-          <ColumnControl :columns="computedColumns" :table="table" />
+          <ColumnControl :columns="computedColumns as any" :table="table" />
         </div>
       </div>
 
       <slot name="table">
-        <UITable
+        <ATable
           class="pro-table_content"
           v-bind="computedTableProps"
           :size="size"
@@ -296,7 +327,7 @@ onMounted(() => {
           >
             <slot :name="name" v-bind="scoped" />
           </template>
-        </UITable>
+        </ATable>
       </slot>
     </ContainerFragment>
   </div>

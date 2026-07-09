@@ -57,15 +57,22 @@ type Props = {
 
 const props = defineProps<Props>();
 
-if (props.componentMap) {
-  provide(INJECT_COMPONENTS, props.componentMap);
-}
-
+/*
+ * 遍历 componentVars 的每个 key，获取或创建对应的 inject 配置
+ * 将用户提供的值合并到默认值上，通过 provide 注入到子组件树
+ * 子组件通过 inject(config.injectionKey) 获取合并后的配置
+ */
 if (props.componentVars) {
   Object.entries(props.componentVars).forEach(([key, val]) => {
     const config = ensureInjectConfig(key);
+    // 用户配置覆盖默认值
     provide(config.injectionKey, { ...config.default, ...getObject(val) });
   });
+}
+
+// 注入自定义组件映射，BaseField 在解析组件时会优先使用此映射
+if (props.componentMap) {
+  provide(INJECT_COMPONENTS, props.componentMap);
 }
 </script>
 

@@ -1,23 +1,33 @@
-import { useFormRef as _useFormRef } from '../../../shared/core';
+import {
+  useFormRef as coreUseFormRef,
+  type UseFormRefReturn,
+} from '../../../shared/core';
 import type { FormInstance } from '../../../shared/ui';
 
 /**
- * @qin-ui/vant-pro 的表单组件实例引用 Hook
+ * 表单组件实例引用 Hook
  *
- * @description 类型安全的 re-export。将 core useFormRef 的泛型参数绑定为 Vant 的 FormInstance。
+ * @description 基于 `@qin-ui/pro-components-core` 的 `useFormRef`，将泛型参数绑定为 Vant 的 `FormInstance`，
+ * 使 formRef 获取到完整的 Vant Form 组件 API 类型提示（如 `validate()`、`resetValidation()` 等）。
  *
- * @returns {object} 表单组件实例引用管理对象
- * @returns {Ref<FormInstance | undefined>} .formRef - Vant Form 实例的响应式引用
- * @returns {Function} .setFormRef(inst) - 设置表单组件实例
+ * `formRef` 由 ProForm 组件内部自动通过 `setFormRef` 绑定，无需手动调用。
+ *
+ * @returns 表单组件实例引用管理对象：
+ * - `formRef` — Vant Form 组件实例的响应式引用（`Ref<FormInstance | undefined>`）
+ * - `setFormRef(inst)` — 设置 Form 组件实例，由 ProForm 内部自动调用
  *
  * @example
  * ```ts
  * const { formRef, setFormRef } = useFormRef()
- * formRef.value?.submit()
+ *
+ * // formRef 由 ProForm 自动绑定，可直接使用
+ * await formRef.value?.validate()
+ * formRef.value?.resetValidation()
+ * formRef.value?.scrollToField('username')
  * ```
- 
+ *
  * @public
  */
-export const useFormRef = _useFormRef as {
-  (): ReturnType<typeof _useFormRef<FormInstance>>;
-};
+export function useFormRef(): UseFormRefReturn<FormInstance> {
+  return coreUseFormRef();
+}

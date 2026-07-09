@@ -1,14 +1,10 @@
 <script lang="ts" setup generic="F extends Form<any> = Form">
 /**
  * @component ProForm
- * @description @qin-ui/antdv-next-pro 配置驱动表单组件
+ * @description @qin-ui/element-plus-pro 配置驱动表单组件
  *
  * 通过配置驱动的方式快速构建表单，支持：
- * - 字段联动（通过 setField、watch 等实现）
- * - 嵌套字段（通过 fields 递归配置）
- * - 自定义组件（通过 component 属性和 custom 类型）
- * - 网格布局（通过 grid 属性）
- * - 动态插槽（以字段 path 命名的插槽）
+ * - 字段联动、嵌套字段、自定义组件、网格布局
  *
  * @template F - 表单实例类型
  * @param {Form<D>} [form] - useForm 返回的表单实例
@@ -20,8 +16,8 @@
  * @public
  */
 import {
-  Form as UIForm,
-  FormProps as UIFormProps,
+  Form as ElForm,
+  FormProps as ElFormProps,
 } from '../../../../shared/ui';
 import {
   inject,
@@ -30,6 +26,7 @@ import {
   type Slot,
   watchEffect,
   computed,
+  useAttrs,
 } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
 import { BaseFormItem } from '..';
@@ -40,18 +37,21 @@ import type { Form } from '../../hooks/useForm';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
 
-type FormProps = Partial<Omit<UIFormProps, 'model'>>;
+type FormProps = Partial<Omit<ElFormProps, 'model'>>;
 
 type Props = { grid?: Grid; form?: F } & /* @vue-ignore */ FormProps;
 const { grid = false, form = {} as F } = defineProps<Props>();
 
+// 将表单实例通过依赖注入传递给子组件（BaseFormItem、BaseField 等）
 provide(InjectionFormKey, form as F);
 
 const { formData, fields, setFormRef } = form as F;
 const _fields = computed(() => fields.value);
 
 const config = INJECT_CONFIG['pro-form'];
+const attrs = useAttrs();
 
+// 从 ProComponentProvider 获取全局配置，与传入的 props 合并
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { grid: _injectGrid, ...injectAttrs } = inject(
   config.injectionKey,
@@ -64,6 +64,9 @@ type FieldSlotProps = VModelProps &
 type FieldSlots = Record<ExtractPath<F>, Slot<FieldSlotProps>>;
 
 const slots = defineSlots<Partial<FieldSlots & { default: Slot }>>();
+
+// 将非 default 插槽注册为 teleport 组件源，供 BaseField 动态渲染
+// 例如 <template #username> 会注册为 TeleportComponentNamePrefix + 'username'
 watchEffect(() => {
   Object.keys(slots).forEach(name => {
     if (name === 'default') return;
@@ -73,13 +76,14 @@ watchEffect(() => {
 </script>
 
 <template>
-  <UIForm
+  <ElForm
     :ref="(el: any) => setFormRef?.(el)"
     :model="formData"
-    v-bind="mergeProps(injectAttrs, camelizeProperties($attrs))"
+    v-bind="mergeProps(injectAttrs, camelizeProperties(attrs))"
     class="pro-form"
+    @submit.prevent
   >
     <BaseFormItem :fields="_fields" :grid="grid" />
     <slot />
-  </UIForm>
+  </ElForm>
 </template>

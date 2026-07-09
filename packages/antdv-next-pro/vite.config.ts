@@ -27,21 +27,24 @@ const componentsName = getComponentsName();
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    dts({ rollupTypes: true, bundledPackages: ['@qin-ui/core'] }),
-  ],
+  plugins: [vue(), dts({ compilerOptions: { declarationMap: true } })],
   build: {
     target: 'modules',
     outDir: 'es',
     minify: false,
+    sourcemap: true,
     lib: {
       entry,
       formats: ['es'],
     },
     rollupOptions: {
       // Externalize dependencies
-      external: ['vue', 'antdv-next', /^antdv-next\/.*/],
+      external: [
+        'vue',
+        'antdv-next',
+        /^antdv-next\/.*/,
+        '@qin-ui/pro-components-core',
+      ],
       input: {
         index: entry,
         ...Object.fromEntries(
@@ -68,9 +71,6 @@ export default defineConfig({
               return 'vendor/utils/lodash-es';
             }
             return 'vendor';
-          }
-          if (id.includes('packages/core') || id.includes('@qin-ui/core')) {
-            return 'core/index';
           }
           if (componentsName.length > 0) {
             for (const name of componentsName) {

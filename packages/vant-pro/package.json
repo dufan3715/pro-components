@@ -1,7 +1,7 @@
 {
   "name": "@qin-ui/vant-pro",
-  "version": "1.0.5",
-  "description": "基于 vant 和 @qin-ui/core 封装的高级表单和列表组件库",
+  "version": "1.0.7",
+  "description": "基于 vant 和 @qin-ui/pro-components-core 封装的高级表单和列表组件库",
   "bin": {
     "vant-pro": "./bin/init-ai.mjs"
   },
@@ -17,6 +17,7 @@
   },
   "files": [
     "es",
+    "src",
     "bin",
     "README.md",
     "LICENSE",
@@ -43,12 +44,10 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
+    "@qin-ui/pro-components-core": "workspace:^",
     "vue-component-type-helpers": "^3.2.5"
   },
   "devDependencies": {
-    "@qin-ui/core": "workspace:^",
-    "@types/lodash-es": "^4.17.12",
-    "lodash-es": "^4.17.21",
     "vant": "^4.9.15"
   },
   "sideEffects": false,

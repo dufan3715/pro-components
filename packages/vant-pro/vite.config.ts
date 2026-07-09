@@ -27,18 +27,22 @@ const componentsName = getComponents();
 export default defineConfig({
   plugins: [
     vue(),
-    dts({ rollupTypes: true, bundledPackages: ['@qin-ui/core'] }),
+    dts({
+      rollupTypes: false,
+      compilerOptions: { declarationMap: true },
+    }),
   ],
   build: {
     target: 'modules',
     outDir: 'es',
     minify: false,
+    sourcemap: true,
     lib: {
       entry,
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['vue', 'vant', /^vant\/.*/],
+      external: ['vue', 'vant', /^vant\/.*/, '@qin-ui/pro-components-core'],
       input: {
         index: entry,
         ...Object.fromEntries(
@@ -65,9 +69,7 @@ export default defineConfig({
             }
             return 'vendor';
           }
-          if (id.includes('packages/core') || id.includes('@qin-ui/core')) {
-            return 'core/index';
-          }
+
           for (const name of componentsName) {
             if (id.includes(`${componentsDir}/${name}`)) {
               return `${name}/index`;

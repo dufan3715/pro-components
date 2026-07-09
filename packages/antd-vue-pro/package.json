@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.1.15",
+  "version": "2.1.16",
   "description": "二次封装antd vue组件",
   "bin": {
     "antd-vue-pro": "./bin/init-ai.mjs"
@@ -17,6 +17,7 @@
   },
   "files": [
     "es",
+    "src",
     "bin",
     "README.md",
     "LICENSE",
@@ -43,14 +44,12 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
+    "@qin-ui/pro-components-core": "workspace:^",
+    "scroll-into-view-if-needed": "^3.1.0",
     "vue-component-type-helpers": "^3.2.5"
   },
   "devDependencies": {
-    "@qin-ui/core": "workspace:^",
-    "@types/lodash-es": "^4.17.12",
-    "ant-design-vue": "^4",
-    "lodash-es": "^4.17.21",
-    "scroll-into-view-if-needed": "^3.1.0"
+    "ant-design-vue": "^4"
   },
   "sideEffects": false,
   "publishConfig": {

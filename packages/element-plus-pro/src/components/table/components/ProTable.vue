@@ -1,8 +1,41 @@
 <script lang="ts" setup generic="T extends Table<any> = Table">
+/**
+ * @component ProTable
+ * @description 配置驱动的表格组件
+ *
+ * ## 架构概览
+ *
+ * ProTable 是表格系统的顶层容器，负责：
+ * 1. 接收 useTable() 创建的表格实例，驱动列、数据源、分页的渲染
+ * 2. 内部集成 SearchForm 搜索区域（基于 ProForm）
+ * 3. 支持列动态控制（显示/隐藏）和尺寸控制
+ * 4. 将分页变化和搜索事件串联到数据查询流程
+ *
+ * ## 数据流
+ *
+ * ```
+ * useTable({ columns, dataSource, searchFields, ... })
+ *   ↓ 传入 :table prop
+ * ProTable
+ *   ├── SearchForm (使用 table.searchForm 管理搜索条件)
+ *   │     └── ProForm
+ *   ├── SizeControl (表格尺寸切换)
+ *   ├── ColumnControl (列显示/隐藏)
+ *   └── ElTable (element-plus Table)
+ *         └── 转发所有 table 插槽
+ * ```
+ *
+ * ## 搜索流程
+ *
+ * 1. 用户点击搜索 → SearchForm @search → searchPage1st()
+ * 2. searchPage1st 重置分页到第一页，触发 _search()
+ * 3. 分页变化 → onTableChange → setPageParam + _search()
+ * 4. 重置 → reset() → resetQueryParams + _search()
+ */
 import {
-  Pagination as UIPagination,
+  Pagination as ElPagination,
   type PaginationProps,
-  Table as UITable,
+  Table as ElTable,
   type TableProps,
   tableProps,
   paginationProps,
@@ -37,7 +70,9 @@ defineOptions({ name: 'ProTable', inheritAttrs: false });
 type Control = { sizeControl: boolean; columnControl: boolean };
 
 type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
+  // 是否隐藏搜索表单
   hidden?: boolean;
+  // 搜索区域包裹容器
   container?: ContainerComponent | false;
 };
 
@@ -45,12 +80,19 @@ type ReturnTableRecord<V> = V extends Table<any, infer R> ? R : any;
 type RecordType = ReturnTableRecord<T>;
 
 type Props = {
+  // 列表表格对象，returns from useTable
   table?: T;
+  // 列表数据查询方法
   search?: () => Promise<unknown>;
+  // 是否在首列插入index列
   addIndexColumn?: boolean;
+  // onMounted 时立即触发一次 search 事件
   immediateSearch?: boolean;
+  // 是否展示表格 size 和 column 控制按钮
   control?: boolean | Partial<Control>;
+  // 搜索栏查询字段表单配置
   searchFormConfig?: SearchFormConfig;
+  // 表格区域包裹容器
   tableContainer?: ContainerComponent | false;
   columns?: Columns<RecordType>;
   data?: RecordType[];
@@ -100,6 +142,7 @@ const {
 const size = defineModel<TableProps['size']>('size');
 const loading = defineModel<boolean>('loading');
 
+// 核心搜索方法：设置 loading 状态，调用外部 search 函数
 const _search = async () => {
   try {
     loading.value = true;
@@ -109,6 +152,7 @@ const _search = async () => {
   }
 };
 
+// 重置：恢复查询参数到初始值，重新搜索
 const reset = () => {
   table?.resetQueryParams();
   nextTick(() => {
@@ -318,7 +362,7 @@ onMounted(() => {
       </div>
 
       <slot name="table">
-        <UITable
+        <ElTable
           v-loading="loading"
           class="pro-table_content"
           v-bind="computedTableProps"
@@ -329,10 +373,10 @@ onMounted(() => {
           <template v-for="name in tableSlotNames" :key="name" #[name]="scoped">
             <slot :name="name" v-bind="scoped" />
           </template>
-        </UITable>
+        </ElTable>
       </slot>
 
-      <UIPagination
+      <ElPagination
         v-if="showPagination"
         class="pro-table_pagination"
         v-bind="computedPagination"

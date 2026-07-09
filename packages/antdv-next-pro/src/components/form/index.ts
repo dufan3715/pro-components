@@ -1,4 +1,4 @@
-import BaseForm from './components/BaseForm/index.vue';
+import ProForm from './components/ProForm/index.vue';
 
 // 1. 仅导出核心 Vue 组件包装及外部可重用组件与类型
 export {
@@ -26,4 +26,4 @@ export {
   type UseFields,
 } from './hooks';
 
-export default BaseForm;
+export default ProForm;

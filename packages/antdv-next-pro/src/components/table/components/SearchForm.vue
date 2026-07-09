@@ -37,6 +37,25 @@ export type SearchFormProps = {
 </script>
 
 <script lang="ts" setup>
+/**
+ * @component SearchForm
+ * @description ProTable 的搜索表单子组件
+ *
+ * ## 核心功能
+ *
+ * 1. 内部渲染 ProForm，使用 table.searchForm 管理搜索条件
+ * 2. 支持 grid（网格）和 inline（行内）两种布局
+ * 3. 网格布局下支持展开/折叠：通过 IntersectionObserver 自动检测哪些字段溢出
+ * 4. 提供搜索、重置、展开/折叠按钮（支持自定义）
+ *
+ * ## 展开/折叠机制
+ *
+ * 1. 首次渲染后，测量 ProForm 的实际高度
+ * 2. 根据 minExpandRows 计算折叠高度（默认 2 行）
+ * 3. 如果实际高度 > 折叠高度，显示展开/折叠按钮
+ * 4. 使用 IntersectionObserver 检测隐藏字段是否有值，有值则自动展开
+ */
+
 import { Space, Button, FormProps } from '../../../shared/ui';
 import {
   AllowedComponentProps,
@@ -93,6 +112,10 @@ const changeExpandStatus = () => {
 
 const { formRef, getFormData } = form;
 
+/*
+ * 使用 IntersectionObserver 检测折叠状态下隐藏字段是否有值
+ * 如果有值则自动展开，让用户看到已填写的搜索条件
+ */
 const setInitExpandStatus = () => {
   expandStatus.value = false;
   if (formRef.value && expand) {
@@ -102,6 +125,7 @@ const setInitExpandStatus = () => {
     );
     const observer = new IntersectionObserver(
       entries => {
+        // 如果隐藏字段（intersectionRatio === 0）有值，则自动展开
         expandStatus.value = entries.some(e => {
           if (e.intersectionRatio === 0) {
             const path = e.target.getAttribute('path');
@@ -138,6 +162,11 @@ watch(
   { flush: 'post', immediate: true }
 );
 
+/*
+ * 计算折叠高度和是否显示展开按钮
+ * 折叠高度 = minExpandRows * 行高 + (minExpandRows - 1) * 行间距
+ * 如果实际高度与折叠高度差异 > 1px，说明有字段溢出，显示展开按钮
+ */
 watchEffect(
   () => {
     if (typeof proFormHeight.value !== 'number') return;

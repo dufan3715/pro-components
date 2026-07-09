@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/element-plus-pro",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "基于 element-plus 的二次封装组件",
   "bin": {
     "element-plus-pro": "./bin/init-ai.mjs"
@@ -17,6 +17,7 @@
   },
   "files": [
     "es",
+    "src",
     "bin",
     "README.md",
     "LICENSE",
@@ -40,13 +41,11 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
+    "@qin-ui/pro-components-core": "workspace:^",
     "vue-component-type-helpers": "^3.2.5"
   },
   "devDependencies": {
-    "@qin-ui/core": "workspace:^",
-    "@types/lodash-es": "^4.17.12",
-    "element-plus": "^2.13.6",
-    "lodash-es": "^4.17.21"
+    "element-plus": "^2.13.6"
   },
   "publishConfig": {
     "access": "public",

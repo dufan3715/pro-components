@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 /**
- * @component ProFormItem
- * @description @qin-ui/antd-vue-pro 表单字段渲染组件（内部递归组件）
+ * @component BaseFormItem
+ * @description 表单字段渲染引擎
  *
  * 负责将字段配置数组渲染为实际的表单项，支持：
  * - 字段分组（嵌套 fields 递归渲染）
@@ -10,20 +10,27 @@
  * - 组件绑定（通过 BaseField 渲染具体组件）
  * - 插槽透传（label、extra、help 等 FormItem 插槽）
  *
+ * ## 渲染流程
+ *
+ * 1. 遍历 fields 数组，过滤 hidden 字段
+ * 2. 对每个字段：
+ *    a. 通过 PathProvider 提供当前字段路径
+ *    b. 通过 GroupedFieldAttrs 将 field 配置拆分为 gridItemProps / formItemProps / componentProps
+ *    c. 如果字段有 `fields` 子字段 → 递归渲染 BaseFormItem（嵌套表单）
+ *    d. 否则 → 渲染 BaseField（输入组件）
+ * 3. 通过 ref 回调收集 FormItem 和 Component 实例，注入到 field 对象上
+ *
  * @param {Fields<D>} [fields] - 字段配置数组
  * @param {boolean | GridProps} [grid] - 是否启用网格布局
  * @param {boolean} [disabled] - 是否禁用所有子字段
  *
- * @example
- * ```vue
- * <BaseFormItem :fields="fields" :grid="true" />
- * ```
+ * @internal
  */
 import { getObject, toPath } from '../../../../shared/core';
 import {
   FormItem,
-  Grid as UIGrid,
-  GridItem as UIGridItem,
+  Grid as AGrid,
+  GridItem as AGridItem,
   GridProps,
   useProviderDisabled,
 } from '../../../../shared/ui';
@@ -89,7 +96,7 @@ const onComponentMounted = (index: number) => {
 
 <template>
   <ContainerFragment
-    :component="enableGrid ? UIGrid : undefined"
+    :component="enableGrid ? AGrid : undefined"
     v-bind="computedGridProps"
   >
     <PathProvider
@@ -108,7 +115,7 @@ const onComponentMounted = (index: number) => {
             }"
           >
             <ContainerFragment
-              :component="enableGrid ? UIGridItem : undefined"
+              :component="enableGrid ? AGridItem : undefined"
               v-bind="gridItemProps"
             >
               <ContainerFragment :component="formItemContainer" :path="path">

@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antdv-next-pro",
-  "version": "1.1.15",
+  "version": "1.1.16",
   "description": "基于 antdv-next 的二次封装组件",
   "bin": {
     "antdv-next-pro": "./bin/init-ai.mjs"
@@ -17,6 +17,7 @@
   },
   "files": [
     "es",
+    "src",
     "bin",
     "README.md",
     "LICENSE",
@@ -40,13 +41,11 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
+    "@qin-ui/pro-components-core": "workspace:^",
     "vue-component-type-helpers": "^3.2.5"
   },
   "devDependencies": {
-    "@qin-ui/core": "workspace:^",
-    "@types/lodash-es": "^4.17.12",
-    "antdv-next": "^1.1.0",
-    "lodash-es": "^4.17.21"
+    "antdv-next": "^1.1.0"
   },
   "publishConfig": {
     "access": "public",
