@@ -99,6 +99,8 @@ export type Form<
  * formPopup.open('address') // 打开弹出层表单
  * ```
  *
+ * @see {@link coreUseForm} 底层核心实现（来自 @qin-ui/pro-components-core）
+ *
  * @public
  */
 export function useForm<D extends Data = Data>(

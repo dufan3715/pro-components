@@ -1,16 +1,26 @@
 <script lang="ts" setup>
 /**
  * @component BaseField
- * @description @qin-ui/antd-vue-pro 字段组件渲染器（内部组件）
+ * @description 字段级渲染组件，负责将 field 配置渲染为实际的输入组件
  *
- * 负责将字段配置中的 component 属性渲染为实际的 UI 组件，支持：
- * - 字符串组件名映射（如 'input' → Ant Design Vue 的 Input 组件）
- * - 直接传入组件对象（自定义组件）
- * - Teleport 组件替换（通过插槽以 path 命名提供组件）
- * - 值双向绑定（v-model 绑定到表单数据）
- * - 值格式化（valueFormatter 处理输入/输出值）
- * - 组件容器包装（componentContainer 包裹组件）
- * - 禁用状态继承（从父级 FormItem 继承）
+ * ## 核心职责
+ *
+ * 1. **组件解析**：按优先级解析要渲染的组件（teleport 插槽 > 自定义组件 > 内置组件映射 > 原始值）
+ * 2. **v-model 双向绑定**：通过 computed getter/setter 将组件值与 formData 的深层路径绑定
+ * 3. **valueFormatter 处理**：支持 get/set 格式化函数，用于数据转换（如日期格式化）
+ * 4. **属性合并**：将注入的默认 props、组件传入的 attrs 合并为最终属性
+ *
+ * ## 组件解析优先级
+ *
+ * ```
+ * teleport 组件（ProForm 插槽注入）
+ *   ↓ 未匹配
+ * 自定义组件（ProComponentProvider 的 componentMap）
+ *   ↓ 未匹配
+ * 内置组件映射（componentMap: input → Input, select → Select ...）
+ *   ↓ 未匹配
+ * 原始 component 值（可能是字符串或 Vue 组件对象）
+ * ```
  *
  * @param {string | Component} [component] - 组件名或组件对象
  * @param {string} [path] - 字段路径，用于绑定表单数据

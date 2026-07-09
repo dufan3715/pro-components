@@ -26,6 +26,8 @@ import type { FormInstance } from '../../../shared/ui';
  * formRef.value?.scrollToField('username')
  * ```
  *
+ * @see {@link coreUseFormRef} 底层核心实现（来自 @qin-ui/pro-components-core）
+ *
  * @public
  */
 export function useFormRef(): UseFormRefReturn<FormInstance> {

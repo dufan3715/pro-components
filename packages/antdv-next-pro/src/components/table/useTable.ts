@@ -111,6 +111,8 @@ export type Table<
  * }
  * ```
  *
+ * @see {@link coreUseTable} 底层核心实现（来自 @qin-ui/pro-components-core）
+ *
  * @public
  */
 export function useTable<

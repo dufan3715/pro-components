@@ -50,6 +50,8 @@ import type { ComponentName } from '../constants';
  * setField('name', { label: '用户名', disabled: true })
  * ```
  *
+ * @see {@link coreUseFields} 底层核心实现（来自 @qin-ui/pro-components-core）
+ *
  * @public
  */
 export function useFields<D extends Data = Data>(

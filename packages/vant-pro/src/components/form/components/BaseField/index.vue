@@ -1,4 +1,32 @@
 <script lang="ts" setup>
+/**
+ * @component BaseField
+ * @description 字段级渲染组件，负责将 field 配置渲染为实际的输入组件
+ *
+ * ## 核心职责
+ *
+ * 1. **组件解析**：按优先级解析要渲染的组件（teleport 插槽 > 自定义组件 > 内置组件映射 > 原始值）
+ * 2. **v-model 双向绑定**：通过 computed getter/setter 将组件值与 formData 的深层路径绑定
+ * 3. **valueFormatter 处理**：支持 get/set 格式化函数，用于数据转换（如日期格式化）
+ * 4. **属性合并**：将注入的默认 props、组件传入的 attrs 合并为最终属性
+ *
+ * ## 组件解析优先级
+ *
+ * ```
+ * teleport 组件（ProForm 插槽注入）
+ *   ↓ 未匹配
+ * 自定义组件（ProComponentProvider 的 componentMap）
+ *   ↓ 未匹配
+ * 内置组件映射（componentMap: input → Input, select → Select ...）
+ *   ↓ 未匹配
+ * 原始 component 值（可能是字符串或 Vue 组件对象）
+ * ```
+ *
+ * @param {string | Component} [component] - 组件名或组件对象
+ * @param {string} [path] - 字段路径，用于绑定表单数据
+ *
+ * @slot default - 默认插槽（透传给组件）
+ */
 import {
   type Component,
   computed,
