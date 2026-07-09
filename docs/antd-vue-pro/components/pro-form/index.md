@@ -18,7 +18,7 @@ antd-vue-pro 导出了一个名为 `useForm` 的自定义 Hook，用于处理表
 
 ProForm 的渲染链路可以理解为三层组件协作：
 
-- `ProForm(BaseForm)` 负责承接 `useForm` 的 `formData` 和 `fields`
+- `ProForm` 负责承接 `useForm` 的 `formData` 和 `fields`
 - `BaseFormItem` 负责将 `fields` 拆分为 FormItem / GridItem / 组件 props，并递归渲染
 - `BaseField` 负责把字段配置映射为具体 UI 组件并处理 v-model
 

@@ -1,6 +1,6 @@
 # ProForm 配置式表单
 
-基于 `@qin-ui/core` 的 `useForm` Hook 与 Vant 组件封装的高级表单。它通过 Schema 驱动数据流，使用 `path` 和 `component` 配置每个表单项。
+基于 `@qin-ui/pro-components-core` 的 `useForm` Hook 与 Vant 组件封装的高级表单。它通过 Schema 驱动数据流，使用 `path` 和 `component` 配置每个表单项。
 
 ## 基础用法
 

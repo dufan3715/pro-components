@@ -6,7 +6,6 @@ const antdVueProSidebar = [
     items: [
       { text: '介绍', link: '/antd-vue-pro/guide/introduction' },
       { text: '快速开始', link: '/antd-vue-pro/guide/getting-started' },
-      { text: 'AI 编码助手指南', link: '/ai-integration-guide' },
     ],
   },
   {
@@ -90,7 +89,6 @@ const antdvNextProSidebar = [
     items: [
       { text: '介绍', link: '/antdv-next-pro/guide/introduction' },
       { text: '快速开始', link: '/antdv-next-pro/guide/getting-started' },
-      { text: 'AI 编码助手指南', link: '/ai-integration-guide' },
     ],
   },
   {
@@ -168,7 +166,6 @@ const elementPlusProSidebar = [
     items: [
       { text: '介绍', link: '/element-plus-pro/guide/introduction' },
       { text: '快速开始', link: '/element-plus-pro/guide/getting-started' },
-      { text: 'AI 编码助手指南', link: '/ai-integration-guide' },
     ],
   },
   {
@@ -262,7 +259,6 @@ const vantProSidebar = [
     items: [
       { text: '介绍', link: '/vant-pro/guide/introduction' },
       { text: '快速开始', link: '/vant-pro/guide/getting-started' },
-      { text: 'AI 编码助手指南', link: '/ai-integration-guide' },
     ],
   },
   {
