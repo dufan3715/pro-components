@@ -15,7 +15,7 @@
  * <ProComponentProvider
  *   :componentVars="{ 'input': { placeholder: '请输入' } }"
  * >
- *   <ProForm :form="form" :fields="fields" />
+ *   <ProForm :form="form" />
  * </ProComponentProvider>
  * ```
  

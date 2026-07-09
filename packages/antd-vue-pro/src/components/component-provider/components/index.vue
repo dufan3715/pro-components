@@ -22,7 +22,7 @@
  *       'select': { placeholder: '请选择' },
  *     }"
  *   >
- *     <ProForm :form="form" :fields="fields" />
+ *     <ProForm :form="form" />
  *   </ProComponentProvider>
  * </template>
  * ```

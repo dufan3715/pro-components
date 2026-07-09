@@ -16,7 +16,7 @@
  * - 字段联动、嵌套字段、自定义组件、网格布局
  *
  * @template F - 表单实例类型
- * @param {Form<D>} [form] - useForm 返回的表单实例
+ * @param {F} [form] - useForm 返回的表单实例
  * @param {boolean | GridProps} [grid=false] - 是否启用网格布局
  *
  * @slot default - 默认插槽

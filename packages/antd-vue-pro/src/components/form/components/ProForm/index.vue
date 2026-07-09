@@ -22,9 +22,9 @@
  * - 动态插槽（以字段 path 命名的插槽）
  * - 全局配置注入（通过 ProComponentProvider）
  *
- * @template F - 表单实例类型，继承自 Form<D>
+ * @template F - 表单实例类型
  *
- * @param {Form<D>} [form] - useForm 返回的表单实例
+ * @param {F} [form] - useForm 返回的表单实例
  * @param {boolean | GridProps} [grid=false] - 是否启用网格布局
  * @param {...FormProps} ...attrs - Ant Design Vue Form 组件的其他属性
  *
@@ -34,7 +34,7 @@
  * @example
  * ```vue
  * <template>
- *   <ProForm :form="form" :fields="fields" @submit="handleSubmit">
+ *   <ProForm :form="form" @submit="handleSubmit">
  *     <template #name="{ value, disabled }">
  *       <a-input :value="value" :disabled="disabled" />
  *     </template>

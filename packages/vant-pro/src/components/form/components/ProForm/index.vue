@@ -17,7 +17,7 @@
  * - 弹出层表单（Popup，适用于移动端选择器场景）
  *
  * @template F - 表单实例类型
- * @param {Form<D>} [form] - useForm 返回的表单实例
+ * @param {F} [form] - useForm 返回的表单实例
  *
  * @slot default - 默认插槽
  * @slot [path] - 以字段 path 命名的动态插槽
