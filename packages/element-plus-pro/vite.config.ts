@@ -2,26 +2,8 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
 import dts from 'vite-plugin-dts';
-import fs from 'fs';
 
 const entry = path.resolve(__dirname, 'src/index.ts');
-const componentsDir = 'src/components';
-
-const getComponentsName = () => {
-  try {
-    const fullPath = path.resolve(__dirname, componentsDir);
-    if (!fs.existsSync(fullPath)) return [];
-    return fs
-      .readdirSync(fullPath)
-      .filter(name =>
-        fs.lstatSync(path.resolve(`${componentsDir}/${name}`)).isDirectory()
-      );
-  } catch {
-    return [];
-  }
-};
-
-const componentsName = getComponentsName();
 
 export default defineConfig({
   plugins: [
@@ -48,15 +30,6 @@ export default defineConfig({
         '@element-plus/icons-vue',
         '@qin-ui/pro-components-core',
       ],
-      input: {
-        index: entry,
-        ...Object.fromEntries(
-          componentsName.map(name => [
-            `${name}/index`,
-            `${componentsDir}/${name}/index.ts`,
-          ])
-        ),
-      },
       output: {
         format: 'es',
         dir: 'es',
@@ -66,23 +39,6 @@ export default defineConfig({
             return 'import "./element-plus-pro.css";';
           }
           return '';
-        },
-        manualChunks: id => {
-          if (id.includes('node_modules')) {
-            if (id.includes('lodash-es')) {
-              return 'vendor/utils/lodash-es';
-            }
-            return 'vendor';
-          }
-
-          if (componentsName.length > 0) {
-            for (const name of componentsName) {
-              if (id.includes(`${componentsDir}/${name}`)) {
-                return `${name}/index`;
-              }
-            }
-          }
-          return null;
         },
         globals: {
           vue: 'Vue',
