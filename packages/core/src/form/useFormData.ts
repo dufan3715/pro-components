@@ -4,6 +4,85 @@ import { get, isPlainObject, set } from '../shared/utils';
 
 const InjectionFormDataKey = Symbol('form-data');
 
+export interface UseFormDataReturn<D extends Data = Data> {
+  /**
+   * 响应式表单数据（Vue reactive）
+   * @description 包含整个表单的状态，基于 Vue reactive 实现
+   */
+  formData: ExtendWithAny<D>;
+
+  /**
+   * 获取指定路径的表单数据
+   *
+   * @template K - 数据对象的顶级 key
+   * @param {K} path - 数据路径
+   * @returns {D[K]} 对应路径的值
+   *
+   * @example
+   * ```ts
+   * getFormData('name') // 顶级字段
+   * getFormData('address.city') // 嵌套字段
+   * ```
+   */
+  getFormData<K extends keyof D>(path: K): D[K];
+  getFormData<K extends keyof D & string, K1 extends keyof D[K] & string>(
+    path: `${K}.${K1}`
+  ): D[K][K1];
+  getFormData<
+    K extends keyof D & string,
+    K1 extends keyof D[K] & string,
+    K2 extends keyof D[K][K1] & string,
+  >(
+    path: `${K}.${K1}.${K2}`
+  ): D[K][K1][K2];
+  getFormData(path: Path<D>): any;
+
+  /**
+   * 设置指定路径的表单数据（传入路径和值）
+   *
+   * @param {Path<D>} path - 数据路径
+   * @param {any} value - 要设置的值
+   *
+   * @example
+   * ```ts
+   * setFormData('name', '李四')
+   * setFormData('address.city', '上海')
+   * ```
+   */
+  setFormData(path: Path<D>, value: any): void;
+  /**
+   * 设置指定路径的表单数据（传入路径和更新函数）
+   *
+   * @param {Path<D>} path - 数据路径
+   * @param {Function} value - 更新函数，接收旧值返回新值
+   *
+   * @example
+   * ```ts
+   * setFormData('count', prev => prev + 1)
+   * ```
+   */
+  setFormData(path: Path<D>, value: (v: any) => any): void;
+  /**
+   * 批量设置表单数据（覆盖整个表单）
+   *
+   * @param {ExtendWithAny<DeepPartial<D>>} value - 完整或部分表单数据
+   *
+   * @example
+   * ```ts
+   * setFormData({ name: '王五', age: 30 })
+   * ```
+   */
+  setFormData(value: ExtendWithAny<DeepPartial<D>>): void;
+  /**
+   * 批量设置表单数据（函数式更新整个表单）
+   *
+   * @param {Function} value - 更新函数，接收当前完整数据返回新数据
+   */
+  setFormData(
+    value: (v: ExtendWithAny<DeepPartial<D>>) => ExtendWithAny<DeepPartial<D>>
+  ): void;
+}
+
 /**
  * 表单数据处理 Hook
  *
@@ -17,10 +96,7 @@ const InjectionFormDataKey = Symbol('form-data');
  * @template D - 表单数据类型，应为一个对象类型
  * @param {ExtendWithAny<DeepPartial<D>>} [initFormData] - 初始表单数据
  *
- * @returns {object} 表单数据操作对象
- * @returns {D & Record<string, any>} .formData - 响应式表单数据
- * @returns {Function} .getFormData(path) - 获取指定路径的数据
- * @returns {Function} .setFormData(path, value) - 设置指定路径的数据
+ * @returns {UseFormDataReturn<D>} 表单数据操作对象
  *
  * @example
  * ```ts
@@ -45,7 +121,7 @@ const InjectionFormDataKey = Symbol('form-data');
  */
 const useFormData = <D extends Data = Data>(
   initFormData?: ExtendWithAny<DeepPartial<D>>
-) => {
+): UseFormDataReturn<D> => {
   if (!initFormData) {
     const injectFormDataStore = inject(InjectionFormDataKey, undefined);
     if (injectFormDataStore) return injectFormDataStore as never;
@@ -53,100 +129,10 @@ const useFormData = <D extends Data = Data>(
 
   const formData = reactive((initFormData ?? {}) as ExtendWithAny<D>);
 
-  /**
-   * 获取指定路径的表单数据
-   *
-   * @template K - 数据对象的顶级 key
-   * @param {K} path - 数据路径
-   * @returns {D[K]} 对应路径的值
-   *
-   * @example
-   * ```ts
-   * getFormData('name') // 顶级字段
-   * getFormData('address.city') // 嵌套字段
-   * ```
-   */
-  function getFormData<K extends keyof D>(path: K): D[K];
-
-  /**
-   * 获取二级路径的表单数据
-   *
-   * @template K - 顶级 key
-   * @template K1 - 二级 key
-   * @param {`${K}.${K1}`} path - 点号分隔的二级路径
-   * @returns {D[K][K1]} 对应路径的值
-   */
-  function getFormData<
-    K extends keyof D & string,
-    K1 extends keyof D[K] & string,
-  >(path: `${K}.${K1}`): D[K][K1];
-
-  /**
-   * 获取三级路径的表单数据
-   */
-  function getFormData<
-    K extends keyof D & string,
-    K1 extends keyof D[K] & string,
-    K2 extends keyof D[K][K1] & string,
-  >(path: `${K}.${K1}.${K2}`): D[K][K1][K2];
-
-  /**
-   * 获取任意路径的表单数据（通用重载）
-   */
-  function getFormData(path: Path<D>): any;
-
   function getFormData(path: Path<D>) {
     if (!path) return undefined;
     return get(formData, path) as any;
   }
-
-  /**
-   * 设置指定路径的表单数据（传入路径和值）
-   *
-   * @param {Path<D>} path - 数据路径
-   * @param {any} value - 要设置的值
-   *
-   * @example
-   * ```ts
-   * setFormData('name', '李四')
-   * setFormData('address.city', '上海')
-   * ```
-   */
-  function setFormData(path: Path<D>, value: any): void;
-
-  /**
-   * 设置指定路径的表单数据（传入路径和更新函数）
-   *
-   * @param {Path<D>} path - 数据路径
-   * @param {Function} value - 更新函数，接收旧值返回新值
-   *
-   * @example
-   * ```ts
-   * setFormData('count', prev => prev + 1)
-   * ```
-   */
-  function setFormData(path: Path<D>, value: (v: any) => any): void;
-
-  /**
-   * 批量设置表单数据（覆盖整个表单）
-   *
-   * @param {ExtendWithAny<DeepPartial<D>>} value - 完整或部分表单数据
-   *
-   * @example
-   * ```ts
-   * setFormData({ name: '王五', age: 30 })
-   * ```
-   */
-  function setFormData(value: ExtendWithAny<DeepPartial<D>>): void;
-
-  /**
-   * 批量设置表单数据（函数式更新整个表单）
-   *
-   * @param {Function} value - 更新函数，接收当前完整数据返回新数据
-   */
-  function setFormData(
-    value: (v: ExtendWithAny<DeepPartial<D>>) => ExtendWithAny<DeepPartial<D>>
-  ): void;
 
   function setFormData(...args: any[]) {
     let path;
@@ -176,8 +162,8 @@ const useFormData = <D extends Data = Data>(
     }
   }
 
-  const formDataStore = { formData, getFormData, setFormData };
-  provide(InjectionFormDataKey, formDataStore as any);
+  const formDataStore = { formData, getFormData, setFormData } as any;
+  provide(InjectionFormDataKey, formDataStore);
 
   return formDataStore;
 };

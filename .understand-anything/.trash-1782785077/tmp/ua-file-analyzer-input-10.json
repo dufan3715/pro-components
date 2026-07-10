@@ -1,9 +1,0 @@
-{
-  "projectRoot": "/Users/dufan/Desktop/Code/My_project/pro-components",
-  "batchFiles": [
-    {"path": ".github/workflows/deploy.yml", "language": "yaml", "sizeLines": 69, "fileCategory": "infra"}
-  ],
-  "batchImportData": {
-    ".github/workflows/deploy.yml": []
-  }
-}

@@ -29,7 +29,11 @@ export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help', 'tooltip'] as cons
 
 /**
  * 内置组件映射表
- * @description antdv-next 内置支持的组件类型映射
+ * @description antdv-next 内置支持的组件类型映射。
+ * 每个 key 对应 Field 配置中 `component` 可使用的字符串值，
+ * value 为实际渲染的 antdv-next 组件。
+ *
+ * @public
  */
 // prettier-ignore
 export type BaseComponentMap = {
@@ -97,7 +101,11 @@ export type GetComponentType<K extends ComponentName> =
       : never;
 
 /**
- * 组件名称到 antdv-next 组件的映射
+ * 组件名称到 antdv-next 组件的运行时映射
+ * @description ProForm 通过此映射将 Field 配置中的 component 字符串解析为实际 Vue 组件。
+ * 例如 `component: 'input'` → `Input`, `component: 'select'` → `Select`。
+ *
+ * @public
  */
 // prettier-ignore
 export const componentMap: BaseComponentMap = {

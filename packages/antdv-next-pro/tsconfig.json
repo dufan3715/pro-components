@@ -5,15 +5,11 @@
     // "types": ["antdv-next/typings/global"], // Check if antdv-next has this
     "declaration": true,
     "declarationMap": true,
-    "declarationDir": "./es",
-    "emitDeclarationOnly": false,
     "isolatedModules": true,
     "skipLibCheck": true,
     "jsx": "preserve",
-    "outDir": "./es",
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "bundler"
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "es"]

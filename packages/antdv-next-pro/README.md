@@ -1,6 +1,6 @@
 # @qin-ui/antdv-next-pro
 
-> 基于 **antdv-next** 和 **Vue 3.x** 的二次封装高级组件库，提供高度可配置、Schema 驱动的 `ProForm`、`ProTable` 和 `ComponentProvider`。
+> 基于 **antdv-next**（Vue 3 组件库，对齐 Ant Design 设计规范）和 **Vue 3.x** 的二次封装高级组件库，提供高度可配置、Schema 驱动的 `ProForm`、`ProTable` 和 `ProComponentProvider`。
 
 <p align="center">
   <img src="https://img.shields.io/badge/antdv--next-v1.1%2B-blue" alt="antdv-next" />
@@ -63,23 +63,24 @@ const form = useForm<FormData>({}, [
 
 ### `useForm` 返回值 (Form 实例)
 
-| 属性/方法                  | 类型                             | 说明                                                      |
-| :------------------------- | :------------------------------- | :-------------------------------------------------------- |
-| `formRef`                  | `Ref<FormInstance \| undefined>` | AntdvNext FormInstance 引用，支持直接调用 validate 等方法 |
-| `formData`                 | `Reactive<D>`                    | 响应式表单数据对象                                        |
-| `fields`                   | `Ref<Field<D>[]>`                | 响应式字段配置数组                                        |
-| `getFormData(path?)`       | `(path?) => any`                 | 读取表单字段或整个表单的值（支持深层路径）                |
-| `setFormData(path, value)` | `-`                              | 安全更新指定路径的值，支持批量设置与函数式更新            |
-| `setField(path, patch)`    | `-`                              | 动态增量更新某一个字段的 Schema 配置参数                  |
-| `resetFormData()`          | `-`                              | 重置表单数据为初始值                                      |
+| 属性/方法                  | 类型                             | 说明                                                                                                                                                                                             |
+| :------------------------- | :------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `formRef`                  | `Ref<FormInstance \| undefined>` | **antdv-next 原生 [FormInstance](https://antdv-next.com/components/form-cn#api)** 引用，可直接调用 `validate()`、`resetFields()`、`validateFields([paths])`、`clearValidate([paths])` 等原生方法 |
+| `formData`                 | `Reactive<D>`                    | 响应式表单数据对象                                                                                                                                                                               |
+| `fields`                   | `Ref<Field<D>[]>`                | 响应式字段配置数组                                                                                                                                                                               |
+| `getFormData(path?)`       | `(path?) => any`                 | 读取表单字段或整个表单的值（支持深层路径）                                                                                                                                                       |
+| `setFormData(path, value)` | `-`                              | 安全更新指定路径的值，支持批量设置与函数式更新                                                                                                                                                   |
+| `setField(path, patch)`    | `-`                              | 动态增量更新某一个字段的 Schema 配置参数                                                                                                                                                         |
+| `resetFormData()`          | `-`                              | 重置表单数据为初始值                                                                                                                                                                             |
 
 ### `ProForm` Props
 
-| 属性     | 类型                   | 默认值  | 说明                                    |
-| :------- | :--------------------- | :------ | :-------------------------------------- |
-| `form`   | `Form<D>`              | -       | `useForm` 返回的实例                    |
-| `grid`   | `boolean \| GridProps` | `false` | 是否启用 Grid 网格布局                  |
-| 其余属性 | `FormProps`            | -       | 继承并直接透传至 antdv-next `Form` 组件 |
+| 属性       | 类型                                                                         | 默认值  | 说明                                                                                     |
+| :--------- | :--------------------------------------------------------------------------- | :------ | :--------------------------------------------------------------------------------------- |
+| `form`     | `Form<D>`                                                                    | -       | `useForm` 返回的实例                                                                     |
+| `grid`     | `boolean \| GridProps`                                                       | `false` | 是否启用 Grid 网格布局                                                                   |
+| `disabled` | `boolean`                                                                    | `false` | 是否全局禁用整个表单                                                                     |
+| 其余属性   | 继承 antdv-next [`FormProps`](https://antdv-next.com/components/form-cn#api) | -       | 如 `labelCol`、`wrapperCol`、`labelAlign`、`colon` 等，直接透传至 antdv-next `Form` 组件 |
 
 ---
 
@@ -89,28 +90,28 @@ const form = useForm<FormData>({}, [
 
 ### 公共基础属性（`Base`）
 
-| 属性                 | 类型                                | 说明                                                      |
-| :------------------- | :---------------------------------- | :-------------------------------------------------------- |
-| `path`               | `Path<D>`                           | 字段标识，需对应 `formData` 中的 key                      |
-| `label`              | `string \| Component`               | 字段标签名称，支持直接传入 Vue 组件渲染                   |
-| `component`          | 见下方内置组件列表                  | 使用的内置组件名或自定义组件                              |
-| `hidden`             | `MaybeRef<boolean>`                 | 字段是否隐藏，支持 Ref / Computed 响应式                  |
-| `disabled`           | `MaybeRef<boolean>`                 | 组件是否禁用，支持 Ref / Computed 响应式                  |
-| `rules`              | `FormItemRule[]`                    | 字段数据校验规则                                          |
-| `span`               | `number`                            | Grid 占位列宽（仅在开启 `grid` 模式下有效）               |
-| `slots`              | `Partial<ComponentSlots<FormItem>>` | FormItem 插槽（包含 `label`/`extra`/`help`/`tooltip` 等） |
-| `grid`               | `boolean \| GridProps`              | 嵌套子字段的 Grid 配置                                    |
-| `fields`             | `Fields<D>`                         | 嵌套子字段配置数组（用于复杂分组）                        |
-| `formItemStyle`      | `CSSProperties`                     | FormItem 样式属性                                         |
-| `formItemClass`      | `string`                            | FormItem 自定义类名                                       |
-| `formItemContainer`  | `Component`                         | FormItem 外层包裹容器组件                                 |
-| `formItemDataAttrs`  | `Record<string, string>`            | 附加到 FormItem DOM 节点上的自定义 data 属性              |
-| `componentStyle`     | `CSSProperties`                     | 表单输入组件的样式属性                                    |
-| `componentClass`     | `string`                            | 表单输入组件的自定义类名                                  |
-| `componentContainer` | `Component`                         | 表单输入组件的外层包裹容器组件                            |
-| `componentDataAttrs` | `Record<string, string>`            | 附加到输入组件 DOM 节点上的自定义 data 属性               |
-| `valueFormatter`     | `ValueFormatter`                    | 字段值格式化与转换器（支持 get/set 双向处理器）           |
-| `modelProp`          | `string`                            | 双向绑定的数据名，默认 `'value'`                          |
+| 属性                 | 类型                                | 说明                                                                                                                |
+| :------------------- | :---------------------------------- | :------------------------------------------------------------------------------------------------------------------ |
+| `path`               | `Path<D>`                           | 字段标识，需对应 `formData` 中的 key                                                                                |
+| `label`              | `string \| Component`               | 字段标签名称，支持直接传入 Vue 组件渲染                                                                             |
+| `component`          | 见下方内置组件列表                  | 使用的内置组件名或自定义组件                                                                                        |
+| `hidden`             | `MaybeRef<boolean>`                 | 字段是否隐藏，支持 Ref / Computed 响应式                                                                            |
+| `disabled`           | `MaybeRef<boolean>`                 | 组件是否禁用，支持 Ref / Computed 响应式                                                                            |
+| `rules`              | `FormItemRule[]`                    | 字段数据校验规则                                                                                                    |
+| `span`               | `number`                            | Grid 占位列宽（仅在开启 `grid` 模式下有效）                                                                         |
+| `slots`              | `Partial<ComponentSlots<FormItem>>` | FormItem 插槽（包含 `label`/`extra`/`help`/`tooltip` 等）                                                           |
+| `grid`               | `boolean \| GridProps`              | 嵌套子字段的 Grid 配置                                                                                              |
+| `fields`             | `Fields<D>`                         | 嵌套子字段配置数组（用于复杂分组）                                                                                  |
+| `formItemStyle`      | `CSSProperties`                     | FormItem 样式属性                                                                                                   |
+| `formItemClass`      | `string`                            | FormItem 自定义类名                                                                                                 |
+| `formItemContainer`  | `Component`                         | FormItem 外层包裹容器组件                                                                                           |
+| `formItemDataAttrs`  | `Record<string, string>`            | 附加到 FormItem DOM 节点上的自定义 data 属性                                                                        |
+| `componentStyle`     | `CSSProperties`                     | 表单输入组件的样式属性                                                                                              |
+| `componentClass`     | `string`                            | 表单输入组件的自定义类名                                                                                            |
+| `componentContainer` | `Component`                         | 表单输入组件的外层包裹容器组件                                                                                      |
+| `componentDataAttrs` | `Record<string, string>`            | 附加到输入组件 DOM 节点上的自定义 data 属性                                                                         |
+| `valueFormatter`     | `ValueFormatter`                    | 字段值格式化与转换器（支持 get/set 双向处理器）                                                                     |
+| `modelProp`          | `string`                            | 双向绑定的数据名，默认 `'value'`。Switch/Checkbox 使用 `'checked'`，**ProComponentProvider 已为 `switch` 预设此值** |
 
 > [!NOTE]
 > **响应式支持**：除了 `component`、`fields`、`slots`、`modelProp`、`formItemContainer`、`componentContainer`、`valueFormatter` 之外，所有属性均高度支持 `Ref` 或 `ComputedRef` 响应式数据。
@@ -215,42 +216,58 @@ const table = useTable<Row>({
 
 ### `useTable` 配置参数
 
-| 参数名         | 类型             | 说明                                              |
-| :------------- | :--------------- | :------------------------------------------------ |
-| `columns`      | `Column<D>[]`    | 表格列 Schema 配置，支持响应式 `hidden`           |
-| `dataSource`   | `T[]`            | 静态初始数据源数组                                |
-| `pageParam`    | `PageParam`      | 初始分页参数（current, pageSize, total）          |
-| `searchParam`  | `DeepPartial<D>` | 搜索栏表单初始填充数据                            |
-| `searchFields` | `Fields<D>`      | 搜索栏字段 Schema 配置（格式与 ProForm 完全一致） |
+| 参数名         | 类型             | 说明                                                                                            |
+| :------------- | :--------------- | :---------------------------------------------------------------------------------------------- |
+| `columns`      | `Column<D>[]`    | 表格列 Schema 配置，支持响应式 `hidden`                                                         |
+| `dataSource`   | `T[]`            | 静态初始数据源数组                                                                              |
+| `pageParam`    | `PageParam`      | 初始分页参数（current, pageSize, total）                                                        |
+| `searchParam`  | `DeepPartial<D>` | 搜索栏表单初始填充数据                                                                          |
+| `searchFields` | `Fields<D>`      | 搜索栏字段 Schema 配置，**格式与 ProForm 的 `fields` 完全一致**，同样支持配置驱动渲染和属性透传 |
+
+### `useTable` 返回值 (Table 实例)
+
+| 属性/方法          | 类型                  | 说明                                                                                       |
+| :----------------- | :-------------------- | :----------------------------------------------------------------------------------------- |
+| `columns`          | `Ref<Column<T>[]>`    | 响应式表格列配置数组                                                                       |
+| `dataSource`       | `Ref<T[]>`            | 响应式表格数据源                                                                           |
+| `pageParam`        | `Reactive<PageParam>` | 响应式分页参数：`{ current, pageSize, total }`                                             |
+| `searchForm`       | `Form<D>`             | 搜索栏 ProForm 实例，可通过 `searchForm.formData` 获取搜索条件，也可调用其所有字段操作方法 |
+| `setColumn`        | `(path, col, opts?)`  | 动态合并/覆盖列配置（`opts.updateType: 'merge' \| 'rewrite'`）                             |
+| `deleteColumn`     | `(path, opts?)`       | 根据 dataIndex 路径或查找函数删除列                                                        |
+| `appendColumn`     | `(path, col, opts?)`  | 在指定列后追加新列                                                                         |
+| `prependColumn`    | `(path, col, opts?)`  | 在指定列前插入新列                                                                         |
+| `setPageParam`     | `(pageParam)`         | 更新分页参数（支持局部属性或函数式更新）                                                   |
+| `resetQueryParams` | `()`                  | 重置分页状态和搜索表单数据至初始值                                                         |
 
 ### `ProTable` Props
 
-| 属性               | 类型                                        | 默认值  | 说明                                              |
-| :----------------- | :------------------------------------------ | :------ | :------------------------------------------------ |
-| `table`            | `Table<D>`                                  | -       | 由 `useTable` 返回的表格实例引用                  |
-| `search`           | `() => Promise<void>`                       | -       | 触发表格数据查询的异步回调函数                    |
-| `addIndexColumn`   | `boolean`                                   | `false` | 是否自动在表格首列插入序号列                      |
-| `immediateSearch`  | `boolean`                                   | `false` | 表格挂载完毕（onMounted）是否立即触发一次查询回调 |
-| `control`          | `boolean \| { sizeControl, columnControl }` | `true`  | 是否展示表格右上角尺寸调节和列显示控制条          |
-| `searchFormConfig` | `SearchFormConfig`                          | -       | 搜索栏表单的排版布局及展开/收起配置参数           |
-| `tableContainer`   | `Component \| false`                        | -       | 表格区域外层自定义包裹组件                        |
+| 属性               | 类型                                                                           | 默认值  | 说明                                                                                  |
+| :----------------- | :----------------------------------------------------------------------------- | :------ | :------------------------------------------------------------------------------------ |
+| `table`            | `Table<D>`                                                                     | -       | 由 `useTable` 返回的表格实例引用                                                      |
+| `search`           | `() => Promise<void>`                                                          | -       | 触发表格数据查询的异步回调函数                                                        |
+| `addIndexColumn`   | `boolean`                                                                      | `false` | 是否自动在表格首列插入序号列                                                          |
+| `immediateSearch`  | `boolean`                                                                      | `false` | 表格挂载完毕（onMounted）是否立即触发一次查询回调                                     |
+| `control`          | `boolean \| { sizeControl, columnControl }`                                    | `true`  | 是否展示表格右上角尺寸调节和列显示控制条                                              |
+| `searchFormConfig` | `SearchFormConfig`                                                             | -       | 搜索栏表单的排版布局及展开/收起配置参数                                               |
+| `tableContainer`   | `Component \| false`                                                           | -       | 表格区域外层自定义包裹组件                                                            |
+| 其余属性           | 继承 antdv-next [`TableProps`](https://antdv-next.com/components/table-cn#api) | -       | 如 `bordered`、`loading`、`size`、`pagination` 等，直接透传至 antdv-next `Table` 组件 |
 
 ---
 
-## ⚙️ ComponentProvider
+## ⚙️ ProComponentProvider
 
-全局或局部的默认配置提供者，通过在最外层包裹 `ComponentProvider`，传入 `componentVars` 属性，能够极其优雅地控制其所有子组件的默认配置。
+全局或局部的默认配置提供者，通过在最外层包裹 `ProComponentProvider`，传入 `componentVars` 属性，能够极其优雅地控制其所有子组件的默认配置。
 
 ```vue
 <template>
-  <ComponentProvider :component-vars="config">
+  <ProComponentProvider :component-vars="config">
     <ProForm :form="form" />
     <ProTable :table="table" />
-  </ComponentProvider>
+  </ProComponentProvider>
 </template>
 
 <script setup lang="ts">
-import { ComponentProvider } from '@qin-ui/antdv-next-pro';
+import { ProComponentProvider } from '@qin-ui/antdv-next-pro';
 
 const config = {
   'pro-form': { grid: { gutter: 24 } },

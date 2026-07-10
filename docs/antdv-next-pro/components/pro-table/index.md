@@ -18,7 +18,7 @@ antdv-next-pro 导出了一个名为 `useTable` 的自定义 Hook，用于处理
 
 ProTable 的核心结构可以理解为三块：
 
-- `ProTable(BaseTable)` 负责整合 table props、搜索表单、控制按钮
+- `ProTable` 负责整合 table props、搜索表单、控制按钮
 - `SearchForm` 基于 `ProForm` 渲染搜索字段
 - `UITable`（antdv-next Table）负责最终表格渲染
 

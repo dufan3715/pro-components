@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.1.14",
+  "version": "2.2.1",
   "description": "二次封装antd vue组件",
   "bin": {
     "antd-vue-pro": "./bin/init-ai.mjs"
@@ -11,12 +11,14 @@
   "main": "es/index.js",
   "exports": {
     ".": {
-      "import": "./es/index.js",
-      "types": "./es/index.d.ts"
-    }
+      "types": "./es/index.d.ts",
+      "import": "./es/index.js"
+    },
+    "./antd-vue-pro.css": "./es/antd-vue-pro.css"
   },
   "files": [
     "es",
+    "src",
     "bin",
     "README.md",
     "LICENSE",
@@ -30,7 +32,8 @@
   },
   "scripts": {
     "prebuild": "tsx ../../scripts/generate-api-json.ts antd-vue-pro",
-    "build": "vue-tsc && vite build"
+    "build": "vue-tsc --noEmit && vite build",
+    "prepublishOnly": "pnpm build"
   },
   "author": "dufan3715",
   "bugs": {
@@ -43,22 +46,23 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
-    "vue-component-type-helpers": "^3.2.5"
-  },
-  "devDependencies": {
-    "@qin-ui/core": "workspace:^",
-    "@types/lodash-es": "^4.17.12",
-    "ant-design-vue": "^4",
-    "lodash-es": "^4.17.21",
+    "@qin-ui/pro-components-core": "workspace:^",
     "scroll-into-view-if-needed": "^3.1.0"
   },
-  "sideEffects": false,
+  "devDependencies": {
+    "ant-design-vue": "^4",
+    "vue-component-type-helpers": "^3.2.5"
+  },
+  "sideEffects": [
+    "**/*.css",
+    "./es/index.js"
+  ],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "keywords": [
     "vue",

@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/element-plus-pro",
-  "version": "1.0.7",
+  "version": "1.1.1",
   "description": "基于 element-plus 的二次封装组件",
   "bin": {
     "element-plus-pro": "./bin/init-ai.mjs"
@@ -11,12 +11,14 @@
   "main": "es/index.js",
   "exports": {
     ".": {
-      "import": "./es/index.js",
-      "types": "./es/index.d.ts"
-    }
+      "types": "./es/index.d.ts",
+      "import": "./es/index.js"
+    },
+    "./element-plus-pro.css": "./es/element-plus-pro.css"
   },
   "files": [
     "es",
+    "src",
     "bin",
     "README.md",
     "LICENSE",
@@ -30,7 +32,8 @@
   },
   "scripts": {
     "prebuild": "tsx ../../scripts/generate-api-json.ts element-plus-pro",
-    "build": "vue-tsc && vite build"
+    "build": "vue-tsc --noEmit && vite build",
+    "prepublishOnly": "pnpm build"
   },
   "author": "dufan3715",
   "license": "MIT",
@@ -40,16 +43,21 @@
     "vue": "^3.5.0"
   },
   "dependencies": {
-    "vue-component-type-helpers": "^3.2.5"
+    "@qin-ui/pro-components-core": "workspace:^"
   },
   "devDependencies": {
-    "@qin-ui/core": "workspace:^",
-    "@types/lodash-es": "^4.17.12",
     "element-plus": "^2.13.6",
-    "lodash-es": "^4.17.21"
+    "vue-component-type-helpers": "^3.2.5"
   },
+  "sideEffects": [
+    "**/*.css",
+    "./es/index.js"
+  ],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

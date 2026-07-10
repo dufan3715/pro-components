@@ -1,25 +1,35 @@
-import { useFormRef as _useFormRef } from '../../../shared/core';
+import {
+  useFormRef as coreUseFormRef,
+  type UseFormRefReturn,
+} from '../../../shared/core';
 import type { FormInstance } from '../../../shared/ui';
 
 /**
- * @qin-ui/antdv-next-pro 的表单组件实例引用 Hook
+ * 表单组件实例引用 Hook
  *
- * @description 类型安全的 re-export。将 core useFormRef 的泛型参数绑定为 antdv-next 的 FormInstance，
- * 使 formRef 获取到完整的 antdv-next Form 组件 API 类型提示。
+ * @description 基于 `@qin-ui/pro-components-core` 的 `useFormRef`，将泛型参数绑定为 antdv-next 的 `FormInstance`，
+ * 使 formRef 获取到完整的 antdv-next Form 组件 API 类型提示（如 `validate()`、`resetFields()` 等）。
  *
- * @returns {object} 表单组件实例引用管理对象
- * @returns {Ref<FormInstance | undefined>} .formRef - antdv-next Form 实例的响应式引用
- * @returns {Function} .setFormRef(inst) - 设置表单组件实例
+ * `formRef` 由 ProForm 组件内部自动通过 `setFormRef` 绑定，无需手动调用。
+ *
+ * @returns 表单组件实例引用管理对象：
+ * - `formRef` — antdv-next Form 组件实例的响应式引用（`Ref<FormInstance | undefined>`）
+ * - `setFormRef(inst)` — 设置 Form 组件实例，由 ProForm 内部自动调用
  *
  * @example
  * ```ts
  * const { formRef, setFormRef } = useFormRef()
+ *
+ * // formRef 由 ProForm 自动绑定，可直接使用
  * await formRef.value?.validate()
  * formRef.value?.resetFields()
+ * formRef.value?.scrollToField('username')
  * ```
- 
+ *
+ * @see {@link coreUseFormRef} 底层核心实现（来自 @qin-ui/pro-components-core）
+ *
  * @public
  */
-export const useFormRef = _useFormRef as {
-  (): ReturnType<typeof _useFormRef<FormInstance>>;
-};
+export function useFormRef(): UseFormRefReturn<FormInstance> {
+  return coreUseFormRef();
+}

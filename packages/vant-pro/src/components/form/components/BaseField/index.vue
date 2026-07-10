@@ -1,4 +1,32 @@
 <script lang="ts" setup>
+/**
+ * @component BaseField
+ * @description 字段级渲染组件，负责将 field 配置渲染为实际的输入组件
+ *
+ * ## 核心职责
+ *
+ * 1. **组件解析**：按优先级解析要渲染的组件（teleport 插槽 > 自定义组件 > 内置组件映射 > 原始值）
+ * 2. **v-model 双向绑定**：通过 computed getter/setter 将组件值与 formData 的深层路径绑定
+ * 3. **valueFormatter 处理**：支持 get/set 格式化函数，用于数据转换（如日期格式化）
+ * 4. **属性合并**：将注入的默认 props、组件传入的 attrs 合并为最终属性
+ *
+ * ## 组件解析优先级
+ *
+ * ```
+ * teleport 组件（ProForm 插槽注入）
+ *   ↓ 未匹配
+ * 自定义组件（ProComponentProvider 的 componentMap）
+ *   ↓ 未匹配
+ * 内置组件映射（componentMap: input → Input, select → Select ...）
+ *   ↓ 未匹配
+ * 原始 component 值（可能是字符串或 Vue 组件对象）
+ * ```
+ *
+ * @param {string | Component} [component] - 组件名或组件对象
+ * @param {string} [path] - 字段路径，用于绑定表单数据
+ *
+ * @slot default - 默认插槽（透传给组件）
+ */
 import {
   type Component,
   computed,
@@ -15,11 +43,11 @@ import { componentMap, TeleportComponentNamePrefix } from '../../constants';
 import { INJECT_COMPONENTS } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
-import { Field as UIField } from '../../../../shared/ui';
+import { Field as VanField } from '../../../../shared/ui';
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
 
-const uiFieldPropsKeys = Object.keys(UIField.props || {});
+const uiFieldPropsKeys = Object.keys(VanField.props || {});
 
 type Props = {
   component?: string | Component;
@@ -40,6 +68,7 @@ function getOldValue() {
   return cloneDeep(getFormData?.(path));
 }
 
+// setter: 向 formData 写入值，支持 valueFormatter / valueFormatter.set 转换
 const value = computed({
   get() {
     let val = getFormData?.(path);
@@ -78,6 +107,10 @@ const popupCloseEventName = computed(() => {
   return { confirm, cancel };
 });
 
+/*
+ * 将注入的默认 props、外部传入的 attrs、field 配置合并为最终属性
+ * 属性分为多类：组件绑定属性、Field UI 属性等
+ */
 const groupedAttrs = computed(() => {
   const initProps = getInitProps({
     component: component,
@@ -94,6 +127,7 @@ const groupedAttrs = computed(() => {
   // prettier-ignore
   const { valueFormatter, displayFormatter, modelProp, slots, fieldClass, fieldStyle, componentContainer, popup, ...rest } = mergedProps
   const modelBindingProp = modelProp ?? 'modelValue';
+  // 从剩余属性中移除 v-model 绑定属性，避免重复绑定
   const bindAttrs = omit(rest as Record<string, any>, [
     modelBindingProp,
     `onUpdate:${modelBindingProp}`,
@@ -141,13 +175,19 @@ const groupedAttrs = computed(() => {
   };
 });
 
+// 从 ProForm 插槽注入的 teleport 组件（优先级最高）
 const teleportComponent = inject(
   `${TeleportComponentNamePrefix}${path}`,
   undefined
 );
 
+// 从 ProComponentProvider 注入的自定义组件映射
 const customComponents = inject(INJECT_COMPONENTS, {});
 
+/*
+ * 按优先级解析最终要渲染的组件：
+ * teleport 插槽 → 自定义组件映射 → 内置组件映射 → 原始 component 值
+ */
 const is = computed(() => {
   if (teleportComponent) return teleportComponent;
   if (typeof component === 'string') {
@@ -199,7 +239,7 @@ defineExpose({
 <template>
   <ContainerFragment :component="groupedAttrs.componentContainer" :path="path">
     <template v-if="popupAble">
-      <UIField
+      <VanField
         ref="fieldRef"
         v-bind="{
           readonly: true,
@@ -253,7 +293,7 @@ defineExpose({
         </template>
       </component>
 
-      <UIField
+      <VanField
         v-else
         ref="fieldRef"
         v-bind="groupedAttrs.fieldAttrs"
@@ -276,7 +316,7 @@ defineExpose({
             </template>
           </component>
         </template>
-      </UIField>
+      </VanField>
     </template>
 
     <template v-else>

@@ -1,7 +1,7 @@
 {
-  "name": "@qin-ui/core",
-  "private": true,
-  "version": "1.0.0",
+  "name": "@qin-ui/pro-components-core",
+  "private": false,
+  "version": "1.0.1",
   "description": "Core logic for pro-components",
   "type": "module",
   "module": "es/index.js",
@@ -9,29 +9,41 @@
   "main": "es/index.js",
   "exports": {
     ".": {
-      "import": "./es/index.js",
-      "types": "./es/index.d.ts"
+      "types": "./es/index.d.ts",
+      "import": "./es/index.js"
     }
   },
+  "sideEffects": false,
   "files": [
     "es",
+    "src",
     "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "build": "vue-tsc && vite build"
+    "build": "vue-tsc --noEmit && vite build",
+    "prepublishOnly": "pnpm build"
   },
   "author": "dufan3715",
   "license": "MIT",
   "peerDependencies": {
-    "vue": "^3.3"
+    "vue": "^3.5.0"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.21"
   },
   "devDependencies": {
     "@types/lodash-es": "^4.17.12",
-    "lodash-es": "^4.17.21",
     "typescript": "^5.0.0",
-    "vite": "^5.0.0",
-    "vite-plugin-dts": "^3.0.0",
-    "vue-tsc": "^2.0.0"
+    "vite": "^6.3.5",
+    "vite-plugin-dts": "^4.5.4",
+    "vue-tsc": "^3.0.1"
   }
 }

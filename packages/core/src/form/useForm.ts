@@ -1,3 +1,19 @@
+/**
+ * @module Core/useForm
+ * @description 框架无关（Framework-Agnostic）的表单状态管理核心
+ *
+ * ## 架构设计说明
+ *
+ * `useForm` 是表单系统的核心大脑。它的核心设计理念是 **"状态管理与 UI 渲染解耦"**。
+ * 在这里，表单逻辑不再依赖于具体的 UI 框架（如 Ant Design / Element Plus），而是被抽象为了纯粹的 Vue 响应式状态流（Reactive Data）。
+ *
+ * ### 核心职责
+ * 1. **数据中枢**：统一管理表单数据 (`formData`) 的读写，支持基于路径（如 `'user.address.city'`）的深层数据代理操作。
+ * 2. **字段调度**：集成 `useFields` 引擎，负责所有表单字段的动态配置、显隐控制及状态联动。
+ * 3. **实例桥接**：集成 `useFormRef`，代理底层 UI 框架特有的方法（如 `validate`, `clearValidate`），提供抹平差异的标准化 API 表面。
+ *
+ * @internal 本模块为底层基建，上层组件库（如 antdv-next-pro）会对其进行泛型绑定和二次导出。
+ */
 import { inject } from 'vue';
 import useFields from './useFields';
 import useFormData from './useFormData';
@@ -5,6 +21,10 @@ import useFormRef from './useFormRef';
 import { InjectionFormKey } from './constants';
 import { Data, DeepPartial, ExtendWithAny } from '../shared/types';
 import { BaseField } from './types';
+
+import type { UseFormDataReturn } from './useFormData';
+import type { UseFieldsReturn } from './useFields';
+import type { UseFormRefReturn } from './useFormRef';
 
 /**
  * 表单实例类型
@@ -42,13 +62,13 @@ import { BaseField } from './types';
  * form.setField('name', { label: '用户名' }) // 更新字段配置
  * ```
  */
-export type Form<
+export interface Form<
   D extends Data = Data,
   F extends BaseField<D> = BaseField<D>,
   I = any,
-> = ReturnType<typeof useFormData<D>> &
-  ReturnType<typeof useFields<D, F>> &
-  ReturnType<typeof useFormRef<I>>;
+> extends UseFormDataReturn<D>,
+    UseFieldsReturn<D, F>,
+    UseFormRefReturn<I> {}
 
 /**
  * 创建表单实例的核心 Hook

@@ -4,7 +4,7 @@ import type { ContainerComponent } from '../form/types';
 import type { Columns } from './types';
 import type { SearchFormProps } from './components/SearchForm.vue';
 import type { Table } from './useTable';
-import BaseTable from './components/BaseTable.vue';
+import ProTable from './components/ProTable.vue';
 
 type Control = { sizeControl: boolean; columnControl: boolean };
 type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
@@ -35,4 +35,4 @@ export { type Column, type Columns } from './types';
 // hooks
 export { useTable, type Table } from './useTable';
 
-export default BaseTable;
+export default ProTable;

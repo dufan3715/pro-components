@@ -1,5 +1,7 @@
-// 统一 re-export @qin-ui/core，包内所有文件通过此文件引入 core 内容，
-// 避免直接散列依赖 @qin-ui/core，便于将来统一维护。
+/**
+ * 统一 re-export @qin-ui/pro-components-core，包内所有文件通过此文件引入 core 内容，
+ * 避免直接散列依赖 @qin-ui/pro-components-core，便于将来统一维护。
+ */
 export {
   // hooks
   useForm,
@@ -29,4 +31,7 @@ export {
   type Fields,
   type Form,
   type Table,
-} from '@qin-ui/core';
+  type UseFieldsReturn,
+  type UseFormDataReturn,
+  type UseFormRefReturn,
+} from '@qin-ui/pro-components-core';

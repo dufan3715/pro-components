@@ -1,9 +1,24 @@
 <script lang="ts" setup>
+/**
+ * @component BaseFormItem
+ * @description 表单字段渲染引擎
+ *
+ * ## 渲染流程
+ *
+ * 1. 遍历 fields 数组，过滤 hidden 字段
+ * 2. 对每个字段：
+ *    a. 通过 PathProvider 提供当前字段路径
+ *    b. 通过 GroupedFieldAttrs 将 field 配置拆分为 gridItemProps / formItemProps / componentProps
+ *    c. 如果字段有 `fields` 子字段 → 递归渲染 BaseFormItem（嵌套表单）
+ *    d. 否则 → 渲染 BaseField（输入组件）
+ * 3. 通过 ref 回调收集 FormItem 和 Component 实例，注入到 field 对象上
+ */
+
 import { getObject, toPath } from '../../../../shared/core';
 import {
   FormItem,
-  Grid as UIGrid,
-  GridItem as UIGridItem,
+  Grid as AGrid,
+  GridItem as AGridItem,
   GridProps,
   useDisabledContextProvider,
 } from '../../../../shared/ui';
@@ -27,14 +42,17 @@ const {
   disabled = undefined,
 } = defineProps<Props>();
 
+// 过滤掉 hidden 字段，隐藏字段不渲染
 const validFields = computed(() => fields.filter?.(field => !field.hidden));
 
+// 向子组件提供 disabled 上下文
 useDisabledContextProvider(computed(() => disabled) as any);
 
 const config = INJECT_CONFIG['pro-form'];
 
 const { grid: injectGrid } = inject(config.injectionKey, config.default);
 
+// 网格布局：优先使用当前层级的 grid 配置，否则使用注入的全局配置
 const enableGrid = computed(() => {
   if (grid !== undefined) return !!grid;
   return !!injectGrid;
@@ -49,6 +67,8 @@ const computedGridProps = computed<GridProps>(() => {
 const formItemRefs: any[] = [];
 const componentRefs: any[] = [];
 
+// FormItem 挂载回调：将 FormItem 实例和计算属性注入到 field 对象上
+// 外部可通过 field.getFormItemRef() 获取 FormItem 实例
 const onFormItemMounted = (index: number, formItemProps?: any) => {
   const field = validFields.value[index];
   Object.assign(field, {
@@ -57,6 +77,8 @@ const onFormItemMounted = (index: number, formItemProps?: any) => {
   });
 };
 
+// 组件挂载回调：将输入组件实例注入到 field 对象上
+// 外部可通过 field.getComponentRef() 获取底层输入组件实例
 const onComponentMounted = (index: number) => {
   const field = validFields.value[index];
   Object.assign(field, {
@@ -69,7 +91,7 @@ const onComponentMounted = (index: number) => {
 
 <template>
   <ContainerFragment
-    :component="enableGrid ? UIGrid : undefined"
+    :component="enableGrid ? AGrid : undefined"
     v-bind="computedGridProps"
   >
     <PathProvider
@@ -88,7 +110,7 @@ const onComponentMounted = (index: number) => {
             }"
           >
             <ContainerFragment
-              :component="enableGrid ? UIGridItem : undefined"
+              :component="enableGrid ? AGridItem : undefined"
               v-bind="gridItemProps"
             >
               <ContainerFragment :component="container" :path="path">
