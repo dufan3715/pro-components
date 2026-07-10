@@ -328,12 +328,6 @@ function main() {
     );
     console.log(`Package API JSON generated at: ${pkgOutputPath}`);
   }
-
-  if (!targetPkg) {
-    const outputPath = path.resolve(__dirname, '../api.json');
-    fs.writeFileSync(outputPath, JSON.stringify(result, null, 2), 'utf-8');
-    console.log(`Global API JSON generated at: ${outputPath}`);
-  }
 }
 
 main();

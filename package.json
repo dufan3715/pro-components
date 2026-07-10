@@ -4,6 +4,10 @@
   "version": "0.0.1",
   "keywords": [],
   "author": "",
+  "browserslist": [
+    "defaults and fully supports es6-module",
+    "maintained node versions"
+  ],
   "scripts": {
     "dev": "pnpm run examples:dev",
     "examples:dev": "pnpm -F examples dev",
@@ -14,9 +18,14 @@
     "lint": "pnpm lint:eslint && pnpm lint:stylelint && pnpm lint:prettier",
     "lint:lint-staged": "lint-staged -c lint-staged.config.mjs",
     "generate:api": "tsx scripts/generate-api-json.ts",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm -r --filter \"./packages/*\" build && changeset publish",
     "clean": "rm -rf node_modules **/*/node_modules"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.12",
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@eslint/compat": "^2.0.2",
