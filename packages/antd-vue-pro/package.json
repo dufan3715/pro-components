@@ -11,9 +11,10 @@
   "main": "es/index.js",
   "exports": {
     ".": {
-      "import": "./es/index.js",
-      "types": "./es/index.d.ts"
-    }
+      "types": "./es/index.d.ts",
+      "import": "./es/index.js"
+    },
+    "./antd-vue-pro.css": "./es/antd-vue-pro.css"
   },
   "files": [
     "es",
@@ -31,7 +32,8 @@
   },
   "scripts": {
     "prebuild": "tsx ../../scripts/generate-api-json.ts antd-vue-pro",
-    "build": "vue-tsc && vite build"
+    "build": "vue-tsc --noEmit && vite build",
+    "prepublishOnly": "pnpm build"
   },
   "author": "dufan3715",
   "bugs": {
@@ -45,19 +47,22 @@
   },
   "dependencies": {
     "@qin-ui/pro-components-core": "workspace:^",
-    "scroll-into-view-if-needed": "^3.1.0",
-    "vue-component-type-helpers": "^3.2.5"
+    "scroll-into-view-if-needed": "^3.1.0"
   },
   "devDependencies": {
-    "ant-design-vue": "^4"
+    "ant-design-vue": "^4",
+    "vue-component-type-helpers": "^3.2.5"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css",
+    "./es/index.js"
+  ],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "keywords": [
     "vue",
