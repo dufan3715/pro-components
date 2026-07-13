@@ -1,5 +1,11 @@
 # @qin-ui/pro-components-core
 
+## 1.0.2
+
+### Patch Changes
+
+- fix(core): 修复 useTable 重置查询参数时未恢复初始分页参数的问题
+
 ## 1.0.1
 
 ### Patch Changes

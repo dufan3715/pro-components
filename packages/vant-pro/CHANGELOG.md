@@ -1,5 +1,14 @@
 # @qin-ui/vant-pro
 
+## 1.1.2
+
+### Patch Changes
+
+- fix(core): 修复 useTable 重置查询参数时未恢复初始分页参数的问题
+
+- Updated dependencies []:
+  - @qin-ui/pro-components-core@1.0.2
+
 ## 1.1.1
 
 ### Patch Changes

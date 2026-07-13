@@ -214,6 +214,7 @@ const useTable = <
     searchFields: initSearchFields = [],
   } = params;
   const _initSearchParam = cloneDeep(toValue(initSearchParam));
+  const _initPageParam = cloneDeep(toValue(initPageParam));
 
   const columns = ref<Columns<T, C>>([]) as Ref<Columns<T, C>>;
   columns.value = initColumns;
@@ -233,7 +234,7 @@ const useTable = <
   const searchForm = useForm(initSearchParam as any, initSearchFields, true);
 
   const resetQueryParams = () => {
-    Object.assign(pageParam, getDefaultPageParam());
+    Object.assign(pageParam, cloneDeep(_initPageParam));
     searchForm.setFormData(cloneDeep(_initSearchParam) as any);
   };
 
