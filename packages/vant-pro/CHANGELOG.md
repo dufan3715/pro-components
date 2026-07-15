@@ -1,5 +1,14 @@
 # @qin-ui/vant-pro
 
+## 1.1.3
+
+### Patch Changes
+
+- 文档体系 v2.1 升级：AI-CONTEXT.md 重写为完整使用规则版；README 补全 AI 辅助开发引导、属性分层透传、INJECT_CONFIG 默认预设、ProTable 数据流、Column 说明、valueFormatter、自定义组件 4 种方式、响应式联动等章节；init-ai 改造为双载体（AGENTS.md 主载体 + .agents/skills/ 参考载体，支持标记区块智能合并与幂等更新）；重新生成 api.json 修复 Hook 参数提取；修复 generate-api-json.ts 的 @param 正则。
+
+- Updated dependencies []:
+  - @qin-ui/pro-components-core@1.0.3
+
 ## 1.1.2
 
 ### Patch Changes

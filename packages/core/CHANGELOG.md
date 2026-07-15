@@ -1,5 +1,11 @@
 # @qin-ui/pro-components-core
 
+## 1.0.3
+
+### Patch Changes
+
+- @types/lodash-es 从 devDependencies 归类至 dependencies。
+
 ## 1.0.2
 
 ### Patch Changes

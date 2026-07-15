@@ -3,6 +3,8 @@
 export default {
   extends: ['@commitlint/config-conventional'],
   rules: {
+    // header 最大长度放宽至 200（默认 100），适配含中文版本号列表的 release commit
+    'header-max-length': [2, 'always', 200],
     /**
      * ?? 提交类型
      * build : 改变了build工具 如 webpack

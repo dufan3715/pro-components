@@ -64,18 +64,29 @@ function parseJSDoc(commentBlock: string): Partial<ApiItem> {
     if (cleaned.startsWith('@description')) {
       description.push(cleaned.replace('@description', '').trim());
     } else if (cleaned.startsWith('@param')) {
+      // 支持 JSDoc 标准可选/默认值写法：
+      //   @param {Type} name - desc
+      //   @param {Type} [name] - desc          （可选）
+      //   @param {Type} [name=default] - desc  （带默认值）
+      //   @param {Type} [obj.prop] - desc       （嵌套属性名）
       const paramMatch = cleaned.match(
-        /@param\s+\{([^}]+)\}\s+(\w+)\s*(?:-?\s*(.*))?/
+        /@param\s+\{([^}]+)\}\s+\[?([\w.]+)(?:=([^\]\s]+))?\]?\s*(?:-?\s*(.*))?/
       );
       if (paramMatch) {
+        const defaultValue = paramMatch[3];
+        const baseDesc = paramMatch[4] || '';
+        const desc = defaultValue
+          ? `${baseDesc}${baseDesc ? ' ' : ''}(默认 ${defaultValue})`.trim()
+          : baseDesc;
         params.push({
           name: paramMatch[2],
           type: paramMatch[1],
           optional:
             paramMatch[1].endsWith('=') ||
-            paramMatch[3]?.includes('optional') ||
-            paramMatch[3]?.includes('可选'),
-          description: paramMatch[3] || '',
+            cleaned.includes(`[${paramMatch[2]}`) ||
+            defaultValue !== undefined ||
+            baseDesc.includes('可选'),
+          description: desc,
         });
       }
     } else if (cleaned.startsWith('@returns')) {
