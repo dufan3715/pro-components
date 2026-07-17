@@ -117,8 +117,39 @@ const search = async () => {
 | `searchButton` | 自定义搜索按钮组件         |
 | `resetButton`  | 自定义重置按钮组件         |
 | `expandButton` | 自定义展开按钮组件         |
+| `rowGap`       | 行间距（px），默认 16      |
+| `columnGap`    | 列间距（px），默认 24      |
 
 其余字段会透传到内部的 `SearchForm`/`ProForm`。
+
+## useTable
+
+创建表格对象的 hook。
+
+### 参数
+
+| 参数           | 类型             | 说明                                                        |
+| -------------- | ---------------- | ----------------------------------------------------------- |
+| `columns`      | `Columns<T>`     | 初始列配置                                                  |
+| `dataSource`   | `T[]`            | 初始数据源                                                  |
+| `pageParam`    | `PageParam`      | 初始分页参数，默认 `{ current: 1, pageSize: 10, total: 0 }` |
+| `searchParam`  | `DeepPartial<D>` | 初始搜索参数                                                |
+| `searchFields` | `Fields<D>`      | 搜索表单字段配置（复用 ProForm 的 Field）                   |
+
+### 返回值
+
+| 属性/方法                               | 类型                  | 说明                                                       |
+| --------------------------------------- | --------------------- | ---------------------------------------------------------- |
+| `columns`                               | `Ref<Columns<T>>`     | 列配置数组（响应式）                                       |
+| `dataSource`                            | `Ref<T[]>`            | 数据源数组（响应式）                                       |
+| `pageParam`                             | `Reactive<PageParam>` | 分页参数（响应式），包含 `current`、`pageSize`、`total`    |
+| `searchForm`                            | `Form<D>`             | 搜索表单实例（useForm 返回值）                             |
+| `setColumn(key, column, options?)`      | `-`                   | 设置/更新列配置，支持 `merge`/`rewrite`；column 支持函数式 |
+| `deleteColumn(path, options?)`          | `-`                   | 删除列，`options.all` 批量删除                             |
+| `appendColumn(path, column, options?)`  | `-`                   | 在指定列后追加，传 `undefined` 在末尾追加                  |
+| `prependColumn(path, column, options?)` | `-`                   | 在指定列前插入，传 `undefined` 在开头插入                  |
+| `setPageParam(pageParam)`               | `-`                   | 设置分页参数，支持部分更新和函数式 `(prev) => next`        |
+| `resetQueryParams()`                    | `-`                   | 重置分页和搜索条件到初始值                                 |
 
 ## Types
 

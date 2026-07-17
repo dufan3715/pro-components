@@ -64,16 +64,16 @@ const search = async () => {
 
 ### Props
 
-| 参数名           | 说明                                                       | 类型                                                     | 默认值 |
-| ---------------- | ---------------------------------------------------------- | -------------------------------------------------------- | ------ |
-| table            | useTable 返回对象                                          | Object                                                   | -      |
-| search           | 表格数据查询获取方法                                       | Function                                                 | -      |
-| addIndexColumn   | 是否添加索引列                                             | boolean                                                  | -      |
-| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                  | -      |
-| control          | 是否展示表格 size 和 column 控制按钮                       | boolean                                                  | -      |
-| searchFormConfig | 搜索表单配置                                               | Object                                                   | -      |
-| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component                                                | -      |
-| ...              | 继承 Ant Design Vue Table 组件的所有参数                   | [TableProps](https://antdv.com/components/table-cn/#api) | -      |
+| 参数名           | 说明                                                       | 类型                                                          | 默认值 |
+| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------- | ------ |
+| table            | useTable 返回对象                                          | Table                                                         | -      |
+| search           | 表格数据查询获取方法                                       | `() => Promise<unknown>`                                      | -      |
+| addIndexColumn   | 是否添加索引列                                             | boolean                                                       | -      |
+| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                       | -      |
+| control          | 是否展示表格 size 和 column 控制按钮，支持分别控制         | boolean \| `{ sizeControl: boolean; columnControl: boolean }` | -      |
+| searchFormConfig | 搜索表单配置                                               | SearchFormConfig                                              | -      |
+| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component \| false                                            | -      |
+| ...              | 继承 Ant Design Vue Table 组件的所有参数                   | [TableProps](https://antdv.com/components/table-cn/#api)      | -      |
 
 ### Slots
 
@@ -106,14 +106,48 @@ const search = async () => {
 
 搜索表单的行为配置，常用字段：
 
-| 字段        | 说明                       |
-| ----------- | -------------------------- |
-| `layout`    | `grid` 或 `inline`         |
-| `expand`    | 是否可展开，或配置展开行数 |
-| `hidden`    | 隐藏搜索表单               |
-| `container` | 搜索区域容器组件或 `false` |
+| 字段           | 说明                                                            |
+| -------------- | --------------------------------------------------------------- |
+| `layout`       | `'grid'`（网格布局）或 `'inline'`（行内布局），默认 `'grid'`    |
+| `expand`       | 是否可展开/折叠：`boolean` 或 `{ minExpandRows, expandStatus }` |
+| `hidden`       | 隐藏搜索表单                                                    |
+| `container`    | 搜索区域容器组件或 `false`                                      |
+| `searchButton` | 自定义查询按钮组件或 `false` 隐藏                               |
+| `resetButton`  | 自定义重置按钮组件或 `false` 隐藏                               |
+| `expandButton` | 自定义展开/折叠按钮组件或 `false` 隐藏                          |
+| `rowGap`       | 网格布局行间距，默认 `16`                                       |
+| `columnGap`    | 网格布局列间距，默认 `24`                                       |
 
 其余字段会透传到内部的 `SearchForm`/`ProForm`。
+
+## useTable
+
+创建表格对象的 hook。
+
+### 参数
+
+| 参数           | 类型             | 说明                                                        |
+| -------------- | ---------------- | ----------------------------------------------------------- |
+| `columns`      | `Columns<T>`     | 初始列配置                                                  |
+| `dataSource`   | `T[]`            | 初始数据源                                                  |
+| `pageParam`    | `PageParam`      | 初始分页参数，默认 `{ current: 1, pageSize: 10, total: 0 }` |
+| `searchParam`  | `DeepPartial<D>` | 初始搜索参数                                                |
+| `searchFields` | `Fields<D>`      | 搜索表单字段配置（复用 ProForm 的 Field）                   |
+
+### 返回值
+
+| 属性/方法                               | 类型                  | 说明                                                       |
+| --------------------------------------- | --------------------- | ---------------------------------------------------------- |
+| `columns`                               | `Ref<Columns<T>>`     | 列配置数组（响应式）                                       |
+| `dataSource`                            | `Ref<T[]>`            | 数据源数组（响应式）                                       |
+| `pageParam`                             | `Reactive<PageParam>` | 分页参数（响应式），包含 `current`、`pageSize`、`total`    |
+| `searchForm`                            | `Form<D>`             | 搜索表单实例（useForm 返回值）                             |
+| `setColumn(key, column, options?)`      | `-`                   | 设置/更新列配置，支持 `merge`/`rewrite`；column 支持函数式 |
+| `deleteColumn(path, options?)`          | `-`                   | 删除列，`options.all` 批量删除                             |
+| `appendColumn(path, column, options?)`  | `-`                   | 在指定列后追加，传 `undefined` 在末尾追加                  |
+| `prependColumn(path, column, options?)` | `-`                   | 在指定列前插入，传 `undefined` 在开头插入                  |
+| `setPageParam(pageParam)`               | `-`                   | 设置分页参数，支持部分更新和函数式 `(prev) => next`        |
+| `resetQueryParams()`                    | `-`                   | 重置分页和搜索条件到初始值                                 |
 
 ## Types
 

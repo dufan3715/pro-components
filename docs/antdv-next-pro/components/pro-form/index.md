@@ -197,11 +197,11 @@ const form = useForm({ user: { first: '', last: '' } }, [
 在你的业务项目（如 `env.d.ts` 或 `components.d.ts`）中补充如下内容：
 
 ```typescript
-import 'antdv-next-pro';
+import '@qin-ui/antdv-next-pro';
 import type MyCustomUpload from '@/components/MyCustomUpload.vue';
 import type MySuperInput from '@/components/MySuperInput.vue';
 
-declare module 'antdv-next-pro' {
+declare module '@qin-ui/antdv-next-pro' {
   interface ComponentMap {
     'custom-upload': typeof MyCustomUpload;
     input: typeof MySuperInput;
@@ -217,8 +217,8 @@ declare module 'antdv-next-pro' {
 
 ## 扩展点与最佳实践（简版）
 
-- 动态字段：使用 `setField` 更新字段配置
-- 字段联动：用 `setFormData` + `setField` 实现显隐、禁用、规则联动
+- 动态字段：使用 `appendField` / `prependField` / `deleteField` 进行增删；使用 `setField` 更新字段配置
+- 字段联动：用 `setFormData` + `setField` 实现显隐、禁用、规则联动；使用 `getField` 读取字段配置、`getParentField` 获取父级字段
 - 自定义组件接入：`component` + `ProComponentProvider` 注册，插槽优先级高于 `component`
 - 值格式化：使用 `valueFormatter` 与 `modelProp` 对齐组件的 v-model 习惯
 
@@ -228,20 +228,25 @@ declare module 'antdv-next-pro' {
 
 ### 参数
 
-| 参数         | 类型             | 说明                                     |
-| ------------ | ---------------- | ---------------------------------------- |
-| `initData`   | `DeepPartial<D>` | 表单初始数据                             |
-| `initFields` | `Field<D>[]`     | 表单字段初始配置                         |
-| `root`       | `boolean`        | 是否为根 form 实例（用于嵌套 form 场景） |
+| 参数         | 类型             | 说明                                                                                         |
+| ------------ | ---------------- | -------------------------------------------------------------------------------------------- |
+| `initData`   | `DeepPartial<D>` | 表单初始数据                                                                                 |
+| `initFields` | `Field<D>[]`     | 表单字段初始配置                                                                             |
+| `root`       | `boolean`        | 是否为根 form 实例（用于嵌套 form 场景），默认 `true`。也可作为唯一参数调用 `useForm(root?)` |
 
 ### 返回值
 
-| 属性                       | 类型                             | 说明                                                                    |
-| -------------------------- | -------------------------------- | ----------------------------------------------------------------------- |
-| `formRef`                  | `Ref<FormInstance \| undefined>` | antdv-next `FormInstance` 引用，可调用 `validate`、`resetFields` 等方法 |
-| `formData`                 | `Reactive<D>`                    | 响应式表单数据对象                                                      |
-| `fields`                   | `Ref<Field<D>[]>`                | 响应式字段配置数组                                                      |
-| `getFormData(path?)`       | `(path?) => any`                 | 读取字段值，不传 path 返回全部数据                                      |
-| `setFormData(path, value)` | `-`                              | 设置字段值，value 支持函数形式 `(prev) => next`                         |
-| `setField(path, patch)`    | `-`                              | 动态更新指定字段的配置项                                                |
-| `resetFormData()`          | `-`                              | 将表单数据重置为初始值                                                  |
+| 属性/方法                             | 类型                             | 说明                                                                    |
+| ------------------------------------- | -------------------------------- | ----------------------------------------------------------------------- |
+| `formData`                            | `Reactive<D>`                    | 响应式表单数据对象                                                      |
+| `getFormData(path)`                   | `(path) => any`                  | 读取指定路径的字段值，支持点号分隔的深层路径                            |
+| `setFormData(path, value)`            | `-`                              | 设置字段值，value 支持函数形式 `(prev) => next`                         |
+| `setFormData(value)`                  | `-`                              | 批量设置/函数式更新整个表单数据                                         |
+| `fields`                              | `Ref<Field<D>[]>`                | 响应式字段配置数组                                                      |
+| `getField(path, options?)`            | `-`                              | 获取字段配置，支持路径或查找函数；`options.all` 返回所有匹配            |
+| `setField(path, patch, options?)`     | `-`                              | 更新字段配置，支持 `merge`/`rewrite`；`options.all` 批量更新            |
+| `deleteField(path, options?)`         | `-`                              | 删除字段，`options.all` 批量删除                                        |
+| `appendField(path, field, options?)`  | `-`                              | 在指定字段后追加，传 `undefined` 在末尾追加                             |
+| `prependField(path, field, options?)` | `-`                              | 在指定字段前插入，传 `undefined` 在开头插入                             |
+| `getParentField(path, options?)`      | `-`                              | 获取字段父级，一级字段返回虚拟根容器                                    |
+| `formRef`                             | `Ref<FormInstance \| undefined>` | antdv-next `FormInstance` 引用，可调用 `validate`、`resetFields` 等方法 |

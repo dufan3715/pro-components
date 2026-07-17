@@ -30,11 +30,11 @@ const form = useForm<FormData>({}, [
   },
 ]);
 
-const { formRef, formData } = form;
+const { formRef, formData, setFormData } = form;
 
 const reset = () => {
   formRef.value?.resetValidation();
-  form.resetFormData();
+  setFormData({});
 };
 
 const submit = async () => {

@@ -62,7 +62,7 @@ const form = useForm<FormData>({ name: '' }, [
 | 参数名 | 说明                                    | 类型                                                              | 默认值 |
 | ------ | --------------------------------------- | ----------------------------------------------------------------- | ------ |
 | form   | useForm 返回对象                        | Form                                                              | -      |
-| grid   | 是否启用栅格布局                        | boolean \| [GridProps](https://antdv.com/components/grid-cn/#api) | -      |
+| grid   | 是否启用栅格布局                        | boolean \| [GridProps](https://antdv.com/components/grid-cn/#api) | false  |
 | ...    | 继承 Ant Design Vue Form 组件的所有参数 | [FormProps](https://antdv.com/components/form-cn/#form)           | -      |
 
 ### Events
@@ -85,25 +85,28 @@ const form = useForm<FormData>({ name: '' }, [
 
 去向：公共属性会被 `BaseFormItem`/`BaseField` 解析并分发到对应层级。
 
-| 字段                 | 说明                                     |
-| -------------------- | ---------------------------------------- |
-| `path`               | 字段标识 namePath，同 FormItem 的 `name` |
-| `hidden`             | 字段是否隐藏                             |
-| `disabled`           | 字段是否禁用                             |
-| `label`              | 字段标题，支持字符串或 VNode             |
-| `component`          | 指定渲染组件名称或组件对象               |
-| `slots`              | 字段插槽配置（FormItem 与组件插槽）      |
-| `formItemStyle`      | FormItem 样式                            |
-| `formItemClass`      | FormItem 类名                            |
-| `formItemContainer`  | FormItem 外层包裹组件                    |
-| `formItemDataAttrs`  | 附加到 FormItem DOM 的属性               |
-| `componentStyle`     | 组件样式                                 |
-| `componentClass`     | 组件类名                                 |
-| `componentContainer` | 组件外层包裹组件                         |
-| `componentDataAttrs` | 附加到组件 DOM 的属性                    |
-| `valueFormatter`     | 值格式化（get/set 或单函数）             |
-| `modelProp`          | v-model 属性名，默认 `value`             |
-| `extraProps`         | 不参与渲染，仅用于业务侧自定义标识       |
+| 字段                 | 说明                                             |
+| -------------------- | ------------------------------------------------ |
+| `path`               | 字段标识 namePath，同 FormItem 的 `name`         |
+| `hidden`             | 字段是否隐藏                                     |
+| `disabled`           | 字段是否禁用                                     |
+| `label`              | 字段标题，支持字符串或 VNode                     |
+| `slots`              | 字段插槽配置（FormItem 与组件插槽）              |
+| `formItemStyle`      | FormItem 样式                                    |
+| `formItemClass`      | FormItem 类名                                    |
+| `formItemContainer`  | FormItem 外层包裹组件                            |
+| `formItemDataAttrs`  | 附加到 FormItem DOM 的属性                       |
+| `componentStyle`     | 组件样式（仅非嵌套字段有效）                     |
+| `componentClass`     | 组件类名（仅非嵌套字段有效）                     |
+| `componentContainer` | 组件外层包裹组件（仅非嵌套字段有效）             |
+| `componentDataAttrs` | 附加到组件 DOM 的属性（仅非嵌套字段有效）        |
+| `valueFormatter`     | 值格式化 get/set 或单函数（仅非嵌套字段有效）    |
+| `modelProp`          | v-model 属性名，默认 `value`（仅非嵌套字段有效） |
+| `extraProps`         | 不参与渲染，仅用于业务侧自定义标识               |
+
+> **注意**：`component` 是 Field 级别的属性（不在 Base 类型中），用于指定渲染的组件名称或组件对象。对于内置组件，类型为组件名字符串（如 `'input'`、`'select'`）；对于自定义组件，需配合 `'custom'` 类型使用或通过 `ProComponentProvider` 注册。
+>
+> `componentStyle` / `componentClass` / `componentContainer` / `valueFormatter` / `modelProp` / `componentDataAttrs` 仅对非嵌套字段（即不含 `fields` 子字段的字段）有效。嵌套字段使用 `grid` 控制布局。
 
 ### Nested（嵌套字段）
 
@@ -229,27 +232,29 @@ declare module 'antd-vue-pro' {
 
 创建表单对象的hook
 
-##### 入参
+### 参数
 
-| 参数名        | 说明                                 | 类型    | 默认值 |
-| ------------- | ------------------------------------ | ------- | ------ |
-| 参数1（可选） | 表单初始数据对象                     | Object  | {}     |
-| 参数2（可选） | 表单字段配置                         | Fields  | []     |
-| 参数3（可选） | 是否是根表单，存在表单嵌表单时会使用 | boolean | true   |
+| 参数         | 类型             | 说明                                     | 默认值 |
+| ------------ | ---------------- | ---------------------------------------- | ------ |
+| `initData`   | `DeepPartial<D>` | 表单初始数据                             | `{}`   |
+| `initFields` | `Field<D>[]`     | 表单字段初始配置                         | `[]`   |
+| `root`       | `boolean`        | 是否为根 form 实例（用于嵌套 form 场景） | `true` |
+
+> `useForm` 支持两种调用方式：`useForm(initData?, initFields?, root?)` 或 `useForm(root?)`（仅传入 root 标识获取/创建根表单）。
 
 ##### 出参 **Form**
 
-| 属性名         | 说明                             |
-| -------------- | -------------------------------- |
-| formData       | 表单数据对象                     |
-| getFormData    | 根据字段path获取对应字段值       |
-| setFormData    | 根据字段path更新对应字段值       |
-| fields         | 字段配置                         |
-| setField       | 根据字段path设置字段配置         |
-| getField       | 根据字段path获取字段配置         |
-| deleteField    | 根据字段path删除字段配置         |
-| appendField    | 在指定字段后追加一个字段         |
-| prependField   | 在指定字段前插入一个字段         |
-| getParentField | 根据字段path获取字段所属父级字段 |
-| formRef        | 表单组件实例引用                 |
-| setFormRef     | 设置组件实例引用                 |
+| 属性名         | 说明                                                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| formData       | 响应式表单数据对象，可直接读写                                                                                             |
+| getFormData    | 根据字段 path 获取字段值，不传 path 返回全部数据                                                                           |
+| setFormData    | 设置字段值：`setFormData(path, value)` 或 `setFormData(path, prev => next)` 函数式更新；也可 `setFormData(value)` 批量覆盖 |
+| fields         | 字段配置数组（响应式 Ref）                                                                                                 |
+| setField       | 更新字段配置，默认合并（merge），可通过 `{ updateType: 'rewrite' }` 覆盖                                                   |
+| getField       | 获取字段配置，支持路径字符串或查找函数 `f => f.label === '...'`                                                            |
+| deleteField    | 删除字段配置，支持 `{ all: true }` 批量删除所有匹配项                                                                      |
+| appendField    | 在指定字段后追加新字段，传 `undefined` 在末尾追加                                                                          |
+| prependField   | 在指定字段前插入新字段，传 `undefined` 在开头插入                                                                          |
+| getParentField | 获取字段所属父级字段配置，一级字段返回虚拟根容器                                                                           |
+| formRef        | 底层 Ant Design Vue Form 组件实例引用（Ref），可调用 `validate()`、`resetFields()` 等                                      |
+| setFormRef     | 设置 Form 组件实例，由 ProForm 内部自动调用，一般无需手动使用                                                              |

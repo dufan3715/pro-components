@@ -35,11 +35,11 @@ import Demo from './demo.vue'
 ### 类型声明示例
 
 ```ts
-import 'antdv-next-pro';
+import '@qin-ui/antdv-next-pro';
 import type TextDisplay from './TextDisplay.vue';
 import type CustomInput from '../custom-component/CustomInput.vue';
 
-declare module 'antdv-next-pro' {
+declare module '@qin-ui/antdv-next-pro' {
   interface ComponentMap {
     text: typeof TextDisplay;
     input: typeof CustomInput;
