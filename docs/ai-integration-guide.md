@@ -11,11 +11,14 @@
 npx @qin-ui/antdv-next-pro init-ai
 ```
 
-该命令会在项目中生成如下格式的规则文件：
+该命令会在项目中生成双载体 AI 上下文文件：
 
-- `.agents/rules/<pkg>.md`
+- `AGENTS.md` — 核心使用规则（项目根目录，跨工具自动注入，支持多库共存）
+- `.agents/skills/<pkg>.md` — 完整 API 参考（按需调取）
 
-> 提示：其他包（如 `antd-vue-pro`, `element-plus-pro`, `vant-pro`）使用方式相同。生成后，请将 `.agents/` 目录提交到 Git 代码库。
+生成的 `AGENTS.md` 使用标记区块（`<!-- BEGIN @qin-ui/xxx -->` ... `<!-- END @qin-ui/xxx -->`），重复执行 `init-ai` 可安全更新，不会破坏其他库写入的指令。
+
+> 提示：其他包（如 `antd-vue-pro`, `element-plus-pro`, `vant-pro`）使用方式相同。生成后，请将 `AGENTS.md` 与 `.agents/` 目录提交到 Git 代码库。
 
 ---
 
@@ -47,7 +50,8 @@ AI 工具会自动获得以下能力：
 
 - ✅ `useForm<User>()` 中 `User` 类型的路径自动补全
 - ✅ `Field` 配置中 `component` 属性可选值（'input' | 'select' | ...）
-- ✅ `form.getField()`、`form.setField()` 等方法的参数类型
+- ✅ `form.getField()`、`form.setField()`、`form.deleteField()`、`form.appendField()`、`form.prependField()`、`form.getParentField()` 等方法的参数类型
+- ✅ `form.setFormData(path, value)` 支持路径设值与函数式更新，`form.setFormData(value)` 批量覆盖
 - ✅ ProForm、ProTable 组件的 props 类型
 
 ## 提升 AI 理解深度的可选方案
@@ -101,26 +105,28 @@ AI 工具会自动获得以下能力：
 
 ### 表单（ProForm）
 
-- 使用 `useForm<DataType>()` 创建表单实例
+- 使用 `useForm<DataType>()` 创建表单实例，支持 `useForm(initData, initFields, root?)` 三种调用方式
 - 字段配置通过 `fields` 数组，每个字段包含 `path`、`label`、`component` 等
 - 支持字段联动、嵌套字段、自定义组件
+- 实例方法：`getFormData` / `setFormData`（路径+批量）/ `getField` / `setField` / `deleteField` / `appendField` / `prependField` / `getParentField` + `formRef`
 
 ### 表格（ProTable）
 
 - 使用 `useTable<SearchType, DataType>()` 创建表格实例
-- 列配置通过 `columns` 数组，推荐使用 `dataIndex` 字段
+- 列配置通过 `columns` 数组，推荐使用 `dataIndex` 字段（element-plus-pro 使用 `prop`）
 - 包含搜索表单、分页、列操作等能力
+- 实例属性：`columns` / `dataSource`（element-plus-pro 为 `data`）/ `pageParam` / `searchForm` + `setColumn` / `deleteColumn` / `appendColumn` / `prependColumn` / `setPageParam` / `resetQueryParams`
 ```
 
 ## AI 理解程度对照表
 
-| 场景                       | 无 JSDoc         | 有 JSDoc + 类型             | 有 JSDoc + 类型 + AI-CONTEXT.md |
-| -------------------------- | ---------------- | --------------------------- | ------------------------------- |
-| `useForm` 返回类型         | `any` 或部分类型 | 完整类型推导 + 参数说明     | 同上 + 最佳实践示例             |
-| `Field` 配置建议           | 无法智能补全     | 支持补全 path、component 等 | 同上 + 知道典型用法             |
-| `form.getField()` 参数类型 | 可能建议错误类型 | 正确推导路径字符串          | 同上                            |
-| 组件 props 提示            | 基本属性         | 完整属性 + 类型说明         | 同上 + 知道典型用法             |
-| 错误诊断                   | 可能误判         | 准确识别类型错误            | 同上 + 知道最佳实践             |
+| 场景                                                | 无 JSDoc         | 有 JSDoc + 类型             | 有 JSDoc + 类型 + AI-CONTEXT.md |
+| --------------------------------------------------- | ---------------- | --------------------------- | ------------------------------- |
+| `useForm` 返回类型                                  | `any` 或部分类型 | 完整类型推导 + 参数说明     | 同上 + 最佳实践示例             |
+| `Field` 配置建议                                    | 无法智能补全     | 支持补全 path、component 等 | 同上 + 知道典型用法             |
+| `form.getField()` / `form.deleteField()` 等参数类型 | 可能建议错误类型 | 正确推导路径字符串          | 同上                            |
+| 组件 props 提示                                     | 基本属性         | 完整属性 + 类型说明         | 同上 + 知道典型用法             |
+| 错误诊断                                            | 可能误判         | 准确识别类型错误            | 同上 + 知道最佳实践             |
 
 ## 最佳实践总结
 
