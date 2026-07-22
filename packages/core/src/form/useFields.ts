@@ -1,4 +1,4 @@
-import { Ref, ref } from 'vue';
+import { isRef, Ref, ref, toRaw } from 'vue';
 import { Data, Path } from '../shared/types';
 import { get, toPath } from '../shared/utils';
 import {
@@ -412,7 +412,19 @@ const useFields = <
         if (updateType === 'rewrite') {
           parentField.fields![fieldIndex] = value as F;
         } else {
-          Object.assign(preField, value);
+          // 合并更新。Object.assign 无法覆盖只读 ref（如 computed）属性：Vue 的 reactive
+          // set 拦截器在 isReadonly(oldValue) && isRef(oldValue) && !isRef(value) 时会
+          // 直接 return false 并告警，导致该属性仍指向原 ComputedRef。这里对「旧值是 ref、
+          // 新值不是 ref」的属性先 delete 再赋值，使其被原始值真正替换。
+          // 注意：旧值必须通过 toRaw 读取，否则 reactive proxy 的 get 会自动 unwrap ref，
+          // 导致 isRef 判断恒为 false。
+          const rawTarget = toRaw(preField);
+          for (const key of Object.keys(value)) {
+            if (isRef((rawTarget as any)[key]) && !isRef((value as any)[key])) {
+              delete (preField as any)[key];
+            }
+            (preField as any)[key] = (value as any)[key];
+          }
         }
       },
       rest
