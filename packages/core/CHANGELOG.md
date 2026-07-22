@@ -1,5 +1,11 @@
 # @qin-ui/pro-components-core
 
+## 1.0.4
+
+### Patch Changes
+
+- 修复 `setField` 在 merge 模式下无法覆盖 `computed`/`ref`（只读 ref）属性的问题。旧实现使用 `Object.assign`，会触发 Vue reactive 对只读 ref 的 set 拦截而静默失败，导致该属性仍指向原 `ComputedRef`。改为对「旧值是 ref、新值非 ref」的属性先 `delete` 再赋值，使其被原始值真正替换。
+
 ## 1.0.3
 
 ### Patch Changes
