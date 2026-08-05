@@ -46,7 +46,8 @@ npx @qin-ui/element-plus-pro init-ai
 将在项目中生成双载体 AI 上下文，使 Cursor / Claude Code / Codex 等 AI 工具深度理解本库的 Schema 驱动用法与属性透传规则：
 
 - `AGENTS.md` - 核心使用规则（跨工具开放约定，会话时自动注入，AI 默认加载）
-- `.agents/skills/element-plus-pro.md` - 完整 API 参考（支持 skills 发现的工具按需调取）
+- `.agents/skills/element-plus-pro/SKILL.md` — skills 入口（速查 + 参考导航）
+- `.agents/skills/element-plus-pro/references/` — 完整使用文档与结构化 API 元数据
 
 > 生成的 `AGENTS.md` 使用标记区块写入，重复执行 `init-ai` 可安全更新，不影响项目内其他库的指令。建议将生成的文件提交到 Git 仓库，团队共享 AI 上下文。
 
@@ -200,21 +201,22 @@ ProForm/ProTable 是渲染引擎，所有真实 UI 来自 element-plus。**Field
 
 ProComponentProvider 内置了一套默认属性预设，**即使不配置 `component-vars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。以下为各组件的内置默认值（写代码时需知晓，避免行为与预期不符）：
 
-| component                                              | 默认预设                                                                                                                                                                                                                       |
-| :----------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `switch`                                               | `{ modelProp: 'modelValue' }` -- v-model 绑定 `modelValue`（element-plus 惯例，即 `v-model`）                                                                                                                                  |
-| `input`                                                | `{ maxlength: 100, clearable: true, placeholder: '请输入' }`                                                                                                                                                                   |
-| `input.textarea`                                       | `{ maxlength: 200, autosize: { minRows: 3, maxRows: 6 }, showWordLimit: true, clearable: true, placeholder: '请输入' }`                                                                                                        |
-| `input.password`                                       | `{ showPassword: true, maxlength: 100, clearable: true, placeholder: '请输入' }`                                                                                                                                               |
-| `input-number`                                         | `{ max: 1e15-1, min: -(1e15+1), controls: false, placeholder: '请输入', style: { width: '100%' } }`                                                                                                                            |
-| `select` / `cascader` / `autocomplete` / `tree-select` | `{ clearable: true, placeholder: '请选择' }`                                                                                                                                                                                   |
-| `date-picker` / `time-picker` / `time-select`          | `{ style: { width: '100%' }, placeholder: '请选择' }`                                                                                                                                                                          |
-| `pro-form`                                             | `{ grid: { gutter: 24 } }`                                                                                                                                                                                                     |
-| `pro-form-item`                                        | `{ span: 8 }`                                                                                                                                                                                                                  |
-| `pro-table`                                            | `{ pagination: { layout: 'total,sizes,prev,pager,next,jumper', pageSizes: [10,20,30,40,50,100], background: true }, searchFormConfig: { layout: 'grid', expand: { minExpandRows: 2 } }, control: true, addIndexColumn: true }` |
+| component                                     | 默认预设                                                                                                                                                                                                                                            |
+| :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `switch`                                      | `{ modelProp: 'modelValue' }` -- v-model 绑定 `modelValue`（element-plus 惯例，即 `v-model`）                                                                                                                                                       |
+| `input`                                       | `{ maxlength: 100, clearable: true, placeholder: '请输入' }`                                                                                                                                                                                        |
+| `input.textarea`                              | `{ maxlength: 200, autosize: { minRows: 3, maxRows: 6 }, showWordLimit: true, clearable: true, placeholder: '请输入' }`                                                                                                                             |
+| `input.password`                              | `{ showPassword: true, maxlength: 100, clearable: true, placeholder: '请输入' }`                                                                                                                                                                    |
+| `input-number`                                | `{ max: 1e15-1, min: -(1e15+1), controls: false, placeholder: '请输入', style: { width: '100%' } }`                                                                                                                                                 |
+| `select` / `cascader` / `tree-select`         | `{ clearable: true, placeholder: '请选择' }`                                                                                                                                                                                                        |
+| `autocomplete`                                | `{ clearable: true, placeholder: '请输入' }`                                                                                                                                                                                                        |
+| `date-picker` / `time-picker` / `time-select` | `{ style: { width: '100%' }, placeholder: '请选择' }`                                                                                                                                                                                               |
+| `pro-form`                                    | `{ grid: { gutter: 24 } }`                                                                                                                                                                                                                          |
+| `pro-form-item`                               | `{ span: 8 }`                                                                                                                                                                                                                                       |
+| `pro-table`                                   | `{ pagination: { layout: 'total,sizes,prev,pager,next,jumper', pageSizes: [10,20,30,40,50,100], background: true }, searchFormConfig: { layout: 'grid', expand: { minExpandRows: 2, expandStatus: false } }, control: true, addIndexColumn: true }` |
 
 > `modelProp` 控制 v-model 绑定的属性名，element-plus 默认 `'modelValue'`（即 `v-model`）。`switch` 经预设同样为 `modelValue`，通常无需手动设置。
-> `date-picker` 支持按 type 子类型分别预设：`date-picker.date` / `.daterange` / `.datetime` / `.week` / `.month` / `.monthrange` / `.year` / `.yearrange` 等。
+> `date-picker` 支持按 type 子类型分别预设：`date-picker.date` / `.dates` / `.daterange` / `.datetime` / `.datetimerange` / `.week` / `.month` / `.monthrange` / `.months` / `.year` / `.yearrange` / `.years` 等。
 
 ---
 
@@ -241,7 +243,12 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 | 参数名             | 说明                                                      | 类型                                   | 默认值  |
 | :----------------- | :-------------------------------------------------------- | :------------------------------------- | :------ |
 | `table`            | 由 `useTable` 返回的表格实例                              | `Table`                                | -       |
+| `columns`          | 覆盖实例列配置，传入后优先于 `table.columns`              | `Column[]`                             | -       |
+| `data`             | 覆盖实例数据源，传入后优先于 `table.data`                 | `T[]`                                  | -       |
+| `pagination`       | 分页配置，传 `false` 禁用分页                             | `false \| PaginationProps`             | -       |
 | `search`           | 触发表格查询的回调函数，需返回 Promise 或直接返回查询数据 | `(params: any) => Promise<any> \| any` | -       |
+| `size`             | 表格尺寸（v-model）                                       | `string`                               | -       |
+| `loading`          | 表格加载状态（v-model）                                   | `boolean`                              | -       |
 | `addIndexColumn`   | 是否自动在表格首列插入序号列                              | `boolean`                              | `false` |
 | `immediateSearch`  | 表格挂载时（onMounted）是否立即触发一次 `search` 查询     | `boolean`                              | `false` |
 | `control`          | 是否在表格右上角工具栏中展示尺寸调节和列动态显示控制按钮  | `boolean`                              | `true`  |
@@ -302,19 +309,19 @@ const form = useForm<D>(initFormData?, initFields?, root?)
 
 #### 返回值 (Form 实例)
 
-| 属性/方法                      | 说明                                                                                | 类型                             |
-| :----------------------------- | :---------------------------------------------------------------------------------- | :------------------------------- |
-| `formData`                     | 响应式表单数据对象（由 reactive 包装）                                              | `Reactive<D>`                    |
-| `fields`                       | 响应式表单字段配置数组引用                                                          | `Ref<Field[]>`                   |
-| `formRef`                      | 底层 Element Plus `el-form` 的组件引用实例                                          | `Ref<FormInstance \| undefined>` |
-| `getFormData(path)`            | 安全获取指定字段路径（支持深层 'a.b'）的数据值                                      | `(path) => any`                  |
-| `setFormData(path, val)`       | 安全更新指定路径的值，支持批量对象或函数式更新                                      | `(path, val) => void`            |
-| `getField(path, opts?)`        | 获取指定 path 的字段配置，支持查找函数定位，支持配置 `{ all: true }` 获取所有匹配项 | `(path, opts) => Field`          |
-| `setField(path, patch, opts?)` | 增量更新指定字段的配置参数（如改变 label、hidden 等），支持 merge 或 rewrite 更新   | `(path, patch, opts) => void`    |
-| `deleteField(path)`            | 从当前配置数组中删除特定 path 的表单字段配置                                        | `(path) => void`                 |
-| `appendField(path, field)`     | 在特定的字段 path 后面，动态追加一个新的表单字段配置                                | `(path, field) => void`          |
-| `prependField(path, field)`    | 在特定的字段 path 前面，动态插入一个新的表单字段配置                                | `(path, field) => void`          |
-| `getParentField(path)`         | 查找获取当前子字段的父级配置项，一级字段返回虚拟根容器                              | `(path) => Field`                |
+| 属性/方法                          | 说明                                                                                                                           | 类型                             |
+| :--------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- | :------------------------------- |
+| `formData`                         | 响应式表单数据对象（由 reactive 包装）                                                                                         | `Reactive<D>`                    |
+| `fields`                           | 响应式表单字段配置数组引用                                                                                                     | `Ref<Field[]>`                   |
+| `formRef`                          | 底层 Element Plus `el-form` 的组件引用实例                                                                                     | `Ref<FormInstance \| undefined>` |
+| `getFormData(path)`                | 安全获取指定字段路径（支持深层 'a.b'）的数据值                                                                                 | `(path) => any`                  |
+| `setFormData(path, val)`           | 安全更新指定路径的值，支持 4 种形态：路径+值、路径+函数、批量对象、函数式批量 `setFormData(prev => ({...}))`                   | `(path, val) => void`            |
+| `getField(path, opts?)`            | 获取指定 path 的字段配置，支持查找函数定位，支持配置 `{ all: true }` 获取所有匹配项                                            | `(path, opts) => Field`          |
+| `setField(path, patch, opts?)`     | 默认合并更新字段配置；`{updateType:'rewrite'}` 覆盖；支持函数式 `setField(path, prev=>({...}))`；`{all:true}` 批量更新所有匹配 | `(path, patch, opts) => void`    |
+| `deleteField(path, opts?)`         | 删除字段配置；`{all:true}` 删除所有匹配的字段                                                                                  | `(path, opts?) => void`          |
+| `appendField(path, field, opts?)`  | 在指定字段后追加新字段（入参可为数组）；`undefined` 在末尾追加；`{all:true}` 所有匹配后追加                                    | `(path, field, opts?) => void`   |
+| `prependField(path, field, opts?)` | 在指定字段前插入新字段（入参可为数组）；`undefined` 在开头插入；`{all:true}` 所有匹配前插入                                    | `(path, field, opts?) => void`   |
+| `getParentField(path, opts?)`      | 查找父级字段配置；`{all:true}` 返回所有匹配的父级字段                                                                          | `(path, opts?) => Field`         |
 
 ---
 
@@ -358,6 +365,7 @@ const table = useTable<D, T>({
 - **原生列属性支持**：`prop`、`label`、`width`、`fixed`、`align`、`sortable`、`filters`、`filterMethod`、`children` 等
 - **原生格式化支持**：`formatter`
 - **Pro 级扩展属性**：
+  - `key` (辅助标识，优先级低于 `prop`)
   - `hidden` (是否隐藏列，支持响应式)
   - `render(scope)` (自定义渲染插槽，接收行参数)
 
@@ -397,7 +405,7 @@ const table = useTable<D, T>({
 
 #### `valueFormatter` 字段值转换
 
-控制表单值与组件值之间的转换。在 `onUpdate:modelValue` 之前（即 v-model 写回前）执行，支持两种形态：
+控制表单值与组件值之间的转换。在表单数据写入前（computed setter 中，于 `onUpdate:modelValue` 写回前）执行，支持两种形态。**函数形态仅 set（写入）方向生效，读取时不转换；对象形态 get/set 双向生效：**
 
 ```ts
 // 函数形态：(新值, 旧值) => 转换后的值，写回 formData

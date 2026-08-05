@@ -30,7 +30,7 @@
     "url": "git+https://github.com/dufan3715/pro-components.git"
   },
   "scripts": {
-    "prebuild": "tsx ../../scripts/generate-api-json.ts vant-pro",
+    "prebuild": "tsx ../../scripts/generate-api-json.ts vant-pro && tsx ../../scripts/generate-init-ai.ts vant-pro",
     "build": "vue-tsc --noEmit && vite build",
     "prepublishOnly": "pnpm build"
   },

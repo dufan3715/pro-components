@@ -33,3 +33,6 @@ docs/**/.vitepress/dist
 # Generated API JSON files
 api.json
 packages/*/api.json
+
+# Generated init-ai CLI (from scripts/init-ai.template.mjs via generate-init-ai.ts)
+packages/*/bin/init-ai.mjs

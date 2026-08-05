@@ -52,7 +52,8 @@ npx @qin-ui/vant-pro init-ai
 将在项目中生成双载体 AI 上下文，使 Cursor / Claude Code / Codex 等 AI 工具深度理解本库的 Schema 驱动用法与属性透传规则：
 
 - `AGENTS.md` - 核心使用规则（跨工具开放约定，会话时自动注入，AI 默认加载）
-- `.agents/skills/vant-pro.md` - 完整 API 参考（支持 skills 发现的工具按需调取）
+- `.agents/skills/vant-pro/SKILL.md` — skills 入口（速查 + 参考导航）
+- `.agents/skills/vant-pro/references/` — 完整使用文档与结构化 API 元数据
 
 > 生成的 `AGENTS.md` 使用标记区块写入，重复执行 `init-ai` 可安全更新，不影响项目内其他库的指令。建议将生成的文件提交到 Git 仓库，团队共享 AI 上下文。
 
@@ -202,20 +203,20 @@ const form = useForm<FormDataType>(initialData, fields, root?)
 
 **返回值 (Form 实例)**（`formData` 是 reactive 对象，不用 `.value`）：
 
-| 属性/方法                      | 说明                                                                                          | 类型                             |
-| :----------------------------- | :-------------------------------------------------------------------------------------------- | :------------------------------- |
-| `formData`                     | 响应式表单数据对象，可直接读写，支持深层路径                                                  | `Reactive<D>`                    |
-| `fields`                       | 响应式表单字段配置数组引用                                                                    | `Ref<Field[]>`                   |
-| `formRef`                      | 底层 Vant Form 组件实例引用                                                                   | `Ref<FormInstance \| undefined>` |
-| `getFormData(path)`            | 安全获取指定字段路径（支持深层 'a.b'）的数据值                                                | `(path?) => any`                 |
-| `setFormData(path, val)`       | 安全更新指定路径的值，支持批量对象或函数式更新                                                | `(path, val) => void`            |
-| `getField(path, opts?)`        | 获取指定 path 的字段配置，支持查找函数定位                                                    | `(path, opts) => Field`          |
-| `setField(path, patch, opts?)` | 增量更新指定字段的配置参数（如 label、hidden 等），支持 merge 或 rewrite 更新                 | `(path, patch, opts) => void`    |
-| `deleteField(path)`            | 删除特定 path 的表单字段配置                                                                  | `(path) => void`                 |
-| `appendField(path, field)`     | 在指定字段 path 后面动态追加新字段                                                            | `(path, field) => void`          |
-| `prependField(path, field)`    | 在指定字段 path 前面动态插入新字段                                                            | `(path, field) => void`          |
-| `getParentField(path)`         | 查找获取当前子字段的父级配置项，一级字段返回虚拟根容器                                        | `(path) => Field`                |
-| `formPopup`                    | **vant 独有**：弹窗管理对象，`open(path)` / `close()` / `visible` / `props` / `updateProps()` | `FormPopup`                      |
+| 属性/方法                          | 说明                                                                                                                                                                  | 类型                             |
+| :--------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------- |
+| `formData`                         | 响应式表单数据对象，可直接读写，支持深层路径                                                                                                                          | `Reactive<D>`                    |
+| `fields`                           | 响应式表单字段配置数组引用                                                                                                                                            | `Ref<Field[]>`                   |
+| `formRef`                          | 底层 Vant Form 组件实例引用                                                                                                                                           | `Ref<FormInstance \| undefined>` |
+| `getFormData(path)`                | 安全获取指定字段路径（支持深层 'a.b'）的数据值                                                                                                                        | `(path?) => any`                 |
+| `setFormData(path, val)`           | 安全更新指定路径的值；`(path, val)` 单值、`(path, prev=>new)` 函数式更新、`({...})` 批量覆盖整个表单（先清空再写入）、`(prev=>({...prev, name:'新'}))` 函数式批量更新 | `(path?, val?) => void`          |
+| `getField(path, opts?)`            | 获取字段配置；支持路径字符串或查找函数 `getField(f => f.label==='姓名')`；`{ all: true }` 选项返回所有匹配数组                                                        | `(path, opts) => Field\|Field[]` |
+| `setField(path, patch, opts?)`     | 更新字段配置（默认合并）；`{ updateType: 'rewrite' }` 覆盖；支持函数式 `setField(path, prev=>({...}))`；`{ all: true }` 批量更新所有匹配                              | `(path, patch, opts) => void`    |
+| `deleteField(path, opts?)`         | 删除字段配置；`{ all: true }` 删除所有匹配字段                                                                                                                        | `(path, opts?) => void`          |
+| `appendField(path, field, opts?)`  | 在指定字段后追加新字段（入参可为数组）；`undefined` 在末尾追加；`{all:true}` 所有匹配后追加                                                                           | `(path, field, opts?) => void`   |
+| `prependField(path, field, opts?)` | 在指定字段前插入新字段（入参可为数组）；`undefined` 在开头插入；`{all:true}` 所有匹配前插入                                                                           | `(path, field, opts?) => void`   |
+| `getParentField(path, opts?)`      | 查找父级字段配置；`{all:true}` 返回所有匹配的父级字段                                                                                                                 | `(path, opts?) => Field`         |
+| `formPopup`                        | **vant 独有**：弹窗管理对象，`open(path)` / `close()` / `visible` / `props` / `updateProps()`                                                                         | `FormPopup`                      |
 
 > 校验与重置通过 `formRef` 调用 vant 原生方法：`form.formRef.value?.validate()`、`form.formRef.value?.resetValidation()`。
 
@@ -279,7 +280,7 @@ formPopup.updateProps({ position: 'top' }); // 更新弹窗属性
 
 ##### `valueFormatter` 字段值转换
 
-控制表单值与组件值之间的转换（如 Picker 的数组与字符串互转）。在 `onUpdate:modelValue` 之前执行，支持两种形态：
+控制表单值与组件值之间的转换（如 Picker 的数组与字符串互转）。在表单数据写入前（computed setter 中，于 `onUpdate:modelValue` 写回前）执行，支持两种形态。**函数形态仅 set（写入）方向生效，读取时不转换；对象形态 get/set 双向生效：**
 
 ```ts
 // 函数形态：(新值, 旧值) => 转换后的值，写回 formData

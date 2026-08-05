@@ -19,6 +19,7 @@
     "lint": "pnpm lint:eslint && pnpm lint:stylelint && pnpm lint:prettier",
     "lint:lint-staged": "lint-staged -c lint-staged.config.mjs",
     "generate:api": "tsx scripts/generate-api-json.ts",
+    "generate:init-ai": "tsx scripts/generate-init-ai.ts",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm -r --filter \"./packages/*\" build && changeset publish",

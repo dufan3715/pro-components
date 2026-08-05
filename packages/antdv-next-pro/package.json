@@ -35,7 +35,7 @@
     "url": "git+https://github.com/dufan3715/pro-components.git"
   },
   "scripts": {
-    "prebuild": "tsx ../../scripts/generate-api-json.ts antdv-next-pro",
+    "prebuild": "tsx ../../scripts/generate-api-json.ts antdv-next-pro && tsx ../../scripts/generate-init-ai.ts antdv-next-pro",
     "build": "vue-tsc --noEmit && vite build",
     "prepublishOnly": "pnpm build"
   },

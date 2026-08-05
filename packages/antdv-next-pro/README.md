@@ -46,7 +46,8 @@ npx @qin-ui/antdv-next-pro init-ai
 将在项目中生成双载体 AI 上下文，使 Cursor / Claude Code / Codex 等 AI 工具深度理解本库的 Schema 驱动用法与属性透传规则：
 
 - `AGENTS.md` - 核心使用规则（跨工具开放约定，会话时自动注入，AI 默认加载）
-- `.agents/skills/antdv-next-pro.md` - 完整 API 参考（支持 skills 发现的工具按需调取）
+- `.agents/skills/antdv-next-pro/SKILL.md` — skills 入口（速查 + 参考导航）
+- `.agents/skills/antdv-next-pro/references/` — 完整使用文档与结构化 API 元数据
 
 > 生成的 `AGENTS.md` 使用标记区块写入，重复执行 `init-ai` 可安全更新，不影响项目内其他库的指令。建议将生成的文件提交到 Git 仓库，团队共享 AI 上下文。
 
@@ -90,19 +91,19 @@ const form = useForm<FormData>({}, [
 
 ### `useForm` 返回值 (Form 实例)
 
-| 属性/方法                      | 说明                                                                               | 类型                             |
-| :----------------------------- | :--------------------------------------------------------------------------------- | :------------------------------- |
-| `formData`                     | 响应式表单数据对象，可直接读写，支持深层路径                                       | `Reactive<D>`                    |
-| `fields`                       | 响应式表单字段配置数组引用                                                         | `Ref<Field[]>`                   |
-| `formRef`                      | 底层 antdv-next 原生 [FormInstance](https://antdv-next.com/components/form-cn#api) | `Ref<FormInstance \| undefined>` |
-| `getFormData(path?)`           | 安全获取指定字段路径（支持深层 'a.b'）的数据值                                     | `(path?) => any`                 |
-| `setFormData(path, val)`       | 安全更新指定路径的值，支持批量对象或函数式更新                                     | `(path, val) => void`            |
-| `getField(path, opts?)`        | 获取指定 path 的字段配置，支持查找函数定位                                         | `(path, opts) => Field`          |
-| `setField(path, patch, opts?)` | 增量更新指定字段的配置参数（如 label、hidden 等），支持 merge 或 rewrite 更新      | `(path, patch, opts) => void`    |
-| `deleteField(path)`            | 删除特定 path 的表单字段配置                                                       | `(path) => void`                 |
-| `appendField(path, field)`     | 在指定字段 path 后面动态追加新字段                                                 | `(path, field) => void`          |
-| `prependField(path, field)`    | 在指定字段 path 前面动态插入新字段                                                 | `(path, field) => void`          |
-| `getParentField(path)`         | 查找获取当前子字段的父级配置项，一级字段返回虚拟根容器                             | `(path) => Field`                |
+| 属性/方法                      | 说明                                                                                                                                                | 类型                             |
+| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------- |
+| `formData`                     | 响应式表单数据对象，可直接读写，支持深层路径                                                                                                        | `Reactive<D>`                    |
+| `fields`                       | 响应式表单字段配置数组引用                                                                                                                          | `Ref<Field[]>`                   |
+| `formRef`                      | 底层 antdv-next 原生 [FormInstance](https://antdv-next.com/components/form-cn#api)                                                                  | `Ref<FormInstance \| undefined>` |
+| `getFormData(path?)`           | 安全获取指定字段路径（支持深层 'a.b'）的数据值                                                                                                      | `(path?) => any`                 |
+| `setFormData(path, val)`       | 安全更新指定路径的值；单参数批量对象会先清空再写入；支持函数式更新 `setFormData(path, prev => new)` / `setFormData(prev => ({...prev, name:'新'}))` | `(path, val) => void`            |
+| `getField(path, opts?)`        | 获取指定 path 的字段配置；支持查找函数 `getField(f => f.label === '...')`；`{ all: true }` 返回所有匹配数组                                         | `(path, opts) => Field`          |
+| `setField(path, patch, opts?)` | 默认合并更新字段配置；`{ updateType: 'rewrite' }` 覆盖；支持函数式 `setField(path, prev => ({...}))`；`{ all: true }` 批量更新所有匹配              | `(path, patch, opts) => void`    |
+| `deleteField(path, opts?)`     | 删除字段配置；`{all:true}` 删除所有匹配的字段                                                                                                       | `(path, opts?) => void`          |
+| `appendField(path, field)`     | 在指定字段后追加新字段（入参可为数组）；`undefined` 在末尾追加；`{all:true}` 所有匹配后追加                                                         | `(path, field, opts?) => void`   |
+| `prependField(path, field)`    | 在指定字段前插入新字段（入参可为数组）；`undefined` 在开头插入；`{all:true}` 所有匹配前插入                                                         | `(path, field, opts?) => void`   |
+| `getParentField(path, opts?)`  | 查找父级字段配置；`{all:true}` 返回所有匹配的父级字段                                                                                               | `(path, opts?) => Field`         |
 
 ### `ProForm` Props
 
@@ -172,7 +173,7 @@ ProForm/ProTable 是渲染引擎，所有真实 UI 来自 antdv-next。**Field �
 
 ### `valueFormatter` 字段值转换
 
-控制表单值与组件值之间的转换（如日期 `dayjs` 与字符串互转）。在 `onUpdate:value` 之前执行，支持两种形态：
+控制表单值与组件值之间的转换（如日期 `dayjs` 与字符串互转）。在表单数据写入前（computed setter 中）执行，支持两种形态。**函数形态仅 set（写入）方向生效，读取时不转换；对象形态 get/set 双向生效：**
 
 ```ts
 // 函数形态：(新值, 旧值) => 转换后的值，写回 formData
@@ -493,17 +494,17 @@ const config = {
 
 ProComponentProvider 内置了一套默认属性预设，**即使不配置 `componentVars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。以下为各组件的内置默认值（写代码时需知晓，避免行为与预期不符）：
 
-| component                                                            | 默认预设                                                                                                                                                                                                         |
-| :------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `switch`                                                             | `{ modelProp: 'checked' }` -- v-model 绑定 `checked` 而非 `value`                                                                                                                                                |
-| `input` / `input-password`                                           | `{ maxlength: 100, allowClear: true, placeholder: '请输入' }`                                                                                                                                                    |
-| `textarea`                                                           | `{ maxlength: 200, autoSize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true, placeholder: '请输入' }`                                                                                             |
-| `input-number`                                                       | `{ max: 1e15-1, min: -(1e15+1), controls: false, placeholder: '请输入', style: { width: '100%' } }`                                                                                                              |
-| `select` / `cascader` / `auto-complete`                              | `{ allowClear: true, placeholder: '请选择', getPopupContainer }`                                                                                                                                                 |
-| `date-picker` / `range-picker` / `time-picker` / `time-range-picker` | `{ allowClear: true, getPopupContainer, style: { width: '100%' } }`                                                                                                                                              |
-| `pro-form`                                                           | `{ grid: { gutter: { xs: 8, sm: 16, md: 16, lg: 24 } } }`                                                                                                                                                        |
-| `pro-form-item`                                                      | `{ validateFirst: true, span: 8 }`                                                                                                                                                                               |
-| `pro-table`                                                          | `{ pagination: { showTotal, showSizeChanger, pageSizeOptions: ['10'..'100'], showQuickJumper: true }, searchFormConfig: { layout: 'grid', expand: { minExpandRows: 2 } }, control: true, addIndexColumn: true }` |
+| component                                                            | 默认预设                                                                                                                                                                                                                                                      |
+| :------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `switch`                                                             | `{ modelProp: 'checked' }` -- v-model 绑定 `checked` 而非 `value`                                                                                                                                                                                             |
+| `input` / `input-password`                                           | `{ maxlength: 100, allowClear: true, placeholder: '请输入' }`                                                                                                                                                                                                 |
+| `textarea`                                                           | `{ maxlength: 200, autoSize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true, placeholder: '请输入' }`                                                                                                                                          |
+| `input-number`                                                       | `{ max: 1e15-1, min: -(1e15+1), controls: false, placeholder: '请输入', style: { width: '100%' } }`                                                                                                                                                           |
+| `select` / `cascader` / `auto-complete`                              | `{ allowClear: true, placeholder: '请选择', getPopupContainer }`                                                                                                                                                                                              |
+| `date-picker` / `range-picker` / `time-picker` / `time-range-picker` | `{ allowClear: true, getPopupContainer, style: { width: '100%' } }`                                                                                                                                                                                           |
+| `pro-form`                                                           | `{ grid: { gutter: { xs: 8, sm: 16, md: 16, lg: 24 } } }`                                                                                                                                                                                                     |
+| `pro-form-item`                                                      | `{ validateFirst: true, span: 8 }`                                                                                                                                                                                                                            |
+| `pro-table`                                                          | `{ pagination: { showTotal, showSizeChanger, pageSizeOptions: ['10', '20', '30', '40', '50', '100'], showQuickJumper: true }, searchFormConfig: { layout: 'grid', expand: { minExpandRows: 2, expandStatus: false } }, control: true, addIndexColumn: true }` |
 
 > `modelProp` 控制 v-model 绑定的属性名，默认 `'value'`（即 `v-model:value`）。`switch` 经预设绑定为 `checked`，通常无需手动设置。
 > antdv-next 的 `date-picker` 还支持按 picker 子类型分别预设：`date-picker.date` / `.week` / `.month` / `.year` / `.quarter`。

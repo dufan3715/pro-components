@@ -31,7 +31,7 @@
     "url": "git+https://github.com/dufan3715/pro-components.git"
   },
   "scripts": {
-    "prebuild": "tsx ../../scripts/generate-api-json.ts element-plus-pro",
+    "prebuild": "tsx ../../scripts/generate-api-json.ts element-plus-pro && tsx ../../scripts/generate-init-ai.ts element-plus-pro",
     "build": "vue-tsc --noEmit && vite build",
     "prepublishOnly": "pnpm build"
   },

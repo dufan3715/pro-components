@@ -14,7 +14,7 @@ npx @qin-ui/antdv-next-pro init-ai
 该命令会在项目中生成双载体 AI 上下文文件：
 
 - `AGENTS.md` — 核心使用规则（项目根目录，跨工具自动注入，支持多库共存）
-- `.agents/skills/<pkg>.md` — 完整 API 参考（按需调取）
+- `.agents/skills/<pkg>/SKILL.md` + `references/` — 分层参考文档（skills 入口 + 使用文档 + API 元数据，按需逐层调取）
 
 生成的 `AGENTS.md` 使用标记区块（`<!-- BEGIN @qin-ui/xxx -->` ... `<!-- END @qin-ui/xxx -->`），重复执行 `init-ai` 可安全更新，不会破坏其他库写入的指令。
 
