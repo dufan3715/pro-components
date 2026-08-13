@@ -1,15 +1,23 @@
 <script lang="ts" setup>
 import { Button, Dropdown, Checkbox } from '../../../shared/ui';
-import { computed, h, ref, watch } from 'vue';
-import type { Columns } from '../types';
+import { computed, h, onMounted, ref, watch } from 'vue';
+import type { Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
+import { useLocale } from '../../../locale';
 
 type Props = {
   columns: Columns;
   table?: Table;
+  columnControl?: ColumnControlConfig;
 };
-const { columns, table = undefined } = defineProps<Props>();
+const {
+  columns,
+  table = undefined,
+  columnControl = undefined,
+} = defineProps<Props>();
+
+const { t } = useLocale();
 
 const open = ref(false);
 
@@ -17,29 +25,46 @@ const checkAll = ref(false);
 const indeterminate = ref(false);
 
 const checkedColumnsOptions = computed<
-  Array<{ label: string; value: string; checked: boolean }>
+  Array<{
+    label: string;
+    value: string;
+    checked: boolean;
+    disabled: boolean;
+  }>
 >(() =>
-  columns.flatMap(item =>
-    item.key && item.title
-      ? {
-          label: item.title as string,
-          value: item.key,
-          checked: !item.hidden,
-        }
-      : []
-  )
+  columns.flatMap(item => {
+    if (!item.key || !item.title) return [];
+    const key = item.key as string;
+    if (columnControl?.excludedKeys?.some(ek => String(ek) === key)) return [];
+    const disabled =
+      columnControl?.disabledKeys?.some(dk => String(dk) === key) ?? false;
+    // labels 优先；title 为字符串时直接使用；vnode 等其他类型降级为 key，避免渲染异常
+    const label =
+      (columnControl?.labels?.[key] as string) ??
+      (typeof item.title === 'string' ? item.title : key);
+    return {
+      label,
+      value: key,
+      checked: !item.hidden || disabled,
+      disabled,
+    };
+  })
+);
+
+/** 可被用户勾选/取消的列（非 disabled） */
+const controllableOptions = computed(() =>
+  checkedColumnsOptions.value.filter(item => !item.disabled)
 );
 
 const checkedColumnKeys = computed({
   get() {
-    return (
-      checkedColumnsOptions.value.flatMap(item =>
-        item.checked ? item.value : []
-      ) || []
+    return checkedColumnsOptions.value.flatMap(item =>
+      item.checked ? item.value : []
     );
   },
   set(val) {
-    checkedColumnsOptions.value?.forEach(item => {
+    checkedColumnsOptions.value.forEach(item => {
+      if (item.disabled) return;
       table?.setColumn?.(item.value, {
         hidden: !val.includes(item.value),
       });
@@ -49,12 +74,13 @@ const checkedColumnKeys = computed({
 
 const onCheckAllChange = (e: any) => {
   checkedColumnKeys.value = e.target.checked
-    ? checkedColumnsOptions.value.map(item => item.value)
+    ? controllableOptions.value.map(item => item.value)
     : [];
-  indeterminate.value = false;
 };
 
 const checkColumnsMenuItemClick = (val: string) => {
+  const item = checkedColumnsOptions.value.find(o => o.value === val);
+  if (item?.disabled) return;
   if (checkedColumnKeys.value.includes(val)) {
     checkedColumnKeys.value = checkedColumnKeys.value.filter(
       item => item !== val
@@ -66,43 +92,74 @@ const checkColumnsMenuItemClick = (val: string) => {
 
 watch(
   checkedColumnKeys,
-  val => {
+  () => {
+    const controllableChecked = controllableOptions.value.filter(
+      item => item.checked
+    );
     indeterminate.value =
-      !!val.length && val.length < checkedColumnsOptions.value.length;
+      !!controllableChecked.length &&
+      controllableChecked.length < controllableOptions.value.length;
     checkAll.value =
-      val.length > 0 && val.length === checkedColumnsOptions.value.length;
+      controllableChecked.length === controllableOptions.value.length &&
+      controllableOptions.value.length > 0;
   },
   { immediate: true }
 );
 
-const items = computed<any>(() => [
-  {
-    key: 'all',
-    label: h(
-      Checkbox,
+// 强制 disabledKeys 列始终展示
+onMounted(() => {
+  columnControl?.disabledKeys?.forEach(key => {
+    table?.setColumn?.(String(key), { hidden: false });
+  });
+});
+
+watch(
+  () => columnControl?.disabledKeys,
+  keys => {
+    keys?.forEach(key => {
+      table?.setColumn?.(String(key), { hidden: false });
+    });
+  }
+);
+
+const items = computed<any>(() => {
+  const result: any[] = [];
+  if (!columnControl?.disableCheckAll) {
+    result.push(
       {
-        style: { width: '100%' },
-        checked: checkAll.value,
-        indeterminate: indeterminate.value,
-        onChange: onCheckAllChange,
+        key: 'all',
+        label: h(
+          Checkbox,
+          {
+            style: { width: '100%' },
+            checked: checkAll.value,
+            indeterminate: indeterminate.value,
+            onChange: onCheckAllChange,
+          },
+          () => t('table.selectAll')
+        ),
       },
-      () => '全选'
-    ),
-  },
-  { type: 'divider' },
-  ...checkedColumnsOptions.value.map(item => ({
-    key: item.value,
-    label: h(
-      Checkbox,
-      {
-        style: { width: '100%' },
-        checked: item.checked,
-        onChange: () => checkColumnsMenuItemClick(item.value),
-      },
-      () => item.label
-    ),
-  })),
-]);
+      { type: 'divider' }
+    );
+  }
+  result.push(
+    ...checkedColumnsOptions.value.map(item => ({
+      key: item.value,
+      disabled: item.disabled,
+      label: h(
+        Checkbox,
+        {
+          style: { width: '100%' },
+          checked: item.checked,
+          disabled: item.disabled,
+          onChange: () => checkColumnsMenuItemClick(item.value),
+        },
+        () => item.label
+      ),
+    }))
+  );
+  return result;
+});
 
 function handleOpenChange(
   nextOpen: boolean,

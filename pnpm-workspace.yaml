@@ -7,3 +7,9 @@ packages:
 allowBuilds:
   core-js: true
   esbuild: true
+overrides:
+  '@qin-ui/antd-vue-pro': workspace:*
+  '@qin-ui/antdv-next-pro': workspace:*
+  '@qin-ui/element-plus-pro': workspace:*
+  '@qin-ui/vant-pro': workspace:*
+  '@qin-ui/pro-components-core': workspace:*

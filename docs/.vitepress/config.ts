@@ -57,6 +57,10 @@ const antdVueProSidebar = [
                 text: '表格配置项',
                 link: '/antd-vue-pro/components/pro-table/demos/configurable/',
               },
+              {
+                text: '列控制与持久化',
+                link: '/antd-vue-pro/components/pro-table/demos/column-control/',
+              },
             ],
           },
         ],
@@ -143,6 +147,10 @@ const antdvNextProSidebar = [
                 text: '表格配置项',
                 link: '/antdv-next-pro/components/pro-table/demos/configurable/',
               },
+              {
+                text: '列控制与持久化',
+                link: '/antdv-next-pro/components/pro-table/demos/column-control/',
+              },
             ],
           },
         ],
@@ -226,6 +234,10 @@ const elementPlusProSidebar = [
               {
                 text: 'Columns 渲染',
                 link: '/element-plus-pro/components/pro-table/demos/columns-render/',
+              },
+              {
+                text: '列控制与持久化',
+                link: '/element-plus-pro/components/pro-table/demos/column-control/',
               },
             ],
           },

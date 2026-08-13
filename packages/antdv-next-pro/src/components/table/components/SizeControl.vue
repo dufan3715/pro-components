@@ -7,8 +7,12 @@ import {
   useConfig,
 } from '../../../shared/ui';
 import ColumnHeightOutlined from './icons/ColumnHeightOutlined.vue';
+import { computed } from 'vue';
+import { useLocale } from '../../../locale';
 
 type Size = TableProps['size'];
+
+const { t } = useLocale();
 
 const config = useConfig();
 
@@ -16,11 +20,11 @@ const size = defineModel<Size>('size');
 
 size.value = size.value ?? config.componentSize?.value ?? 'large';
 
-const items = [
-  { label: '默认', key: 'large' },
-  { label: '中等', key: 'middle' },
-  { label: '紧凑', key: 'small' },
-];
+const items = computed(() => [
+  { label: t('table.sizeDefault'), key: 'large' },
+  { label: t('table.sizeMiddle'), key: 'middle' },
+  { label: t('table.sizeCompact'), key: 'small' },
+]);
 </script>
 
 <template>

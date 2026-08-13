@@ -1,5 +1,19 @@
 # @qin-ui/antdv-next-pro
 
+## 1.3.0
+
+### Minor Changes
+
+- 新增多语言国际化（i18n）机制及 ProTable 列控制增强配置：
+  - 支持内置语言包（zh-CN / zh-TW / en-US），能够跟随宿主 UI 库全局语言自动切换。
+  - ProComponentProvider 新增 `locale` 属性，支持覆盖任意内置文案。
+  - ProTable 列控制 `control.columnControl` 支持传入配置对象（支持自定义 `labels` 别名映射、`excludedKeys` 排除列、`disabledKeys` 锁定展示列、`disableCheckAll` 禁用全选）。
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @qin-ui/pro-components-core@1.1.0
+
 ## 1.2.4
 
 ### Patch Changes

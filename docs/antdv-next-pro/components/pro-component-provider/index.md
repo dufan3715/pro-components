@@ -53,16 +53,35 @@ const componentVars = {
 
 ### Props
 
-| 属性            | 类型            | 说明                                        |
-| --------------- | --------------- | ------------------------------------------- |
-| `componentVars` | `ComponentVars` | 各组件的默认 Props 配置（见下方支持的 key） |
-| `componentMap`  | `ComponentMap`  | 注册新增自定义组件，或覆盖内置原生组件      |
+| 属性            | 类型                 | 说明                                        |
+| --------------- | -------------------- | ------------------------------------------- |
+| `componentVars` | `ComponentVars`      | 各组件的默认 Props 配置（见下方支持的 key） |
+| `componentMap`  | `ComponentMap`       | 注册新增自定义组件，或覆盖内置原生组件      |
+| `locale`        | `Partial<ProLocale>` | 按 key 覆盖内置文案（如查询/重置/序号等）   |
 
 ### 合并规则
 
 - 全局配置通过 `provide/inject` 注入
 - 子组件会将全局配置与局部 Props 深度合并
 - 局部 Props 优先级更高
+
+## 内置文案语言切换 (locale)
+
+组件内置文案（查询、重置、序号、占位符、共 X 条等）默认跟随宿主应用 `ConfigProvider :locale` 自动切换，内置 zh-CN / zh-TW / en-US 三套语言，无需额外配置。
+
+如需覆盖个别文案，可通过 `locale` prop 按 key 覆盖（未覆盖的 key 仍跟随语言切换）：
+
+```vue
+<template>
+  <ProComponentProvider :locale="{ 'table.query': '搜索' }">
+    <RouterView />
+  </ProComponentProvider>
+</template>
+```
+
+## 使用示例
+
+- [内置文案语言切换](./demos/locale/)
 
 ## ComponentVars 支持的 key
 

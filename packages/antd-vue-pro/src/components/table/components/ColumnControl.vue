@@ -7,16 +7,24 @@ import {
   MenuItem,
   Checkbox,
 } from '../../../shared/ui';
-import { computed, ref, watch } from 'vue';
-import type { Columns } from '../types';
+import { computed, onMounted, ref, watch } from 'vue';
+import type { Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../hooks/useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
+import { useLocale } from '../../../locale';
 
 type Props = {
   columns: Columns;
   table?: Table;
+  columnControl?: ColumnControlConfig;
 };
-const { columns, table = undefined } = defineProps<Props>();
+const {
+  columns,
+  table = undefined,
+  columnControl = undefined,
+} = defineProps<Props>();
+
+const { t } = useLocale();
 
 const open = ref(false);
 
@@ -24,29 +32,46 @@ const checkAll = ref(false);
 const indeterminate = ref(false);
 
 const checkedColumnsOptions = computed<
-  Array<{ label: string; value: string; checked: boolean }>
+  Array<{
+    label: string;
+    value: string;
+    checked: boolean;
+    disabled: boolean;
+  }>
 >(() =>
-  columns.flatMap(item =>
-    item.key && item.title
-      ? {
-          label: item.title as string,
-          value: item.key,
-          checked: !item.hidden,
-        }
-      : []
-  )
+  columns.flatMap(item => {
+    if (!item.key || !item.title) return [];
+    const key = item.key as string;
+    if (columnControl?.excludedKeys?.some(ek => String(ek) === key)) return [];
+    const disabled =
+      columnControl?.disabledKeys?.some(dk => String(dk) === key) ?? false;
+    // labels 优先；title 为字符串时直接使用；vnode 等其他类型降级为 key，避免渲染异常
+    const label =
+      (columnControl?.labels?.[key] as string) ??
+      (typeof item.title === 'string' ? item.title : key);
+    return {
+      label,
+      value: key,
+      checked: !item.hidden || disabled,
+      disabled,
+    };
+  })
+);
+
+/** 可被用户勾选/取消的列（非 disabled） */
+const controllableOptions = computed(() =>
+  checkedColumnsOptions.value.filter(item => !item.disabled)
 );
 
 const checkedColumnKeys = computed({
   get() {
-    return (
-      checkedColumnsOptions.value.flatMap(item =>
-        item.checked ? item.value : []
-      ) || []
+    return checkedColumnsOptions.value.flatMap(item =>
+      item.checked ? item.value : []
     );
   },
   set(val) {
-    checkedColumnsOptions.value?.forEach(item => {
+    checkedColumnsOptions.value.forEach(item => {
+      if (item.disabled) return;
       table?.setColumn?.(item.value, {
         hidden: !val.includes(item.value),
       });
@@ -54,14 +79,17 @@ const checkedColumnKeys = computed({
   },
 });
 
-const onCheckAllChange = (e: any) => {
-  checkedColumnKeys.value = e.target.checked
-    ? checkedColumnsOptions.value.map(item => item.value)
-    : [];
+const onCheckAllChange = () => {
+  // 整行点击触发：当前全选则取消全选，否则全选可控列
+  checkedColumnKeys.value = checkAll.value
+    ? []
+    : controllableOptions.value.map(item => item.value);
   indeterminate.value = false;
 };
 
 const checkColumnsMenuItemClick = (val: string) => {
+  const item = checkedColumnsOptions.value.find(o => o.value === val);
+  if (item?.disabled) return;
   if (checkedColumnKeys.value.includes(val)) {
     checkedColumnKeys.value = checkedColumnKeys.value.filter(
       item => item !== val
@@ -73,12 +101,35 @@ const checkColumnsMenuItemClick = (val: string) => {
 
 watch(
   checkedColumnKeys,
-  val => {
+  () => {
+    const controllableChecked = controllableOptions.value.filter(
+      item => item.checked
+    );
     indeterminate.value =
-      !!val.length && val.length < checkedColumnsOptions.value.length;
-    checkAll.value = val.length === checkedColumnsOptions.value.length;
+      !!controllableChecked.length &&
+      controllableChecked.length < controllableOptions.value.length;
+    checkAll.value =
+      controllableChecked.length === controllableOptions.value.length &&
+      controllableOptions.value.length > 0;
   },
   { immediate: true }
+);
+
+// 强制 disabledKeys 列始终展示
+onMounted(() => {
+  columnControl?.disabledKeys?.forEach(key => {
+    table?.setColumn?.(String(key), { hidden: false });
+  });
+});
+
+watch(
+  () => columnControl?.disabledKeys,
+  keys => {
+    keys?.forEach(key => {
+      table?.setColumn?.(String(key), { hidden: false });
+    });
+  },
+  { deep: true }
 );
 </script>
 
@@ -92,25 +143,27 @@ watch(
         style="min-width: 100px; max-height: 500px; overflow-y: scroll"
         :selectable="false"
       >
-        <MenuItem :key="0">
-          <div>
-            <Checkbox
-              :checked="checkAll"
-              :indeterminate="indeterminate"
-              @change="onCheckAllChange"
-            >
-              全选
-            </Checkbox>
-          </div>
+        <MenuItem
+          v-if="!columnControl?.disableCheckAll"
+          :key="0"
+          @click="onCheckAllChange"
+        >
+          <Checkbox
+            :checked="checkAll"
+            :indeterminate="indeterminate"
+            style="width: 100%"
+          >
+            {{ t('table.selectAll') }}
+          </Checkbox>
         </MenuItem>
-        <MenuDivider />
+        <MenuDivider v-if="!columnControl?.disableCheckAll" />
         <MenuItem
           v-for="item of checkedColumnsOptions"
           :key="item.value"
           @click="checkColumnsMenuItemClick(item.value)"
         >
-          <Checkbox :checked="checkedColumnKeys.includes(item.value)">
-            <div @click.stop>{{ item.label }}</div>
+          <Checkbox :checked="item.checked" :disabled="item.disabled">
+            <div>{{ item.label }}</div>
           </Checkbox>
         </MenuItem>
       </Menu>

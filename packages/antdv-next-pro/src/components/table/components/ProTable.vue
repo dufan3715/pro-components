@@ -54,7 +54,13 @@ import type { ContainerComponent } from '../../form/types';
 import SearchForm from './SearchForm.vue';
 import { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../useTable';
-import { camelizeProperties, getObject, pick } from '../../../shared/core';
+import { useLocale } from '../../../locale';
+import {
+  camelizeProperties,
+  getObject,
+  pick,
+  Path,
+} from '../../../shared/core';
 import { ComponentSlots } from 'vue-component-type-helpers';
 import {
   DefaultSearchFormContainer,
@@ -62,11 +68,14 @@ import {
   SizeControl,
   ColumnControl,
 } from '.';
-import { Column, Columns } from '../types';
+import { Column, Columns, ColumnControlConfig } from '../types';
 
 defineOptions({ name: 'ProTable', inheritAttrs: false });
 
-type Control = { sizeControl: boolean; columnControl: boolean };
+type Control = {
+  sizeControl: boolean;
+  columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
+};
 
 type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
   // 是否隐藏搜索表单
@@ -103,6 +112,7 @@ const {
 } = defineProps<Props>();
 
 // 从 ProComponentProvider 获取全局配置，与 props 合并
+const { t } = useLocale();
 const config = INJECT_CONFIG['pro-table'];
 const injectProps = inject(config.injectionKey, config.default);
 
@@ -199,17 +209,19 @@ const computedTableContainer = computed(() => {
 type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
 type RecordType = ReturnGenericParameterTypes<T>;
 
-const indexColumn: ColumnType = {
-  title: '序号',
+const indexColumn = (): ColumnType => ({
+  title: t('table.index'),
   dataIndex: '_index',
   width: 80,
   render: (_, __, index) => index + 1,
-};
+});
 
 const computedColumns = computed(
   () =>
     [
-      ...((addIndexColumn ?? injectProps.addIndexColumn) ? [indexColumn] : []),
+      ...((addIndexColumn ?? injectProps.addIndexColumn)
+        ? [indexColumn()]
+        : []),
       ...(tableAttrs.value.columns ?? columns?.value ?? []).flatMap(
         (item: any, index) => {
           if (item.key) return [{ ...item, key: item.key }];
@@ -239,6 +251,12 @@ const computedPagination = computed<PaginationProps | false>(() => {
     ...injectAttrs.pagination,
     ...pageParam,
     ...tableAttrs.value.pagination,
+    showTotal:
+      tableAttrs.value.pagination?.showTotal ??
+      (injectAttrs.pagination === false
+        ? undefined
+        : injectAttrs.pagination?.showTotal) ??
+      ((total: number) => t('pagination.total', { total })),
   };
 });
 
@@ -257,12 +275,23 @@ const showSearch = computed(() => {
   );
 });
 
-const computedControl = computed<Control>(() => {
+const computedControl = computed<{
+  sizeControl: boolean;
+  columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
+}>(() => {
   const mergedControl = control ?? injectProps.control;
-  const sizeControl = (mergedControl as Control)?.sizeControl ?? mergedControl;
-  const columnControl =
-    (mergedControl as Control)?.columnControl ?? mergedControl;
-  return { sizeControl, columnControl };
+  if (typeof mergedControl === 'boolean') {
+    return { sizeControl: mergedControl, columnControl: mergedControl };
+  }
+  const c = mergedControl as Control;
+  const sizeControl = c.sizeControl ?? true;
+  const columnControl = c.columnControl ?? true;
+  return { sizeControl: !!sizeControl, columnControl };
+});
+
+const columnControlConfig = computed(() => {
+  const cc = computedControl.value.columnControl;
+  return typeof cc === 'object' ? cc : undefined;
 });
 
 onMounted(() => {
@@ -311,7 +340,11 @@ onMounted(() => {
           v-if="computedControl.columnControl"
           class="pro-table_header_column-control"
         >
-          <ColumnControl :columns="computedColumns" :table="table" />
+          <ColumnControl
+            :columns="computedColumns"
+            :table="table"
+            :column-control="columnControlConfig"
+          />
         </div>
       </div>
 

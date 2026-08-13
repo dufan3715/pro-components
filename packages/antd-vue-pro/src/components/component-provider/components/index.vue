@@ -9,6 +9,7 @@
  *
  * @param {ComponentVars} [componentVars] - 组件全局配置变量
  * @param {Record<ComponentName, any>} [componentMap] - 自定义组件映射，用于替换或扩展内置组件
+ * @param {Partial<ProLocale>} [locale] - 内置文案覆盖，可覆盖任意 locale 文案（如查询/重置/序号/占位符等）
  *
  * @slot default - 需要应用全局配置的子组件内容
  *
@@ -29,9 +30,10 @@
  */
 import { ComponentVars } from '../types';
 import { INJECT_COMPONENTS, ensureInjectConfig } from '../constants';
-import { provide } from 'vue';
+import { computed, provide } from 'vue';
 import { getObject } from '../../../shared/core';
 import { ComponentName } from '../../form/constants';
+import { LOCALE_INJECT_KEY, type ProLocale } from '../../../locale';
 
 type ComponentMap = Partial<Record<ComponentName, any>>;
 
@@ -53,6 +55,13 @@ type Props = {
    * @example { 'input': MyCustomInput, 'select': MyCustomSelect }
    */
   componentMap?: ComponentMap;
+  /**
+   * @description 内置文案覆盖
+   * 可覆盖任意 locale 文案（如查询/重置/序号/占位符等），
+   * 未覆盖的文案默认跟随宿主组件库语言自动切换
+   * @example { 'table.query': '搜索' }
+   */
+  locale?: Partial<ProLocale>;
 };
 
 const props = defineProps<Props>();
@@ -74,6 +83,12 @@ if (props.componentVars) {
 if (props.componentMap) {
   provide(INJECT_COMPONENTS, props.componentMap);
 }
+
+// 注入内置文案覆盖，useLocale 在解析文案时会优先使用
+provide(
+  LOCALE_INJECT_KEY,
+  computed(() => props.locale)
+);
 </script>
 
 <template>

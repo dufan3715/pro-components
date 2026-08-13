@@ -11,10 +11,11 @@ ProComponentProvider 是一个提供全局组件配置的容器组件。通过�
 
 ### Props
 
-| 参数名        | 说明                                         | 类型          | 默认值 |
-| ------------- | -------------------------------------------- | ------------- | ------ |
-| componentVars | 需要 Provide 下发的属性默认配置              | ComponentVars | -      |
-| componentMap  | 需要动态注册的自定义组件或欲覆盖的原生组件表 | ComponentMap  | -      |
+| 参数名        | 说明                                         | 类型                 | 默认值 |
+| ------------- | -------------------------------------------- | -------------------- | ------ |
+| componentVars | 需要 Provide 下发的属性默认配置              | ComponentVars        | -      |
+| componentMap  | 需要动态注册的自定义组件或欲覆盖的原生组件表 | ComponentMap         | -      |
+| locale        | 按 key 覆盖内置文案（如查询/重置/序号等）    | Partial\<ProLocale\> | -      |
 
 ## ComponentVars 配置项
 
@@ -58,3 +59,21 @@ const customMap = {
 ```
 
 > **注意**：注册组件解决的是**运行时渲染**问题；如果你需要**开发时 TypeScript 类型提示**（比如配置 `component: 'my-upload'` 后自动带出 Params 校验），请参考 `ProForm` 文档中的 **高级：TypeScript 类型推导与覆盖** 章节进行环境类型扩展。
+
+## 内置文案语言切换 (locale)
+
+组件内置文案（查询、重置、序号、占位符、共 X 条等）默认跟随宿主应用 `a-config-provider :locale` 自动切换，内置 zh-CN / zh-TW / en-US 三套语言，无需额外配置。
+
+如需覆盖个别文案，可通过 `locale` prop 按 key 覆盖（未覆盖的 key 仍跟随语言切换）：
+
+```vue
+<template>
+  <ProComponentProvider :locale="{ 'table.query': '搜索' }">
+    <RouterView />
+  </ProComponentProvider>
+</template>
+```
+
+## 使用示例
+
+- [内置文案语言切换](./demos/locale/)

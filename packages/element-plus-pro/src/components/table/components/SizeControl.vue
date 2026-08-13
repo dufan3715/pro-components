@@ -7,18 +7,22 @@ import {
   type TableProps,
 } from '../../../shared/ui';
 import ColumnHeightOutlined from './icons/ColumnHeightOutlined.vue';
+import { computed } from 'vue';
+import { useLocale } from '../../../locale';
 
 type Size = TableProps['size'];
+
+const { t } = useLocale();
 
 const size = defineModel<Size>('size');
 
 size.value = size.value ?? 'default';
 
-const items: Array<{ label: string; key: NonNullable<Size> }> = [
-  { label: '默认', key: 'default' },
-  { label: '中等', key: 'large' },
-  { label: '紧凑', key: 'small' },
-];
+const items = computed<Array<{ label: string; key: NonNullable<Size> }>>(() => [
+  { label: t('table.sizeDefault'), key: 'default' },
+  { label: t('table.sizeMiddle'), key: 'large' },
+  { label: t('table.sizeCompact'), key: 'small' },
+]);
 </script>
 
 <template>

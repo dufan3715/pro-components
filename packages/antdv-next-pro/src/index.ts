@@ -6,6 +6,7 @@ import ProComponentProvider from './components/component-provider';
 export * from './components/form';
 export * from './components/table';
 export * from './components/component-provider';
+export * from './locale';
 
 /**
  * Schema 驱动的表单组件，基于 antdv-next Form 封装

@@ -24,7 +24,7 @@ export const INJECT_CONFIG: {
   },
   field: {
     injectionKey: Symbol(''),
-    default: { clearable: true, placeholder: '请输入' },
+    default: { clearable: true },
   },
   switch: {
     injectionKey: Symbol(''),

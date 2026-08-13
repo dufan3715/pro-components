@@ -6,16 +6,24 @@ import {
   DropdownItem,
   Checkbox,
 } from '../../../shared/ui';
-import { computed, ref, watch } from 'vue';
-import type { Column, Columns } from '../types';
+import { computed, onMounted, ref, watch } from 'vue';
+import type { Column, Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
+import { useLocale } from '../../../locale';
 
 type Props = {
   columns: Columns;
   table?: Table;
+  columnControl?: ColumnControlConfig;
 };
-const { columns, table = undefined } = defineProps<Props>();
+const {
+  columns,
+  table = undefined,
+  columnControl = undefined,
+} = defineProps<Props>();
+
+const { t } = useLocale();
 
 const open = ref(false);
 const checkAll = ref(false);
@@ -28,14 +36,43 @@ const getColumnKey = (column: Column, index: number) => {
 };
 
 const checkedColumnsOptions = computed<
-  Array<{ label: string; value: string; checked: boolean; column: Column }>
+  Array<{
+    label: string;
+    value: string;
+    checked: boolean;
+    disabled: boolean;
+    column: Column;
+  }>
 >(() =>
-  columns.map((item, index) => ({
-    label: String(item.label ?? item.prop ?? `列${index + 1}`),
-    value: getColumnKey(item, index),
-    checked: !item.hidden,
-    column: item,
-  }))
+  columns
+    .map((item, index) => {
+      const key = getColumnKey(item, index);
+      const excluded = columnControl?.excludedKeys?.some(
+        ek => String(ek) === key
+      );
+      const disabled = columnControl?.disabledKeys?.some(
+        dk => String(dk) === key
+      );
+      const label = String(
+        item.label ??
+          item.prop ??
+          t('table.columnFallback', { index: index + 1 })
+      );
+      return {
+        label,
+        value: key,
+        checked: !item.hidden || !!disabled,
+        disabled: !!disabled,
+        column: item,
+        excluded,
+      };
+    })
+    .filter(item => !item.excluded)
+);
+
+/** 可被用户勾选/取消的列（非 disabled） */
+const controllableOptions = computed(() =>
+  checkedColumnsOptions.value.filter(item => !item.disabled)
 );
 
 const checkedColumnKeys = computed({
@@ -46,6 +83,7 @@ const checkedColumnKeys = computed({
   },
   set(val: string[]) {
     checkedColumnsOptions.value.forEach(item => {
+      if (item.disabled) return;
       table?.setColumn(item.value as any, {
         hidden: !val.includes(item.value),
       });
@@ -56,12 +94,14 @@ const checkedColumnKeys = computed({
 const onCheckAllChange = (value: any) => {
   const checked = !!(value?.target?.checked ?? value);
   checkedColumnKeys.value = checked
-    ? checkedColumnsOptions.value.map(item => item.value)
+    ? controllableOptions.value.map(item => item.value)
     : [];
   indeterminate.value = false;
 };
 
 const toggleColumnsItem = (val: string) => {
+  const item = checkedColumnsOptions.value.find(o => o.value === val);
+  if (item?.disabled) return;
   if (checkedColumnKeys.value.includes(val)) {
     checkedColumnKeys.value = checkedColumnKeys.value.filter(
       item => item !== val
@@ -73,13 +113,35 @@ const toggleColumnsItem = (val: string) => {
 
 watch(
   checkedColumnKeys,
-  val => {
+  () => {
+    const controllableChecked = controllableOptions.value.filter(
+      item => item.checked
+    );
     indeterminate.value =
-      !!val.length && val.length < checkedColumnsOptions.value.length;
+      !!controllableChecked.length &&
+      controllableChecked.length < controllableOptions.value.length;
     checkAll.value =
-      val.length > 0 && val.length === checkedColumnsOptions.value.length;
+      controllableChecked.length === controllableOptions.value.length &&
+      controllableOptions.value.length > 0;
   },
   { immediate: true }
+);
+
+// 强制 disabledKeys 列始终展示
+onMounted(() => {
+  columnControl?.disabledKeys?.forEach(key => {
+    table?.setColumn(String(key), { hidden: false });
+  });
+});
+
+watch(
+  () => columnControl?.disabledKeys,
+  keys => {
+    keys?.forEach(key => {
+      table?.setColumn(String(key), { hidden: false });
+    });
+  },
+  { deep: true }
 );
 </script>
 
@@ -95,13 +157,17 @@ watch(
     </Button>
     <template #dropdown>
       <DropdownMenu>
-        <DropdownItem :disabled="true" :divided="false">
+        <DropdownItem
+          v-if="!columnControl?.disableCheckAll"
+          :disabled="true"
+          :divided="false"
+        >
           <Checkbox
             :model-value="checkAll"
             :indeterminate="indeterminate"
             @change="onCheckAllChange"
           >
-            全选
+            {{ t('table.selectAll') }}
           </Checkbox>
         </DropdownItem>
         <DropdownItem
@@ -110,10 +176,7 @@ watch(
           :command="item.value"
           @click.stop="toggleColumnsItem(item.value)"
         >
-          <Checkbox
-            :model-value="item.checked"
-            @change="() => toggleColumnsItem(item.value)"
-          >
+          <Checkbox :model-value="item.checked" :disabled="item.disabled">
             {{ item.label }}
           </Checkbox>
         </DropdownItem>

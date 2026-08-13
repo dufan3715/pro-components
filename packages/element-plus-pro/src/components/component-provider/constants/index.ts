@@ -38,7 +38,7 @@ export const INJECT_CONFIG: {
   },
   input: {
     injectionKey: Symbol(''),
-    default: { maxlength: 100, clearable: true, placeholder: '请输入' },
+    default: { maxlength: 100, clearable: true },
   },
   'input.textarea': {
     injectionKey: Symbol(''),
@@ -47,7 +47,6 @@ export const INJECT_CONFIG: {
       autosize: { minRows: 3, maxRows: 6 },
       showWordLimit: true,
       clearable: true,
-      placeholder: '请输入',
     },
   },
   'input.password': {
@@ -56,7 +55,6 @@ export const INJECT_CONFIG: {
       showPassword: true,
       maxlength: 100,
       clearable: true,
-      placeholder: '请输入',
     },
   },
   'input-number': {
@@ -65,97 +63,80 @@ export const INJECT_CONFIG: {
       max: 10 ** 15 - 1,
       min: -(10 ** 15 + 1),
       controls: false,
-      placeholder: '请输入',
       style: { width: '100%' },
     },
   },
   autocomplete: {
     injectionKey: Symbol(''),
-    default: { clearable: true, placeholder: '请输入' },
+    default: { clearable: true },
   },
   select: {
     injectionKey: Symbol(''),
-    default: { clearable: true, placeholder: '请选择' },
+    default: { clearable: true },
   },
   cascader: {
     injectionKey: Symbol(''),
-    default: { clearable: true, placeholder: '请选择' },
+    default: { clearable: true },
   },
   'date-picker': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.date': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.dates': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.daterange': {
     injectionKey: Symbol(''),
-    default: {
-      style: { width: '100%' },
-      startPlaceholder: '开始日期',
-      endPlaceholder: '结束日期',
-    },
+    default: { style: { width: '100%' } },
   },
   'date-picker.week': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.month': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.monthrange': {
     injectionKey: Symbol(''),
-    default: {
-      style: { width: '100%' },
-      startPlaceholder: '开始月份',
-      endPlaceholder: '结束月份',
-    },
+    default: { style: { width: '100%' } },
   },
   'date-picker.months': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.yearrange': {
     injectionKey: Symbol(''),
-    default: {
-      style: { width: '100%' },
-      startPlaceholder: '开始年份',
-      endPlaceholder: '结束年份',
-    },
+    default: { style: { width: '100%' } },
   },
   'date-picker.year': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.years': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.datetime': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'date-picker.datetimerange': {
     injectionKey: Symbol(''),
-    default: {
-      style: { width: '100%' },
-      startPlaceholder: '开始时间',
-      endPlaceholder: '结束时间',
-    },
+    default: { style: { width: '100%' } },
   },
   'time-picker': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'time-select': {
     injectionKey: Symbol(''),
-    default: { style: { width: '100%' }, placeholder: '请选择' },
+    default: { style: { width: '100%' } },
   },
   'checkbox-group': {
     injectionKey: Symbol(''),
@@ -175,7 +156,7 @@ export const INJECT_CONFIG: {
   },
   'tree-select': {
     injectionKey: Symbol(''),
-    default: { clearable: true, placeholder: '请选择' },
+    default: { clearable: true },
   },
   transfer: {
     injectionKey: Symbol(''),

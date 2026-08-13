@@ -69,8 +69,11 @@ import {
 import ProForm from '../../form';
 import { type Form } from '../../form';
 import DownOutlined from './icons/DownOutlined.vue';
+import { useLocale } from '../../../locale';
 
 defineOptions({ name: 'SearchForm' });
+
+const { t } = useLocale();
 
 const {
   layout = 'grid',
@@ -230,7 +233,7 @@ const onSearch = () => {
             v-else
             class="pro-table_search-form_reset-button"
             @click="onReset"
-            >重置</Button
+            >{{ t('table.reset') }}</Button
           >
         </template>
       </slot>
@@ -243,7 +246,7 @@ const onSearch = () => {
             type="primary"
             html-type="submit"
             @click="onSearch"
-            >查询
+            >{{ t('table.query') }}
           </Button>
         </template>
       </slot>
@@ -261,7 +264,7 @@ const onSearch = () => {
             class="pro-table_search-form_expand-toggle-button"
             @click="changeExpandStatus"
           >
-            {{ expandStatus ? '收起' : '展开' }}
+            {{ expandStatus ? t('table.collapse') : t('table.expand') }}
             <DownOutlined
               class="transition"
               style="margin-left: 4px"

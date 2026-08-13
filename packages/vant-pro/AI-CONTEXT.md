@@ -51,9 +51,18 @@ import { ProForm, useForm, useFormPopup } from '@qin-ui/vant-pro';
 | component  | 默认预设                                                                                                                                                         |
 | :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pro-form` | `{ inputAlign: 'right', errorMessageAlign: 'right', required: 'auto', scrollToError: true, scrollToErrorPosition: 'nearest' }` -> 表单项右对齐、校验失败自动滚动 |
-| `field`    | `{ clearable: true, placeholder: '请输入' }`                                                                                                                     |
+| `field`    | `{ clearable: true }`                                                                                                                                            |
 
 > `modelProp` 默认 `'modelValue'`（vant 统一约定，即 `v-model:modelValue`）。
+> **占位符由 locale 兜底**：未显式设置 `placeholder` 时自动生成（`input.placeholder`），语言随宿主 vant 语言自动切换。
+
+### 内置文案（locale）
+
+内置文案（占位符等）走 locale 体系，默认跟随宿主 vant 语言自动切换：
+
+- `useLocale()` 返回 `{ t, lang }`：`t(key, params?)` 翻译函数（支持 `{placeholder}` 参数）、`lang` 当前语言（`'zh-CN'` / `'zh-TW'` / `'en-US'`）
+- 包导出 `zhCN` / `zhTW` / `enUS` 三套语言包（类型 `ProLocale`）
+- `ProComponentProvider` 的 `locale` prop 可覆盖任意内置文案（如 `{ 'input.placeholder': '请输入' }`），未覆盖的默认跟随宿主语言
 
 ### 不支持响应式的属性（不能包 ref/computed）
 

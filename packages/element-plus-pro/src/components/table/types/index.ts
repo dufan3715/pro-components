@@ -75,3 +75,26 @@ export type Column<D extends Data = Data> = Partial<
  * @public
  */
 export type Columns<D extends Data = Data> = Array<Column<D>>;
+
+/**
+ * 列控制配置（用于 control.columnControl）
+ *
+ * @template K - 列 key 类型，ProTable 中传入 Path<RecordType> 获得自动补全
+ *
+ * @example
+ * ```ts
+ * const config: ColumnControlConfig<'name' | 'age'> = {
+ *   excludedKeys: [],
+ *   disabledKeys: ['name'],
+ *   disableCheckAll: false,
+ * }
+ * ```
+ */
+export type ColumnControlConfig<K extends string | number = string | number> = {
+  /** 不在下拉中出现的列 keys（始终展示，不参与勾选） */
+  excludedKeys?: K[];
+  /** 在下拉中显示但不可取消勾选的列 keys（始终展示，始终勾选） */
+  disabledKeys?: K[];
+  /** 禁用全选/取消全选 */
+  disableCheckAll?: boolean;
+};

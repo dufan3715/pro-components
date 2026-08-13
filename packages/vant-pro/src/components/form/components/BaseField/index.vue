@@ -43,6 +43,7 @@ import { componentMap, TeleportComponentNamePrefix } from '../../constants';
 import { INJECT_COMPONENTS } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
+import { useLocale } from '../../../../locale';
 import { Field as VanField } from '../../../../shared/ui';
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
@@ -54,6 +55,8 @@ type Props = {
   path?: string;
 };
 const { component = undefined, path = '' } = defineProps<Props>();
+
+const { t } = useLocale();
 
 const form = useForm(false);
 const { getFormData, setFormData, formPopup } = form;
@@ -112,10 +115,13 @@ const popupCloseEventName = computed(() => {
  * 属性分为多类：组件绑定属性、Field UI 属性等
  */
 const groupedAttrs = computed(() => {
-  const initProps = getInitProps({
-    component: component,
-    type: attrs.type,
-  } as unknown as FieldType);
+  const initProps = getInitProps(
+    {
+      component: component,
+      type: attrs.type,
+    } as unknown as FieldType,
+    t
+  );
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'modelValue';
   const mergedProps = mergeProps(
     initProps,

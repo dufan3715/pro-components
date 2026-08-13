@@ -19,7 +19,6 @@ export const INJECT_CONFIG: {
     injectionKey: Symbol(''),
     default: {
       pagination: {
-        showTotal: total => `共 ${total} 条`,
         showSizeChanger: true,
         pageSizeOptions: ['10', '20', '30', '40', '50', '100'],
         showQuickJumper: true,
@@ -43,7 +42,7 @@ export const INJECT_CONFIG: {
   // field
   input: {
     injectionKey: Symbol(''),
-    default: { maxlength: 100, allowClear: true, placeholder: '请输入' },
+    default: { maxlength: 100, allowClear: true },
   },
   textarea: {
     injectionKey: Symbol(''),
@@ -52,12 +51,11 @@ export const INJECT_CONFIG: {
       autoSize: { minRows: 3, maxRows: 6 },
       showCount: true,
       allowClear: true,
-      placeholder: '请输入',
     },
   },
   'input-password': {
     injectionKey: Symbol(''),
-    default: { maxlength: 100, allowClear: true, placeholder: '请输入' },
+    default: { maxlength: 100, allowClear: true },
   },
   'input-search': {
     injectionKey: Symbol(''),
@@ -69,7 +67,6 @@ export const INJECT_CONFIG: {
       max: 10 ** 15 - 1,
       min: -(10 ** 15 + 1),
       controls: false,
-      placeholder: '请输入',
       style: { width: '100%' },
     } as any,
   },
@@ -79,15 +76,15 @@ export const INJECT_CONFIG: {
   },
   'auto-complete': {
     injectionKey: Symbol(''),
-    default: { allowClear: true, placeholder: '请选择', getPopupContainer },
+    default: { allowClear: true, getPopupContainer },
   },
   select: {
     injectionKey: Symbol(''),
-    default: { allowClear: true, placeholder: '请选择', getPopupContainer },
+    default: { allowClear: true, getPopupContainer },
   },
   cascader: {
     injectionKey: Symbol(''),
-    default: { allowClear: true, placeholder: '请选择', getPopupContainer },
+    default: { allowClear: true, getPopupContainer },
   },
   'date-picker': {
     injectionKey: Symbol(''),

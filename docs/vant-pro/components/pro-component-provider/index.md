@@ -6,16 +6,35 @@
 
 ### Props
 
-| 属性          | 说明                                                                            | 类型            | 默认值 |
-| ------------- | ------------------------------------------------------------------------------- | --------------- | ------ |
-| componentVars | 各组件的默认全局属性配置，例如统一 `pro-form` 的 `inputAlign`、`required` 等    | `ComponentVars` | `{}`   |
-| componentMap  | 用于向作用域内部注册全局自定义组件。注册后可以在 `ProForm` 中通过字符串直接引用 | `ComponentMap`  | -      |
+| 属性          | 说明                                                                            | 类型                 | 默认值 |
+| ------------- | ------------------------------------------------------------------------------- | -------------------- | ------ |
+| componentVars | 各组件的默认全局属性配置，例如统一 `pro-form` 的 `inputAlign`、`required` 等    | `ComponentVars`      | `{}`   |
+| componentMap  | 用于向作用域内部注册全局自定义组件。注册后可以在 `ProForm` 中通过字符串直接引用 | `ComponentMap`       | -      |
+| locale        | 按 key 覆盖内置文案（如占位符等）                                               | `Partial<ProLocale>` | -      |
 
 ### Slots
 
 | 插槽名称 | 说明 |
 | -------- | ---- |
 | default  | 内容 |
+
+## 内置文案语言切换 (locale)
+
+组件内置文案（如占位符「请输入」等）默认跟随宿主应用 vant `Locale.use(lang)` 自动切换，内置 zh-CN / zh-TW / en-US 三套语言，无需额外配置。
+
+如需覆盖个别文案，可通过 `locale` prop 按 key 覆盖（未覆盖的 key 仍跟随语言切换）：
+
+```vue
+<template>
+  <ProComponentProvider :locale="{ 'input.placeholder': 'Type here' }">
+    <RouterView />
+  </ProComponentProvider>
+</template>
+```
+
+## 使用示例
+
+- [内置文案语言切换](./demos/locale/)
 
 ## 注册全局组件
 

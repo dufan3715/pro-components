@@ -8,8 +8,12 @@ import {
   useConfigContextInject,
 } from '../../../shared/ui';
 import ColumnHeightOutlined from './icons/ColumnHeightOutlined.vue';
+import { computed } from 'vue';
+import { useLocale } from '../../../locale';
 
 type Size = TableProps['size'];
+
+const { t } = useLocale();
 
 const configContext = useConfigContextInject();
 
@@ -21,11 +25,11 @@ const onSizeChange = (val: any) => {
   size.value = val.key;
 };
 
-const sizeOptions: Array<MenuItemType> = [
-  { label: '默认', key: 'large' },
-  { label: '中等', key: 'middle' },
-  { label: '紧凑', key: 'small' },
-];
+const sizeOptions = computed<Array<MenuItemType>>(() => [
+  { label: t('table.sizeDefault'), key: 'large' },
+  { label: t('table.sizeMiddle'), key: 'middle' },
+  { label: t('table.sizeCompact'), key: 'small' },
+]);
 </script>
 
 <template>

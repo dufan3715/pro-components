@@ -72,3 +72,29 @@ export type Column<D extends Data = Data> = Omit<
  * ```
  */
 export type Columns<D extends Data = Data> = Array<Column<D>>;
+
+/**
+ * 列控制配置（用于 control.columnControl）
+ *
+ * @template K - 列 key 类型，ProTable 中传入 Path<RecordType> 获得自动补全
+ *
+ * @example
+ * ```ts
+ * const config: ColumnControlConfig<'name' | 'age'> = {
+ *   labels: { name: '姓名', age: '年龄' },
+ *   excludedKeys: [],
+ *   disabledKeys: ['name'],
+ *   disableCheckAll: false,
+ * }
+ * ```
+ */
+export type ColumnControlConfig<K extends string | number = string | number> = {
+  /** 列在下拉中的显示名称映射，key 为列 key/dataIndex，用于 title 为 vnode 时无法正常渲染 */
+  labels?: Partial<Record<K, string>>;
+  /** 不在下拉中出现的列 keys（始终展示，不参与勾选） */
+  excludedKeys?: K[];
+  /** 在下拉中显示但不可取消勾选的列 keys（始终展示，始终勾选） */
+  disabledKeys?: K[];
+  /** 禁用全选/取消全选 */
+  disableCheckAll?: boolean;
+};

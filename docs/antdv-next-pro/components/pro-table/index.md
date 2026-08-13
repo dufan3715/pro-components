@@ -64,18 +64,18 @@ const search = async () => {
 
 ### Props
 
-| 参数名           | 说明                                                       | 类型                                                          | 默认值 |
-| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------- | ------ |
-| table            | useTable 返回对象                                          | Object                                                        | -      |
-| search           | 表格数据查询获取方法                                       | Function                                                      | -      |
-| addIndexColumn   | 是否添加索引列                                             | boolean                                                       | -      |
-| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                       | -      |
-| control          | 是否展示表格 size 和 column 控制按钮                       | boolean \| { sizeControl?: boolean; columnControl?: boolean } | -      |
-| searchFormConfig | 搜索表单配置                                               | Object                                                        | -      |
-| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component                                                     | -      |
-| v-model:size     | 表格尺寸双向绑定                                           | 'large' \| 'middle' \| 'small'                                | -      |
-| v-model:loading  | 加载状态双向绑定                                           | boolean                                                       | -      |
-| ...              | 继承 antdv-next Table 组件的所有参数                       | [TableProps](https://antdv.com/components/table-cn/#api)      | -      |
+| 参数名           | 说明                                                       | 类型                                                                                 | 默认值 |
+| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
+| table            | useTable 返回对象                                          | Object                                                                               | -      |
+| search           | 表格数据查询获取方法                                       | Function                                                                             | -      |
+| addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | -      |
+| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                              | -      |
+| control          | 是否展示表格 size 和 column 控制按钮                       | boolean \| { sizeControl?: boolean; columnControl?: boolean \| ColumnControlConfig } | -      |
+| searchFormConfig | 搜索表单配置                                               | Object                                                                               | -      |
+| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component                                                                            | -      |
+| v-model:size     | 表格尺寸双向绑定                                           | 'large' \| 'middle' \| 'small'                                                       | -      |
+| v-model:loading  | 加载状态双向绑定                                           | boolean                                                                              | -      |
+| ...              | 继承 antdv-next Table 组件的所有参数                       | [TableProps](https://antdv.com/components/table-cn/#api)                             | -      |
 
 ### Slots
 
@@ -97,6 +97,83 @@ const search = async () => {
 | `hidden`    | 是否隐藏该列                    |
 
 其余字段均继承 antdv-next `ColumnType`。
+
+## 列控制配置（ColumnControlConfig）
+
+`control.columnControl` 支持布尔值或配置对象，用于控制列显隐下拉的行为：
+
+```ts
+type ColumnControlConfig<K extends string | number = string | number> = {
+  /** 列在下拉中的显示名称映射，key 为列 key/dataIndex，用于 title 为 vnode 时无法正常渲染 */
+  labels?: Partial<Record<K, string>>;
+  /** 不在下拉中出现的列 keys（始终展示，不参与勾选） */
+  excludedKeys?: K[];
+  /** 在下拉中显示但不可取消勾选的列 keys（始终展示，始终勾选） */
+  disabledKeys?: K[];
+  /** 禁用全选/取消全选 */
+  disableCheckAll?: boolean;
+};
+```
+
+当 `useTable` 传入泛型时，`labels`/`excludedKeys`/`disabledKeys` 的 key 会获得与 `dataIndex` 一致的路径自动补全提示。
+
+```vue
+<script setup lang="ts">
+import { h } from 'vue';
+import { ProTable, useTable } from '@qin-ui/antdv-next-pro';
+
+type Row = { name: string; age: number; address: string };
+
+const table = useTable<Row>({
+  columns: [
+    // title 为 vnode 时，通过 labels 提供下拉展示文本
+    { title: h('span', { style: 'color: red' }, '姓名'), dataIndex: 'name' },
+    { title: '年龄', dataIndex: 'age' },
+    { title: '家庭住址', dataIndex: 'address' },
+  ],
+});
+</script>
+
+<template>
+  <ProTable
+    :table="table"
+    :control="{
+      columnControl: {
+        labels: { name: '姓名' },
+        excludedKeys: ['address'], // 不出现在下拉中，始终展示
+        disabledKeys: ['age'], // 出现在下拉中但不可取消勾选
+        disableCheckAll: true, // 隐藏全选
+      },
+    }"
+  />
+</template>
+```
+
+## 列显隐持久化（外部实现）
+
+库本身不负责存储，使用方可通过 `table.columns` 与 `table.setColumn` 自行实现持久化（如按用户保存到数据库）：
+
+```ts
+// 保存：监听列 hidden 变化
+watch(
+  () => table.columns.value.map(c => c.hidden),
+  () => {
+    const state: Record<string, { hidden?: boolean }> = {};
+    table.columns.value.forEach(column => {
+      const key = column.key ?? column.dataIndex;
+      if (key) state[String(key)] = { hidden: !!column.hidden };
+    });
+    api.saveUserColumnState(state); // 后端按 userId 存储
+  },
+  { deep: true }
+);
+
+// 恢复：进入页面从数据库加载后回写
+const state = await api.getUserColumnState();
+Object.entries(state).forEach(([key, { hidden }]) => {
+  table.setColumn(key, { hidden: !!hidden });
+});
+```
 
 ## 搜索表单
 

@@ -4,15 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "docs:dev": "vitepress dev --port 5200",
+    "docs:dev": "rm -rf .vitepress/cache && vitepress dev --port 5200",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
   },
   "dependencies": {
-    "@qin-ui/antd-vue-pro": "^2.1.8",
-    "@qin-ui/antdv-next-pro": "^1.1.8",
-    "@qin-ui/element-plus-pro": "^1.0.1",
-    "@qin-ui/vant-pro": "^1.0.2",
+    "@qin-ui/antd-vue-pro": "workspace:^",
+    "@qin-ui/antdv-next-pro": "workspace:^",
+    "@qin-ui/element-plus-pro": "workspace:^",
+    "@qin-ui/vant-pro": "workspace:^",
     "ant-design-vue": "^4.2.6",
     "antdv-next": "^1.1.0",
     "element-plus": "^2.13.6",

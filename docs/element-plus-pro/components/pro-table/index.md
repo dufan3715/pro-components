@@ -36,25 +36,99 @@ const search = async () => {
 
 渲染优先级：`render(scope)` > `formatter`。
 
+## 列控制配置（ColumnControlConfig）
+
+`control.columnControl` 支持布尔值或配置对象，用于控制列显隐下拉的行为：
+
+```ts
+type ColumnControlConfig<K extends string | number = string | number> = {
+  /** 不在下拉中出现的列 keys（始终展示，不参与勾选） */
+  excludedKeys?: K[];
+  /** 在下拉中显示但不可取消勾选的列 keys（始终展示，始终勾选） */
+  disabledKeys?: K[];
+  /** 禁用全选/取消全选 */
+  disableCheckAll?: boolean;
+};
+```
+
+> 说明：Element Plus 的列标题通过 `label`（字符串）或 `render-header` 渲染，`ColumnControlConfig` 不提供 label 映射配置。
+
+当 `useTable` 传入泛型时，`excludedKeys`/`disabledKeys` 的 key 会获得与 `prop` 一致的路径自动补全提示。
+
+```vue
+<script setup lang="ts">
+import { ProTable, useTable } from '@qin-ui/element-plus-pro';
+
+type Row = { name: string; age: number; address: string };
+
+const table = useTable<Row>({
+  columns: [
+    { prop: 'name', label: '姓名' },
+    { prop: 'age', label: '年龄' },
+    { prop: 'address', label: '家庭住址' },
+  ],
+});
+</script>
+
+<template>
+  <ProTable
+    :table="table"
+    :control="{
+      columnControl: {
+        excludedKeys: ['address'], // 不出现在下拉中，始终展示
+        disabledKeys: ['age'], // 出现在下拉中但不可取消勾选
+        disableCheckAll: true, // 隐藏全选
+      },
+    }"
+  />
+</template>
+```
+
+## 列显隐持久化（外部实现）
+
+库本身不负责存储，使用方可通过 `table.columns` 与 `table.setColumn` 自行实现持久化（如按用户保存到数据库）：
+
+```ts
+// 保存：监听列 hidden 变化
+watch(
+  () => table.columns.value.map(c => c.hidden),
+  () => {
+    const state: Record<string, { hidden?: boolean }> = {};
+    table.columns.value.forEach(column => {
+      const key = column.key ?? column.prop;
+      if (key) state[String(key)] = { hidden: !!column.hidden };
+    });
+    api.saveUserColumnState(state); // 后端按 userId 存储
+  },
+  { deep: true }
+);
+
+// 恢复：进入页面从数据库加载后回写
+const state = await api.getUserColumnState();
+Object.entries(state).forEach(([key, { hidden }]) => {
+  table.setColumn(key, { hidden: !!hidden });
+});
+```
+
 ## API
 
 ### ProTable Props
 
-| 参数名           | 说明                                                       | 类型                                                                               | 默认值 |
-| ---------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------ |
-| table            | useTable 返回对象                                          | Table                                                                              | -      |
-| search           | 表格数据查询获取方法                                       | `() => Promise<unknown>`                                                           | -      |
-| addIndexColumn   | 是否添加索引列                                             | boolean                                                                            | -      |
-| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                            | -      |
-| control          | 是否展示表格 size 和 column 控制按钮，支持分别控制         | boolean \| `{ sizeControl: boolean; columnControl: boolean }`                      | -      |
-| searchFormConfig | 搜索表单配置                                               | SearchFormConfig                                                                   | -      |
-| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component \| false                                                                 | -      |
-| columns          | 直接传入列配置（覆盖 useTable 的 columns）                 | Columns                                                                            | -      |
-| data             | 直接传入数据源（覆盖 useTable 的 data）                    | Array                                                                              | -      |
-| pagination       | 分页器配置，传 `false` 禁用                                | false \| Partial<PaginationProps>                                                  | -      |
-| v-model:size     | 表格尺寸双向绑定                                           | `'large' \| 'default' \| 'small'`                                                  | -      |
-| v-model:loading  | 加载状态双向绑定                                           | boolean                                                                            | -      |
-| ...              | 继承 Element Plus Table 组件的所有参数                     | [TableProps](https://element-plus.org/zh-CN/component/table.html#table-attributes) | -      |
+| 参数名           | 说明                                                       | 类型                                                                                 | 默认值 |
+| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
+| table            | useTable 返回对象                                          | Table                                                                                | -      |
+| search           | 表格数据查询获取方法                                       | `() => Promise<unknown>`                                                             | -      |
+| addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | -      |
+| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                              | -      |
+| control          | 是否展示表格 size 和 column 控制按钮，支持分别控制         | boolean \| `{ sizeControl: boolean; columnControl: boolean \| ColumnControlConfig }` | -      |
+| searchFormConfig | 搜索表单配置                                               | SearchFormConfig                                                                     | -      |
+| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component \| false                                                                   | -      |
+| columns          | 直接传入列配置（覆盖 useTable 的 columns）                 | Columns                                                                              | -      |
+| data             | 直接传入数据源（覆盖 useTable 的 data）                    | Array                                                                                | -      |
+| pagination       | 分页器配置，传 `false` 禁用                                | `false \| Partial<PaginationProps>`                                                  | -      |
+| v-model:size     | 表格尺寸双向绑定                                           | `'large' \| 'default' \| 'small'`                                                    | -      |
+| v-model:loading  | 加载状态双向绑定                                           | boolean                                                                              | -      |
+| ...              | 继承 Element Plus Table 组件的所有参数                     | [TableProps](https://element-plus.org/zh-CN/component/table.html#table-attributes)   | -      |
 
 ### ProTable Slots
 
@@ -127,3 +201,4 @@ const search = async () => {
 - [基础表格](./demos/basic/)
 - [表格配置项](./demos/configurable/)
 - [Columns 渲染（formatter + render）](./demos/columns-render/)
+- [列控制与持久化](./demos/column-control/)

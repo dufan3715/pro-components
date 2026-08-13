@@ -55,19 +55,28 @@ import type { ContainerComponent } from '../../form/types';
 import SearchForm from './SearchForm.vue';
 import type { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../useTable';
-import { camelizeProperties, getObject, pick } from '../../../shared/core';
+import { useLocale } from '../../../locale';
+import {
+  camelizeProperties,
+  getObject,
+  pick,
+  Path,
+} from '../../../shared/core';
 import {
   DefaultSearchFormContainer,
   DefaultTableContainer,
   SizeControl,
   ColumnControl,
 } from '.';
-import type { Columns } from '../types';
+import type { Columns, ColumnControlConfig } from '../types';
 import TableColumnRenderer from './TableColumnRenderer.vue';
 
 defineOptions({ name: 'ProTable', inheritAttrs: false });
 
-type Control = { sizeControl: boolean; columnControl: boolean };
+type Control = {
+  sizeControl: boolean;
+  columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
+};
 
 type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
   // 是否隐藏搜索表单
@@ -111,6 +120,8 @@ const {
   data = undefined,
   pagination = undefined,
 } = defineProps<Props>();
+
+const { t } = useLocale();
 
 const config = INJECT_CONFIG['pro-table'];
 const injectProps = inject(config.injectionKey, config.default) as any;
@@ -235,7 +246,7 @@ const normalizedRawColumns = computed(() => {
       {
         key: '_index',
         type: 'index',
-        label: '序号',
+        label: t('table.index'),
         width: 80,
       },
       ...normalized,
@@ -295,12 +306,23 @@ const showSearch = computed(() => {
   );
 });
 
-const computedControl = computed<Control>(() => {
+const computedControl = computed<{
+  sizeControl: boolean;
+  columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
+}>(() => {
   const mergedControl = control ?? injectProps.control;
-  const sizeControl = (mergedControl as Control)?.sizeControl ?? mergedControl;
-  const columnControl =
-    (mergedControl as Control)?.columnControl ?? mergedControl;
-  return { sizeControl: !!sizeControl, columnControl: !!columnControl };
+  if (typeof mergedControl === 'boolean') {
+    return { sizeControl: mergedControl, columnControl: mergedControl };
+  }
+  const c = mergedControl as Control;
+  const sizeControl = c.sizeControl ?? true;
+  const columnControl = c.columnControl ?? true;
+  return { sizeControl: !!sizeControl, columnControl };
+});
+
+const columnControlConfig = computed(() => {
+  const cc = computedControl.value.columnControl;
+  return typeof cc === 'object' ? cc : undefined;
 });
 
 const resolvedSize = computed(() => {
@@ -357,7 +379,11 @@ onMounted(() => {
           v-if="computedControl.columnControl"
           class="pro-table_header_column-control"
         >
-          <ColumnControl :columns="normalizedRawColumns" :table="table" />
+          <ColumnControl
+            :columns="normalizedRawColumns"
+            :table="table"
+            :column-control="columnControlConfig"
+          />
         </div>
       </div>
 

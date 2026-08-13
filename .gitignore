@@ -36,3 +36,7 @@ packages/*/api.json
 
 # Generated init-ai CLI (from scripts/init-ai.template.mjs via generate-init-ai.ts)
 packages/*/bin/init-ai.mjs
+
+.codegraph
+.claude
+.zcode

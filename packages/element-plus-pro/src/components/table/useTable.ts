@@ -128,10 +128,22 @@ export function useTable<
   D extends Data = Data,
   T extends Data = ExtendWithAny<D>,
 >(params: UseTableParams<D, T> = {}): Table<D, T> {
-  const { data, ...rest } = params;
+  const { data, columns, ...rest } = params;
   const coreTable = (coreUseTable as any)({
     ...rest,
     dataSource: data,
+    // 补齐列 key（key ?? prop ?? columnKey），
+    // 使 setColumn 等按 key 匹配的 API 对 Element Plus 的 prop 列生效
+    columns: columns?.map(column => {
+      if (column.key !== undefined && column.key !== null) return column;
+      const prop = Array.isArray(column.prop)
+        ? column.prop.join('.')
+        : column.prop;
+      const fallback =
+        prop ??
+        (typeof column.columnKey === 'string' ? column.columnKey : undefined);
+      return { ...column, key: fallback };
+    }),
   }) as _Table<D, T, Column<T>>;
 
   const { dataSource, ...tableWithoutDataSource } = coreTable as any;

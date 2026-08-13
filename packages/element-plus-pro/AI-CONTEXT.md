@@ -50,20 +50,29 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/element-plus-pro';
 | component                                     | 默认预设                                                                                                                                                                                                                                |
 | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `switch`                                      | `{ modelProp: 'modelValue' }` -> v-model 绑 `modelValue`（element-plus 惯例，即 `v-model`）                                                                                                                                             |
-| `input`                                       | `{ maxlength: 100, clearable: true, placeholder: '请输入' }`                                                                                                                                                                            |
-| `input.textarea`                              | `{ maxlength: 200, autosize: {minRows:3,maxRows:6}, showWordLimit: true, clearable: true, placeholder: '请输入' }`                                                                                                                      |
-| `input.password`                              | `{ showPassword: true, maxlength: 100, clearable: true, placeholder: '请输入' }`                                                                                                                                                        |
-| `input-number`                                | `{ max: 1e15-1, min: -(1e15+1), controls: false, placeholder: '请输入', style:{width:'100%'} }`                                                                                                                                         |
-| `autocomplete`                                | `{ clearable: true, placeholder: '请输入' }`                                                                                                                                                                                            |
-| `select` / `cascader` / `tree-select`         | `{ clearable: true, placeholder: '请选择' }`                                                                                                                                                                                            |
-| `date-picker` / `time-picker` / `time-select` | `{ style:{width:'100%'}, placeholder: '请选择' }`                                                                                                                                                                                       |
+| `input`                                       | `{ maxlength: 100, clearable: true }`                                                                                                                                                                                                   |
+| `input.textarea`                              | `{ maxlength: 200, autosize: {minRows:3,maxRows:6}, showWordLimit: true, clearable: true }`                                                                                                                                             |
+| `input.password`                              | `{ showPassword: true, maxlength: 100, clearable: true }`                                                                                                                                                                               |
+| `input-number`                                | `{ max: 1e15-1, min: -(1e15+1), controls: false, style:{width:'100%'} }`                                                                                                                                                                |
+| `autocomplete`                                | `{ clearable: true }`                                                                                                                                                                                                                   |
+| `select` / `cascader` / `tree-select`         | `{ clearable: true }`                                                                                                                                                                                                                   |
+| `date-picker` / `time-picker` / `time-select` | `{ style:{width:'100%'} }`                                                                                                                                                                                                              |
 | `pro-form`                                    | `{ grid: { gutter: 24 } }`                                                                                                                                                                                                              |
 | `pro-form-item`                               | `{ span: 8 }`                                                                                                                                                                                                                           |
 | `pro-table`                                   | `{ pagination:{layout:'total, sizes, prev, pager, next, jumper', pageSizes:[10,20,30,40,50,100], background:true}, searchFormConfig:{layout:'grid', expand:{minExpandRows:2, expandStatus:false}}, control:true, addIndexColumn:true }` |
 
 > `modelProp` 控制 v-model 绑定名，element-plus 默认 `'modelValue'`（即 `v-model`）。
-> `date-picker` 支持按 type 子类型分别预设：`date-picker.date` / `.dates` / `.daterange` / `.datetime` / `.datetimerange` / `.week` / `.month` / `.monthrange` / `.months` / `.year` / `.yearrange` / `.years`，范围类型自带 `startPlaceholder`/`endPlaceholder`。
+> `date-picker` 支持按 type 子类型分别预设：`date-picker.date` / `.dates` / `.daterange` / `.datetime` / `.datetimerange` / `.week` / `.month` / `.monthrange` / `.months` / `.year` / `.yearrange` / `.years`，范围类型自动生成 `startPlaceholder`/`endPlaceholder`。
 > `checkbox-group` / `radio-group` / `slider` / `transfer` 无预设（`{}`）。
+> **占位符由 locale 兜底**：未显式设置 `placeholder` 时按组件类型自动生成（input 类 -> `input.placeholder`，select/cascader/tree-select 类 -> `select.placeholder`，日期/时间类 -> `date-picker.placeholder`，范围类型 -> `date-picker.start`/`date-picker.end` 等），语言随宿主组件库自动切换。
+
+### 内置文案（locale）
+
+内置文案（查询/重置/收起/展开/序号/分页总数/占位符等）走 locale 体系，默认跟随宿主 element-plus 语言自动切换：
+
+- `useLocale()` 返回 `{ t, lang }`：`t(key, params?)` 翻译函数（支持 `{placeholder}` 参数）、`lang` 当前语言（`'zh-CN'` / `'zh-TW'` / `'en-US'`）
+- 包导出 `zhCN` / `zhTW` / `enUS` 三套语言包（类型 `ProLocale`）
+- `ProComponentProvider` 的 `locale` prop 可覆盖任意内置文案（如 `{ 'table.query': '搜索' }`），未覆盖的默认跟随宿主语言
 
 ### 不支持响应式的属性（不能包 ref/computed）
 
@@ -142,6 +151,8 @@ useTable({ columns, data, pageParam, searchParam, searchFields }); // 数据源�
 透传所有 element-plus `TableProps`（`& Omit<TableProps,'data'>`），可直接写 `row-key` / `bordered` / `stripe` 等原生属性；`size`、`loading` 是 v-model。
 
 关键 prop：`table`（useTable 实例）、`search`（数据查询方法 `() => Promise`，ProTable 内部调用，非自动触发）、`addIndexColumn`、`immediateSearch`、`control`、`searchFormConfig`（含 `hidden`/`container`/`layout`/`expand`）、`tableContainer`、`columns`（覆盖实例列配置）、`data`（覆盖实例数据源）、`pagination`（`false` | 分页属性）。
+
+**列控制（control）**：`control` 支持布尔值或 `{ sizeControl, columnControl }` 对象；`columnControl` 可为布尔值或 `ColumnControlConfig`：`excludedKeys`（不在下拉出现、始终展示）、`disabledKeys`（显示但不可取消勾选）、`disableCheckAll`（禁用全选/取消全选）。element-plus 列标题用 `label`（字符串）渲染，无需 labels 映射；列 key 取 `prop` / `columnKey` / 索引。
 
 **数据流**：搜索->重置分页到第 1 页->调 `search()`；分页/排序变化->更新 `pageParam`->调 `search()`；重置->`resetQueryParams()`->调 `search()`。
 

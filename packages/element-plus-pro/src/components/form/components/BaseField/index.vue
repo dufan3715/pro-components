@@ -43,6 +43,7 @@ import { componentMap, TeleportComponentNamePrefix } from '../../constants';
 import { INJECT_COMPONENTS } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
+import { useLocale } from '../../../../locale';
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
 
@@ -51,6 +52,8 @@ type Props = {
   path?: string;
 };
 const { component = undefined, path = '' } = defineProps<Props>();
+
+const { t } = useLocale();
 
 const form = useForm(false);
 const { getFormData, setFormData } = form;
@@ -97,10 +100,13 @@ const parentDisabled = useDisabledContext();
  * 属性分为三类：绑定属性（v-model）、组件属性（传递给组件）、插槽（动态渲染）
  */
 const groupedAttrs = computed(() => {
-  const initProps = getInitProps({
-    component: component,
-    type: attrs.type,
-  } as unknown as Field);
+  const initProps = getInitProps(
+    {
+      component: component,
+      type: attrs.type,
+    } as unknown as Field,
+    t
+  );
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'modelValue';
   const mergedProps = mergeProps(
     initProps,

@@ -45,6 +45,21 @@ const componentVars = {
 - `date-picker` / `date-picker.daterange` / `date-picker.datetimerange`
 - `time-picker` / `time-select`
 
+## 内置文案语言切换 (locale)
+
+组件内置文案（查询、重置、序号、占位符、共 X 条等）默认跟随宿主应用 `el-config-provider :locale` 自动切换，内置 zh-CN / zh-TW / en-US 三套语言，无需额外配置。
+
+如需覆盖个别文案，可通过 `locale` prop 按 key 覆盖（未覆盖的 key 仍跟随语言切换）：
+
+```vue
+<template>
+  <ProComponentProvider :locale="{ 'table.query': '搜索' }">
+    <RouterView />
+  </ProComponentProvider>
+</template>
+```
+
 ## 使用示例
 
 - [基础使用](./demos/basic/)
+- [内置文案语言切换](./demos/locale/)
