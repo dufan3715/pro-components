@@ -29,20 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # 如果未启用 lastUpdated，则不需要
-      - uses: pnpm/action-setup@v6 # 如果使用 pnpm，请取消此区域注释
+      - uses: pnpm/action-setup@v3
         with:
-          version: 9
-      # - uses: oven-sh/setup-bun@v1 # 如果使用 Bun，请取消注释
+          version: 10
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: pnpm # 或 pnpm / yarn
+          node-version: 20
+          cache: pnpm
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v5
       - name: Install dependencies
         run: pnpm install # 或 pnpm install / yarn install / bun install
       - name: Build packages
