@@ -226,11 +226,6 @@ const normalizedRawColumns = computed(() => {
     if (current.label === undefined && current.title !== undefined) {
       current.label = current.title;
     }
-    if (current.prop === undefined && current.dataIndex !== undefined) {
-      current.prop = Array.isArray(current.dataIndex)
-        ? current.dataIndex.join('.')
-        : current.dataIndex;
-    }
     if (current.key === undefined) {
       current.key =
         current.prop ??
@@ -380,7 +375,9 @@ onMounted(() => {
           class="pro-table_header_column-control"
         >
           <ColumnControl
-            :columns="normalizedRawColumns"
+            :columns="
+              normalizedRawColumns.filter(item => item.key !== '_index')
+            "
             :table="table"
             :column-control="columnControlConfig"
           />

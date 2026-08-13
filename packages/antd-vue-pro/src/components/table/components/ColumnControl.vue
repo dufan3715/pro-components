@@ -149,9 +149,9 @@ watch(
           @click="onCheckAllChange"
         >
           <Checkbox
+            style="pointer-events: none"
             :checked="checkAll"
             :indeterminate="indeterminate"
-            style="width: 100%"
           >
             {{ t('table.selectAll') }}
           </Checkbox>
@@ -162,8 +162,12 @@ watch(
           :key="item.value"
           @click="checkColumnsMenuItemClick(item.value)"
         >
-          <Checkbox :checked="item.checked" :disabled="item.disabled">
-            <div>{{ item.label }}</div>
+          <Checkbox
+            :checked="item.checked"
+            :disabled="item.disabled"
+            style="pointer-events: none"
+          >
+            {{ item.label }}
           </Checkbox>
         </MenuItem>
       </Menu>

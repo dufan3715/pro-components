@@ -34,11 +34,7 @@ const normalizedColumns = computed(() => {
 const getColumnProps = (column: Column<D>) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { hidden, render, key, ...rest } = column;
-  const prop = Array.isArray(column.prop)
-    ? column.prop.join('.')
-    : column.prop
-      ? String(column.prop)
-      : undefined;
+  const prop = column.prop ? String(column.prop) : undefined;
   return {
     ...rest,
     prop,

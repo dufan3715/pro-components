@@ -1,5 +1,11 @@
 # @qin-ui/antd-vue-pro
 
+## 2.3.1
+
+### Patch Changes
+
+- fix(table): 优化列控制交互与排除 \_index 列，规范 prop 类型定义
+
 ## 2.3.0
 
 ### Minor Changes

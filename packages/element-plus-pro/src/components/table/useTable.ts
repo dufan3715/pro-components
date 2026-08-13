@@ -136,9 +136,7 @@ export function useTable<
     // 使 setColumn 等按 key 匹配的 API 对 Element Plus 的 prop 列生效
     columns: columns?.map(column => {
       if (column.key !== undefined && column.key !== null) return column;
-      const prop = Array.isArray(column.prop)
-        ? column.prop.join('.')
-        : column.prop;
+      const prop = column.prop;
       const fallback =
         prop ??
         (typeof column.columnKey === 'string' ? column.columnKey : undefined);

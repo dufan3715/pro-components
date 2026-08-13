@@ -1,11 +1,5 @@
 import type { ColumnType } from '../../../shared/ui';
-import {
-  Data,
-  ExtendWithAny,
-  KeyExpandString,
-  Paths,
-  Path,
-} from '../../../shared/core';
+import { Data, ExtendWithAny, Path } from '../../../shared/core';
 
 type BivariantRender<D extends Data = Data> = {
   bivarianceHack(scope: ColumnScope<D>): any;
@@ -61,7 +55,7 @@ export type Column<D extends Data = Data> = Partial<
    * Element Plus 使用 prop 而非 dataIndex
    * @example 'name' | 'address.city'
    */
-  prop?: KeyExpandString<Extract<keyof D, string>> | Paths<D>;
+  prop?: Path<D>;
   /** 是否隐藏该列 */
   hidden?: boolean;
   /** 自定义渲染函数 */
