@@ -1,5 +1,11 @@
 # @qin-ui/antd-vue-pro
 
+## 2.3.2
+
+### Patch Changes
+
+- fix(form): 修复 slots 类型合并逻辑，避免 FormItem 插槽与底层组件插槽产生交集类型
+
 ## 2.3.1
 
 ### Patch Changes

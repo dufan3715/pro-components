@@ -1,5 +1,11 @@
 # @qin-ui/vant-pro
 
+## 1.2.1
+
+### Patch Changes
+
+- fix(form): 修复 slots 类型合并逻辑，避免 FormItem 插槽与底层组件插槽产生交集类型
+
 ## 1.2.0
 
 ### Minor Changes
