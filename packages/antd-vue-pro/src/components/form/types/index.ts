@@ -70,6 +70,8 @@ export type Options = Array<Option>;
 
 export type Grid = boolean | (GridProps & {});
 
+export type FormItemSlots = ComponentSlots<typeof FormItem>;
+
 type BaseCommon<D extends Data = Data> = {
   /**
    * @description 字段标识namePath, 同name
@@ -100,7 +102,7 @@ type BaseCommon<D extends Data = Data> = {
    * }
    * ```
    */
-  slots?: Partial<ComponentSlots<typeof FormItem>>;
+  slots?: Partial<FormItemSlots>;
   /**
    * @description 字段formItem样式属性
    * @example { marginBottom: '8px', padding: '12px' }
@@ -239,6 +241,20 @@ type WithFields<D extends Data = Data> = WithRef<
 >;
 
 /**
+ * @description 合并 FormItem 插槽与组件插槽
+ */
+export type MergeSlots<
+  T extends abstract new (...args: any) => any,
+  CS = ComponentSlots<T>,
+> = Partial<{
+  [K in keyof FormItemSlots | keyof CS]: K extends keyof FormItemSlots
+    ? FormItemSlots[K]
+    : K extends keyof CS
+      ? CS[K]
+      : SlotComponentType;
+}>;
+
+/**
  * @description 自动从 Vue 组件提取 Props 和 Slots，并加上公共表单字段属性
  * @template T - Vue 组件类型
  * @template D - 数据对象类型
@@ -246,12 +262,12 @@ type WithFields<D extends Data = Data> = WithRef<
 type WithComponent<
   T extends abstract new (...args: any) => any,
   D extends Data = Data,
-> = WithCommon<
-  { slots?: Partial<ComponentSlots<T>> } & Partial<
-    Omit<ComponentProps<T>, keyof VNodeProps>
-  >,
-  D
->;
+> = Omit<
+  WithCommon<Partial<ComponentProps<T>>, D>,
+  keyof VNodeProps | 'slots'
+> & {
+  slots?: MergeSlots<T>;
+};
 
 /**
  * @description 字段配置类型，包含所有字段属性和响应式支持

@@ -1,4 +1,8 @@
-import { type FormInstance, type FieldProps } from '../../../shared/ui';
+import {
+  type FormInstance,
+  type FieldProps,
+  Field as VanField,
+} from '../../../shared/ui';
 import type {
   ComponentProps,
   ComponentSlots,
@@ -67,6 +71,8 @@ export type Slots = {
   [name: string]: SlotComponentType;
 };
 
+export type FieldSlots = ComponentSlots<typeof VanField>;
+
 type BaseCommon<D extends Data = Data> = {
   /**
    * @description 字段标识namePath, 同name
@@ -87,7 +93,7 @@ type BaseCommon<D extends Data = Data> = {
   /**
    * @description 字段插槽配置
    */
-  slots?: Slots;
+  slots?: Partial<FieldSlots>;
   /**
    * @description 嵌套 fields 容器包裹组件
    */
@@ -202,15 +208,29 @@ type WithFields<D extends Data = Data> = WithRef<
   WithCommonBase & BaseWithFields<D>
 >;
 
+/**
+ * @description 合并 VanField 插槽与组件插槽
+ */
+export type MergeSlots<
+  T extends abstract new (...args: any) => any,
+  CS = ComponentSlots<T>,
+> = Partial<{
+  [K in keyof FieldSlots | keyof CS]: K extends keyof FieldSlots
+    ? FieldSlots[K]
+    : K extends keyof CS
+      ? CS[K]
+      : SlotComponentType;
+}>;
+
 type WithComponent<
   T extends abstract new (...args: any) => any,
   D extends Data = Data,
-> = WithCommon<
-  { slots?: Partial<ComponentSlots<T>> } & Partial<
-    Omit<ComponentProps<T>, keyof VNodeProps>
-  >,
-  D
->;
+> = Omit<
+  WithCommon<Partial<ComponentProps<T>>, D>,
+  keyof VNodeProps | 'slots'
+> & {
+  slots?: MergeSlots<T>;
+};
 
 export type Field<
   C extends ComponentName = ComponentName,
