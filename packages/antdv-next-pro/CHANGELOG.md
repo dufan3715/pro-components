@@ -1,5 +1,14 @@
 # @qin-ui/antdv-next-pro
 
+## 1.3.2
+
+### Patch Changes
+
+- fix: 修复 ProTable 列配置响应式引用断开、多级表头递归与表单插槽注入时序等问题
+
+- Updated dependencies []:
+  - @qin-ui/pro-components-core@1.1.1
+
 ## 1.3.1
 
 ### Patch Changes
