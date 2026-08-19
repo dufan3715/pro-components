@@ -134,10 +134,12 @@ type JoinPath<Prefix extends any[], Key extends PropertyKey> = [
  * // ['name'] | ['address'] | ['address', 'city']
  * ```
  */
-export type Paths<T, Prefix extends any[] = []> = T extends object
-  ? {
-      [K in keyof T]: IsRecord<T[K]> extends true
-        ? JoinPath<Prefix, K> | Paths<T[K], JoinPath<Prefix, K>>
-        : JoinPath<Prefix, K>;
-    }[keyof T]
-  : never;
+export type Paths<T, Prefix extends any[] = []> =
+  | (T extends object
+      ? {
+          [K in keyof T]: IsRecord<T[K]> extends true
+            ? JoinPath<Prefix, K> | Paths<T[K], JoinPath<Prefix, K>>
+            : JoinPath<Prefix, K>;
+        }[keyof T]
+      : never)
+  | (string & {})[];

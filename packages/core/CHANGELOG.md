@@ -1,5 +1,11 @@
 # @qin-ui/pro-components-core
 
+## 1.1.2
+
+### Patch Changes
+
+- fix: 修复 Paths 类型定义，补充 (string & {})[] 宽数组逃生通道，解决包含 Date 或嵌套对象时表格 Ref 类型兼容性报错
+
 ## 1.1.1
 
 ### Patch Changes
