@@ -130,11 +130,9 @@ export const componentMap: BaseComponentMap = {
   'transfer': Transfer,
 }
 
-/**
- * Teleport 组件名称前缀
- * @description 用于通过插槽动态替换指定 path 的组件
- */
-export const TeleportComponentNamePrefix = 'TeleportComponent_';
-
 // inject keys
-export { InjectionFormKey, InjectionPathKey } from '../../../shared/core';
+export {
+  InjectionFormKey,
+  InjectionPathKey,
+  InjectionFormSlotsKey,
+} from '../../../shared/core';

@@ -17,7 +17,7 @@ const { columns } = defineProps<Props>();
 
 const getColumnKey = (column: Column<D>, index: number) => {
   const key = column.key ?? column.prop;
-  if (key === undefined || key === null) return `__idx_${index}`;
+  if (key === undefined || key === null) return `__col_${index}`;
   return Array.isArray(key) ? key.join('.') : String(key);
 };
 
@@ -33,10 +33,11 @@ const normalizedColumns = computed(() => {
 
 const getColumnProps = (column: Column<D>) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { hidden, render, key, ...rest } = column;
+  const { hidden, render, key, children, ...rest } = column;
   const prop = column.prop ? String(column.prop) : undefined;
   return {
     ...rest,
+    label: column.label ?? (column as any).title,
     prop,
     columnKey: key ? String(key) : prop,
   };
@@ -48,20 +49,33 @@ const getColumnProps = (column: Column<D>) => {
     v-for="(column, index) in normalizedColumns"
     :key="getColumnKey(column, index)"
   >
-    <TableColumn v-bind="getColumnProps(column)">
+    <!-- 分组列（递归子列） -->
+    <TableColumn
+      v-if="column.children && column.children.length > 0"
+      v-bind="getColumnProps(column)"
+    >
+      <TableColumnRenderer :columns="column.children" />
+    </TableColumn>
+
+    <!-- 自定义 render 列 -->
+    <TableColumn
+      v-else-if="typeof column.render === 'function'"
+      v-bind="getColumnProps(column)"
+    >
       <template #default="scope">
-        <template v-if="typeof column.render === 'function'">
-          <component
-            :is="
-              column.render?.({
-                ...scope,
-                column,
-                cellValue: getCellValue(scope.row, column),
-              })
-            "
-          />
-        </template>
+        <component
+          :is="
+            column.render?.({
+              ...scope,
+              column,
+              cellValue: getCellValue(scope.row, column),
+            })
+          "
+        />
       </template>
     </TableColumn>
+
+    <!-- 普通列（Element Plus 原生渲染） -->
+    <TableColumn v-else v-bind="getColumnProps(column)" />
   </template>
 </template>

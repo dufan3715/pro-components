@@ -12,6 +12,7 @@ export {
   // injection keys
   InjectionFormKey,
   InjectionPathKey,
+  InjectionFormSlotsKey,
   // utils
   get,
   getObject,

@@ -292,16 +292,19 @@ const useFields = <
     const fieldPath = _map.get(pathStr) || [];
     if (fieldPath.length === 0) return false;
     const fieldIndex = fieldPath[fieldPath.length - 1] as number;
-    const parentField =
-      fieldPath.length === 1
-        ? (fields.value as any)
-        : get(fields.value, fieldPath.slice(0, -2));
+    const isRoot = fieldPath.length === 1;
+    const parentField = isRoot
+      ? ({ fields: fields.value } as any as F)
+      : (get(fields.value, fieldPath.slice(0, -2)) as F);
     const field = parentField?.fields?.[fieldIndex] as F;
-    const _path = toPath(field?.name ?? (field?.path as string)).join('.');
-    if (_path === pathStr) {
+    const _path = field
+      ? toPath(field.name ?? (field.path as string)).join('.')
+      : '';
+    if (_path && _path === pathStr) {
       updater({ field, fieldIndex, parentField: parentField as F });
       return true;
     }
+    _map.delete(pathStr);
     return false;
   };
 

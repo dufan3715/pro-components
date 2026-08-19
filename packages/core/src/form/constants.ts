@@ -12,3 +12,10 @@ export const InjectionFormKey: InjectionKey<any> = Symbol('form');
  */
 export const InjectionPathKey: InjectionKey<ComputedRef<string | undefined>> =
   Symbol('path');
+
+/**
+ * 表单插槽注入 key
+ * @description 用于在组件树中提供/注入表单动态插槽集合
+ */
+export const InjectionFormSlotsKey: InjectionKey<Record<string, any>> =
+  Symbol('form-slots');

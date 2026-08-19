@@ -33,8 +33,13 @@ const checkedColumnsOptions = computed<
   }>
 >(() =>
   columns.flatMap(item => {
-    if (!item.key || !item.title) return [];
-    const key = item.key as string;
+    const rawKey =
+      item.key ??
+      (Array.isArray(item.dataIndex)
+        ? item.dataIndex.join('.')
+        : item.dataIndex);
+    if (!rawKey || !item.title) return [];
+    const key = String(rawKey);
     if (columnControl?.excludedKeys?.some(ek => String(ek) === key)) return [];
     const disabled =
       columnControl?.disabledKeys?.some(dk => String(dk) === key) ?? false;

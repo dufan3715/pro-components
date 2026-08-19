@@ -60,6 +60,8 @@ export type Column<D extends Data = Data> = Partial<
   hidden?: boolean;
   /** 自定义渲染函数 */
   render?: BivariantRender<D>;
+  /** 嵌套子列（用于表头分组） */
+  children?: Column<D>[];
 };
 
 /**

@@ -220,22 +220,6 @@ const computedTableContainer = computed(() => {
 
 const normalizedRawColumns = computed(() => {
   const source = (columns ?? tableColumns?.value ?? []) as any[];
-
-  const normalized = source.map((item, index) => {
-    const current: any = { ...item };
-    if (current.label === undefined && current.title !== undefined) {
-      current.label = current.title;
-    }
-    if (current.key === undefined) {
-      current.key =
-        current.prop ??
-        (typeof current.columnKey === 'string'
-          ? current.columnKey
-          : undefined) ??
-        `col-${index}`;
-    }
-    return current;
-  });
   if (addIndexColumn ?? injectProps.addIndexColumn) {
     return [
       {
@@ -244,10 +228,10 @@ const normalizedRawColumns = computed(() => {
         label: t('table.index'),
         width: 80,
       },
-      ...normalized,
+      ...source,
     ];
   }
-  return normalized;
+  return source;
 });
 
 const computedDataSource = computed<any[]>(() => {
@@ -336,11 +320,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="pro-table"
-    :class="($attrs as any).class"
-    :style="($attrs as any).style"
-  >
+  <div class="pro-table" :class="attrs.class" :style="attrs.style">
     <ContainerFragment
       v-if="showSearch"
       :component="computedSearchFormConfig.container"

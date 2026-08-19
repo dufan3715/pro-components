@@ -61,8 +61,10 @@ import {
   AllowedComponentProps,
   computed,
   ref,
+  nextTick,
   watch,
   watchEffect,
+  onBeforeUnmount,
   type Component,
   type DefineComponent,
 } from 'vue';
@@ -94,7 +96,25 @@ const emit = defineEmits<Emits>();
 
 const proFormHeight = ref<'unset' | number>('unset');
 const collapseHeight = ref(0);
-let rowHeight = 32;
+const rowHeight = ref(32);
+
+let resizeObserver: ResizeObserver | null = null;
+let intersectionObserver: IntersectionObserver | null = null;
+
+const cleanupObservers = () => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+  if (intersectionObserver) {
+    intersectionObserver.disconnect();
+    intersectionObserver = null;
+  }
+};
+
+onBeforeUnmount(() => {
+  cleanupObservers();
+});
 
 const computedExpand = computed(() => {
   if (!expand) return false;
@@ -109,11 +129,41 @@ const showExpandToggle = ref(false);
 
 const expandStatus = ref(true);
 
-const changeExpandStatus = () => {
-  expandStatus.value = !expandStatus.value;
+const { formRef, getFormData } = form;
+
+const updateHeights = () => {
+  if (!expand || !formRef.value) return;
+  const proFormEl = (formRef.value as any)?.$el;
+  if (!proFormEl) return;
+
+  const itemHeight = proFormEl
+    ?.querySelector("[class*='-form-item']")
+    ?.getBoundingClientRect?.()?.height;
+  if (itemHeight && itemHeight > 0) {
+    rowHeight.value = itemHeight;
+  }
+
+  // 使用 scrollHeight 测量自然展开高度，突破固定高度与 overflow: hidden 样式的自引用限制
+  const naturalHeight =
+    proFormEl.scrollHeight || proFormEl.getBoundingClientRect?.()?.height || 0;
+  if (naturalHeight > 0) {
+    proFormHeight.value = naturalHeight;
+  }
 };
 
-const { formRef, getFormData } = form;
+const changeExpandStatus = () => {
+  expandStatus.value = !expandStatus.value;
+  nextTick(() => {
+    updateHeights();
+  });
+};
+
+const hasFieldValue = (val: any) =>
+  val !== null &&
+  val !== undefined &&
+  val !== '' &&
+  !(Array.isArray(val) && val.length === 0) &&
+  !(typeof val === 'object' && Object.keys(val).length === 0);
 
 /*
  * 使用 IntersectionObserver 检测折叠状态下隐藏字段是否有值
@@ -123,26 +173,30 @@ const setInitExpandStatus = () => {
   expandStatus.value = false;
   if (formRef.value && expand) {
     const formEl = (formRef.value as any).$el;
-    const formItemsEl = formEl.querySelectorAll(
+    const formItemsEl = formEl?.querySelectorAll?.(
       "[class*='-form-item'] > [path]"
     );
-    const observer = new IntersectionObserver(
+    if (!formItemsEl || formItemsEl.length === 0) return;
+    if (intersectionObserver) {
+      intersectionObserver.disconnect();
+    }
+    intersectionObserver = new IntersectionObserver(
       entries => {
         expandStatus.value = entries.some(e => {
           // 如果隐藏字段（intersectionRatio === 0）有值，则自动展开
           if (e.intersectionRatio === 0) {
             const path = e.target.getAttribute('path');
             const searchFieldValue = path ? getFormData?.(path) : undefined;
-            return ![null, undefined].includes(searchFieldValue);
+            return hasFieldValue(searchFieldValue);
           }
           return (expand as any).expandStatus;
         });
-        observer.disconnect();
+        intersectionObserver?.disconnect();
       },
       { root: formEl }
     );
     formItemsEl.forEach((element: Element) => {
-      observer.observe(element);
+      intersectionObserver?.observe(element);
     });
   }
 };
@@ -154,15 +208,27 @@ watch(
     () => expand,
   ],
   () => {
-    if (!expand || !expandStatus.value || !formRef.value) return;
-    const proFormEl = (formRef.value as any)?.$el;
-    const { height = 0 } = proFormEl?.getBoundingClientRect?.() || {};
-    proFormHeight.value = height;
-    rowHeight = proFormEl
-      ?.querySelector("[class*='-form-item']")
-      ?.getBoundingClientRect?.()?.height;
+    updateHeights();
   },
   { flush: 'post', immediate: true }
+);
+
+watch(
+  () => formRef.value,
+  val => {
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+      resizeObserver = null;
+    }
+    const formEl = (val as any)?.$el;
+    if (formEl && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        updateHeights();
+      });
+      resizeObserver.observe(formEl);
+    }
+  },
+  { immediate: true }
 );
 
 /*
@@ -176,7 +242,7 @@ watchEffect(
     if (layout === 'grid' && computedExpand.value) {
       const { minExpandRows } = computedExpand.value;
       collapseHeight.value = Math.min(
-        minExpandRows * rowHeight + (minExpandRows - 1) * rowGap,
+        minExpandRows * rowHeight.value + (minExpandRows - 1) * rowGap,
         +proFormHeight.value
       );
       showExpandToggle.value = +proFormHeight.value - collapseHeight.value > 1;

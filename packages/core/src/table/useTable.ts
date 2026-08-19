@@ -195,6 +195,89 @@ export type Table<
  * }
  * ```
  */
+
+/**
+ * 列 key 全局自增种子，用于为无 key 的列分配唯一标识（`__col_1`, `__col_2`, ...）。
+ *
+ * @internal 模块级可变状态，不对外暴露。
+ * @remarks
+ * - **SSR 场景限制**：在 SSR（如 Nuxt）环境下，Node.js 进程复用模块单例，
+ *   多次请求间 seed 会持续递增，可能导致服务端/客户端渲染的 key 不匹配（hydration mismatch）。
+ *   若需支持 SSR，应改为在 `useTable` 内部维护实例级计数器。
+ * - **HMR**：开发期模块热更新不会重置 seed，不影响功能。
+ */
+let columnKeySeed = 0;
+
+/**
+ * 规范化单个表格列配置（补齐 key，递归处理 children，不破坏原对象引用）
+ *
+ * @description 为了保证表格列在渲染、列控制、拖拽调宽时的唯一标识及响应式引用，
+ * 会就地为缺失 key 的列对象补齐 key（优先级：key → dataIndex → prop → columnKey → 全局唯一自增标识 `__col_N`）。
+ * 若列对象被冻结（Object.isFrozen），则会降级为浅拷贝后赋值，避免严格模式下报错。
+ *
+ * @mutates 会就地修改传入的列对象（补齐 `key` 属性）。若对象被冻结，则返回解冻的浅拷贝副本。
+ * 调用方应知悉：传入的原始对象可能被直接变异。
+ *
+ * @param col - 列配置对象
+ * @returns 规范化后的原列配置对象（或解冻后的副本）
+ */
+export function normalizeColumn<
+  T extends Data = Data,
+  C extends BaseColumn<T> = BaseColumn<T>,
+>(col: C): C {
+  if (!col || typeof col !== 'object') return col;
+  let target = col;
+  if (Object.isFrozen(target)) {
+    target = { ...col };
+  }
+  if (target.key === undefined || target.key === null) {
+    if (target.dataIndex !== undefined && target.dataIndex !== null) {
+      target.key = (
+        Array.isArray(target.dataIndex)
+          ? target.dataIndex.join('.')
+          : String(target.dataIndex)
+      ) as Path<T>;
+    } else if (
+      (target as any).prop !== undefined &&
+      (target as any).prop !== null
+    ) {
+      target.key = String((target as any).prop) as Path<T>;
+    } else if (typeof (target as any).columnKey === 'string') {
+      target.key = (target as any).columnKey as Path<T>;
+    } else {
+      target.key = `__col_${++columnKeySeed}` as Path<T>;
+    }
+  }
+  if (Array.isArray(target.children) && target.children.length > 0) {
+    target.children = target.children.map((child: any) =>
+      normalizeColumn(child as C)
+    );
+  }
+  return target;
+}
+
+/**
+ * 规范化表格列配置数组（就地补齐 key，不破坏原对象引用）
+ *
+ * @mutates 会就地修改传入的数组及其元素：
+ * - 对每个元素调用 {@link normalizeColumn} 补齐 `key`；
+ * - 若元素为冻结对象，会用解冻副本**替换**数组中对应位置的元素（`columns[i] = ...`）。
+ * 调用方传入的原始数组会被直接变异，这是为了保持 Vue 响应式 Proxy 引用的刻意设计。
+ *
+ * @param columns - 列配置数组
+ * @returns 原列配置数组（若传入非数组则返回空数组）
+ */
+export function normalizeColumns<
+  T extends Data = Data,
+  C extends BaseColumn<T> = BaseColumn<T>,
+>(columns?: Columns<T, C>): Columns<T, C> {
+  if (!Array.isArray(columns)) return [] as unknown as Columns<T, C>;
+  for (let i = 0; i < columns.length; i++) {
+    columns[i] = normalizeColumn(columns[i]);
+  }
+  return columns;
+}
+
 const useTable = <
   D extends Data = Data,
   T extends Data = ExtendWithAny<D>,
@@ -216,8 +299,9 @@ const useTable = <
   const _initSearchParam = cloneDeep(toValue(initSearchParam));
   const _initPageParam = cloneDeep(toValue(initPageParam));
 
-  const columns = ref<Columns<T, C>>([]) as Ref<Columns<T, C>>;
-  columns.value = initColumns;
+  const columns = ref<Columns<T, C>>(normalizeColumns(initColumns)) as Ref<
+    Columns<T, C>
+  >;
 
   const dataSource = ref<T[]>(initDataSource);
 
@@ -245,28 +329,46 @@ const useTable = <
   ) => {
     if (!key) return;
     const { all = typeof key === 'function' } = options;
-    for (let i = 0; i < columns.value.length; i++) {
-      const columnItem = columns.value[i];
-      let matched = false;
-      if (typeof key === 'function') {
-        matched = (key as any)(columnItem);
-      } else if (columnItem.key) {
-        matched = columnItem.key === key;
-      } else if (columnItem.dataIndex) {
-        const dataIndexKey = Array.isArray(columnItem.dataIndex)
-          ? columnItem.dataIndex.join('.')
-          : (columnItem.dataIndex as string);
-        matched = dataIndexKey === key;
+
+    const traverse = (currentColumns: Columns<T, C>): boolean => {
+      for (let i = 0; i < currentColumns.length; i++) {
+        const columnItem = currentColumns[i];
+        let matched = false;
+        if (typeof key === 'function') {
+          matched = (key as any)(columnItem);
+        } else if (columnItem.key) {
+          matched = columnItem.key === key;
+        } else if (columnItem.dataIndex) {
+          const dataIndexKey = Array.isArray(columnItem.dataIndex)
+            ? columnItem.dataIndex.join('.')
+            : (columnItem.dataIndex as string);
+          matched = dataIndexKey === key;
+        }
+        if (matched) {
+          const preLen = currentColumns.length;
+          updater({
+            column: columnItem as any,
+            columnIndex: i,
+            group: currentColumns as any,
+          });
+          if (!all) return true;
+          const diff = preLen - currentColumns.length;
+          if (diff > 0) {
+            i -= diff;
+          }
+        }
+        if (
+          Array.isArray(columnItem.children) &&
+          columnItem.children.length > 0
+        ) {
+          const finished = traverse(columnItem.children as Columns<T, C>);
+          if (finished && !all) return true;
+        }
       }
-      if (matched) {
-        updater({
-          column: columnItem as any,
-          columnIndex: i,
-          group: columns.value as any,
-        });
-        if (!all) return;
-      }
-    }
+      return false;
+    };
+
+    traverse(columns.value);
   };
 
   /**
@@ -298,7 +400,16 @@ const useTable = <
         }
         if (!value) return;
         if (updateType === 'rewrite') {
-          group[columnIndex] = value as C;
+          const normalized = normalizeColumn(value as C);
+          // 若新对象未显式指定 key，继承原列的 key，确保后续寻址与列身份不丢失
+          if (
+            (normalized.key === undefined ||
+              String(normalized.key).startsWith('__col_')) &&
+            preColumn.key
+          ) {
+            normalized.key = preColumn.key;
+          }
+          group[columnIndex] = normalized;
         } else {
           Object.assign(preColumn, value);
         }
@@ -400,6 +511,7 @@ const useTable = <
     placement?: 'before' | 'after'
   ) {
     if (newColumns.length === 0) return;
+    normalizeColumns(newColumns);
     if (path) {
       updaterMatch(
         path,

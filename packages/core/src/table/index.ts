@@ -1,2 +1,7 @@
 export * from './types';
-export { default as useTable, type Table } from './useTable';
+export {
+  default as useTable,
+  normalizeColumn,
+  normalizeColumns,
+  type Table,
+} from './useTable';

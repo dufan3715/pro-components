@@ -31,7 +31,7 @@ const indeterminate = ref(false);
 
 const getColumnKey = (column: Column, index: number) => {
   const key = column.key ?? column.prop;
-  if (key === undefined || key === null) return `__idx_${index}`;
+  if (key === undefined || key === null) return `__col_${index}`;
   return Array.isArray(key) ? key.join('.') : String(key);
 };
 
@@ -55,6 +55,7 @@ const checkedColumnsOptions = computed<
       );
       const label = String(
         item.label ??
+          (item as any).title ??
           item.prop ??
           t('table.columnFallback', { index: index + 1 })
       );

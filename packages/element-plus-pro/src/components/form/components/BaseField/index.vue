@@ -39,7 +39,7 @@ import { cloneDeep, omit } from '../../../../shared/core';
 import { useDisabledContext } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
-import { componentMap, TeleportComponentNamePrefix } from '../../constants';
+import { componentMap, InjectionFormSlotsKey } from '../../constants';
 import { INJECT_COMPONENTS } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
@@ -134,21 +134,21 @@ const groupedAttrs = computed(() => {
   };
 });
 
-// 从 ProForm 插槽注入的 teleport 组件（优先级最高）
-const teleportComponent = inject(
-  `${TeleportComponentNamePrefix}${path}`,
-  undefined
-);
+// 从 ProForm 插槽注入的 slots 集合（优先级最高）
+const formSlots = inject(InjectionFormSlotsKey, undefined) as
+  | Record<string, any>
+  | undefined;
 
 // 从 ProComponentProvider 注入的自定义组件映射
 const customComponents = inject(INJECT_COMPONENTS, {});
 
 /*
  * 按优先级解析最终要渲染的组件：
- * teleport 插槽 → 自定义组件映射 → 内置组件映射 → 原始 component 值
+ * ProForm 插槽 → 自定义组件映射 → 内置组件映射 → 原始 component 值
  */
 const is = computed(() => {
-  if (teleportComponent) return teleportComponent;
+  const teleportSlot = path && formSlots?.[path];
+  if (teleportSlot) return teleportSlot;
   if (typeof component === 'string') {
     return (
       (customComponents as any)[component] ||

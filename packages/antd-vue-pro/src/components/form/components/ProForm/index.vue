@@ -43,10 +43,10 @@
  * ```
  */
 import { Form as AForm, FormProps as AFormProps } from '../../../../shared/ui';
-import { inject, mergeProps, provide, type Slot, watchEffect } from 'vue';
+import { inject, mergeProps, provide, reactive, type Slot } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
 import { BaseFormItem } from '..';
-import { InjectionFormKey, TeleportComponentNamePrefix } from '../../constants';
+import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { Grid, VModelProps, PathProps } from '../../types';
 import { Path, camelizeProperties } from '../../../../shared/core';
 import type { Form } from '../../hooks/useForm';
@@ -82,18 +82,12 @@ type FieldSlotProps = VModelProps &
 type FieldSlots = Record<ExtractPath<F>, Slot<FieldSlotProps>>;
 
 const slots = defineSlots<Partial<FieldSlots & { default: Slot }>>();
+
 /**
  * 动态插槽映射中心 (Slot Teleporting)：
- * 目的：将 ProForm 上以 Field Path 命名的插槽，动态注册为全局可访问的 Context。
- * 实现：BaseField 组件在渲染对应字段时，会通过 inject 尝试获取对应的 Prefix+Path，
- *      如果存在，则将插槽内容渲染到深层的具体位置，从而突破了组件嵌套层级的限制。
+ * 在 setup 同步期直接提供响应式 slots 上下文容器，供深层 BaseField 按需动态获取插槽
  */
-watchEffect(() => {
-  Object.keys(slots).forEach(name => {
-    if (name === 'default') return;
-    provide(`${TeleportComponentNamePrefix}${name}`, (slots as any)[name]);
-  });
-});
+provide(InjectionFormSlotsKey, reactive(slots) as any);
 </script>
 
 <template>

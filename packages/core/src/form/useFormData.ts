@@ -155,8 +155,11 @@ const useFormData = <D extends Data = Data>(
         value = value(preValue);
       }
       if (!isPlainObject(value)) return;
+      const newKeys = new Set(Object.keys(value));
       Object.keys(formData).forEach(key => {
-        delete (formData as any)[key];
+        if (!newKeys.has(key)) {
+          delete (formData as any)[key];
+        }
       });
       Object.assign(formData, value);
     }

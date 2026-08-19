@@ -132,16 +132,7 @@ export function useTable<
   const coreTable = (coreUseTable as any)({
     ...rest,
     dataSource: data,
-    // 补齐列 key（key ?? prop ?? columnKey），
-    // 使 setColumn 等按 key 匹配的 API 对 Element Plus 的 prop 列生效
-    columns: columns?.map(column => {
-      if (column.key !== undefined && column.key !== null) return column;
-      const prop = column.prop;
-      const fallback =
-        prop ??
-        (typeof column.columnKey === 'string' ? column.columnKey : undefined);
-      return { ...column, key: fallback };
-    }),
+    columns,
   }) as _Table<D, T, Column<T>>;
 
   const { dataSource, ...tableWithoutDataSource } = coreTable as any;
