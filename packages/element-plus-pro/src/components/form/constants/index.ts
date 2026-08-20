@@ -107,8 +107,4 @@ export const componentMap: BaseComponentMap = {
 }
 
 // inject keys
-export {
-  InjectionFormKey,
-  InjectionPathKey,
-  InjectionFormSlotsKey,
-} from '../../../shared/core';
+export { InjectionFormKey, InjectionFormSlotsKey } from '../../../shared/core';

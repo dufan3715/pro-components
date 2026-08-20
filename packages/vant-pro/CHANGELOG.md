@@ -1,5 +1,17 @@
 # @qin-ui/vant-pro
 
+## 1.2.3
+
+### Patch Changes
+
+- perf: 表单渲染链路深度扁平化重构与性能优化
+  - **链路扁平化（8 层 -> 6 层）**：彻底移除 `PathProvider` 组件实例，精简组件树层级
+  - **Hook 纯函数化**：将 `GroupedFieldAttrs` 改造为 `useGroupFieldAttrs` 纯计算 Hook，100% 消除作用域插槽闭包转发开销
+  - **实例开销降低**：单字段 Vue 内部组件实例减少 2 个（Antd 系 8->6，Vant 4->2），内存与首次挂载速度显著优化
+
+- Updated dependencies []:
+  - @qin-ui/pro-components-core@1.1.3
+
 ## 1.2.2
 
 ### Patch Changes

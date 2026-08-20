@@ -11,7 +11,6 @@ export {
   useFormRef,
   // injection keys
   InjectionFormKey,
-  InjectionPathKey,
   InjectionFormSlotsKey,
   // utils
   getObject,
