@@ -1,4 +1,4 @@
-import { inject, provide, reactive } from 'vue';
+import { getCurrentInstance, inject, provide, reactive } from 'vue';
 import { Path, Data, ExtendWithAny, DeepPartial } from '../shared/types';
 import { get, isPlainObject, set } from '../shared/utils';
 
@@ -166,7 +166,9 @@ const useFormData = <D extends Data = Data>(
   }
 
   const formDataStore = { formData, getFormData, setFormData } as any;
-  provide(InjectionFormDataKey, formDataStore);
+  if (getCurrentInstance()) {
+    provide(InjectionFormDataKey, formDataStore);
+  }
 
   return formDataStore;
 };

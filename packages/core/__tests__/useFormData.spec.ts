@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h } from 'vue';
 import { mount } from '@vue/test-utils';
 import useFormData from '../src/form/useFormData';
@@ -138,5 +138,17 @@ describe('useFormData', () => {
     const store = useFormData();
     expect(store.formData).toBeDefined();
     expect(JSON.stringify(store.formData)).toBe('{}');
+  });
+
+  it('FD-17 setup 外调用 useFormData 不触发 Vue provide 告警且功能正常', () => {
+    const warnSpy = vi.spyOn(console, 'warn');
+    const store = useFormData({ a: 1 });
+    expect(warnSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('provide() can only be used inside setup()')
+    );
+    expect(store.getFormData('a')).toBe(1);
+    store.setFormData('a', 2);
+    expect(store.getFormData('a')).toBe(2);
+    warnSpy.mockRestore();
   });
 });
