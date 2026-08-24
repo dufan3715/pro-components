@@ -7,8 +7,12 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": [
+      "../../node_modules/.pnpm/@types+node@24.10.0/node_modules/@types",
+      "../../node_modules/@types"
+    ]
   },
-  "include": ["src"],
+  "include": ["src", "__tests__"],
   "exclude": ["node_modules", "es"]
 }

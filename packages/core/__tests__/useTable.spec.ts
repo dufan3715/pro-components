@@ -41,7 +41,7 @@ describe('useTable', () => {
   });
 
   it('TT-06 冻结对象浅拷贝补 key', () => {
-    const col = Object.freeze({ title: 'x' });
+    const col = Object.freeze({ title: 'x' }) as any;
     const norm = normalizeColumn(col);
     expect((col as any).key).toBeUndefined();
     expect(norm.key).toMatch(/^__col_\d+$/);
@@ -61,8 +61,8 @@ describe('useTable', () => {
   });
 
   it('TT-09 模块级种子递增', () => {
-    const c1 = normalizeColumn({ title: 'x' });
-    const c2 = normalizeColumn({ title: 'x' });
+    const c1 = normalizeColumn({ title: 'x' } as any);
+    const c2 = normalizeColumn({ title: 'x' } as any);
     expect(c1.key).not.toBe(c2.key);
   });
 

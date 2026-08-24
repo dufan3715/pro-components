@@ -183,7 +183,7 @@ describe('useFields', () => {
       JSON.parse(JSON.stringify(baseFields))
     );
     setField('city', { label: '市' });
-    expect(fields.value[2].fields[0].label).toBe('市');
+    expect(fields.value[2].fields![0].label).toBe('市');
   });
 
   it('FF-22 field 参数为 null/undefined 无操作', () => {
