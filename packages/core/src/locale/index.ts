@@ -77,7 +77,7 @@ export const format = (
   text: string,
   params?: Record<string, string | number>
 ): string => {
-  if (!params) return text;
+  if (!params || !text.includes('{')) return text;
   return text.replace(/\{(\w+)\}/g, (_, key) =>
     key in params ? String(params[key]) : `{${key}}`
   );
