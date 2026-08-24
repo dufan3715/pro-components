@@ -5,7 +5,13 @@ import dts from 'vite-plugin-dts';
 const entry = path.resolve(__dirname, 'src/index.ts');
 
 export default defineConfig({
-  plugins: [dts({ compilerOptions: { declarationMap: true } })],
+  plugins: [
+    dts({
+      entryRoot: 'src',
+      include: ['src'],
+      compilerOptions: { declarationMap: true },
+    }),
+  ],
   build: {
     target: 'modules',
     outDir: 'es',
