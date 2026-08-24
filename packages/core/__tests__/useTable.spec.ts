@@ -114,6 +114,23 @@ describe('useTable', () => {
     expect(columns.value.map((c: any) => c.key)).toEqual(['d']);
   });
 
+  it('TT-14b deleteColumn 父列与 children 同时匹配删除无异常', () => {
+    const { columns, deleteColumn } = useTable<any>({
+      columns: [
+        {
+          key: 'parent',
+          hidden: true,
+          children: [{ key: 'child', hidden: true }],
+        },
+        { key: 'keep', hidden: false },
+      ],
+    });
+    expect(() => {
+      deleteColumn((c: any) => c.hidden, { all: true });
+    }).not.toThrow();
+    expect(columns.value.map((c: any) => c.key)).toEqual(['keep']);
+  });
+
   it('TT-15 appendColumn 追加', () => {
     const { columns, appendColumn } = useTable<any>({
       columns: [{ key: 'a' }, { key: 'b' }],

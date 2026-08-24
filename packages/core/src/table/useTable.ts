@@ -16,6 +16,7 @@
  * @internal 本模块为底层基建，外部业务通常调用上层 UI 封装包二次导出的 typed useTable。
  */
 import { Reactive, reactive, Ref, ref, toValue } from 'vue';
+import { applyByGroupDesc, GroupMatch } from '../shared/internals';
 import {
   BaseColumn,
   Columns,
@@ -345,17 +346,12 @@ const useTable = <
           matched = dataIndexKey === key;
         }
         if (matched) {
-          const preLen = currentColumns.length;
           updater({
             column: columnItem as any,
             columnIndex: i,
             group: currentColumns as any,
           });
           if (!all) return true;
-          const diff = preLen - currentColumns.length;
-          if (diff > 0) {
-            i -= diff;
-          }
         }
         if (
           Array.isArray(columnItem.children) &&
@@ -381,11 +377,14 @@ const useTable = <
    *
    * @example
    * ```ts
-   * // 合并更新列属性
-   * table.setColumn('name', { title: '用户名', width: 150 })
+   * // 合并更新
+   * table.setColumn('name', { title: '用户姓名', width: 200 })
    *
    * // 覆盖更新
-   * table.setColumn('name', { key: 'name', title: '姓名' }, { updateType: 'rewrite' })
+   * table.setColumn('name', { key: 'name', title: '用户姓名' }, { updateType: 'rewrite' })
+   *
+   * // 函数式更新
+   * table.setColumn('status', prev => ({ ...prev, width: prev.width + 50 }))
    * ```
    */
   const setColumn: SetColumn<T, C> = (key, column, options) => {
@@ -439,13 +438,17 @@ const useTable = <
     options?: UpdateColumnOptions
   ) {
     if (!path) return;
+    const matches: GroupMatch[] = [];
     updaterMatch(
       path,
       ({ columnIndex, group }) => {
-        group.splice(columnIndex, 1);
+        matches.push({ group, index: columnIndex });
       },
       options
     );
+    applyByGroupDesc(matches, ({ group, index }) => {
+      group.splice(index, 1);
+    });
   }
 
   /**
@@ -513,30 +516,18 @@ const useTable = <
     if (newColumns.length === 0) return;
     normalizeColumns(newColumns);
     if (path) {
-      const matches: { group: any[]; columnIndex: number }[] = [];
+      const matches: GroupMatch[] = [];
       updaterMatch(
         path,
         ({ columnIndex, group }) => {
-          matches.push({ group, columnIndex });
+          matches.push({ group, index: columnIndex });
         },
         options
       );
-
-      const groupMap = new Map<any[], number[]>();
-      for (const { group, columnIndex } of matches) {
-        if (!groupMap.has(group)) {
-          groupMap.set(group, []);
-        }
-        groupMap.get(group)!.push(columnIndex);
-      }
-
-      for (const [group, indices] of groupMap.entries()) {
-        indices.sort((a, b) => b - a);
-        for (const idx of indices) {
-          const insertIndex = placement === 'after' ? idx + 1 : idx;
-          group.splice(insertIndex, 0, ...newColumns);
-        }
-      }
+      applyByGroupDesc(matches, ({ group, index }) => {
+        const insertIndex = placement === 'after' ? index + 1 : index;
+        group.splice(insertIndex, 0, ...newColumns);
+      });
     } else if (placement === 'after') {
       columns.value.push(...(newColumns as any));
     } else {

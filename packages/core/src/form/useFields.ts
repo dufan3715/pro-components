@@ -1,6 +1,7 @@
 import { isRef, Ref, ref, toRaw } from 'vue';
 import { Data, Path } from '../shared/types';
 import { get, toPath } from '../shared/utils';
+import { applyByGroupDesc, GroupMatch } from '../shared/internals';
 import {
   AdditionalMethods as AM,
   BaseField,
@@ -458,29 +459,17 @@ const useFields = <
     options?: UpdateFieldOptions
   ) {
     if (!path) return;
-    const matches: { group: F[]; fieldIndex: number }[] = [];
+    const matches: GroupMatch<F>[] = [];
     updaterMatch(
       path,
       ({ fieldIndex, parentField }) => {
-        matches.push({ group: parentField.fields!, fieldIndex });
+        matches.push({ group: parentField.fields!, index: fieldIndex });
       },
       options
     );
-
-    const groupMap = new Map<F[], number[]>();
-    for (const { group, fieldIndex } of matches) {
-      if (!groupMap.has(group)) {
-        groupMap.set(group, []);
-      }
-      groupMap.get(group)!.push(fieldIndex);
-    }
-
-    for (const [group, indices] of groupMap.entries()) {
-      indices.sort((a, b) => b - a);
-      for (const idx of indices) {
-        group.splice(idx, 1);
-      }
-    }
+    applyByGroupDesc(matches, ({ group, index }) => {
+      group.splice(index, 1);
+    });
   }
 
   /**
@@ -568,30 +557,18 @@ const useFields = <
   ) {
     if (newFields.length === 0) return;
     if (path) {
-      const matches: { group: F[]; fieldIndex: number }[] = [];
+      const matches: GroupMatch<F>[] = [];
       updaterMatch(
         path,
         ({ fieldIndex, parentField }) => {
-          matches.push({ group: parentField.fields!, fieldIndex });
+          matches.push({ group: parentField.fields!, index: fieldIndex });
         },
         options
       );
-
-      const groupMap = new Map<F[], number[]>();
-      for (const { group, fieldIndex } of matches) {
-        if (!groupMap.has(group)) {
-          groupMap.set(group, []);
-        }
-        groupMap.get(group)!.push(fieldIndex);
-      }
-
-      for (const [group, indices] of groupMap.entries()) {
-        indices.sort((a, b) => b - a);
-        for (const idx of indices) {
-          const index = placement === 'after' ? idx + 1 : idx;
-          group.splice(index, 0, ...newFields);
-        }
-      }
+      applyByGroupDesc(matches, ({ group, index }) => {
+        const insertIndex = placement === 'after' ? index + 1 : index;
+        group.splice(insertIndex, 0, ...newFields);
+      });
     } else if (placement === 'after') {
       fields.value.push(...newFields);
     } else {
