@@ -113,7 +113,7 @@ describe('useFormData', () => {
     expect(childStore.formData).toBe(parentStore.formData);
   });
 
-  it("FD-15 [红] [mount] falsy init（''）创建独立 store", () => {
+  it("FD-15 [mount] falsy init（''）创建独立 store 且归一化为空对象", () => {
     let parentStore: any;
     let childStore: any;
     const Child = defineComponent({
@@ -129,9 +129,12 @@ describe('useFormData', () => {
       },
     });
     mount(Parent);
-    // 修复后预期：子 formData 应为 ''，而当前实现会错误地继承父 store
     expect(parentStore.formData.name).toBe('x');
-    expect(childStore.formData).toBe('');
+    expect(childStore.formData.name).toBeUndefined();
+    expect(JSON.stringify(childStore.formData)).toBe('{}');
+    // 验证写入正常，不抛 TypeError
+    childStore.setFormData('a', 1);
+    expect(childStore.getFormData('a')).toBe(1);
   });
 
   it('FD-16 无父 store 且无 init 创建独立 store', () => {

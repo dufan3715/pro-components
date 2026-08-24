@@ -65,6 +65,21 @@ describe('shared/path', () => {
         expect(actual).toBe(expected);
       }
     });
+
+    it('空段与畸形兼容路径与 lodash 行为对拍', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const edgePaths = ['.a', 'a.', 'a..b', 'a[]', ''];
+      const testData = {
+        '': 'empty',
+        a: { '': 'empty_sub', b: 1 },
+        '.a': 'dot_a',
+      };
+      for (const p of edgePaths) {
+        expect(getByPath(testData, p)).toEqual(lodashGet(testData, p));
+        expect(normalizePathKey(p)).toBe(lodashToPath(p).join('.'));
+      }
+      warnSpy.mockRestore();
+    });
   });
 
   describe('告警与去重', () => {

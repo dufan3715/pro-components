@@ -121,12 +121,15 @@ export interface UseFormDataReturn<D extends Data = Data> {
 const useFormData = <D extends Data = Data>(
   initFormData?: ExtendWithAny<DeepPartial<D>>
 ): UseFormDataReturn<D> => {
-  if (initFormData === undefined) {
+  if (initFormData === undefined && getCurrentInstance()) {
     const injectFormDataStore = inject(InjectionFormDataKey, undefined);
     if (injectFormDataStore) return injectFormDataStore as never;
   }
 
-  const formData = reactive((initFormData ?? {}) as ExtendWithAny<D>);
+  const initialObject = isPlainObject(initFormData)
+    ? initFormData
+    : ({} as ExtendWithAny<D>);
+  const formData = reactive(initialObject as ExtendWithAny<D>);
 
   function getFormData(path: Path<D>) {
     if (!path) return undefined;
