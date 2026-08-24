@@ -20,6 +20,10 @@ describe('locale', () => {
     expect(resolveLocaleName('zh-tw')).toBe('zh-TW');
     expect(resolveLocaleName('zh_TW')).toBe('zh-TW');
     expect(resolveLocaleName('zhtw')).toBe('zh-TW');
+    expect(resolveLocaleName('zh-HK')).toBe('zh-TW');
+    expect(resolveLocaleName('zh_hk')).toBe('zh-TW');
+    expect(resolveLocaleName('zh_MO')).toBe('zh-TW');
+    expect(resolveLocaleName('zh-hant')).toBe('zh-TW');
     expect(resolveLocaleName('en-US')).toBe('en-US');
     expect(resolveLocaleName('en')).toBe('en-US');
     expect(resolveLocaleName('fr')).toBe('zh-CN');

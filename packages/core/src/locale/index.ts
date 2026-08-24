@@ -45,9 +45,17 @@ export const localePacks: Record<ProLocaleName, ProLocale> = {
 export const resolveLocaleName = (lang?: string | null): ProLocaleName => {
   if (!lang) return 'zh-CN';
   const name = lang.toLowerCase();
-  if (name.startsWith('zh-tw') || name.startsWith('zh_tw') || name === 'zhtw') {
-    return 'zh-TW';
-  }
+  const isTraditional =
+    name.startsWith('zh-tw') ||
+    name.startsWith('zh_tw') ||
+    name === 'zhtw' ||
+    name.startsWith('zh-hk') ||
+    name.startsWith('zh_hk') ||
+    name.startsWith('zh-mo') ||
+    name.startsWith('zh_mo') ||
+    name.startsWith('zh-hant') ||
+    name.startsWith('zh_hant');
+  if (isTraditional) return 'zh-TW';
   if (name.startsWith('zh')) return 'zh-CN';
   if (name.startsWith('en')) return 'en-US';
   return 'zh-CN';
