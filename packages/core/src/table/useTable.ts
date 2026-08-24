@@ -304,7 +304,7 @@ const useTable = <
     Columns<T, C>
   >;
 
-  const dataSource = ref<T[]>(initDataSource);
+  const dataSource = ref<T[]>(initDataSource) as Ref<T[]>;
 
   const pageParam = reactive(initPageParam);
 
@@ -316,7 +316,7 @@ const useTable = <
     Object.assign(pageParam, pick(newPageParam, pageParamProperty as any));
   };
 
-  const searchForm = useForm(initSearchParam as any, initSearchFields, true);
+  const searchForm = useForm<D>(initSearchParam as any, initSearchFields, true);
 
   const resetQueryParams = () => {
     Object.assign(pageParam, cloneDeep(_initPageParam));
@@ -546,7 +546,7 @@ const useTable = <
     prependColumn,
     setPageParam,
     resetQueryParams,
-  } as any;
+  };
 };
 
 export default useTable;
