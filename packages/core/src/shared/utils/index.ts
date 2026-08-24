@@ -1,5 +1,3 @@
-export { toPath, get, set } from 'lodash-es';
-
 import { camelize } from 'vue';
 
 /**

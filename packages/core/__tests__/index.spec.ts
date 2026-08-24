@@ -13,9 +13,9 @@ describe('index', () => {
       'normalizeColumns',
       'getObject',
       'camelizeProperties',
-      'toPath',
-      'get',
-      'set',
+      'getByPath',
+      'setByPath',
+      'normalizePathKey',
       'omit',
       'pick',
       'cloneDeep',
@@ -31,5 +31,9 @@ describe('index', () => {
     apis.forEach(api => {
       expect((core as any)[api]).toBeDefined();
     });
+
+    expect((core as any).get).toBeUndefined();
+    expect((core as any).set).toBeUndefined();
+    expect((core as any).toPath).toBeUndefined();
   });
 });
