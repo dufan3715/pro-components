@@ -126,9 +126,15 @@ export type Table<
     column: C | Columns<T, C>,
     options?: UpdateColumnOptions
   ) => void;
-  /** 设置分页参数 */
+  /**
+   * 设置分页参数
+   * @description 仅接受并保留 current / pageSize / total 三个标准属性，其余 key 会被丢弃。
+   */
   setPageParam: SetPageParam;
-  /** 重置查询参数（重置分页和搜索条件到初始值） */
+  /**
+   * 重置查询参数（重置分页和搜索条件到初始值）
+   * @description 恢复的是初始快照的全部 key（含调用时传入的自定义分页属性），与 setPageParam 的过滤行为不对称，属刻意设计。
+   */
   resetQueryParams: () => void;
 };
 
@@ -147,9 +153,9 @@ export type Table<
  * @template C - 列配置类型，继承自 BaseColumn<T>
  *
  * @param {object} params - 表格配置参数
- * @param {Columns<T, C>} [params.columns] - 初始列配置
- * @param {T[]} [params.dataSource] - 初始数据源
- * @param {PageParam} [params.pageParam] - 初始分页参数
+ * @param {Columns<T, C>} [params.columns] - 初始列配置。会直接包裹（复用）传入的数组引用，并被 normalizeColumns 就地补齐 key（`@mutates`）
+ * @param {T[]} [params.dataSource] - 初始数据源。会直接包裹（复用）传入的数组引用，后续对返回实例的变更会穿透到调用方原对象
+ * @param {PageParam} [params.pageParam] - 初始分页参数。会直接包裹（复用）传入的对象引用，后续对返回实例的变更会穿透到调用方原对象
  * @param {ExtendWithAny<DeepPartial<D>>} [params.searchParam] - 初始搜索参数
  * @param {Fields<D>} [params.searchFields] - 搜索表单字段配置
  *

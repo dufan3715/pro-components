@@ -356,6 +356,8 @@ const useFields = <
 
   /**
    * 根据路径或查找函数获取字段配置
+   *
+   * @description 返回的是字段的**活引用**（响应式对象）：通过 API 外直接修改它等同于绕过 `setField` 直接变异状态（可行但不推荐）；类型层的 `Readonly` 仅为约定，运行时不做只读保护。
    */
   function getField(
     path: Path<D> | FieldFindBy<D, F>,
@@ -376,8 +378,10 @@ const useFields = <
   /**
    * 更新字段配置
    *
+   * @description 更新函数返回 `undefined` 或 `null` 时该次更新会被静默跳过。
+   *
    * @param {Path<D> | FieldFindBy<D, F>} path - 要更新的字段路径或查找函数
-   * @param {F | ((preField: Readonly<F>) => F)} field - 新的字段配置或更新函数
+   * @param {F | ((preField: Readonly<F>) => F)} field - 新的字段配置或更新函数（返回 null/undefined 时跳过更新）
    * @param {object} [options] - 更新选项
    * @param {'rewrite' | 'merge'} [options.updateType='merge'] - 更新方式：merge 合并、rewrite 覆盖
    * @param {boolean} [options.all] - 是否更新所有匹配，函数匹配默认 true，path路径匹配默认 false
