@@ -151,4 +151,31 @@ describe('useFormData', () => {
     expect(store.getFormData('a')).toBe(2);
     warnSpy.mockRestore();
   });
+
+  it('FD-18 点号字面量 key 优先读取与写入', () => {
+    const store = useFormData<any>({
+      'user.name': 'Alice',
+      user: { name: 'Bob' },
+    });
+    expect(store.getFormData('user.name')).toBe('Alice');
+    store.setFormData('user.name', 'Charlie');
+    expect(store.formData['user.name']).toBe('Charlie');
+    expect(store.formData.user.name).toBe('Bob');
+  });
+
+  it('FD-19 list.0.name 路径自动创建数组中间层', () => {
+    const store = useFormData<any>({});
+    store.setFormData('users.0.name', 'David');
+    expect(Array.isArray(store.formData.users)).toBe(true);
+    expect(store.formData.users[0].name).toBe('David');
+    expect(store.getFormData('users.0.name')).toBe('David');
+  });
+
+  it('FD-20 深层路径多轮读写', () => {
+    const store = useFormData<any>({});
+    store.setFormData('a.b.c.d', 100);
+    expect(store.getFormData('a.b.c.d')).toBe(100);
+    store.setFormData('a.b.c.d', (v: number) => v + 50);
+    expect(store.getFormData('a.b.c.d')).toBe(150);
+  });
 });

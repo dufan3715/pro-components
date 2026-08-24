@@ -1,6 +1,6 @@
 import { isRef, Ref, ref, toRaw } from 'vue';
 import { Data, Path } from '../shared/types';
-import { get, toPath } from '../shared/utils';
+import { getByPath, normalizePathKey } from '../shared/path';
 import { applyByGroupDesc, GroupMatch } from '../shared/internals';
 import {
   AdditionalMethods as AM,
@@ -296,11 +296,9 @@ const useFields = <
     const isRoot = fieldPath.length === 1;
     const parentField = isRoot
       ? ({ fields: fields.value } as any as F)
-      : (get(fields.value, fieldPath.slice(0, -2)) as F);
+      : (getByPath(fields.value, fieldPath.slice(0, -2)) as F);
     const field = parentField?.fields?.[fieldIndex] as F;
-    const _path = field
-      ? toPath(field.name ?? (field.path as string)).join('.')
-      : '';
+    const _path = field ? normalizePathKey(field.name ?? field.path) : '';
     if (_path && _path === pathStr) {
       updater({ field, fieldIndex, parentField: parentField as F });
       return true;
@@ -315,7 +313,7 @@ const useFields = <
     options: UpdateFieldOptions = {}
   ) => {
     if (!path) return;
-    const pathStr = typeof path === 'function' ? '' : toPath(path).join('.');
+    const pathStr = typeof path === 'function' ? '' : normalizePathKey(path);
     const { all = typeof path === 'function' } = options;
     if (pathStr && _map.has(pathStr) && !all) {
       const bool = cacheMatch(pathStr, updater);
@@ -330,7 +328,7 @@ const useFields = <
     while (cursor < queue.length) {
       const { field, fieldPath, parentField } = queue[cursor++];
       let matched = false;
-      const _path = toPath(field.name ?? (field.path as string)).join('.');
+      const _path = normalizePathKey(field.name ?? field.path);
       if (_path && !_map.has(_path)) {
         _map.set(_path, fieldPath);
       }
