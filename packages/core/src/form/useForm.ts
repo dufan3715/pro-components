@@ -145,6 +145,9 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   if (!root) {
     const injectForm = inject(InjectionFormKey);
     if (injectForm) return injectForm;
+    console.warn(
+      '[useForm] root=false 但未找到注入的父表单实例（当前不在 ProForm 组件上下文中），已回退为创建独立根表单。'
+    );
   }
   return {
     ...useFormData<D>(initFormData),

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h, provide } from 'vue';
 import { mount } from '@vue/test-utils';
 import useForm from '../src/form/useForm';
@@ -23,10 +23,15 @@ describe('useForm', () => {
     expect(JSON.stringify(form.formData)).toBe('{}');
   });
 
-  it('UF-04 单参布尔 false 无上下文创建独立表单', () => {
+  it('UF-04 单参布尔 false 无上下文创建独立表单并输出告警', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const form = useForm(false);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[useForm] root=false 但未找到注入的父表单实例')
+    );
     expect(form.formData).toBeDefined();
     expect(typeof form.getFormData).toBe('function');
+    warnSpy.mockRestore();
   });
 
   it('UF-05 单参 undefined 等同 false', () => {
