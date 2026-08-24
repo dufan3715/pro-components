@@ -131,11 +131,16 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
     initFields = [],
     root = true;
   if (args.length === 1) {
-    root = args[0] as boolean;
+    if (typeof args[0] === 'boolean') {
+      root = args[0];
+    } else {
+      initFormData = args[0] ?? {};
+      root = true;
+    }
   } else if (args.length >= 2) {
     initFormData = args[0] ?? {};
     initFields = args[1];
-    root = (args[2] as boolean) ?? root;
+    root = (args[2] as boolean) ?? true;
   }
   if (!root) {
     const injectForm = inject(InjectionFormKey);

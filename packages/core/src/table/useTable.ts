@@ -513,14 +513,30 @@ const useTable = <
     if (newColumns.length === 0) return;
     normalizeColumns(newColumns);
     if (path) {
+      const matches: { group: any[]; columnIndex: number }[] = [];
       updaterMatch(
         path,
         ({ columnIndex, group }) => {
-          const index = placement === 'after' ? columnIndex + 1 : columnIndex;
-          group.splice(index, 0, ...newColumns);
+          matches.push({ group, columnIndex });
         },
         options
       );
+
+      const groupMap = new Map<any[], number[]>();
+      for (const { group, columnIndex } of matches) {
+        if (!groupMap.has(group)) {
+          groupMap.set(group, []);
+        }
+        groupMap.get(group)!.push(columnIndex);
+      }
+
+      for (const [group, indices] of groupMap.entries()) {
+        indices.sort((a, b) => b - a);
+        for (const idx of indices) {
+          const insertIndex = placement === 'after' ? idx + 1 : idx;
+          group.splice(insertIndex, 0, ...newColumns);
+        }
+      }
     } else if (placement === 'after') {
       columns.value.push(...(newColumns as any));
     } else {

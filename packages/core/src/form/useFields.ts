@@ -36,7 +36,7 @@ export interface UseFieldsReturn<
    * ```ts
    * // 通过路径
    * getField('name')
-   * getField('address.city')
+   * getField('city')
    *
    * // 通过查找函数
    * getField(f => f.label === '姓名')
@@ -79,7 +79,7 @@ export interface UseFieldsReturn<
    * @param {F | ((preField: Readonly<F>) => F)} field - 新的字段配置或更新函数
    * @param {object} [options] - 更新选项
    * @param {'rewrite' | 'merge'} [options.updateType='merge'] - 更新方式：merge 合并、rewrite 覆盖
-   * @param {boolean} [options.all] - 是否更新所有匹配，默认只更新第一个
+   * @param {boolean} [options.all] - 是否更新所有匹配，函数匹配默认 true，path路径匹配默认 false
    *
    * @example
    * ```ts
@@ -109,7 +109,7 @@ export interface UseFieldsReturn<
    *
    * @param {Path<D> | FieldFindBy<D, F>} path - 要删除的字段路径或查找函数
    * @param {object} [options] - 删除选项
-   * @param {boolean} [options.all] - 是否删除所有匹配，默认只删除第一个
+   * @param {boolean} [options.all] - 是否删除所有匹配，函数匹配默认 true，path路径匹配默认 false
    *
    * @example
    * ```ts
@@ -185,8 +185,8 @@ export interface UseFieldsReturn<
    *
    * @example
    * ```ts
-   * // 假设字段结构：address -> { city, street }
-   * getParentField('address.city')
+   * // 假设字段结构：address -> { fields: [{ path: 'city' }, { path: 'street' }] }
+   * getParentField('city')
    * // 返回 { path: 'address', label: '地址', fields: [...] }
    *
    * // 一级字段的 parent
@@ -325,11 +325,14 @@ const useFields = <
       fieldPath: [i] as MapPathValue,
       parentField: { fields: fields.value } as any as F,
     }));
-    while (queue.length) {
-      const { field, fieldPath, parentField } = queue.shift()!;
+    let cursor = 0;
+    while (cursor < queue.length) {
+      const { field, fieldPath, parentField } = queue[cursor++];
       let matched = false;
       const _path = toPath(field.name ?? (field.path as string)).join('.');
-      if (_path) _map.set(_path, fieldPath);
+      if (_path && !_map.has(_path)) {
+        _map.set(_path, fieldPath);
+      }
       if (typeof path === 'function') {
         matched = (path as FieldFindBy<D, F>)(field);
       } else if (_path) {
@@ -378,7 +381,7 @@ const useFields = <
    * @param {F | ((preField: Readonly<F>) => F)} field - 新的字段配置或更新函数
    * @param {object} [options] - 更新选项
    * @param {'rewrite' | 'merge'} [options.updateType='merge'] - 更新方式：merge 合并、rewrite 覆盖
-   * @param {boolean} [options.all] - 是否更新所有匹配，默认只更新第一个
+   * @param {boolean} [options.all] - 是否更新所有匹配，函数匹配默认 true，path路径匹配默认 false
    *
    * @example
    * ```ts
@@ -439,7 +442,7 @@ const useFields = <
    *
    * @param {Path<D> | FieldFindBy<D, F>} path - 要删除的字段路径或查找函数
    * @param {object} [options] - 删除选项
-   * @param {boolean} [options.all] - 是否删除所有匹配，默认只删除第一个
+   * @param {boolean} [options.all] - 是否删除所有匹配，函数匹配默认 true，path路径匹配默认 false
    *
    * @example
    * ```ts
@@ -455,13 +458,29 @@ const useFields = <
     options?: UpdateFieldOptions
   ) {
     if (!path) return;
+    const matches: { group: F[]; fieldIndex: number }[] = [];
     updaterMatch(
       path,
       ({ fieldIndex, parentField }) => {
-        parentField.fields!.splice(fieldIndex, 1);
+        matches.push({ group: parentField.fields!, fieldIndex });
       },
       options
     );
+
+    const groupMap = new Map<F[], number[]>();
+    for (const { group, fieldIndex } of matches) {
+      if (!groupMap.has(group)) {
+        groupMap.set(group, []);
+      }
+      groupMap.get(group)!.push(fieldIndex);
+    }
+
+    for (const [group, indices] of groupMap.entries()) {
+      indices.sort((a, b) => b - a);
+      for (const idx of indices) {
+        group.splice(idx, 1);
+      }
+    }
   }
 
   /**
@@ -549,14 +568,30 @@ const useFields = <
   ) {
     if (newFields.length === 0) return;
     if (path) {
+      const matches: { group: F[]; fieldIndex: number }[] = [];
       updaterMatch(
         path,
         ({ fieldIndex, parentField }) => {
-          const index = placement === 'after' ? fieldIndex + 1 : fieldIndex;
-          parentField.fields!.splice(index, 0, ...newFields);
+          matches.push({ group: parentField.fields!, fieldIndex });
         },
         options
       );
+
+      const groupMap = new Map<F[], number[]>();
+      for (const { group, fieldIndex } of matches) {
+        if (!groupMap.has(group)) {
+          groupMap.set(group, []);
+        }
+        groupMap.get(group)!.push(fieldIndex);
+      }
+
+      for (const [group, indices] of groupMap.entries()) {
+        indices.sort((a, b) => b - a);
+        for (const idx of indices) {
+          const index = placement === 'after' ? idx + 1 : idx;
+          group.splice(index, 0, ...newFields);
+        }
+      }
     } else if (placement === 'after') {
       fields.value.push(...newFields);
     } else {

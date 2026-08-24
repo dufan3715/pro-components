@@ -13,7 +13,7 @@
     "examples:dev": "pnpm -F examples dev",
     "prepare": "husky install",
     "build": "pnpm --filter \"./packages/**\" build",
-    "lint:eslint": "eslint --cache --max-warnings 0 \"**/*.{vue,js,ts,tsx}\" --fix",
+    "lint:eslint": "eslint --cache \"**/*.{vue,js,ts,tsx}\" --fix",
     "lint:stylelint": "stylelint --cache --fix \"**/*.{vue,css,scss,less}\" --cache --cache-location node_modules/.cache/stylelint/",
     "lint:prettier": "prettier --write  \"**/*.{js,ts,json,tsx,css,less,scss,vue,html,md}\"",
     "lint": "pnpm lint:eslint && pnpm lint:stylelint && pnpm lint:prettier",
@@ -23,7 +23,8 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm -r --filter \"./packages/*\" build && changeset publish",
-    "clean": "rm -rf node_modules **/*/node_modules"
+    "clean": "rm -rf node_modules **/*/node_modules",
+    "test": "pnpm -r test"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.0",

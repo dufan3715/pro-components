@@ -29,6 +29,8 @@
   },
   "scripts": {
     "build": "vue-tsc --noEmit && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepublishOnly": "pnpm build"
   },
   "author": "dufan3715",
@@ -41,9 +43,12 @@
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
+    "@vue/test-utils": "^2.4.11",
+    "happy-dom": "^20.11.6",
     "typescript": "^5.0.0",
     "vite": "^6.3.5",
     "vite-plugin-dts": "^4.5.4",
+    "vitest": "^4.1.11",
     "vue-tsc": "^3.0.1"
   }
 }

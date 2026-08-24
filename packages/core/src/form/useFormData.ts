@@ -122,7 +122,7 @@ export interface UseFormDataReturn<D extends Data = Data> {
 const useFormData = <D extends Data = Data>(
   initFormData?: ExtendWithAny<DeepPartial<D>>
 ): UseFormDataReturn<D> => {
-  if (!initFormData) {
+  if (initFormData === undefined) {
     const injectFormDataStore = inject(InjectionFormDataKey, undefined);
     if (injectFormDataStore) return injectFormDataStore as never;
   }
