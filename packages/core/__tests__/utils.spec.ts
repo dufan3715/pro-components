@@ -1,15 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   getObject,
   camelizeProperties,
   isPlainObject,
   pick,
   omit,
+  cloneDeep,
 } from '../src/shared/utils';
 import {
   isPlainObject as lodashIsPlainObject,
   pick as lodashPick,
   omit as lodashOmit,
+  cloneDeep as lodashCloneDeep,
 } from 'lodash-es';
 
 describe('utils', () => {
@@ -123,6 +125,144 @@ describe('utils', () => {
       const actual = omit(obj, ['nonExist' as any]);
       const expected = lodashOmit(obj, ['nonExist' as any]);
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('cloneDeep 规格测试与对拍', () => {
+    it('JSON 型数据深拷贝与快照隔离', () => {
+      const source = {
+        name: 'test',
+        info: { age: 18, tags: ['a', 'b'] },
+        list: [{ id: 1 }, { id: 2 }],
+      };
+      const copy = cloneDeep(source);
+      expect(copy).toEqual(source);
+      expect(copy).not.toBe(source);
+      expect(copy.info).not.toBe(source.info);
+      expect(copy.list).not.toBe(source.list);
+      expect(copy.list[0]).not.toBe(source.list[0]);
+
+      // 变异隔离
+      copy.info.age = 20;
+      copy.list[0].id = 99;
+      expect(source.info.age).toBe(18);
+      expect(source.list[0].id).toBe(1);
+    });
+
+    it('类型矩阵：Date / RegExp / Map / Set / NaN / undefined / 稀疏数组', () => {
+      const date = new Date('2026-08-24');
+      const reg = /test/gi;
+      const map = new Map([['k', 'v']]);
+      const set = new Set([1, 2, 3]);
+      const sparse = [1, , 3]; // eslint-disable-line no-sparse-arrays
+
+      const source = {
+        date,
+        reg,
+        map,
+        set,
+        nan: NaN,
+        inf: Infinity,
+        negZero: -0,
+        undef: undefined,
+        sparse,
+      };
+
+      const copy = cloneDeep(source);
+      expect(copy.date).toBeInstanceOf(Date);
+      expect(copy.date.getTime()).toBe(date.getTime());
+      expect(copy.date).not.toBe(date);
+
+      expect(copy.reg).toBeInstanceOf(RegExp);
+      expect(copy.reg.source).toBe(reg.source);
+      expect(copy.reg.flags).toBe(reg.flags);
+
+      expect(copy.map).toBeInstanceOf(Map);
+      expect(copy.map.get('k')).toBe('v');
+      expect(copy.map).not.toBe(map);
+
+      expect(copy.set).toBeInstanceOf(Set);
+      expect(copy.set.has(2)).toBe(true);
+      expect(copy.set).not.toBe(set);
+
+      expect(Number.isNaN(copy.nan)).toBe(true);
+      expect(copy.inf).toBe(Infinity);
+      expect(Object.is(copy.negZero, -0)).toBe(true);
+      expect(copy.undef).toBeUndefined();
+      expect('undef' in copy).toBe(true);
+
+      expect(copy.sparse.length).toBe(3);
+      expect(0 in copy.sparse).toBe(true);
+      expect(1 in copy.sparse).toBe(false);
+      expect(2 in copy.sparse).toBe(true);
+    });
+
+    it('循环引用正常处理', () => {
+      const obj: any = { a: 1 };
+      obj.self = obj;
+      const copy = cloneDeep(obj);
+      expect(copy.a).toBe(1);
+      expect(copy.self).toBe(copy);
+      expect(copy.self).not.toBe(obj);
+    });
+
+    it('降级路径：含函数属性的对象安全丢弃函数并成功克隆其他属性', () => {
+      const obj = {
+        a: 1,
+        fn: () => 'hello',
+        nested: { b: 2, fn2: function () {} },
+      };
+      const copy = cloneDeep(obj);
+      expect(copy.a).toBe(1);
+      expect((copy as any).fn).toBeUndefined();
+      expect(copy.nested.b).toBe(2);
+      expect((copy as any).nested.fn2).toBeUndefined();
+    });
+
+    it('环境降级：无 structuredClone 时 JSON 降级正常工作', () => {
+      const originalStructuredClone = globalThis.structuredClone;
+      try {
+        (globalThis as any).structuredClone = undefined;
+        const source = { a: 1, list: [2, 3] };
+        const copy = cloneDeep(source);
+        expect(copy).toEqual(source);
+        expect(copy).not.toBe(source);
+        expect(copy.list).not.toBe(source.list);
+      } finally {
+        globalThis.structuredClone = originalStructuredClone;
+      }
+    });
+
+    it('环境降级 + 循环引用时兜底告警并返回原引用', () => {
+      const originalStructuredClone = globalThis.structuredClone;
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        (globalThis as any).structuredClone = undefined;
+        const circular: any = { a: 1 };
+        circular.self = circular;
+
+        const copy = cloneDeep(circular);
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[pro-components] cloneDeep 降级失败')
+        );
+        expect(copy).toBe(circular);
+      } finally {
+        globalThis.structuredClone = originalStructuredClone;
+        warnSpy.mockRestore();
+      }
+    });
+
+    it('JSON 子集与 lodash cloneDeep 差分对拍', () => {
+      const jsonSamples = [
+        { num: 1, str: 'hello', bool: true, nil: null },
+        [1, '2', false, { sub: [3, 4] }],
+        { deep: { level1: { level2: { val: 'end' } } } },
+      ];
+      for (const sample of jsonSamples) {
+        const actual = cloneDeep(sample);
+        const expected = lodashCloneDeep(sample);
+        expect(actual).toEqual(expected);
+      }
     });
   });
 });

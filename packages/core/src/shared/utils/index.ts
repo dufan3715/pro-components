@@ -1,6 +1,33 @@
-export { toPath, get, set, cloneDeep } from 'lodash-es';
+export { toPath, get, set } from 'lodash-es';
 
 import { camelize } from 'vue';
+
+/**
+ * 深拷贝：structuredClone + JSON 降级
+ *
+ * 覆盖业务场景（JSON 型表单/分页数据）：
+ * - 原生路径：JSON 全类型、循环引用、Date/RegExp/Map/Set/Error、稀疏数组、undefined/NaN/-0 均保留
+ * - 降级路径（structuredClone 抛 DataCloneError，如含函数属性）：JSON 往返，函数与 symbol key 静默丢弃
+ * - 最后兜底（环境无 structuredClone 且数据含循环引用导致 JSON 亦失败）：告警并返回原引用（快照隔离失效，需感知）
+ */
+export function cloneDeep<T>(value: T): T {
+  if (typeof structuredClone === 'function') {
+    try {
+      return structuredClone(value);
+    } catch {
+      // DataCloneError：函数等不可结构化类型 → 走 JSON 降级
+    }
+  }
+  try {
+    const json = JSON.stringify(value);
+    return json === undefined ? value : JSON.parse(json);
+  } catch {
+    console.warn(
+      '[pro-components] cloneDeep 降级失败：数据含循环引用且环境不支持 structuredClone，已返回原引用，快照隔离失效。'
+    );
+    return value;
+  }
+}
 
 const toString = Object.prototype.toString;
 const getProto = Object.getPrototypeOf;
