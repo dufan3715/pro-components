@@ -10,13 +10,16 @@ import enUS from './en-US';
 
 export { zhCN, zhTW, enUS };
 
-export type ProLocale = typeof zhCN;
+/** 内置文案 key 集合（以 zh-CN 为基准，各语言包必须 key 对齐） */
+export type ProLocaleKey = keyof typeof zhCN;
+
+export type ProLocale = Record<ProLocaleKey, string>;
 
 /** 内置语言名 */
 export type ProLocaleName = 'zh-CN' | 'zh-TW' | 'en-US';
 
 /** 语言包集合，key 为语言名 */
-export const localePacks: Record<ProLocaleName, Record<string, string>> = {
+export const localePacks: Record<ProLocaleName, ProLocale> = {
   'zh-CN': zhCN,
   'zh-TW': zhTW,
   'en-US': enUS,

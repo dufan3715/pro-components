@@ -31,18 +31,20 @@ describe('locale', () => {
     expect(format('无参数文本')).toBe('无参数文本');
   });
 
-  it('LC-04 localePacks 完整性', () => {
+  it('LC-04 localePacks 与独立语言包完整性', () => {
+    expect(typeof zhCN).toBe('object');
+    expect(typeof zhTW).toBe('object');
+    expect(typeof enUS).toBe('object');
     expect(typeof localePacks['zh-CN']).toBe('object');
     expect(typeof localePacks['zh-TW']).toBe('object');
     expect(typeof localePacks['en-US']).toBe('object');
   });
 
-  it('LC-05 三语言包 key 一致', () => {
-    const zhCNKeys = Object.keys(zhCN).sort();
-    const zhTWKeys = Object.keys(zhTW).sort();
-    const enUSKeys = Object.keys(enUS).sort();
-    expect(zhCNKeys).toEqual(zhTWKeys);
-    expect(zhCNKeys).toEqual(enUSKeys);
+  it('LC-05 三语言包 key 与 zh-CN 完全对齐', () => {
+    const baseKeys = Object.keys(zhCN).sort();
+    for (const [, pack] of Object.entries(localePacks)) {
+      expect(Object.keys(pack).sort()).toEqual(baseKeys);
+    }
   });
 
   it('LC-06 无占位符文案短路', () => {
