@@ -1,5 +1,5 @@
 import { RequiredComponentVars } from '../types';
-import { InjectionKey, Component } from 'vue';
+import { InjectionKey, Component, type ComputedRef } from 'vue';
 
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;
@@ -85,21 +85,33 @@ export const INJECT_CONFIG: {
 };
 
 export const INJECT_COMPONENTS: InjectionKey<
-  Partial<Record<string, Component>>
+  | ComputedRef<Partial<Record<string, Component>> | undefined>
+  | Partial<Record<string, Component>>
 > = Symbol('INJECT_COMPONENTS');
 
 const DYNAMIC_INJECT_CONFIG: Record<string, InjectConfigEntry> =
   Object.create(null);
 
-export const getInjectConfig = (key: string): InjectConfigEntry | undefined => {
+export const getInjectConfig = (key?: any): InjectConfigEntry => {
+  if (!key || typeof key !== 'string') {
+    return {
+      injectionKey: Symbol('anonymous:config'),
+      default: {},
+    };
+  }
   return (
     (INJECT_CONFIG as Record<string, InjectConfigEntry>)[key] ||
-    DYNAMIC_INJECT_CONFIG[key]
+    DYNAMIC_INJECT_CONFIG[key] || {
+      injectionKey: Symbol(`dynamic:${key}`),
+      default: {},
+    }
   );
 };
 
 export const ensureInjectConfig = (key: string): InjectConfigEntry => {
-  const existing = getInjectConfig(key);
+  const existing =
+    (INJECT_CONFIG as Record<string, InjectConfigEntry>)[key] ||
+    DYNAMIC_INJECT_CONFIG[key];
   if (existing) return existing;
   const created: InjectConfigEntry = {
     injectionKey: Symbol(`dynamic:${key}`),

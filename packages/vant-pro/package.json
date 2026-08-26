@@ -32,7 +32,9 @@
   "scripts": {
     "prebuild": "tsx ../../scripts/generate-api-json.ts vant-pro && tsx ../../scripts/generate-init-ai.ts vant-pro",
     "build": "vue-tsc --noEmit && vite build",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "author": "dufan3715",
   "bugs": {
@@ -49,7 +51,10 @@
     "vue-component-type-helpers": "^3.2.5"
   },
   "devDependencies": {
-    "vant": "^4.9.15"
+    "@vue/test-utils": "^2.4.11",
+    "happy-dom": "^20.11.6",
+    "vant": "^4.9.15",
+    "vitest": "^4.1.11"
   },
   "sideEffects": [
     "**/*.css",

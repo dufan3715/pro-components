@@ -17,13 +17,14 @@
  *   ↓ 未匹配
  * 自定义组件（ProComponentProvider 的 componentMap）
  *   ↓ 未匹配
- * 内置组件映射（componentMap: input → Input, select → Select ...）
+ * 内置组件映射（componentMap: field → Field, picker → Picker ...）
  *   ↓ 未匹配
  * 原始 component 值（可能是字符串或 Vue 组件对象）
  * ```
  *
  * @param {string | Component} [component] - 组件名或组件对象
  * @param {string} [path] - 字段路径，用于绑定表单数据
+ * @param {boolean} [disabled] - 表单/字段禁用状态
  *
  * @slot default - 默认插槽（透传给组件）
  */
@@ -34,13 +35,17 @@ import {
   mergeProps,
   ref,
   Teleport,
+  toValue,
   useAttrs,
 } from 'vue';
-import { cloneDeep, omit } from '../../../../shared/core';
+import { cloneDeep } from '../../../../shared/core';
 import type { Field as FieldType } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import { componentMap, InjectionFormSlotsKey } from '../../constants';
-import { INJECT_COMPONENTS } from '../../../component-provider/constants';
+import {
+  INJECT_COMPONENTS,
+  getInjectConfig,
+} from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
 import { useLocale } from '../../../../locale';
@@ -48,33 +53,35 @@ import { Field as VanField } from '../../../../shared/ui';
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
 
+let baseFieldInstanceCounter = 0;
+
 const uiFieldPropsKeys = Object.keys(VanField.props || {});
 
 type Props = {
   component?: string | Component;
   path?: string;
 };
-const { component = undefined, path = '' } = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  component: undefined,
+  path: '',
+});
 
 const { t } = useLocale();
 
 const form = useForm(false);
-const { getFormData, setFormData, formPopup } = form;
-const { popupFieldPath, popupFieldValue } = formPopup;
+// 全局默认配置：按组件名解析注入描述符；inject 须在 setup 同步期调用
+const config = getInjectConfig(props.component);
+const rawInjectComponentProps = inject(config.injectionKey, config.default);
 
 const componentRef = ref<any>();
 const fieldRef = ref<any>();
 
 const attrs: any = useAttrs();
 
-function getOldValue() {
-  return cloneDeep(getFormData?.(path));
-}
-
 // setter: 向 formData 写入值，支持 valueFormatter / valueFormatter.set 转换
 const value = computed({
   get() {
-    let val = getFormData?.(path);
+    let val = form?.getFormData?.(props.path);
     const { valueFormatter } = groupedAttrs.value;
     if (
       typeof valueFormatter === 'object' &&
@@ -88,24 +95,34 @@ const value = computed({
     let newVal = val;
     const { valueFormatter } = groupedAttrs.value;
     if (valueFormatter) {
-      if (typeof valueFormatter === 'function') {
-        newVal = valueFormatter(val, getOldValue());
-      } else if (typeof valueFormatter.set === 'function') {
-        newVal = valueFormatter.set(val, getOldValue());
+      const setter =
+        typeof valueFormatter === 'function'
+          ? valueFormatter
+          : typeof valueFormatter.set === 'function'
+            ? valueFormatter.set
+            : undefined;
+      if (setter) {
+        newVal =
+          setter.length > 1
+            ? setter(newVal, cloneDeep(form?.getFormData?.(props.path)))
+            : setter(newVal);
       }
     }
-    setFormData?.(path, newVal);
+    form?.setFormData?.(props.path, newVal);
   },
 });
+
+const fieldUid = ++baseFieldInstanceCounter;
 
 const popupCloseEventName = computed(() => {
   let confirm = 'onConfirm';
   let cancel = 'onCancel';
-  if (component === 'cascader') {
+  if (props.component === 'cascader') {
     confirm = 'onFinish';
     cancel = 'onClose';
-  } else if (component === 'signature') {
+  } else if (props.component === 'signature') {
     confirm = 'onSubmit';
+    cancel = 'onClear';
   }
   return { confirm, cancel };
 });
@@ -115,29 +132,30 @@ const popupCloseEventName = computed(() => {
  * 属性分为多类：组件绑定属性、Field UI 属性等
  */
 const groupedAttrs = computed(() => {
+  const currentInjectProps = toValue(rawInjectComponentProps) || {};
   const initProps = getInitProps(
     {
-      component: component,
+      component: props.component,
       type: attrs.type,
     } as unknown as FieldType,
+    currentInjectProps,
     t
   );
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'modelValue';
+  const effectiveDisabled =
+    attrs.disabled !== undefined
+      ? Boolean(attrs.disabled)
+      : Boolean(initProps.disabled);
   const mergedProps = mergeProps(
     initProps,
     attrs,
-    { disabled: attrs.disabled ?? initProps.disabled },
+    { disabled: effectiveDisabled },
     { modelProp: modelPropName }
   ) as Required<FieldType>;
 
   // prettier-ignore
-  const { valueFormatter, displayFormatter, modelProp, slots, fieldClass, fieldStyle, componentContainer, popup, ...rest } = mergedProps
-  const modelBindingProp = modelProp ?? 'modelValue';
-  // 从剩余属性中移除 v-model 绑定属性，避免重复绑定
-  const bindAttrs = omit(rest as Record<string, any>, [
-    modelBindingProp,
-    `onUpdate:${modelBindingProp}`,
-  ]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { valueFormatter, displayFormatter, modelProp, slots, fieldClass, fieldStyle, componentContainer, popup, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: _onUpdateModelVal, ...bindAttrs } = mergedProps as Record<string, any>;
   if (popup) {
     const {
       [popupCloseEventName.value.confirm]: confirmEvent,
@@ -145,12 +163,12 @@ const groupedAttrs = computed(() => {
     } = bindAttrs as any;
     Object.assign(bindAttrs, {
       [popupCloseEventName.value.confirm]: (...args: any[]) => {
-        value.value = popupFieldValue.value;
-        formPopup.close();
+        value.value = form?.formPopup?.popupFieldValue?.value;
+        form?.formPopup?.close();
         confirmEvent?.(...args);
       },
       [popupCloseEventName.value.cancel]: (...args: any[]) => {
-        formPopup.close();
+        form?.formPopup?.close();
         cancelEvent?.(...args);
       },
     });
@@ -174,7 +192,7 @@ const groupedAttrs = computed(() => {
     fieldAttrs,
     slots,
     componentContainer,
-    modelProp: modelBindingProp,
+    modelProp: modelProp,
     valueFormatter,
     displayFormatter,
     popup,
@@ -194,16 +212,19 @@ const customComponents = inject(INJECT_COMPONENTS, {});
  * ProForm 插槽 → 自定义组件映射 → 内置组件映射 → 原始 component 值
  */
 const is = computed(() => {
-  const teleportSlot = path && formSlots?.[path];
+  const teleportSlot = props.path && formSlots?.[props.path];
   if (teleportSlot) return teleportSlot;
-  if (typeof component === 'string') {
-    return (
-      (customComponents as any)[component] ||
-      (componentMap as any)[component] ||
-      component
+  if (typeof props.component === 'string') {
+    const customMap = toValue(customComponents) as any;
+    const resolved =
+      customMap?.[props.component] || (componentMap as any)[props.component];
+    if (resolved) return resolved;
+    console.warn(
+      `[pro-components] 未识别的组件类型 "${props.component}"，已降级为原生元素渲染。如为自定义组件请在 componentMap 或 ProComponentProvider 中注册。`
     );
+    return props.component;
   }
-  return component;
+  return props.component;
 });
 
 // 处理 Popup 相关的逻辑
@@ -224,17 +245,20 @@ const displayValue = computed(() => {
 });
 
 const onFieldClick = () => {
-  const attrs = groupedAttrs.value.attrs as any;
-  if (!popupAble.value || attrs.disabled || attrs.readonly) return;
+  const compAttrs = groupedAttrs.value.attrs as any;
+  if (!popupAble.value || compAttrs.disabled || compAttrs.readonly) return;
 
   const popupProps =
     typeof groupedAttrs.value.popup === 'object'
       ? groupedAttrs.value.popup
       : {};
-  formPopup.updateProps(popupProps);
-  popupFieldValue.value = value.value;
-  formPopup.open(path);
+  const rawValue = form?.getFormData?.(props.path);
+  form?.formPopup?.open(props.path, rawValue, popupProps, fieldUid);
 };
+
+const teleportTarget = computed(() => {
+  return form?.formPopup?.teleportTo?.value || '#pro-form-popup-content';
+});
 
 defineExpose({
   getComponentRef: () => componentRef.value || fieldRef.value,
@@ -243,7 +267,10 @@ defineExpose({
 </script>
 
 <template>
-  <ContainerFragment :component="groupedAttrs.componentContainer" :path="path">
+  <ContainerFragment
+    :component="groupedAttrs.componentContainer"
+    :path="props.path"
+  >
     <template v-if="popupAble">
       <VanField
         ref="fieldRef"
@@ -257,45 +284,54 @@ defineExpose({
         @click="onFieldClick"
       />
       <ContainerFragment
-        v-if="popupFieldPath === path"
+        v-if="
+          form?.formPopup?.popupFieldPath?.value === props.path &&
+          form?.formPopup?.activeFieldId?.value === fieldUid
+        "
         :component="Teleport"
-        to="#pro-form-popup-content"
+        :to="teleportTarget"
         defer
       >
-        <ContainerFragment :component="popupContainer" :path="path">
+        <ContainerFragment :component="popupContainer" :path="props.path">
           <component
             :is="is"
             v-if="is"
             v-bind="groupedAttrs.attrs"
-            v-model:[`${groupedAttrs.modelProp}`]="popupFieldValue"
+            v-model:[`${groupedAttrs.modelProp}`]="
+              form.formPopup.popupFieldValue.value
+            "
           >
             <template
               v-for="(slot, name) in groupedAttrs.slots"
               :key="name"
               #[name]="scoped"
             >
-              <SlotComponent :path="path" v-bind="scoped" :component="slot" />
+              <SlotComponent
+                :path="props.path"
+                v-bind="scoped"
+                :component="slot"
+              />
             </template>
           </component>
         </ContainerFragment>
       </ContainerFragment>
     </template>
 
-    <template v-else-if="typeof component === 'string'">
+    <template v-else-if="typeof props.component === 'string'">
       <component
         :is="is"
-        v-if="component === 'field'"
+        v-if="props.component === 'field'"
         v-bind="groupedAttrs.attrs"
         ref="componentRef"
         v-model:[`${groupedAttrs.modelProp}`]="value"
-        :name="path"
+        :name="props.path"
       >
         <template
           v-for="(slot, name) in groupedAttrs.slots"
           :key="name"
           #[name]="scoped"
         >
-          <SlotComponent :path="path" v-bind="scoped" :component="slot" />
+          <SlotComponent :path="props.path" v-bind="scoped" :component="slot" />
         </template>
       </component>
 
@@ -303,7 +339,7 @@ defineExpose({
         v-else
         ref="fieldRef"
         v-bind="groupedAttrs.fieldAttrs"
-        :name="path"
+        :name="props.path"
       >
         <template #input>
           <component
@@ -318,7 +354,11 @@ defineExpose({
               :key="name"
               #[name]="scoped"
             >
-              <SlotComponent :path="path" v-bind="scoped" :component="slot" />
+              <SlotComponent
+                :path="props.path"
+                v-bind="scoped"
+                :component="slot"
+              />
             </template>
           </component>
         </template>
@@ -338,7 +378,7 @@ defineExpose({
           :key="name"
           #[name]="scoped"
         >
-          <SlotComponent :path="path" v-bind="scoped" :component="slot" />
+          <SlotComponent :path="props.path" v-bind="scoped" :component="slot" />
         </template>
       </component>
     </template>

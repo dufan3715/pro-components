@@ -19,7 +19,9 @@ const configContext = useConfigContextInject();
 
 const size = defineModel<Size>('size');
 
-size.value = size.value ?? configContext.componentSize?.value ?? 'large';
+const currentSize = computed(
+  () => size.value ?? configContext.componentSize?.value ?? 'large'
+);
 
 const onSizeChange = (val: any) => {
   size.value = val.key;
@@ -40,7 +42,7 @@ const sizeOptions = computed<Array<MenuItemType>>(() => [
     <template #overlay>
       <Menu
         style="width: 100px; text-align: center"
-        :selected-keys="size ? [size] : []"
+        :selected-keys="[currentSize]"
         :items="sizeOptions"
         @click="onSizeChange"
       >

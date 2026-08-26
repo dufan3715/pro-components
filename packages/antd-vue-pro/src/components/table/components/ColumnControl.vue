@@ -18,11 +18,10 @@ type Props = {
   table?: Table;
   columnControl?: ColumnControlConfig;
 };
-const {
-  columns,
-  table = undefined,
-  columnControl = undefined,
-} = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  table: undefined,
+  columnControl: undefined,
+});
 
 const { t } = useLocale();
 
@@ -39,7 +38,7 @@ const checkedColumnsOptions = computed<
     disabled: boolean;
   }>
 >(() =>
-  columns.flatMap(item => {
+  props.columns.flatMap(item => {
     const rawKey =
       item.key ??
       (Array.isArray(item.dataIndex)
@@ -47,12 +46,14 @@ const checkedColumnsOptions = computed<
         : item.dataIndex);
     if (!rawKey || !item.title) return [];
     const key = String(rawKey);
-    if (columnControl?.excludedKeys?.some(ek => String(ek) === key)) return [];
+    if (props.columnControl?.excludedKeys?.some(ek => String(ek) === key))
+      return [];
     const disabled =
-      columnControl?.disabledKeys?.some(dk => String(dk) === key) ?? false;
+      props.columnControl?.disabledKeys?.some(dk => String(dk) === key) ??
+      false;
     // labels 优先；title 为字符串时直接使用；vnode 等其他类型降级为 key，避免渲染异常
     const label =
-      (columnControl?.labels?.[key] as string) ??
+      (props.columnControl?.labels?.[key] as string) ??
       (typeof item.title === 'string' ? item.title : key);
     return {
       label,
@@ -77,7 +78,7 @@ const checkedColumnKeys = computed({
   set(val) {
     checkedColumnsOptions.value.forEach(item => {
       if (item.disabled) return;
-      table?.setColumn?.(item.value, {
+      props.table?.setColumn?.(item.value, {
         hidden: !val.includes(item.value),
       });
     });
@@ -122,16 +123,16 @@ watch(
 
 // 强制 disabledKeys 列始终展示
 onMounted(() => {
-  columnControl?.disabledKeys?.forEach(key => {
-    table?.setColumn?.(String(key), { hidden: false });
+  props.columnControl?.disabledKeys?.forEach(key => {
+    props.table?.setColumn?.(String(key), { hidden: false });
   });
 });
 
 watch(
-  () => columnControl?.disabledKeys,
+  () => props.columnControl?.disabledKeys,
   keys => {
     keys?.forEach(key => {
-      table?.setColumn?.(String(key), { hidden: false });
+      props.table?.setColumn?.(String(key), { hidden: false });
     });
   },
   { deep: true }
@@ -149,7 +150,7 @@ watch(
         :selectable="false"
       >
         <MenuItem
-          v-if="!columnControl?.disableCheckAll"
+          v-if="!props.columnControl?.disableCheckAll"
           :key="0"
           @click="onCheckAllChange"
         >

@@ -33,7 +33,7 @@ export * from './locale';
  * @example
  * ```vue
  * <template>
- *   <ProComponentProvider :component-props="customProps">
+ *   <ProComponentProvider :componentVars="customVars">
  *     <App />
  *   </ProComponentProvider>
  * </template>

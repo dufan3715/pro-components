@@ -30,9 +30,33 @@ export type VModelProps<T = any> = {
   'onUpdate:modelValue'?: (val: T) => void;
 };
 
+/**
+ * 字段值格式化/转换处理器
+ *
+ * @description 支持函数形态或包含 get/set 方法的对象形态。
+ *
+ * ### 行为与契约说明
+ * 1. **旧值参数按需注入**：底层基于函数的形参声明个数（`fn.length > 1`）决定是否读取旧值。若转换逻辑需要使用旧值，请显式声明两个形参 `(val, oldVal) => ...`（请勿使用默认参数或 `...args` 剩余参数，否则 `fn.length` 无法正确识别）；
+ * 2. **只读快照副本**：传入的 `oldVal` 为只读快照副本，不得依赖原地修改写回；仅当 formatter 声明双形参时才克隆旧值，单参转换零开销。
+ *
+ * @example
+ * ```ts
+ * // 1. 单参数转换（常见）：无需旧值，零多余开销
+ * valueFormatter: (val) => val?.trim()
+ *
+ * // 2. 双参数转换：需要基于旧值做对比或回退
+ * valueFormatter: (val, oldVal) => (isValid(val) ? val : oldVal)
+ *
+ * // 3. 对象形态：分别定义读（展示）与写（存储）转换
+ * valueFormatter: {
+ *   get: (val) => (val ? dayjs(val).format('YYYY-MM-DD') : ''),
+ *   set: (val, oldVal) => (val ? dayjs(val).valueOf() : undefined),
+ * }
+ * ```
+ */
 export type ValueFormatter =
-  | { (val: any, oldVal: any): any }
-  | { get?: (val: any) => any; set?: (val: any, oldVal: any) => any };
+  | { (val: any, oldVal?: any): any }
+  | { get?: (val: any) => any; set?: (val: any, oldVal?: any) => any };
 
 /**
  * @description 自定义组件

@@ -30,9 +30,21 @@ export type VModelProps<T = any> = {
   'onUpdate:value'?: (val: T) => void;
 };
 
+/**
+ * @description 表单值格式化/转换器
+ *
+ * 支持两种形态：
+ * 1. 单函数模式：写入时的 set 转换 `(val, oldVal) => any`
+ * 2. 对象模式：读取时的 get 格式化与写入时的 set 转换 `{ get?: (val) => any; set?: (val, oldVal) => any }`
+ *
+ * @note **参数规范**：
+ * - 仅当 `set` 转换函数**显式声明两个形参**（如 `(val, oldVal) => ...`）时，才会传入 `oldVal`；
+ * - 请勿使用默认参数（如 `(val, oldVal = '') => ...`）或剩余参数（如 `(val, ...rest) => ...`），否则 `length` 为 1 将无法接收 `oldVal`；
+ * - `oldVal` 为只读快照副本，不得依赖原地修改写回；仅当 formatter 声明双形参时才克隆旧值，单参转换零开销。
+ */
 export type ValueFormatter =
-  | { (val: any, oldVal: any): any }
-  | { get?: (val: any) => any; set?: (val: any, oldVal: any) => any };
+  | { (val: any, oldVal?: any): any }
+  | { get?: (val: any) => any; set?: (val: any, oldVal?: any) => any };
 
 /**
  * @description 自定义组件

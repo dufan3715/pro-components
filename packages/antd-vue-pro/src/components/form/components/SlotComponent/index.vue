@@ -13,14 +13,16 @@ defineOptions({ name: 'SlotComponent', inheritAttrs: false });
 type Props = {
   component?: SlotComponentType;
 };
-defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  component: undefined,
+});
 </script>
 
 <template>
   <component
-    :is="component"
-    v-if="isVNode(component) || typeof component === 'function'"
+    :is="props.component"
+    v-if="isVNode(props.component) || typeof props.component === 'function'"
     v-bind="$attrs"
   />
-  <template v-else>{{ component }}</template>
+  <template v-else>{{ props.component }}</template>
 </template>

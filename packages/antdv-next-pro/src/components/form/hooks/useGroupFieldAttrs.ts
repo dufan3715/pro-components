@@ -10,7 +10,9 @@ import { INJECT_CONFIG } from '../../component-provider/constants';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
 import type { Base, Field } from '../types';
 
-const formItemPropKeys = Object.keys(formItemProps());
+const formItemPropKeys = Object.keys(formItemProps()).concat([
+  'formItemContainer',
+]);
 const gridItemPropKeys = Object.keys(gridItemProps());
 
 export interface GroupedField {
@@ -19,18 +21,23 @@ export interface GroupedField {
   formItemProps: FormItemProps;
   formItemSlots: Record<(typeof FORM_ITEM_SLOT_KEYS)[number], any>;
   componentProps: Record<string, any>;
-  container?: Base['formItemContainer'];
+  formItemContainer?: Base['formItemContainer'];
   rawField: Field;
 }
 
 /**
  * 将 fields 配置数组逐个拆分为 grid / formItem / component / slots 分组。
+ *
+ * @description
+ * 1. 响应式集成 ProComponentProvider 的 `pro-form-item` 全局变量配置；
+ * 2. 剥离 `extraProps`（用户自定义字段标识袋）：保留在字段原始对象上供业务层存取，渲染层经解构剥离，避免落入 componentProps 透传为无效 DOM 属性。
  */
 export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
   const config = INJECT_CONFIG['pro-form-item'];
   const injectFormItemProps = inject(config.injectionKey, config.default);
 
   return computed<GroupedField[]>(() => {
+    const rawInject = toValue(injectFormItemProps) || {};
     return validFields.value.map(field => {
       let gridItemProps: Record<string, any> = {};
       let formItemProps: Record<string, any> = {};
@@ -40,14 +47,13 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
       if (isPlainObject(field)) {
         // prettier-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { path, name, fields, formItemClass, formItemStyle, formItemContainer, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, extraProps, ...rest } =
+        const { path, name, fields, formItemClass, formItemStyle, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, extraProps, formItemContainer, ...rest } =
           field as any;
 
         const {
           class: injectClassName,
           style: injectStyle,
           span: injectSpan,
-          formItemContainer: injectFormItemContainer,
           xs,
           sm,
           md,
@@ -55,8 +61,9 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           xl,
           xxl,
           ...injectRest
-        } = injectFormItemProps;
+        } = rawInject;
 
+        // 字段显式 span 优先，否则回退注入配置的响应式断点
         const initGridItemProps =
           span || span === 0
             ? { span }
@@ -69,7 +76,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           { class: toValue(formItemClass), style: toValue(formItemStyle) },
           formItemDataAttrs
         );
-        const container = formItemContainer ?? injectFormItemContainer;
+        const container = formItemContainer ?? rawInject.formItemContainer;
 
         Object.keys(rest).forEach(k => {
           if (gridItemPropKeys.includes(k)) {
@@ -85,6 +92,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         Object.keys(slots).forEach(k => {
           if (FORM_ITEM_SLOT_KEYS.includes(k as any)) {
             formItemSlots[k] = slots[k];
+            formItemProps[k] = slots[k];
           } else {
             componentProps.slots[k] = slots[k];
           }
@@ -100,7 +108,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           formItemProps: formItemProps as any,
           formItemSlots,
           componentProps,
-          container,
+          formItemContainer: container,
           rawField: field,
         };
       }

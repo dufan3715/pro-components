@@ -23,7 +23,11 @@
  * @public
  */
 import { ComponentVars } from '../types';
-import { INJECT_COMPONENTS, ensureInjectConfig } from '../constants';
+import {
+  INJECT_COMPONENTS,
+  INJECT_CONFIG,
+  ensureInjectConfig,
+} from '../constants';
 import { computed, provide } from 'vue';
 import { getObject } from '../../../shared/core';
 import { ComponentName } from '../../form/constants';
@@ -48,18 +52,43 @@ type Props = {
   locale?: Partial<ProLocale>;
 };
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  componentVars: undefined,
+  componentMap: undefined,
+  locale: undefined,
+});
 
 /*
  * 遍历 componentVars 的每个 key，获取或创建对应的 inject 配置
- * 将用户提供的值合并到默认值上，通过 provide 注入到子组件树
- * 子组件通过 inject(config.injectionKey) 获取合并后的配置
+ * 将用户提供的值合并到默认值上，通过 provide 响应式注入到子组件树
+ * 子组件通过 inject(config.injectionKey) 获取合并后的计算属性配置
  */
+(Object.keys(INJECT_CONFIG) as Array<keyof typeof INJECT_CONFIG>).forEach(
+  key => {
+    const config = INJECT_CONFIG[key];
+    provide(
+      config.injectionKey as any,
+      computed(() => ({
+        ...config.default,
+        ...getObject(props.componentVars?.[key as keyof ComponentVars]),
+      }))
+    );
+  }
+);
+
+// 为内置集合之外的 componentVars 自定义 key 补建同构注入通道
 if (props.componentVars) {
-  Object.entries(props.componentVars).forEach(([key, val]) => {
-    const config = ensureInjectConfig(key);
-    // 用户配置覆盖默认值
-    provide(config.injectionKey, { ...config.default, ...getObject(val) });
+  Object.keys(props.componentVars).forEach(key => {
+    if (!(key in INJECT_CONFIG)) {
+      const config = ensureInjectConfig(key);
+      provide(
+        config.injectionKey as any,
+        computed(() => ({
+          ...config.default,
+          ...getObject((props.componentVars as any)?.[key]),
+        }))
+      );
+    }
   });
 }
 

@@ -61,7 +61,6 @@ import {
   AllowedComponentProps,
   computed,
   ref,
-  nextTick,
   watch,
   watchEffect,
   onBeforeUnmount,
@@ -77,16 +76,16 @@ defineOptions({ name: 'SearchForm' });
 
 const { t } = useLocale();
 
-const {
-  layout = 'grid',
-  expand = true,
-  searchButton = undefined,
-  resetButton = undefined,
-  expandButton = undefined,
-  rowGap = 16,
-  columnGap = 24,
-  form,
-} = defineProps<SearchFormProps>();
+const props = withDefaults(defineProps<SearchFormProps>(), {
+  layout: 'grid',
+  expand: true,
+  searchButton: undefined,
+  resetButton: undefined,
+  expandButton: undefined,
+  rowGap: 16,
+  columnGap: 24,
+  form: undefined,
+});
 
 type Emits = {
   (e: 'search'): void;
@@ -117,11 +116,11 @@ onBeforeUnmount(() => {
 });
 
 const computedExpand = computed(() => {
-  if (!expand) return false;
-  if (expand === true) return { minExpandRows: 2, expandStatus: false };
+  if (!props.expand) return false;
+  if (props.expand === true) return { minExpandRows: 2, expandStatus: false };
   return {
-    minExpandRows: Math.max(Math.floor(expand.minExpandRows ?? 2), 1),
-    expandStatus: expand.expandStatus ?? false,
+    minExpandRows: Math.max(Math.floor(props.expand.minExpandRows ?? 2), 1),
+    expandStatus: props.expand.expandStatus ?? false,
   };
 });
 
@@ -129,11 +128,9 @@ const showExpandToggle = ref(false);
 
 const expandStatus = ref(true);
 
-const { formRef, getFormData } = form;
-
 const updateHeights = () => {
-  if (!expand || !formRef.value) return;
-  const proFormEl = (formRef.value as any)?.$el;
+  if (!props.expand || !props.form?.formRef?.value) return;
+  const proFormEl = (props.form.formRef.value as any)?.$el;
   if (!proFormEl) return;
 
   const itemHeight = proFormEl
@@ -151,11 +148,12 @@ const updateHeights = () => {
   }
 };
 
+// 手动展开/收起标记：置位后自动测量不再覆盖用户操作
+const isManualToggle = ref(false);
+
 const changeExpandStatus = () => {
+  isManualToggle.value = true;
   expandStatus.value = !expandStatus.value;
-  nextTick(() => {
-    updateHeights();
-  });
 };
 
 const hasFieldValue = (val: any) =>
@@ -170,9 +168,13 @@ const hasFieldValue = (val: any) =>
  * 如果有值则自动展开，让用户看到已填写的搜索条件
  */
 const setInitExpandStatus = () => {
-  expandStatus.value = false;
-  if (formRef.value && expand) {
-    const formEl = (formRef.value as any).$el;
+  if (isManualToggle.value) return;
+  const initStatus = computedExpand.value
+    ? computedExpand.value.expandStatus
+    : false;
+  expandStatus.value = initStatus;
+  if (props.form?.formRef?.value && computedExpand.value) {
+    const formEl = (props.form.formRef.value as any).$el;
     const formItemsEl = formEl?.querySelectorAll?.(
       "[class*='-form-item'] > [path]"
     );
@@ -182,14 +184,19 @@ const setInitExpandStatus = () => {
     }
     intersectionObserver = new IntersectionObserver(
       entries => {
+        if (isManualToggle.value) return;
         expandStatus.value = entries.some(e => {
           // 如果隐藏字段（intersectionRatio === 0）有值，则自动展开
           if (e.intersectionRatio === 0) {
             const path = e.target.getAttribute('path');
-            const searchFieldValue = path ? getFormData?.(path) : undefined;
+            const searchFieldValue = path
+              ? props.form?.getFormData?.(path)
+              : undefined;
             return hasFieldValue(searchFieldValue);
           }
-          return (expand as any).expandStatus;
+          return computedExpand.value
+            ? computedExpand.value.expandStatus
+            : false;
         });
         intersectionObserver?.disconnect();
       },
@@ -203,9 +210,9 @@ const setInitExpandStatus = () => {
 
 watch(
   [
-    () => form?.fields.value?.filter(f => !f.hidden)?.length,
-    () => formRef.value,
-    () => expand,
+    () => props.form?.fields.value?.filter(f => !f.hidden)?.length,
+    () => props.form?.formRef?.value,
+    () => props.expand,
   ],
   () => {
     updateHeights();
@@ -214,7 +221,7 @@ watch(
 );
 
 watch(
-  () => formRef.value,
+  () => props.form?.formRef?.value,
   val => {
     if (resizeObserver) {
       resizeObserver.disconnect();
@@ -239,10 +246,10 @@ watch(
 watchEffect(
   () => {
     if (typeof proFormHeight.value !== 'number') return;
-    if (layout === 'grid' && computedExpand.value) {
+    if (props.layout === 'grid' && computedExpand.value) {
       const { minExpandRows } = computedExpand.value;
       collapseHeight.value = Math.min(
-        minExpandRows * rowHeight.value + (minExpandRows - 1) * rowGap,
+        minExpandRows * rowHeight.value + (minExpandRows - 1) * props.rowGap,
         +proFormHeight.value
       );
       showExpandToggle.value = +proFormHeight.value - collapseHeight.value > 1;
@@ -256,25 +263,29 @@ watchEffect(
   { flush: 'post' }
 );
 
-const layoutProps = computed(() =>
-  layout === 'grid'
+const layoutProps = computed(() => {
+  const currentHeight = expandStatus.value
+    ? proFormHeight.value
+    : collapseHeight.value;
+  const heightStyle =
+    currentHeight !== 'unset' && currentHeight !== undefined
+      ? `${currentHeight}px`
+      : undefined;
+
+  return props.layout === 'grid'
     ? {
         grid: {
-          gutter: [columnGap, rowGap] as [number, number],
+          gutter: [props.columnGap, props.rowGap] as [number, number],
           style: { flex: 1, marginRight: '12px' },
         },
-        style: {
-          display: 'flex',
-          overflow: 'hidden',
-          height: `${expandStatus.value ? proFormHeight.value : collapseHeight.value}px`,
-        },
+        style: { display: 'flex', overflow: 'hidden', height: heightStyle },
       }
     : {
         layout: 'inline',
-        style: { gap: `${rowGap}px ${columnGap}px` },
+        style: { gap: `${props.rowGap}px ${props.columnGap}px` },
         grid: false,
-      }
-);
+      };
+});
 
 const onReset = () => {
   emit('reset');
@@ -288,13 +299,17 @@ const onSearch = () => {
 <template>
   <ProForm
     v-bind="layoutProps"
-    :form="form"
+    :form="props.form"
     class="pro-table_search-form transition"
   >
     <Space align="start" class="pro-table_search-form_button-group">
-      <slot name="reset-button" @click="onReset">
-        <template v-if="resetButton !== false">
-          <component :is="resetButton" v-if="resetButton" @click="onReset" />
+      <slot name="reset-button" :on-reset="onReset">
+        <template v-if="props.resetButton !== false">
+          <component
+            :is="props.resetButton"
+            v-if="props.resetButton"
+            @click="onReset"
+          />
           <Button
             v-else
             class="pro-table_search-form_reset-button"
@@ -303,9 +318,13 @@ const onSearch = () => {
           >
         </template>
       </slot>
-      <slot name="search-button" @click="onSearch">
-        <template v-if="searchButton !== false">
-          <component :is="searchButton" v-if="searchButton" @click="onSearch" />
+      <slot name="search-button" :on-search="onSearch">
+        <template v-if="props.searchButton !== false">
+          <component
+            :is="props.searchButton"
+            v-if="props.searchButton"
+            @click="onSearch"
+          />
           <Button
             v-else
             class="pro-table_search-form_search-button"
@@ -316,11 +335,15 @@ const onSearch = () => {
           </Button>
         </template>
       </slot>
-      <slot name="expand-button" @click="changeExpandStatus">
-        <template v-if="expandButton !== false && showExpandToggle">
+      <slot
+        name="expand-button"
+        :expand-status="expandStatus"
+        :change-expand-status="changeExpandStatus"
+      >
+        <template v-if="props.expandButton !== false && showExpandToggle">
           <component
-            :is="expandButton"
-            v-if="expandButton"
+            :is="props.expandButton"
+            v-if="props.expandButton"
             :expand-status="expandStatus"
             @click="changeExpandStatus"
           />
@@ -345,10 +368,8 @@ const onSearch = () => {
 
 <style scoped lang="less">
 .pro-table_search-form {
-  :deep {
-    [class*='-form-item'] {
-      margin: 0;
-    }
+  :deep([class*='-form-item']) {
+    margin: 0;
   }
   &_expand-toggle-button {
     display: flex;

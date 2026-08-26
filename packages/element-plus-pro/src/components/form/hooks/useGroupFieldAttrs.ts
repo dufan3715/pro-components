@@ -10,7 +10,9 @@ import { INJECT_CONFIG } from '../../component-provider/constants';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
 import type { Base, Field } from '../types';
 
-const formItemPropKeys = Object.keys(formItemProps());
+const formItemPropKeys = Object.keys(formItemProps()).filter(
+  k => k !== 'disabled'
+);
 const gridItemPropKeys = Object.keys(gridItemProps());
 
 export interface GroupedField {
@@ -31,6 +33,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
   const injectFormItemProps = inject(config.injectionKey, config.default);
 
   return computed<GroupedField[]>(() => {
+    const rawInjectProps = toValue(injectFormItemProps) || {};
     return validFields.value.map(field => {
       let gridItemProps: Record<string, any> = {};
       let formItemProps: Record<string, any> = {};
@@ -54,8 +57,9 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           lg,
           xl,
           ...injectRest
-        } = injectFormItemProps;
+        } = rawInjectProps;
 
+        // 字段显式 span 优先，否则回退注入配置的响应式断点
         const initGridItemProps =
           span || span === 0
             ? { span }
@@ -89,7 +93,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           }
         });
 
-        const raw = (toValue(path) ?? toValue(name)) as
+        const raw = (toValue(name) ?? toValue(path)) as
           | string
           | number[]
           | undefined;
@@ -105,7 +109,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
       }
 
       const raw =
-        toValue((field as any)?.path) ?? toValue((field as any)?.name);
+        toValue((field as any)?.name) ?? toValue((field as any)?.path);
       return {
         path: Array.isArray(raw) ? raw.join('.') : (raw as string) || '',
         gridItemProps: gridItemProps as GridItemProps,

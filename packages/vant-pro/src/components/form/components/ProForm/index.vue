@@ -18,21 +18,26 @@
  *
  * @template F - 表单实例类型
  * @param {F} [form] - useForm 返回的表单实例
+ * @param {boolean} [disabled] - 全局表单禁用
  *
  * @slot default - 默认插槽
  * @slot [path] - 以字段 path 命名的动态插槽
  
  * @public
  */
-import { Form as VanForm, Popup } from '../../../../shared/ui';
+import {
+  Form as VanForm,
+  Popup,
+  type FormProps as VanFormProps,
+} from '../../../../shared/ui';
 import {
   inject,
   mergeProps,
   provide,
-  reactive,
   type Slot,
   toValue,
   computed,
+  useAttrs,
 } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
 import { BaseFormItem } from '..';
@@ -44,27 +49,69 @@ import { useForm } from '../../hooks/useForm';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
 
-type Props = { form?: F };
-const props = defineProps<Props>();
+type FormProps = Partial<Omit<VanFormProps, 'model'>>;
+type Props = { form?: F } & /* @vue-ignore */ FormProps;
+const props = withDefaults(defineProps<Props>(), {
+  form: undefined,
+});
 
-const form = props.form || (useForm(true) as F);
+const attrs = useAttrs();
 
 /**
  * 依赖注入中心：
- * 将 Core 包生成的 Form 实例注入到 Vue 的 Context 中。
- * 供深层子组件（如 BaseFormItem, BaseField, 自定义插槽）跨层级直接访问数据和方法。
+ * 若外部未传 form 实例，则自动初始化内部表单实例；
+ * 将 Form 实例注入到 Vue Context 中，供深层子组件跨层级直接访问数据和方法。
  */
-provide(InjectionFormKey, form as F);
+const fallbackForm = props.form ? undefined : useForm();
+const currentForm = computed(
+  () => props.form ?? (fallbackForm as unknown as F)
+);
 
-const { fields, setFormRef, formPopup } = form as F;
-
-const formFields = computed(() => {
-  const f = toValue(fields);
-  return Array.isArray(f) ? f : [];
+/**
+ * 表单实例代理：操作全部转发至 currentForm 当前实例；
+ * 下游持有本代理即可，:form 运行期替换无需重绑。
+ */
+const formProxy = new Proxy({} as F, {
+  get(_, prop) {
+    const target = currentForm.value as any;
+    const val = target?.[prop];
+    if (typeof val === 'function') {
+      return (...args: any[]) => (currentForm.value as any)?.[prop]?.(...args);
+    }
+    return val;
+  },
+  set(_, prop, value) {
+    if (currentForm.value) {
+      (currentForm.value as any)[prop] = value;
+    }
+    return true;
+  },
+  has(_, prop) {
+    return Boolean(currentForm.value && prop in currentForm.value);
+  },
 });
 
+provide(InjectionFormKey, formProxy);
+
+const fields = computed(() => {
+  const f = currentForm.value?.fields;
+  return (Array.isArray(f) ? f : f?.value) ?? [];
+});
+const setFormRef = (el: any) => currentForm.value?.setFormRef?.(el);
+
+let formInstanceCounter = 0;
+const formInstanceKeyMap = new WeakMap<object, number>();
+const getFormKey = (f: object) => {
+  if (!formInstanceKeyMap.has(f)) {
+    formInstanceKeyMap.set(f, ++formInstanceCounter);
+  }
+  return formInstanceKeyMap.get(f)!;
+};
+const formKey = computed(() => getFormKey(currentForm.value as any));
+
 const config = INJECT_CONFIG['pro-form'];
-const injectAttrs = inject(config.injectionKey, config.default);
+const injectFormConfig = inject(config.injectionKey, config.default);
+const injectAttrs = computed(() => toValue(injectFormConfig) || {});
 
 type ExtractPath<T> = T extends Form<infer D> ? Path<D> : string;
 type FieldSlotProps = VModelProps &
@@ -77,30 +124,39 @@ const slots = defineSlots<Partial<FieldSlots & { default: Slot }>>();
  * 动态插槽映射中心 (Slot Teleporting)：
  * 在 setup 同步期直接提供响应式 slots 上下文容器，供深层 BaseField 按需动态获取插槽
  */
-provide(InjectionFormSlotsKey, reactive(slots) as any);
+provide(InjectionFormSlotsKey, slots);
 
 const popupProps = computed(() => {
-  // 从 ProComponentProvider 获取全局配置，与传入的 props 合并
+  const rawPopupProps = currentForm.value?.formPopup?.props || {};
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { container, ...rest } = formPopup.props;
+  const { container: _container, ...rest } = rawPopupProps;
   return rest;
+});
+
+const popupContentId = computed(() => {
+  return (
+    currentForm.value?.formPopup?.contentId?.value || 'pro-form-popup-content'
+  );
 });
 </script>
 
 <template>
   <VanForm
-    :ref="(el: any) => setFormRef?.(el)"
-    v-bind="mergeProps(injectAttrs, camelizeProperties($attrs))"
+    :key="formKey"
+    :ref="setFormRef"
+    v-bind="mergeProps(injectAttrs, camelizeProperties(attrs))"
     class="pro-form"
+    @submit.prevent
   >
-    <BaseFormItem :fields="formFields" />
+    <BaseFormItem :fields="fields" />
 
     <Popup
+      v-if="currentForm?.formPopup"
       v-bind="popupProps"
-      :show="formPopup.visible.value"
-      @close="formPopup.close"
+      :show="currentForm.formPopup.visible.value"
+      @close="currentForm.formPopup.close"
     >
-      <div id="pro-form-popup-content"></div>
+      <div :id="popupContentId"></div>
     </Popup>
 
     <slot />

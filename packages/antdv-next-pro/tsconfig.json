@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
-    // "types": ["antdv-next/typings/global"], // Check if antdv-next has this
     "declaration": true,
     "declarationMap": true,
     "isolatedModules": true,
@@ -11,6 +10,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
+  "include": ["src", "__tests__"],
   "exclude": ["node_modules", "es"]
 }

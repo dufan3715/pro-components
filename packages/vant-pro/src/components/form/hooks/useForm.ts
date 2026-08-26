@@ -103,24 +103,31 @@ export type Form<
  *
  * @public
  */
-export function useForm<D extends Data = Data>(
+export function useForm<
+  D extends Data = Data,
+  F extends Field<ComponentName, D> = Field<ComponentName, D>,
+>(
   initFormData?: ExtendWithAny<DeepPartial<D>>,
-  initFields?: Field<ComponentName, D>[],
+  initFields?: F[],
   root?: boolean
-): Form<D, Field<ComponentName, D>>;
-export function useForm<D extends Data = Data>(
-  root?: boolean
-): Form<D, Field<ComponentName, D>>;
+): Form<D, F>;
+export function useForm<
+  D extends Data = Data,
+  F extends Field<ComponentName, D> = Field<ComponentName, D>,
+>(root?: boolean): Form<D, F>;
 export function useForm(...args: any[]) {
-  let root = true;
-  if (args.length === 1) {
-    root = args[0] as boolean;
-  } else if (args.length >= 2) {
-    root = (args[2] as boolean) ?? root;
+  let isRoot = true;
+  if (args.length === 1 && typeof args[0] === 'boolean') {
+    isRoot = args[0];
+  } else if (args.length >= 3 && typeof args[2] === 'boolean') {
+    isRoot = args[2];
   }
 
-  const form = coreUseForm(...args);
-  const formPopup = useFormPopup(root);
-
-  return { ...form, formPopup };
+  const form = coreUseForm(...(args as any));
+  if (!isRoot) {
+    return form;
+  }
+  const formPopup = useFormPopup(true);
+  (form as any).formPopup = formPopup;
+  return form;
 }

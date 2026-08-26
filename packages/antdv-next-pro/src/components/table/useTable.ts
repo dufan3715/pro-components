@@ -11,6 +11,8 @@ import type {
 import { Fields } from '../form/types';
 import type { Column, Columns } from './types';
 
+export type { PageParam };
+
 /**
  * 表格实例类型
  *

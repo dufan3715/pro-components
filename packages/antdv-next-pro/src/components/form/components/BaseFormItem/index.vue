@@ -3,12 +3,25 @@
  * @component BaseFormItem
  * @description 表单字段渲染引擎
  *
+ * 负责将字段配置数组渲染为实际的表单项，支持：
+ * - 字段分组（嵌套 fields 递归渲染）
+ * - 网格布局（grid 属性控制）
+ * - FormItem 包装（label、rules、校验等）
+ * - 组件绑定（通过 BaseField 渲染具体组件）
+ * - 插槽透传（label、extra、help 等 FormItem 插槽）
+ *
  * ## 渲染流程
  *
  * 1. 遍历 fields 数组，过滤 hidden 字段
- * 2. 通过 useGroupFieldAttrs Hook 纯计算将 field 配置拆分为 gridItemProps / formItemProps / componentProps / slots
+ * 2. useGroupFieldAttrs 将字段配置纯计算拆分为 gridItemProps / formItemProps / componentProps / slots
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
  * 4. 通过 ref 回调收集 FormItem 和 Component 实例，注入到 field 对象上
+ *
+ * @param {Fields} [fields] - 字段配置数组
+ * @param {boolean | GridProps} [grid] - 是否启用网格布局
+ * @param {boolean} [disabled] - 是否禁用所有子字段
+ *
+ * @internal
  */
 
 import { getObject, toPath } from '../../../../shared/core';
@@ -17,9 +30,10 @@ import {
   Grid as AGrid,
   GridItem as AGridItem,
   GridProps,
+  useDisabledContext,
   useDisabledContextProvider,
 } from '../../../../shared/ui';
-import { computed, inject, toValue } from 'vue';
+import { computed, inject, toRaw, toValue } from 'vue';
 import type { Fields, Grid } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
 import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
@@ -32,56 +46,75 @@ type Props = {
   fields?: Fields;
   disabled?: boolean;
 };
-const {
-  grid = undefined,
-  fields = [],
-  disabled = undefined,
-} = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  grid: undefined,
+  fields: () => [],
+  disabled: undefined,
+});
 
 // 过滤掉 hidden 字段，隐藏字段不渲染
-const validFields = computed(() => fields.filter?.(field => !field.hidden));
+const validFields = computed(() =>
+  (props.fields ?? []).filter(field => !field.hidden)
+);
 
-// 向子组件提供 disabled 上下文
-useDisabledContextProvider(computed(() => disabled) as any);
+// 向子组件提供 disabled 上下文（优先使用自身的 props.disabled，无显式指定时继承父级上下文）
+const parentDisabled = useDisabledContext();
+useDisabledContextProvider(
+  computed(() => props.disabled ?? parentDisabled.value) as any
+);
 
 const config = INJECT_CONFIG['pro-form'];
-
-const { grid: injectGrid } = inject(config.injectionKey, config.default);
+const injectFormConfig = inject(config.injectionKey, config.default);
+const injectGrid = computed(() => toValue(injectFormConfig)?.grid);
 
 // 网格布局：优先使用当前层级的 grid 配置，否则使用注入的全局配置
 const enableGrid = computed(() => {
-  if (grid !== undefined) return !!grid;
-  return !!injectGrid;
+  if (props.grid !== undefined) return !!props.grid;
+  return !!injectGrid.value;
 });
 
 const computedGridProps = computed<GridProps>(() => {
   return enableGrid.value
-    ? { ...getObject(injectGrid), ...getObject(grid) }
+    ? { ...getObject(injectGrid.value), ...getObject(props.grid) }
     : {};
 });
 
-const formItemRefs: any[] = [];
-const componentRefs: any[] = [];
+/**
+ * 以字段原始对象为 key 登记 FormItem / 控件实例，供 getFormItemRef / getComponentRef 读取；
+ * WeakMap 不参与响应式追踪，条目随字段对象回收自动释放。
+ */
+const formItemRefMap = new WeakMap<object, any>();
+const componentRefMap = new WeakMap<object, any>();
 
-// FormItem 挂载回调：将 FormItem 实例和计算属性注入到 field 对象上
-// 外部可通过 field.getFormItemRef() 获取 FormItem 实例
-const onFormItemMounted = (index: number, formItemProps?: any) => {
-  const field = validFields.value[index];
-  Object.assign(field, {
-    getFormItemRef: () => formItemRefs[index],
-    getFormItemComputedProps: () => formItemProps,
-  });
+const setFormItemRef = (field: any, el: any, formItemProps: any) => {
+  const raw = toRaw(field);
+  if (!raw || typeof raw !== 'object') return;
+
+  if (el) {
+    formItemRefMap.set(raw, el);
+    raw.getFormItemRef = () => formItemRefMap.get(raw);
+    raw.getFormItemComputedProps = () => formItemProps;
+  } else {
+    formItemRefMap.delete(raw);
+    delete raw.getFormItemRef;
+    delete raw.getFormItemComputedProps;
+  }
 };
 
-// 组件挂载回调：将输入组件实例注入到 field 对象上
-// 外部可通过 field.getComponentRef() 获取底层输入组件实例
-const onComponentMounted = (index: number) => {
-  const field = validFields.value[index];
-  Object.assign(field, {
-    getComponentRef: () => componentRefs[index]?.getComponentRef(),
-    getComponentComputedProps: () =>
-      componentRefs[index]?.getComponentComputedProps(),
-  });
+const setComponentRef = (field: any, el: any) => {
+  const raw = toRaw(field);
+  if (!raw || typeof raw !== 'object') return;
+
+  if (el) {
+    componentRefMap.set(raw, el);
+    raw.getComponentRef = () => componentRefMap.get(raw)?.getComponentRef?.();
+    raw.getComponentComputedProps = () =>
+      componentRefMap.get(raw)?.getComponentComputedProps?.();
+  } else {
+    componentRefMap.delete(raw);
+    delete raw.getComponentRef;
+    delete raw.getComponentComputedProps;
+  }
 };
 
 const groupedFields = useGroupFieldAttrs(validFields);
@@ -97,13 +130,17 @@ const groupedFields = useGroupFieldAttrs(validFields);
         :component="enableGrid ? AGridItem : undefined"
         v-bind="item.gridItemProps"
       >
-        <ContainerFragment :component="item.container" :path="item.path">
+        <ContainerFragment
+          :component="item.formItemContainer"
+          :path="item.path"
+        >
           <FormItem
             v-bind="item.formItemProps"
-            :ref="el => (formItemRefs[index] = el)"
+            :ref="
+              (el: any) => setFormItemRef(item.rawField, el, item.formItemProps)
+            "
             :name="toPath(item.path)"
             :path="item.path"
-            @vue:mounted="onFormItemMounted(index, item.formItemProps)"
           >
             <template
               v-for="(slot, name) in item.formItemSlots"
@@ -118,17 +155,16 @@ const groupedFields = useGroupFieldAttrs(validFields);
             </template>
             <template v-if="item.rawField.fields">
               <BaseFormItem
-                :grid="(item.rawField as any).grid ?? grid"
+                :grid="(item.rawField as any).grid ?? props.grid"
                 :fields="item.rawField.fields"
                 :disabled="toValue(item.rawField.disabled)"
               />
             </template>
             <template v-else>
               <BaseField
-                :ref="el => (componentRefs[index] = el)"
+                :ref="(el: any) => setComponentRef(item.rawField, el)"
                 v-bind="item.componentProps"
                 :path="item.path"
-                @vue:mounted="onComponentMounted(index)"
               />
             </template>
           </FormItem>

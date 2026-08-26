@@ -4,6 +4,7 @@ import DefaultTheme from 'vitepress/theme';
 import { nextTick, provide } from 'vue';
 import AntdvNextLayout from './AntdvNextLayout.vue';
 import AntdvLayout from './AntdvLayout.vue';
+import ElLayout from './ElLayout.vue';
 
 const { isDark } = useData();
 
@@ -43,11 +44,13 @@ provide('toggle-appearance', async ({ clientX: x, clientY: y }: MouseEvent) => {
 </script>
 
 <template>
-  <AntdvNextLayout>
-    <AntdvLayout>
-      <DefaultTheme.Layout />
-    </AntdvLayout>
-  </AntdvNextLayout>
+  <ElLayout>
+    <AntdvNextLayout>
+      <AntdvLayout>
+        <DefaultTheme.Layout />
+      </AntdvLayout>
+    </AntdvNextLayout>
+  </ElLayout>
 </template>
 
 <style>

@@ -1,7 +1,7 @@
 import { getCurrentInstance, inject, provide, reactive } from 'vue';
 import { Path, Data, ExtendWithAny, DeepPartial } from '../shared/types';
 import { isPlainObject } from '../shared/utils';
-import { getByPath, setByPath } from '../shared/path';
+import { get, set } from '../shared/path';
 
 const InjectionFormDataKey = Symbol('form-data');
 
@@ -133,7 +133,7 @@ const useFormData = <D extends Data = Data>(
 
   function getFormData(path: Path<D>) {
     if (!path) return undefined;
-    return getByPath(formData, path) as any;
+    return get(formData, path) as any;
   }
 
   function setFormData(...args: any[]) {
@@ -150,7 +150,7 @@ const useFormData = <D extends Data = Data>(
         const preValue = getFormData(path);
         value = value(preValue);
       }
-      setByPath(formData, path, value);
+      set(formData, path, value);
     } else {
       if (typeof value === 'function') {
         const preValue = formData;

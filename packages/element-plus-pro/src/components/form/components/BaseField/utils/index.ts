@@ -1,6 +1,4 @@
 import { Field } from '../../../types';
-import { getInjectConfig } from '../../../../component-provider/constants';
-import { inject } from 'vue';
 
 type LocaleT = (
   key: string,
@@ -38,11 +36,7 @@ const RANGE_PLACEHOLDER_KEYS: Record<string, [string, string]> = {
   'date-picker.datetimerange': ['date-picker.startTime', 'date-picker.endTime'],
 };
 
-/**
- * 根据组件 key 兜底生成 locale 占位符
- *
- * @description 用户通过 componentVars 或字段属性显式设置了占位符时不再兜底。
- */
+/** 根据组件 key 兜底生成 locale 占位符；已显式设置占位符（componentVars 或字段属性）时不兜底 */
 const getPlaceholderProps = (
   key: string,
   injectProps: Record<string, any>,
@@ -65,13 +59,14 @@ const getPlaceholderProps = (
   return { placeholder: t(placeholderKey) };
 };
 
-export const getInitProps = (field: Field, t: LocaleT): Record<string, any> => {
+export const getInitProps = (
+  field: Field,
+  injectProps: Record<string, any> = {},
+  t: LocaleT
+): Record<string, any> => {
   const { component, type } = field as any;
   if (typeof component === 'string') {
     const k = [component, type].filter(Boolean).join('.');
-    const config = getInjectConfig(k);
-    if (!config) return getPlaceholderProps(k, {}, t);
-    const injectProps = inject(config.injectionKey, config.default);
     return { ...injectProps, ...getPlaceholderProps(k, injectProps, t) };
   }
   return {};

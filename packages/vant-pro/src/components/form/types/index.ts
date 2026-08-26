@@ -31,9 +31,16 @@ export type VModelProps<T = any> = {
   'onUpdate:modelValue'?: (val: T) => void;
 };
 
+/**
+ * 字段值格式化转换函数/对象
+ *
+ * @description
+ * - 声明两个形参 `(newVal, oldVal)` 时，底层按需读取并传入写入前旧值快照深拷贝；
+ * - 声明单形参 `(newVal)` 时，底层不读取旧值，以避免不必要的深拷贝性能开销。
+ */
 export type ValueFormatter =
-  | { (val: any, oldVal: any): any }
-  | { get?: (val: any) => any; set?: (val: any, oldVal: any) => any };
+  | { (val: any, oldVal?: any): any }
+  | { get?: (val: any) => any; set?: (val: any, oldVal?: any) => any };
 
 export type DisplayFormatter = (val: any) => string;
 

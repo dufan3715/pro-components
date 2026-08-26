@@ -16,7 +16,7 @@ const { t } = useLocale();
 
 const size = defineModel<Size>('size');
 
-size.value = size.value ?? 'default';
+const currentSize = computed(() => size.value ?? 'default');
 
 const items = computed<Array<{ label: string; key: NonNullable<Size> }>>(() => [
   { label: t('table.sizeDefault'), key: 'default' },
@@ -36,7 +36,7 @@ const items = computed<Array<{ label: string; key: NonNullable<Size> }>>(() => [
           v-for="item in items"
           :key="item.key"
           :command="item.key"
-          :disabled="item.key === size"
+          :disabled="item.key === currentSize"
         >
           {{ item.label }}
         </DropdownItem>

@@ -1,6 +1,6 @@
 import { isRef, Ref, ref, toRaw } from 'vue';
 import { Data, Path } from '../shared/types';
-import { getByPath, normalizePathKey } from '../shared/path';
+import { get, normalizePathKey } from '../shared/path';
 import { applyByGroupDesc, GroupMatch } from '../shared/internals';
 import {
   AdditionalMethods as AM,
@@ -296,7 +296,7 @@ const useFields = <
     const isRoot = fieldPath.length === 1;
     const parentField = isRoot
       ? ({ fields: fields.value } as any as F)
-      : (getByPath(fields.value, fieldPath.slice(0, -2)) as F);
+      : (get(fields.value, fieldPath.slice(0, -2)) as F);
     const field = parentField?.fields?.[fieldIndex] as F;
     const _path = field ? normalizePathKey(field.name ?? field.path) : '';
     if (_path && _path === pathStr) {

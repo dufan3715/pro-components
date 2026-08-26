@@ -4,13 +4,12 @@ import {
   camelizeProperties,
   isPlainObject,
   pick,
-  omit,
   cloneDeep,
+  isPromise,
 } from '../src/shared/utils';
 import {
   isPlainObject as lodashIsPlainObject,
   pick as lodashPick,
-  omit as lodashOmit,
   cloneDeep as lodashCloneDeep,
 } from 'lodash-es';
 
@@ -101,30 +100,6 @@ describe('utils', () => {
     it('pick 空 keys 返回空对象', () => {
       const obj = { a: 1, b: 2 };
       expect(pick(obj, [])).toEqual(lodashPick(obj, []));
-    });
-  });
-
-  describe('omit 顶层 key 过滤与差分', () => {
-    it('omit 顶层 key 过滤与 lodash 对拍', () => {
-      const obj = { a: 1, b: 2, c: 3, d: 4 };
-      const actual = omit(obj, ['a', 'c']);
-      const expected = lodashOmit(obj, ['a', 'c']);
-      expect(actual).toEqual(expected);
-    });
-
-    it('omit 空 keys 返回全量属性浅拷贝', () => {
-      const obj = { a: 1, b: 2 };
-      const actual = omit(obj, []);
-      const expected = lodashOmit(obj, []);
-      expect(actual).toEqual(expected);
-      expect(actual).not.toBe(obj);
-    });
-
-    it('omit 过滤不存在的 key 正常返回', () => {
-      const obj = { a: 1, b: 2 };
-      const actual = omit(obj, ['nonExist' as any]);
-      const expected = lodashOmit(obj, ['nonExist' as any]);
-      expect(actual).toEqual(expected);
     });
   });
 
@@ -263,6 +238,46 @@ describe('utils', () => {
         const expected = lodashCloneDeep(sample);
         expect(actual).toEqual(expected);
       }
+    });
+  });
+
+  describe('isPromise', () => {
+    it('标准 Promise 实例识别为 true', () => {
+      expect(isPromise(Promise.resolve(1))).toBe(true);
+      expect(isPromise(new Promise(() => {}))).toBe(true);
+      expect(isPromise(Promise.reject(new Error('err')).catch(() => {}))).toBe(
+        true
+      );
+    });
+
+    it('Async 函数执行返回值识别为 true', () => {
+      const asyncFn = async () => 1;
+      expect(isPromise(asyncFn())).toBe(true);
+    });
+
+    it('自定义 Thenable 对象识别为 true', () => {
+      const thenable = {
+        then: (resolve: any) => resolve('ok'),
+      };
+      expect(isPromise(thenable)).toBe(true);
+
+      const customClassThenable = new (class {
+        then() {}
+      })();
+      expect(isPromise(customClassThenable)).toBe(true);
+    });
+
+    it('非 Promise/Thenable 值识别为 false', () => {
+      expect(isPromise(null)).toBe(false);
+      expect(isPromise(undefined)).toBe(false);
+      expect(isPromise(123)).toBe(false);
+      expect(isPromise('promise')).toBe(false);
+      expect(isPromise(true)).toBe(false);
+      expect(isPromise({})).toBe(false);
+      expect(isPromise({ then: 'not a function' })).toBe(false);
+      expect(isPromise(() => {})).toBe(false);
+      expect(isPromise([])).toBe(false);
+      expect(isPromise(new Date())).toBe(false);
     });
   });
 });

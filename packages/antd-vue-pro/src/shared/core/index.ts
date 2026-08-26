@@ -14,12 +14,15 @@ export {
   InjectionFormSlotsKey,
   // utils
   getObject,
+  get,
+  set,
+  normalizePathKey,
   toPath,
   camelizeProperties,
   cloneDeep,
-  omit,
   pick,
   isPlainObject,
+  isPromise,
   // types
   type Data,
   type Path,

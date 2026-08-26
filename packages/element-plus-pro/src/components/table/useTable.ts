@@ -129,17 +129,22 @@ export function useTable<
   T extends Data = ExtendWithAny<D>,
 >(params: UseTableParams<D, T> = {}): Table<D, T> {
   const { data, columns, ...rest } = params;
-  const coreTable = (coreUseTable as any)({
+  const coreTable = coreUseTable<D, T, Column<T>>({
     ...rest,
     dataSource: data,
-    columns,
-  }) as _Table<D, T, Column<T>>;
+    columns: columns as any,
+  });
 
-  const { dataSource, ...tableWithoutDataSource } = coreTable as any;
-  const table = {
+  const { dataSource, ...tableWithoutDataSource } = coreTable as Omit<
+    _Table<D, T, Column<T>>,
+    'dataSource'
+  > & {
+    dataSource: Ref<T[]>;
+  };
+  const table: Table<D, T> = {
     ...tableWithoutDataSource,
-    data: dataSource as Ref<T[]>,
-  } as Table<D, T>;
+    data: dataSource,
+  };
 
   return table;
 }

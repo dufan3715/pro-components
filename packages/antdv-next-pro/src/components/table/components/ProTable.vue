@@ -46,6 +46,7 @@ import {
   useAttrs,
   onMounted,
   inject,
+  toValue,
   type Slot,
 } from 'vue';
 import { INJECT_CONFIG } from '../../component-provider/constants';
@@ -56,18 +57,20 @@ import { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../useTable';
 import { useLocale } from '../../../locale';
 import {
-  camelizeProperties,
   getObject,
+  isPlainObject,
+  isPromise,
   pick,
+  camelizeProperties,
   Path,
 } from '../../../shared/core';
-import { ComponentSlots } from 'vue-component-type-helpers';
 import {
   DefaultSearchFormContainer,
   DefaultTableContainer,
   SizeControl,
   ColumnControl,
 } from '.';
+import { ComponentSlots } from 'vue-component-type-helpers';
 import { Column, Columns, ColumnControlConfig } from '../types';
 
 defineOptions({ name: 'ProTable', inheritAttrs: false });
@@ -85,77 +88,74 @@ type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
 };
 
 type Props = {
-  // 列表表格对象，returns from useTable
   table?: T;
-  // 列表数据查询方法
-  search?: () => Promise<unknown>;
-  // 是否在首列插入index列
+  search?: (params?: any) => Promise<any> | any;
   addIndexColumn?: boolean;
-  // onMounted 时立即触发一次search事件
-  immediateSearch?: boolean;
-  // 是否展示表格 size 和 column 控制按钮
   control?: boolean | Partial<Control>;
-  // 搜索栏查询字段表单配置
+  immediateSearch?: boolean;
   searchFormConfig?: SearchFormConfig;
   // 表格区域包裹容器
   tableContainer?: ContainerComponent | false;
 } & /* @vue-ignore */ TableProps;
 
-const {
-  table = undefined,
-  search = undefined,
-  addIndexColumn = undefined,
-  control = undefined,
-  tableContainer = undefined,
-  immediateSearch = undefined,
-  searchFormConfig = undefined,
-} = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  table: undefined,
+  search: undefined,
+  addIndexColumn: undefined,
+  control: undefined,
+  immediateSearch: undefined,
+  searchFormConfig: undefined,
+  tableContainer: undefined,
+});
 
-// 从 ProComponentProvider 获取全局配置，与 props 合并
 const { t } = useLocale();
+
 const config = INJECT_CONFIG['pro-table'];
-const injectProps = inject(config.injectionKey, config.default);
+const injectPropsRaw = inject(config.injectionKey, config.default);
+const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
 const tableProperties = Object.keys(tableProps());
 
-const injectAttrs = pick(injectProps, tableProperties) as TableProps;
+const injectAttrs = computed<TableProps>(
+  () => pick(injectProps.value, tableProperties) as TableProps
+);
 
 const computedSearchFormConfig = computed(() => {
   const container =
-    searchFormConfig?.container ??
-    injectProps.searchFormConfig?.container ??
+    props.searchFormConfig?.container ??
+    injectProps.value.searchFormConfig?.container ??
     DefaultSearchFormContainer;
   return {
-    ...injectProps.searchFormConfig,
-    ...getObject(searchFormConfig),
+    ...injectProps.value.searchFormConfig,
+    ...getObject(props.searchFormConfig),
     container: container ? container : undefined,
   };
 });
 
 const attrs: Record<string, any> = useAttrs();
 const tableAttrs = computed<TableProps>(() => {
-  return pick(camelizeProperties(attrs), tableProperties);
+  return pick(camelizeProperties(attrs), tableProperties) as TableProps;
 });
 
-const { columns, dataSource, searchForm, pageParam, setPageParam } =
-  table || {};
-
 const size = defineModel<TableProps['size']>('size');
-const loading = defineModel<boolean>('loading');
+const loading = defineModel<boolean>('loading', { default: false });
 
 // 核心搜索方法：设置 loading 状态，调用外部 search 函数
 const _search = async () => {
-  try {
+  const searchPromise = (props.search || attrs.onSearch)?.();
+  if (isPromise(searchPromise)) {
     loading.value = true;
-    await search?.();
-  } finally {
-    loading.value = false;
+    try {
+      await searchPromise;
+    } finally {
+      loading.value = false;
+    }
   }
 };
 
 // 重置：恢复查询参数到初始值，重新搜索
 const reset = () => {
-  table?.resetQueryParams();
+  props.table?.resetQueryParams?.();
   nextTick(() => {
     _search();
   });
@@ -168,7 +168,6 @@ type TableSlots = Omit<ComponentSlots<typeof ATable>, 'bodyCell'> &
   Readonly<{
     bodyCell?: (props: {
       text: any;
-      value: any;
       record: RecordType;
       index: number;
       column: Column<RecordType>;
@@ -187,13 +186,13 @@ const {
 } = slots;
 
 const searchPage1st = () => {
-  setPageParam?.({ current: 1 });
+  props.table?.setPageParam?.({ current: 1 });
   _search();
 };
 
 const computedTableProps = computed<TableProps>(() => {
   return {
-    ...injectAttrs,
+    ...injectAttrs.value,
     ...tableAttrs.value,
     pagination: undefined,
     onChange: undefined,
@@ -202,65 +201,86 @@ const computedTableProps = computed<TableProps>(() => {
 
 const computedTableContainer = computed(() => {
   const container =
-    tableContainer ?? injectProps.tableContainer ?? DefaultTableContainer;
+    props.tableContainer ??
+    injectProps.value.tableContainer ??
+    DefaultTableContainer;
   return container ? container : undefined;
 });
 
 type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
 type RecordType = ReturnGenericParameterTypes<T>;
 
-const indexColumn = (): ColumnType => ({
+const renderIndex: ColumnType['render'] = (_, __, index) => index + 1;
+
+const indexColumn = computed<ColumnType>(() => ({
   title: t('table.index'),
   dataIndex: '_index',
+  key: '_index',
   width: 80,
-  render: (_, __, index) => index + 1,
-});
+  render: renderIndex,
+}));
 
-const computedColumns = computed(
-  () =>
-    [
-      ...((addIndexColumn ?? injectProps.addIndexColumn)
-        ? [indexColumn()]
-        : []),
-      ...(tableAttrs.value.columns ?? columns?.value ?? []),
-    ] as Columns<RecordType>
-);
+const computedColumns = computed<Columns<RecordType>>(() => {
+  const cols = (tableAttrs.value.columns ??
+    toValue(props.table?.columns) ??
+    []) as any;
+  const needIndex = props.addIndexColumn ?? injectProps.value.addIndexColumn;
+  return needIndex ? [indexColumn.value, ...cols] : cols;
+});
 
 const visibleComputedColumns = computed(() => {
   return computedColumns.value.filter(item => !(item as Column).hidden);
 });
 
 const computedDataSource = computed<RecordType[]>(() => {
-  return (tableAttrs.value.dataSource as any[]) ?? dataSource?.value;
+  return (
+    (tableAttrs.value.dataSource as RecordType[]) ??
+    (toValue(props.table?.dataSource) as RecordType[]) ??
+    []
+  );
 });
 
+// 分页优先级：tableAttrs 显式配置 > provider 全局配置 > 默认合成
 const computedPagination = computed<PaginationProps | false>(() => {
   if (tableAttrs.value.pagination === false) return false;
+  if (isPlainObject(tableAttrs.value.pagination)) {
+    const globalPagination =
+      injectAttrs.value.pagination === false
+        ? {}
+        : injectAttrs.value.pagination;
+    return {
+      ...globalPagination,
+      ...props.table?.pageParam,
+      ...tableAttrs.value.pagination,
+      showTotal:
+        tableAttrs.value.pagination?.showTotal ??
+        globalPagination?.showTotal ??
+        ((total: number) => t('pagination.total', { total })),
+    };
+  }
+  if (injectAttrs.value.pagination === false) return false;
   return {
-    ...injectAttrs.pagination,
-    ...pageParam,
-    ...tableAttrs.value.pagination,
+    ...injectAttrs.value.pagination,
+    ...props.table?.pageParam,
     showTotal:
-      tableAttrs.value.pagination?.showTotal ??
-      (injectAttrs.pagination === false
-        ? undefined
-        : injectAttrs.pagination?.showTotal) ??
+      injectAttrs.value.pagination?.showTotal ??
       ((total: number) => t('pagination.total', { total })),
   };
 });
 
 const onTableChange: any = (...args: any[]) => {
-  setPageParam?.(args[0]);
+  props.table?.setPageParam?.(args[0]);
   attrs.onChange?.(...args);
   _search();
 };
 
 const showSearch = computed(() => {
+  const rawFields = props.table?.searchForm?.fields;
+  const fieldList =
+    (Array.isArray(rawFields) ? rawFields : rawFields?.value) ?? [];
   return !!(
     searchFormSlot ||
-    (computedSearchFormConfig.value?.hidden !== true &&
-      searchForm &&
-      searchForm.fields.value.filter(item => !item.hidden)?.length > 0)
+    (!computedSearchFormConfig.value.hidden && fieldList.length > 0)
   );
 });
 
@@ -268,14 +288,17 @@ const computedControl = computed<{
   sizeControl: boolean;
   columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
 }>(() => {
-  const mergedControl = control ?? injectProps.control;
-  if (typeof mergedControl === 'boolean') {
-    return { sizeControl: mergedControl, columnControl: mergedControl };
+  const controlConfig = props.control ?? injectProps.value.control;
+  if (controlConfig === true) {
+    return { sizeControl: true, columnControl: true };
   }
-  const c = mergedControl as Control;
-  const sizeControl = c.sizeControl ?? true;
-  const columnControl = c.columnControl ?? true;
-  return { sizeControl: !!sizeControl, columnControl };
+  if (controlConfig === false) {
+    return { sizeControl: false, columnControl: false };
+  }
+  return {
+    sizeControl: !!controlConfig?.sizeControl,
+    columnControl: controlConfig?.columnControl ?? false,
+  };
 });
 
 const columnControlConfig = computed(() => {
@@ -284,7 +307,7 @@ const columnControlConfig = computed(() => {
 });
 
 onMounted(() => {
-  if (immediateSearch ?? injectProps.immediateSearch) {
+  if (props.immediateSearch ?? injectProps.value.immediateSearch) {
     _search();
   }
 });
@@ -292,14 +315,18 @@ onMounted(() => {
 
 <template>
   <div class="pro-table" :class="attrs.class" :style="attrs.style">
+    <!-- 搜索表单区域 -->
     <ContainerFragment
       v-if="showSearch"
       :component="computedSearchFormConfig.container"
     >
-      <slot name="search-form">
+      <slot
+        name="search-form"
+        v-bind="{ form: props.table?.searchForm, search: searchPage1st, reset }"
+      >
         <SearchForm
-          v-if="searchForm"
-          :form="searchForm"
+          v-if="props.table?.searchForm"
+          :form="props.table?.searchForm"
           v-bind="computedSearchFormConfig"
           @search="searchPage1st"
           @reset="reset"
@@ -307,33 +334,53 @@ onMounted(() => {
       </slot>
     </ContainerFragment>
 
+    <!-- 表格主体容器 -->
     <ContainerFragment :component="computedTableContainer">
+      <!-- 工具栏区域：操作按钮（左）+ 视图控制按钮（右） -->
       <div class="pro-table_header">
+        <!-- 自定义操作按钮区（如新增、批量删除等） -->
         <div v-if="buttonBarSlot" class="pro-table_header_button-bar">
           <slot name="button-bar" />
         </div>
+
         <div v-if="toolbarSlot" class="pro-table_header_toolbar">
           <slot name="toolbar" />
         </div>
+
+        <!-- 表格尺寸控制（紧凑 / 默认 / 宽松） -->
         <div
           v-if="computedControl.sizeControl"
           class="pro-table_header_size-control"
         >
           <SizeControl v-model:size="size" />
         </div>
+
+        <!-- 列显示/隐藏控制 -->
         <div
           v-if="computedControl.columnControl"
           class="pro-table_header_column-control"
         >
           <ColumnControl
             :columns="computedColumns"
-            :table="table"
+            :table="props.table"
             :column-control="columnControlConfig"
           />
         </div>
       </div>
 
-      <slot name="table">
+      <!-- 表格插槽：完全自定义表格渲染 -->
+      <slot
+        name="table"
+        v-bind="{
+          columns: visibleComputedColumns,
+          dataSource: computedDataSource,
+          pagination: computedPagination,
+          loading: loading,
+          size: size,
+          onChange: onTableChange,
+        }"
+      >
+        <!-- 默认 antdv-next Table -->
         <ATable
           class="pro-table_content"
           v-bind="computedTableProps"
@@ -344,6 +391,7 @@ onMounted(() => {
           :pagination="computedPagination"
           @change="onTableChange"
         >
+          <!-- 透传非默认插槽给 ATable（如 headerCell、bodyCell 等） -->
           <template
             v-for="(_, name) of tableSlots"
             :key="name"

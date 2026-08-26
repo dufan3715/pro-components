@@ -6,8 +6,9 @@ import {
   DatePicker,
 } from '../../../shared/ui';
 import { ComponentName, GetComponentType } from '../../form/constants';
-import { Base, Grid } from '../../form/types';
+import { Base, Grid, ContainerComponent } from '../../form/types';
 import { ProFormProps } from '../../form';
+import type { SearchFormProps } from '../../table/components/SearchForm.vue';
 import { AllowedComponentProps } from 'vue';
 import type { ComponentProps } from 'vue-component-type-helpers';
 
@@ -31,17 +32,20 @@ type DatePickerType = NonNullable<ComponentProps<typeof DatePicker>['type']>;
 export type RequiredComponentVars = {
   'pro-table': PP<
     TableProps & {
-      pagination?: Partial<PaginationProps>;
+      pagination?: false | Partial<PaginationProps>;
       control?: boolean | { sizeControl?: boolean; columnControl?: boolean };
-      searchFormConfig?: any;
+      searchFormConfig?: Partial<Omit<SearchFormProps, 'form'>> & {
+        hidden?: boolean;
+        container?: ContainerComponent | false;
+      };
       immediateSearch?: boolean;
       addIndexColumn?: boolean;
-      tableContainer?: any;
+      tableContainer?: ContainerComponent | false;
     }
   >;
   'pro-form': PP<
     Omit<ProFormProps, 'form' | 'grid'> & {
-      grid: Exclude<Grid, undefined | boolean>;
+      grid?: Exclude<Grid, undefined | boolean>;
     }
   >;
   'pro-form-item': PP<

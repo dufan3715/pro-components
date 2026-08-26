@@ -27,12 +27,17 @@ export interface GroupedField {
 
 /**
  * 将 fields 配置数组逐个拆分为 grid / formItem / component / slots 分组。
+ *
+ * @description
+ * 1. 响应式集成 ProComponentProvider 的 `pro-form-item` 全局变量配置；
+ * 2. 剥离 `extraProps`（用户自定义字段标识袋）：保留在字段原始对象上供业务层存取，渲染层经解构剥离，避免落入 componentProps 透传为无效 DOM 属性。
  */
 export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
   const config = INJECT_CONFIG['pro-form-item'];
   const injectFormItemProps = inject(config.injectionKey, config.default);
 
   return computed<GroupedField[]>(() => {
+    const rawInject = toValue(injectFormItemProps) || {};
     return validFields.value.map(field => {
       let gridItemProps: Record<string, any> = {};
       let formItemProps: Record<string, any> = {};
@@ -56,8 +61,9 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           xl,
           xxl,
           ...injectRest
-        } = injectFormItemProps;
+        } = rawInject;
 
+        // 字段显式 span 优先，否则回退注入配置的响应式断点
         const initGridItemProps =
           span || span === 0
             ? { span }

@@ -2,7 +2,7 @@ import { bench, describe } from 'vitest';
 import lodashGet from 'lodash-es/get';
 import lodashSet from 'lodash-es/set';
 import lodashToPath from 'lodash-es/toPath';
-import { getByPath, setByPath, normalizePathKey } from '../src/shared/path';
+import { get, set, normalizePathKey } from '../src/shared/path';
 
 describe('Path performance benchmarks', () => {
   const data = {
@@ -20,16 +20,16 @@ describe('Path performance benchmarks', () => {
     lodashGet(data, 'user.profile.address.city');
   });
 
-  bench('深路径 get (getByPath)', () => {
-    getByPath(data, 'user.profile.address.city');
+  bench('深路径 get (get)', () => {
+    get(data, 'user.profile.address.city');
   });
 
   bench('单段 get (lodash.get)', () => {
     lodashGet(data, 'title');
   });
 
-  bench('单段 get (getByPath)', () => {
-    getByPath(data, 'title');
+  bench('单段 get (get)', () => {
+    get(data, 'title');
   });
 
   bench('深路径 set (lodash.set)', () => {
@@ -37,9 +37,9 @@ describe('Path performance benchmarks', () => {
     lodashSet(target, 'user.profile.address.city', 'Shanghai');
   });
 
-  bench('深路径 set (setByPath)', () => {
+  bench('深路径 set (set)', () => {
     const target = { user: { profile: { address: { city: 'Beijing' } } } };
-    setByPath(target, 'user.profile.address.city', 'Shanghai');
+    set(target, 'user.profile.address.city', 'Shanghai');
   });
 
   bench('字段路径归一化 (lodash.toPath.join)', () => {

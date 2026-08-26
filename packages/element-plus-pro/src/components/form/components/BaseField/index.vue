@@ -33,14 +33,18 @@ import {
   inject,
   mergeProps,
   ref,
+  toValue,
   useAttrs,
 } from 'vue';
-import { cloneDeep, omit } from '../../../../shared/core';
+import { cloneDeep } from '../../../../shared/core';
 import { useDisabledContext } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import { ContainerFragment, SlotComponent } from '..';
 import { componentMap, InjectionFormSlotsKey } from '../../constants';
-import { INJECT_COMPONENTS } from '../../../component-provider/constants';
+import {
+  INJECT_COMPONENTS,
+  getInjectConfig,
+} from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps } from './utils';
 import { useLocale } from '../../../../locale';
@@ -51,25 +55,36 @@ type Props = {
   component?: string | Component;
   path?: string;
 };
-const { component = undefined, path = '' } = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  component: undefined,
+  path: '',
+});
 
 const { t } = useLocale();
 
 const form = useForm(false);
-const { getFormData, setFormData } = form;
 
 const componentRef = ref<any>();
 
 const attrs: any = useAttrs();
 
-function getOldValue() {
-  return cloneDeep(getFormData?.(path));
-}
+// 全局默认配置注入：key = 组件名 + type 修饰段；inject 须在 setup 同步期调用
+const typeVal = attrs.type;
+const injectConfigKey =
+  typeof props.component === 'string'
+    ? [props.component, typeVal].filter(Boolean).join('.')
+    : '';
+const componentInjectConfig = injectConfigKey
+  ? getInjectConfig(injectConfigKey)
+  : undefined;
+const rawInjectComponentProps = componentInjectConfig
+  ? inject(componentInjectConfig.injectionKey, componentInjectConfig.default)
+  : undefined;
 
 // setter: 向 formData 写入值，支持 valueFormatter / valueFormatter.set 转换
 const value = computed({
   get() {
-    let val = getFormData?.(path);
+    let val = form.getFormData?.(props.path);
     const { valueFormatter } = groupedAttrs.value;
     if (
       typeof valueFormatter === 'object' &&
@@ -82,14 +97,23 @@ const value = computed({
   set(val) {
     let newVal = val;
     const { valueFormatter } = groupedAttrs.value;
-    if (valueFormatter) {
-      if (typeof valueFormatter === 'function') {
-        newVal = valueFormatter(val, getOldValue());
-      } else if (typeof valueFormatter.set === 'function') {
-        newVal = valueFormatter.set(val, getOldValue());
-      }
+    const setFormatter =
+      typeof valueFormatter === 'function'
+        ? valueFormatter
+        : typeof valueFormatter === 'object' &&
+            typeof valueFormatter?.set === 'function'
+          ? valueFormatter.set
+          : undefined;
+
+    if (setFormatter) {
+      // 仅当 set 转换函数需要旧值参数时，才获取旧值上下文
+      const oldVal =
+        setFormatter.length > 1
+          ? cloneDeep(form.getFormData?.(props.path))
+          : undefined;
+      newVal = setFormatter(val, oldVal);
     }
-    setFormData?.(path, newVal);
+    form.setFormData?.(props.path, newVal);
   },
 });
 
@@ -100,36 +124,38 @@ const parentDisabled = useDisabledContext();
  * 属性分为三类：绑定属性（v-model）、组件属性（传递给组件）、插槽（动态渲染）
  */
 const groupedAttrs = computed(() => {
+  const currentInjectProps = toValue(rawInjectComponentProps) || {};
   const initProps = getInitProps(
     {
-      component: component,
+      component: props.component,
       type: attrs.type,
     } as unknown as Field,
+    currentInjectProps,
     t
   );
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'modelValue';
+  const effectiveDisabled =
+    attrs.disabled !== undefined
+      ? Boolean(attrs.disabled)
+      : Boolean(parentDisabled.value || initProps.disabled);
   const mergedProps = mergeProps(
     initProps,
     attrs,
     { class: attrs.componentClass, style: attrs.componentStyle },
     { class: initProps.componentClass, style: initProps.componentStyle },
-    { disabled: attrs.disabled ?? parentDisabled.value ?? initProps.disabled },
+    { disabled: effectiveDisabled },
     { modelProp: modelPropName }
   ) as Required<Field>;
+
   // prettier-ignore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { valueFormatter, modelProp, slots, componentClass, componentStyle, componentContainer, ...rest } = mergedProps
-  const modelBindingProp = modelProp ?? 'modelValue';
-  // 从剩余属性中移除 v-model 绑定属性，避免重复绑定
-  const bindAttrs = omit(rest as Record<string, any>, [
-    modelBindingProp,
-    `onUpdate:${modelBindingProp}`,
-  ]);
+  const { valueFormatter, modelProp, slots, componentClass, componentStyle, componentContainer, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: _onUpdateModelVal, ...bindAttrs } = mergedProps as any;
+
   return {
     attrs: bindAttrs,
     slots,
     componentContainer,
-    modelProp: modelBindingProp,
+    modelProp: modelPropName,
     valueFormatter,
   };
 });
@@ -147,16 +173,19 @@ const customComponents = inject(INJECT_COMPONENTS, {});
  * ProForm 插槽 → 自定义组件映射 → 内置组件映射 → 原始 component 值
  */
 const is = computed(() => {
-  const teleportSlot = path && formSlots?.[path];
+  const teleportSlot = props.path && formSlots?.[props.path];
   if (teleportSlot) return teleportSlot;
-  if (typeof component === 'string') {
-    return (
-      (customComponents as any)[component] ||
-      (componentMap as any)[component] ||
-      component
+  if (typeof props.component === 'string') {
+    const resolved =
+      (customComponents as any)[props.component] ||
+      (componentMap as any)[props.component];
+    if (resolved) return resolved;
+    console.warn(
+      `[pro-components] 未识别的组件类型 "${props.component}"，已降级为原生元素渲染。如为自定义组件请在 componentMap 或 ProComponentProvider 中注册。`
     );
+    return props.component;
   }
-  return component;
+  return props.component;
 });
 
 defineExpose({
@@ -166,21 +195,24 @@ defineExpose({
 </script>
 
 <template>
-  <ContainerFragment :component="groupedAttrs.componentContainer" :path="path">
+  <ContainerFragment
+    :component="groupedAttrs.componentContainer"
+    :path="props.path"
+  >
     <component
       :is="is"
       v-if="is"
       v-bind="groupedAttrs.attrs"
       ref="componentRef"
       v-model:[`${groupedAttrs.modelProp}`]="value"
-      :path="path"
+      :path="props.path"
     >
       <template
         v-for="(slot, name) in groupedAttrs.slots"
         :key="name"
         #[name]="scoped"
       >
-        <SlotComponent :path="path" v-bind="scoped" :component="slot" />
+        <SlotComponent :path="props.path" v-bind="scoped" :component="slot" />
       </template>
     </component>
   </ContainerFragment>

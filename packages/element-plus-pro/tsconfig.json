@@ -2,6 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "types": ["element-plus/global"],
+    "typeRoots": ["./node_modules", "../../node_modules"],
     "declaration": true,
     "declarationMap": true,
     "isolatedModules": true,
@@ -10,6 +12,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
+  "include": ["src", "__tests__"],
   "exclude": ["node_modules", "es"]
 }

@@ -40,12 +40,14 @@ import {
   tableProps,
   paginationProps,
 } from '../../../shared/ui';
+import { ElLoading } from 'element-plus';
 import {
   computed,
   nextTick,
   useAttrs,
   onMounted,
   inject,
+  toValue,
   type Slot,
   useSlots,
 } from 'vue';
@@ -60,6 +62,8 @@ import {
   camelizeProperties,
   getObject,
   pick,
+  isPromise,
+  isPlainObject,
   Path,
 } from '../../../shared/core';
 import {
@@ -71,7 +75,13 @@ import {
 import type { Columns, ColumnControlConfig } from '../types';
 import TableColumnRenderer from './TableColumnRenderer.vue';
 
-defineOptions({ name: 'ProTable', inheritAttrs: false });
+defineOptions({
+  name: 'ProTable',
+  directives: {
+    loading: ElLoading.directive,
+  },
+  inheritAttrs: false,
+});
 
 type Control = {
   sizeControl: boolean;
@@ -108,23 +118,24 @@ type Props = {
   pagination?: false | Partial<PaginationProps>;
 } & Omit<TableProps, 'data'>;
 
-const {
-  table = undefined,
-  search = undefined,
-  addIndexColumn = undefined,
-  control = undefined,
-  tableContainer = undefined,
-  immediateSearch = undefined,
-  searchFormConfig = undefined,
-  columns = undefined,
-  data = undefined,
-  pagination = undefined,
-} = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  table: undefined,
+  search: undefined,
+  addIndexColumn: undefined,
+  immediateSearch: undefined,
+  control: undefined,
+  searchFormConfig: undefined,
+  tableContainer: undefined,
+  columns: undefined,
+  data: undefined,
+  pagination: undefined,
+});
 
 const { t } = useLocale();
 
 const config = INJECT_CONFIG['pro-table'];
-const injectProps = inject(config.injectionKey, config.default) as any;
+const injectPropsRaw = inject(config.injectionKey, config.default);
+const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
 const tableProperties = Object.keys(tableProps());
 const paginationProperties = Object.keys(paginationProps());
@@ -132,7 +143,7 @@ const paginationProperties = Object.keys(paginationProps());
 const attrs = useAttrs() as Record<string, any>;
 
 const injectTableAttrs = computed(() => {
-  return pick(injectProps, tableProperties) as Partial<TableProps>;
+  return pick(injectProps.value, tableProperties) as Partial<TableProps>;
 });
 
 const attrsTableProps = computed(() => {
@@ -142,30 +153,25 @@ const attrsTableProps = computed(() => {
   ) as Partial<TableProps>;
 });
 
-const {
-  columns: tableColumns,
-  data: tableData,
-  searchForm,
-  pageParam,
-  setPageParam,
-} = table || {};
-
 const size = defineModel<TableProps['size']>('size');
-const loading = defineModel<boolean>('loading');
+const loading = defineModel<boolean>('loading', { default: false });
 
 // 核心搜索方法：设置 loading 状态，调用外部 search 函数
 const _search = async () => {
-  try {
+  const searchPromise = (props.search || attrs.onSearch)?.();
+  if (isPromise(searchPromise)) {
     loading.value = true;
-    await search?.();
-  } finally {
-    loading.value = false;
+    try {
+      await searchPromise;
+    } finally {
+      loading.value = false;
+    }
   }
 };
 
 // 重置：恢复查询参数到初始值，重新搜索
 const reset = () => {
-  table?.resetQueryParams();
+  props.table?.resetQueryParams?.();
   nextTick(() => {
     _search();
   });
@@ -196,37 +202,51 @@ const tableSlots = computed(() => {
 const tableSlotNames = computed(() => Object.keys(tableSlots.value));
 
 const searchPage1st = () => {
-  setPageParam?.({ current: 1 });
+  props.table?.setPageParam?.({ current: 1 });
   _search();
 };
 
 const computedSearchFormConfig = computed(() => {
   const container =
-    searchFormConfig?.container ??
-    injectProps.searchFormConfig?.container ??
+    props.searchFormConfig?.container ??
+    (injectProps.value.searchFormConfig as any)?.container ??
     DefaultSearchFormContainer;
   return {
-    ...injectProps.searchFormConfig,
-    ...getObject(searchFormConfig),
+    ...injectProps.value.searchFormConfig,
+    ...getObject(props.searchFormConfig),
     container: container ? container : undefined,
   };
 });
 
 const computedTableContainer = computed(() => {
   const container =
-    tableContainer ?? injectProps.tableContainer ?? DefaultTableContainer;
+    props.tableContainer ??
+    injectProps.value.tableContainer ??
+    DefaultTableContainer;
   return container ? container : undefined;
 });
 
+const getIndex = (i: number) => {
+  if (props.table?.pageParam && computedPagination.value !== false) {
+    const current = props.table.pageParam.current ?? 1;
+    const pageSize = props.table.pageParam.pageSize ?? 10;
+    return (current - 1) * pageSize + i + 1;
+  }
+  return i + 1;
+};
+
 const normalizedRawColumns = computed(() => {
-  const source = (columns ?? tableColumns?.value ?? []) as any[];
-  if (addIndexColumn ?? injectProps.addIndexColumn) {
+  const source = (props.columns ??
+    toValue(props.table?.columns) ??
+    []) as any[];
+  if (props.addIndexColumn ?? injectProps.value.addIndexColumn) {
     return [
       {
         key: '_index',
         type: 'index',
         label: t('table.index'),
         width: 80,
+        index: getIndex,
       },
       ...source,
     ];
@@ -236,7 +256,13 @@ const normalizedRawColumns = computed(() => {
 
 const computedDataSource = computed<any[]>(() => {
   const attrsData = attrsTableProps.value.data as any[] | undefined;
-  return data ?? attrsData ?? tableData?.value ?? [];
+  return (
+    props.data ??
+    attrsData ??
+    toValue((props.table as any)?.dataSource) ??
+    toValue(props.table?.data) ??
+    []
+  );
 });
 
 const computedTableProps = computed<TableProps>(() => {
@@ -248,40 +274,69 @@ const computedTableProps = computed<TableProps>(() => {
   return merged;
 });
 
+// 分页优先级：tableAttrs 显式配置 > provider 全局配置 > 默认合成
 const computedPagination = computed<false | Partial<PaginationProps>>(() => {
-  if (pagination === false) return false;
-  const pageConfig = pagination ?? {};
+  const attrsPagination = (attrsTableProps.value as any).pagination;
+  if (props.pagination === false || attrsPagination === false) {
+    return false;
+  }
+  const hasUserPagination =
+    isPlainObject(props.pagination) || isPlainObject(attrsPagination);
+  if (hasUserPagination) {
+    const pageConfig = (props.pagination ??
+      attrsPagination ??
+      {}) as Partial<PaginationProps>;
+    const globalPagination =
+      (injectProps.value.pagination as any) === false
+        ? {}
+        : (injectProps.value.pagination as Partial<PaginationProps>) || {};
+    const pageParam = props.table?.pageParam;
+    return {
+      ...globalPagination,
+      ...pick(pageConfig as Record<string, any>, paginationProperties),
+      currentPage: pageParam?.current ?? (pageConfig as any).currentPage ?? 1,
+      pageSize: pageParam?.pageSize ?? (pageConfig as any).pageSize ?? 10,
+      total: pageParam?.total ?? (pageConfig as any).total ?? 0,
+    };
+  }
+
+  if ((injectProps.value.pagination as any) === false) return false;
+
+  const pageParam = props.table?.pageParam;
   return {
-    ...injectProps.pagination,
-    ...pick(pageConfig as Record<string, any>, paginationProperties),
-    currentPage: (pageConfig as any).currentPage ?? pageParam?.current ?? 1,
-    pageSize: (pageConfig as any).pageSize ?? pageParam?.pageSize ?? 10,
-    total: (pageConfig as any).total ?? pageParam?.total ?? 0,
+    ...(injectProps.value.pagination as Partial<PaginationProps>),
+    currentPage: pageParam?.current ?? 1,
+    pageSize: pageParam?.pageSize ?? 10,
+    total: pageParam?.total ?? 0,
   };
 });
 
 const showPagination = computed(() => computedPagination.value !== false);
 
 const onCurrentChange = (current: number) => {
-  setPageParam?.({ current });
+  props.table?.setPageParam?.({ current });
   _search();
 };
 
 const onSizeChange = (pageSize: number) => {
-  setPageParam?.({ pageSize, current: 1 });
+  props.table?.setPageParam?.({ pageSize, current: 1 });
   _search();
 };
 
 const onPaginationChange = (currentPage: number, pageSize: number) => {
+  // 透传 el-pagination change 回调
   attrs.onChange?.(currentPage, pageSize);
 };
 
 const showSearch = computed(() => {
+  const searchFields = props.table?.searchForm?.fields;
+  const fieldList =
+    (Array.isArray(searchFields) ? searchFields : searchFields?.value) ?? [];
   return !!(
     searchFormSlot ||
-    (computedSearchFormConfig.value?.hidden !== true &&
-      searchForm &&
-      searchForm.fields.value.filter(item => !item.hidden)?.length > 0)
+    ((computedSearchFormConfig.value as any)?.hidden !== true &&
+      props.table?.searchForm &&
+      fieldList.filter((item: any) => !item.hidden)?.length > 0)
   );
 });
 
@@ -289,13 +344,13 @@ const computedControl = computed<{
   sizeControl: boolean;
   columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
 }>(() => {
-  const mergedControl = control ?? injectProps.control;
+  const mergedControl = props.control ?? injectProps.value.control;
   if (typeof mergedControl === 'boolean') {
     return { sizeControl: mergedControl, columnControl: mergedControl };
   }
   const c = mergedControl as Control;
-  const sizeControl = c.sizeControl ?? true;
-  const columnControl = c.columnControl ?? true;
+  const sizeControl = c?.sizeControl ?? false;
+  const columnControl = c?.columnControl ?? false;
   return { sizeControl: !!sizeControl, columnControl };
 });
 
@@ -313,7 +368,7 @@ const resolvedSize = computed(() => {
 });
 
 onMounted(() => {
-  if (immediateSearch ?? injectProps.immediateSearch) {
+  if (props.immediateSearch ?? injectProps.value.immediateSearch) {
     _search();
   }
 });
@@ -327,8 +382,8 @@ onMounted(() => {
     >
       <slot name="search-form">
         <SearchForm
-          v-if="searchForm"
-          :form="searchForm"
+          v-if="props.table?.searchForm"
+          :form="props.table.searchForm"
           v-bind="computedSearchFormConfig"
           @search="searchPage1st"
           @reset="reset"
@@ -358,7 +413,7 @@ onMounted(() => {
             :columns="
               normalizedRawColumns.filter(item => item.key !== '_index')
             "
-            :table="table"
+            :table="props.table"
             :column-control="columnControlConfig"
           />
         </div>

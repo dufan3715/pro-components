@@ -11,13 +11,15 @@ type Props = {
   component?: ContainerComponent;
 };
 
-defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  component: undefined,
+});
 
 defineOptions({ name: 'ContainerFragment', inheritAttrs: false });
 </script>
 
 <template>
-  <component :is="component" v-if="component" v-bind="$attrs">
+  <component :is="props.component" v-if="props.component" v-bind="$attrs">
     <slot />
   </component>
   <slot v-else />

@@ -197,6 +197,30 @@ Object.entries(state).forEach(([key, { hidden }]) => {
 
 其余字段会透传到内部的 `SearchForm`/`ProForm`。
 
+### 自定义搜索按钮（作用域插槽）
+
+`search-button` / `reset-button` / `expand-button` 三个插槽可完全自定义按钮内容。插槽出口不转发事件监听，操作方法与状态通过**作用域参数**暴露：
+
+| 插槽            | 作用域参数                             | 说明               |
+| --------------- | -------------------------------------- | ------------------ |
+| `search-button` | `{ onSearch }`                         | 触发查询           |
+| `reset-button`  | `{ onReset }`                          | 触发重置           |
+| `expand-button` | `{ expandStatus, changeExpandStatus }` | 展开状态与切换方法 |
+
+```vue
+<ProTable :table="table">
+  <template #search-button="{ onSearch }">
+    <a-button type="primary" @click="onSearch">查询</a-button>
+  </template>
+  <template #reset-button="{ onReset }">
+    <a-button @click="onReset">重置</a-button>
+  </template>
+  <template #expand-button="{ expandStatus, changeExpandStatus }">
+    <a-button @click="changeExpandStatus">{{ expandStatus ? '收起' : '展开' }}</a-button>
+  </template>
+</ProTable>
+```
+
 ## useTable
 
 创建表格对象的 hook。

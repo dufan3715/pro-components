@@ -32,7 +32,7 @@ import {
   inject,
   mergeProps,
   provide,
-  reactive,
+  toValue,
   type Slot,
   computed,
   useAttrs,
@@ -42,34 +42,87 @@ import { BaseFormItem } from '..';
 import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { Grid, VModelProps, PathProps } from '../../types';
 import { Path, camelizeProperties } from '../../../../shared/core';
-import type { Form } from '../../hooks/useForm';
+import { useForm, type Form } from '../../hooks/useForm';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
 
 type FormProps = Partial<Omit<ElFormProps, 'model'>>;
 
-type Props = { grid?: Grid; form?: F } & /* @vue-ignore */ FormProps;
-const { grid = false, form = {} as F } = defineProps<Props>();
+type Props = {
+  grid?: Grid;
+  form?: F;
+} & /* @vue-ignore */ FormProps;
+const props = withDefaults(defineProps<Props>(), {
+  grid: false,
+  form: undefined,
+});
 
 /**
  * 依赖注入中心：
- * 将 Core 包生成的 Form 实例注入到 Vue 的 Context 中。
- * 供深层子组件（如 BaseFormItem, BaseField, 自定义插槽）跨层级直接访问数据和方法。
+ * 若外部未传 form 实例，则自动初始化内部表单实例；
+ * 将 Form 实例注入到 Vue Context 中，供深层子组件跨层级直接访问数据和方法。
  */
-provide(InjectionFormKey, form as F);
+const fallbackForm = props.form ? undefined : useForm();
+const currentForm = computed(
+  () => props.form ?? (fallbackForm as unknown as F)
+);
 
-const { formData, fields, setFormRef } = form as F;
-const _fields = computed(() => fields.value);
+/**
+ * 表单实例代理：操作全部转发至 currentForm 当前实例；
+ * 下游持有本代理即可，:form 运行期替换无需重绑。
+ */
+const formProxy = new Proxy({} as F, {
+  get(_, prop) {
+    const target = currentForm.value as any;
+    const val = target?.[prop];
+    if (typeof val === 'function') {
+      return (...args: any[]) => (currentForm.value as any)?.[prop]?.(...args);
+    }
+    return val;
+  },
+  set(_, prop, value) {
+    if (currentForm.value) {
+      (currentForm.value as any)[prop] = value;
+    }
+    return true;
+  },
+  has(_, prop) {
+    return Boolean(currentForm.value && prop in currentForm.value);
+  },
+});
+
+provide(InjectionFormKey, formProxy);
+
+const fields = computed(() => {
+  const f = currentForm.value?.fields;
+  return (Array.isArray(f) ? f : f?.value) ?? [];
+});
+const formData = computed(() => currentForm.value?.formData);
+const setFormRef = (el: any) => currentForm.value?.setFormRef?.(el);
+
+let formInstanceCounter = 0;
+const formInstanceKeyMap = new WeakMap<object, number>();
+const getFormKey = (f: object) => {
+  if (!formInstanceKeyMap.has(f)) {
+    formInstanceKeyMap.set(f, ++formInstanceCounter);
+  }
+  return formInstanceKeyMap.get(f)!;
+};
+const formKey = computed(() => getFormKey(currentForm.value as any));
 
 const config = INJECT_CONFIG['pro-form'];
+const injectFormConfig = inject(config.injectionKey, config.default);
 const attrs = useAttrs();
 
-// 从 ProComponentProvider 获取全局配置，与传入的 props 合并
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { grid: _injectGrid, ...injectAttrs } = inject(
-  config.injectionKey,
-  config.default
-);
+/**
+ * 从 ProComponentProvider 获取全局配置，响应式派生以支持动态配置变更
+ */
+const injectAttrs = computed(() => {
+  const raw = toValue(injectFormConfig);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { grid: _injectGrid, ...rest } = raw || {};
+  return rest;
+});
 
 type ExtractPath<T> = T extends Form<infer D> ? Path<D> : string;
 type FieldSlotProps = VModelProps &
@@ -82,18 +135,19 @@ const slots = defineSlots<Partial<FieldSlots & { default: Slot }>>();
  * 动态插槽映射中心 (Slot Teleporting)：
  * 在 setup 同步期直接提供响应式 slots 上下文容器，供深层 BaseField 按需动态获取插槽
  */
-provide(InjectionFormSlotsKey, reactive(slots) as any);
+provide(InjectionFormSlotsKey, slots);
 </script>
 
 <template>
   <ElForm
-    :ref="(el: any) => setFormRef?.(el)"
+    :key="formKey"
+    :ref="setFormRef"
     :model="formData"
     v-bind="mergeProps(injectAttrs, camelizeProperties(attrs))"
     class="pro-form"
     @submit.prevent
   >
-    <BaseFormItem :fields="_fields" :grid="grid" />
+    <BaseFormItem :fields="fields" :grid="props.grid" />
     <slot />
   </ElForm>
 </template>

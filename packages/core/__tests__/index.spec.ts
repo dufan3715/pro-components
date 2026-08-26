@@ -13,10 +13,10 @@ describe('index', () => {
       'normalizeColumns',
       'getObject',
       'camelizeProperties',
-      'getByPath',
-      'setByPath',
+      'get',
+      'set',
       'normalizePathKey',
-      'omit',
+      'toPath',
       'pick',
       'cloneDeep',
       'isPlainObject',
@@ -32,8 +32,7 @@ describe('index', () => {
       expect((core as any)[api]).toBeDefined();
     });
 
-    expect((core as any).get).toBeUndefined();
-    expect((core as any).set).toBeUndefined();
-    expect((core as any).toPath).toBeUndefined();
+    // 2.0 前身 1.x 曾透传的 lodash API，已随零依赖改造移除
+    expect((core as any).omit).toBeUndefined();
   });
 });

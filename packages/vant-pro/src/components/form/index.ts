@@ -20,8 +20,10 @@ export {
   useFields,
   useFormRef,
   useFormData,
+  useFormPopup,
   type Form,
   type UseFields,
+  type FormPopup,
 } from './hooks';
 
 export default ProForm;

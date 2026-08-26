@@ -12,7 +12,7 @@ import {
   type InjectionKey,
   type MaybeRef,
 } from 'vue';
-import { useLocale as useElLocale } from 'element-plus';
+import { useLocale as useElLocale, localeContextKey } from 'element-plus';
 import {
   format,
   resolveLocaleName,
@@ -49,10 +49,14 @@ export const LOCALE_INJECT_KEY: InjectionKey<
  * ```
  */
 export const useLocale = () => {
+  const elLocaleContext = inject(localeContextKey, undefined);
   const { lang: elLang } = useElLocale();
   const override = inject(LOCALE_INJECT_KEY, undefined);
 
-  const lang = computed<ProLocaleName>(() => resolveLocaleName(elLang.value));
+  const lang = computed<ProLocaleName>(() => {
+    if (!elLocaleContext) return 'zh-CN';
+    return resolveLocaleName(elLang.value);
+  });
   const pack = computed<Record<string, string>>(() =>
     lang.value === 'zh-TW' ? zhTW : lang.value === 'en-US' ? enUS : zhCN
   );

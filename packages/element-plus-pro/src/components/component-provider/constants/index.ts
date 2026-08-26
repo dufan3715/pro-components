@@ -30,11 +30,11 @@ export const INJECT_CONFIG: {
   },
   'pro-form': {
     injectionKey: Symbol(''),
-    default: { grid: { gutter: 24 } } as any,
+    default: { grid: { gutter: 24 } },
   },
   'pro-form-item': {
     injectionKey: Symbol(''),
-    default: { span: 8 } as any,
+    default: { span: 8 },
   },
   input: {
     injectionKey: Symbol(''),

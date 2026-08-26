@@ -30,7 +30,7 @@ const componentVars = {
 </script>
 
 <template>
-  <ProComponentProvider :component-vars="componentVars">
+  <ProComponentProvider :componentVars="componentVars">
     <RouterView />
   </ProComponentProvider>
 </template>

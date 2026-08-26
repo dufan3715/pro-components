@@ -1,16 +1,18 @@
 /**
  * @module Core/Shared/Path
- * @description 内部高性能路径解析与对象读写模块（替换 lodash get/set/toPath 热路径）
- * @internal 本模块为内部专用基建，不对外导出。
+ * @description 高性能路径解析与对象读写模块：`get` / `set` / `toPath` / `normalizePathKey`。
  *
  * ## 设计定位
  * - 收窄语法 + 非法路径告警：支持点分('a.b')、数字段('list.0')、简单括号('a[0]')。
  * - 零外部依赖、解析缓存、原生循环遍历、原型污染防护、Vue 响应式安全重读与同值跳过。
  *
- * ## 与 lodash-es 的有意分歧声明
+ * ## 与 lodash get/set/toPath 的行为差异
+ * 本模块的 `get` / `set` / `toPath` 覆盖 lodash 同名 API 的主流用法（点分路径、数字索引），
+ * 但不追求全量边界兼容，以下分歧为有意设计：
  * 1. 未闭合括号 'a[b'：按段解析 (['a','b']) 并输出告警；lodash 整体视为字面量 key (obj['a[b'])。
  * 2. 引号括号段 'a["x.y"]'：保留引号原样作为段内容并输出告警；lodash 会去除引号 (['a','x.y'])。
- * 3. normalizePathKey 对非字符串/非数组/非数字布尔（如对象/symbol）返回 ''；lodash toPath({}) 会产生 'object Object'。
+ *    如需访问含点号的 key，请直接使用变量下标访问（obj[key]）。
+ * 3. normalizePathKey 对非字符串/非数组/非数字布尔（如对象/symbol）返回 ''；lodash toPath({}) 会产生 '[object Object]' 垃圾 key。
  */
 
 const PATH_CACHE_LIMIT = 5000;
@@ -111,7 +113,7 @@ const isSimple = (p: string) => p.indexOf('.') === -1 && p.indexOf('[') === -1;
  * @param {string | readonly (string | number)[]} path - 路径字符串或段数组
  * @returns {unknown} 获取到的属性值，未命中返回 undefined
  */
-export function getByPath(
+export function get(
   obj: unknown,
   path: string | readonly (string | number)[]
 ): unknown {
@@ -139,7 +141,7 @@ export function getByPath(
  * @param {unknown} value - 待设置的值
  * @returns {object} 原对象
  */
-export function setByPath(
+export function set(
   obj: object,
   path: string | readonly (string | number)[],
   value: unknown
@@ -200,4 +202,16 @@ export function normalizePathKey(path: unknown): string {
   if (typeof path === 'number' || typeof path === 'boolean')
     return String(path);
   return ''; // undefined/null/symbol/对象 -> ''（优于 lodash 的 '[object Object]' 垃圾 key）
+}
+
+/**
+ * 将路径字符串解析为段数组。
+ *
+ * 与 `normalizePathKey` 互补：本函数返回段数组形式，供需要嵌套路径数组的绑定场景
+ * （如 ant-design-vue FormItem 的 `name` 数组语义：`['user','address','city']`）。
+ * 非法语法（空段、未闭合括号、引号段）输出告警并给出确定性兜底；空字符串返回 `[]`。
+ */
+export function toPath(path: string): string[] {
+  if (!path) return [];
+  return cachedParse(path);
 }

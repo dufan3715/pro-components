@@ -467,7 +467,7 @@ const fetchData = async () => {
 
 ```vue
 <template>
-  <ProComponentProvider :component-vars="config">
+  <ProComponentProvider :componentVars="config">
     <ProForm :form="form" />
     <ProTable :table="table" />
   </ProComponentProvider>

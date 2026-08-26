@@ -3,7 +3,7 @@ import { reactive, watch } from 'vue';
 import lodashGet from 'lodash-es/get';
 import lodashSet from 'lodash-es/set';
 import lodashToPath from 'lodash-es/toPath';
-import { getByPath, setByPath, normalizePathKey } from '../src/shared/path';
+import { get, set, normalizePathKey, toPath } from '../src/shared/path';
 
 describe('shared/path', () => {
   const sampleData = () => ({
@@ -38,21 +38,21 @@ describe('shared/path', () => {
   ];
 
   describe('合法语料与 lodash 差分对拍', () => {
-    it('getByPath 差分全等', () => {
+    it('get 差分全等', () => {
       const data = sampleData();
       for (const p of legalPaths) {
-        const actual = getByPath(data, p);
+        const actual = get(data, p);
         const expected = lodashGet(data, p);
         expect(actual).toEqual(expected);
       }
     });
 
-    it('setByPath 差分全等', () => {
+    it('set 差分全等', () => {
       for (const p of legalPaths) {
         const data1 = sampleData();
         const data2 = sampleData();
         const val = `val_${Math.random()}`;
-        setByPath(data1, p, val);
+        set(data1, p, val);
         lodashSet(data2, p, val);
         expect(data1).toEqual(data2);
       }
@@ -66,6 +66,13 @@ describe('shared/path', () => {
       }
     });
 
+    it('toPath 与 lodash toPath 对拍（段数组形式）', () => {
+      for (const p of legalPaths) {
+        expect(toPath(p)).toEqual(lodashToPath(p));
+      }
+      expect(toPath('')).toEqual([]); // 对齐旧 toPath('') -> []
+    });
+
     it('空段与畸形兼容路径与 lodash 行为对拍', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const edgePaths = ['.a', 'a.', 'a..b', 'a[]', ''];
@@ -75,7 +82,7 @@ describe('shared/path', () => {
         '.a': 'dot_a',
       };
       for (const p of edgePaths) {
-        expect(getByPath(testData, p)).toEqual(lodashGet(testData, p));
+        expect(get(testData, p)).toEqual(lodashGet(testData, p));
         expect(normalizePathKey(p)).toBe(lodashToPath(p).join('.'));
       }
       warnSpy.mockRestore();
@@ -86,8 +93,8 @@ describe('shared/path', () => {
     it('非法路径输出 warning 且相同路径只告警一次', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const invalidPath = 'invalid..double..dot';
-      getByPath({ a: 1 }, invalidPath);
-      getByPath({ a: 1 }, invalidPath);
+      get({ a: 1 }, invalidPath);
+      get({ a: 1 }, invalidPath);
       expect(warnSpy).toHaveBeenCalledTimes(1);
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining(
@@ -102,7 +109,7 @@ describe('shared/path', () => {
     it('分歧 1：未闭合括号 a[b 按段解析并告警', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const obj = { a: { b: 123 } };
-      expect(getByPath(obj, 'a[b')).toBe(123);
+      expect(get(obj, 'a[b')).toBe(123);
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining('括号未闭合')
       );
@@ -112,7 +119,7 @@ describe('shared/path', () => {
     it('分歧 2：引号括号段 a["x.y"] 保留引号段并告警', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const obj = { a: { '"x.y"': 'quoted' } };
-      expect(getByPath(obj, 'a["x.y"]')).toBe('quoted');
+      expect(get(obj, 'a["x.y"]')).toBe('quoted');
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining('不支持引号括号段')
       );
@@ -128,7 +135,7 @@ describe('shared/path', () => {
   });
 
   describe('Vue 响应式与性能边界', () => {
-    it('setByPath 中间层对象自动创建并保持响应式代理', () => {
+    it('set 中间层对象自动创建并保持响应式代理', () => {
       const state = reactive<{ user?: { profile?: { city?: string } } }>({});
       let triggered = 0;
       watch(
@@ -139,7 +146,7 @@ describe('shared/path', () => {
         { flush: 'sync' }
       );
 
-      setByPath(state, 'user.profile.city', 'Hangzhou');
+      set(state, 'user.profile.city', 'Hangzhou');
       expect(state.user?.profile?.city).toBe('Hangzhou');
       expect(triggered).toBe(1);
     });
@@ -155,18 +162,18 @@ describe('shared/path', () => {
         { flush: 'sync' }
       );
 
-      setByPath(state, 'count', 1);
+      set(state, 'count', 1);
       expect(triggered).toBe(0);
 
-      setByPath(state, 'notNumber', NaN);
+      set(state, 'notNumber', NaN);
       expect(state.notNumber).toBeNaN();
     });
 
     it('原型污染属性被安全忽略', () => {
       const obj = {};
-      setByPath(obj, '__proto__.polluted', 'yes');
+      set(obj, '__proto__.polluted', 'yes');
       expect(({} as any).polluted).toBeUndefined();
-      setByPath(obj, 'constructor.prototype.polluted', 'yes');
+      set(obj, 'constructor.prototype.polluted', 'yes');
       expect(({} as any).polluted).toBeUndefined();
     });
   });

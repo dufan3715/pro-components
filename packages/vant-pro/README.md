@@ -132,7 +132,7 @@ ProForm 是渲染引擎，所有真实 UI 来自 vant。vant 的结构是「`van
 
 ### 1. ProComponentProvider
 
-用于全局配置 Vant Pro 各组件的默认属性，通过 `component-vars` prop 传递，内部通过 `provide` / `inject` 下发配置给所有子组件。
+用于全局配置 Vant Pro 各组件的默认属性，通过 `componentVars` prop 传递，内部通过 `provide` / `inject` 下发配置给所有子组件。
 
 #### 使用示例
 
@@ -143,7 +143,7 @@ import { ProComponentProvider } from '@qin-ui/vant-pro';
 
 <template>
   <ProComponentProvider
-    :component-vars="{
+    :componentVars="{
       field: { clearable: true, placeholder: '请选择' },
       'pro-form': { inputAlign: 'center', required: 'auto' },
     }"
@@ -155,13 +155,13 @@ import { ProComponentProvider } from '@qin-ui/vant-pro';
 
 #### Props
 
-| 参数名         | 说明                        | 类型          | 默认值 |
-| -------------- | --------------------------- | ------------- | ------ |
-| component-vars | 需要 provide 到子组件的配置 | ComponentVars | -      |
+| 参数名        | 说明                        | 类型          | 默认值 |
+| ------------- | --------------------------- | ------------- | ------ |
+| componentVars | 需要 provide 到子组件的配置 | ComponentVars | -      |
 
 #### 内置默认预设（INJECT_CONFIG）
 
-ProComponentProvider 内置了一套默认属性预设，**即使不配置 `component-vars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。vant 版预设极简，仅以下两项有默认值，其余内置组件均无预设：
+ProComponentProvider 内置了一套默认属性预设，**即使不配置 `componentVars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。vant 版预设极简，仅以下两项有默认值，其余内置组件均无预设：
 
 | component  | 默认预设                                                                                                                                                         |
 | :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -216,7 +216,7 @@ const form = useForm<FormDataType>(initialData, fields, root?)
 | `appendField(path, field, opts?)`  | 在指定字段后追加新字段（入参可为数组）；`undefined` 在末尾追加；`{all:true}` 所有匹配后追加                                                                           | `(path, field, opts?) => void`   |
 | `prependField(path, field, opts?)` | 在指定字段前插入新字段（入参可为数组）；`undefined` 在开头插入；`{all:true}` 所有匹配前插入                                                                           | `(path, field, opts?) => void`   |
 | `getParentField(path, opts?)`      | 查找父级字段配置；`{all:true}` 返回所有匹配的父级字段                                                                                                                 | `(path, opts?) => Field`         |
-| `formPopup`                        | **vant 独有**：弹窗管理对象，`open(path)` / `close()` / `visible` / `props` / `updateProps()`                                                                         | `FormPopup`                      |
+| `formPopup`                        | **vant 独有**：弹窗管理对象，`open(path, initialValue?, customProps?, fieldId?)` / `close()` / `resetProps()` / `updateProps()` / `visible` / `props`                 | `FormPopup`                      |
 
 > 校验与重置通过 `formRef` 调用 vant 原生方法：`form.formRef.value?.validate()`、`form.formRef.value?.resetValidation()`。
 
@@ -228,20 +228,29 @@ const form = useForm<FormDataType>(initialData, fields, root?)
 import { useFormPopup } from '@qin-ui/vant-pro';
 
 const formPopup = useFormPopup(true);
-formPopup.open('fieldName'); // 打开弹窗
+// 打开弹窗：可传初始值（原始数据）、本次 Popup 属性覆盖项与字段实例 ID
+formPopup.open(
+  'fieldName',
+  ['110000', '110100'],
+  { position: 'top' },
+  'field-1'
+);
 formPopup.close(); // 关闭弹窗
 formPopup.updateProps({ position: 'top' }); // 更新弹窗属性
 ```
 
-| 属性/方法         | 说明                                                                                           |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| `props`           | Popup 的 props（reactive，默认 `{ position:'bottom', round:true, safeAreaInsetBottom:true }`） |
-| `visible`         | 弹窗是否可见（computed）                                                                       |
-| `popupFieldPath`  | 当前打开的字段路径（ref）                                                                      |
-| `popupFieldValue` | 当前弹窗字段的值（ref）                                                                        |
-| `open(path)`      | 打开指定字段的弹窗                                                                             |
-| `close()`         | 关闭弹窗                                                                                       |
-| `updateProps()`   | 更新弹窗属性                                                                                   |
+| 属性/方法                                           | 说明                                                                                           |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `props`                                             | Popup 的 props（reactive，默认 `{ position:'bottom', round:true, safeAreaInsetBottom:true }`） |
+| `visible`                                           | 弹窗是否可见（computed）                                                                       |
+| `popupFieldPath`                                    | 当前打开的字段路径（ref）                                                                      |
+| `popupFieldValue`                                   | 当前弹窗字段的值（ref）                                                                        |
+| `activeFieldId`                                     | 当前激活的字段实例 ID，用于同 path 多实例隔离                                                  |
+| `contentId` / `teleportTo`                          | 弹层 Teleport 容器的唯一 DOM id 与选择器，多实例互不干扰                                       |
+| `open(path, initialValue?, customProps?, fieldId?)` | 打开指定字段的弹层；自动重置属性为默认值后合并 `customProps`；`initialValue` 传原始数据        |
+| `close()`                                           | 关闭弹窗                                                                                       |
+| `resetProps()`                                      | 重置弹层属性为全局默认值                                                                       |
+| `updateProps(props)`                                | 合并更新当前弹层属性                                                                           |
 
 #### Props
 
@@ -297,6 +306,8 @@ formPopup.updateProps({ position: 'top' }); // 更新弹窗属性
 }
 ```
 
+> 📌 **旧值（oldVal）注入契约**：仅当转换函数显式声明两个形参 `(val, oldVal) => ...` 时，底层才读取并传入写入前的旧值快照；声明单形参则不读取旧值（零克隆开销）。请勿使用默认参数或剩余参数声明（否则 `fn.length` 无法识别）。`oldVal` 为只读快照副本，不得依赖原地修改写回。
+>
 > ⚠️ `valueFormatter` 不支持响应式（不能包 `ref`/`computed`），与 `component` / `fields` / `slots` / `modelProp` / `displayFormatter` / `popup` 等同属不支持响应式的属性。
 
 ##### 🔄 响应式联动

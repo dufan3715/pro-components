@@ -22,14 +22,18 @@
  
  * @public
  */
-import { ComponentVars } from '../types';
-import { INJECT_COMPONENTS, ensureInjectConfig } from '../constants';
-import { computed, provide } from 'vue';
+import type { ComponentVars } from '../types';
+import {
+  INJECT_CONFIG,
+  INJECT_COMPONENTS,
+  ensureInjectConfig,
+} from '../constants';
+import { computed, provide, toValue } from 'vue';
 import { getObject } from '../../../shared/core';
-import { ComponentName } from '../../form/constants';
+import type { ComponentName } from '../../form/constants';
 import { LOCALE_INJECT_KEY, type ProLocale } from '../../../locale';
 
-type ComponentMap = Partial<Record<ComponentName, any>>;
+type ComponentMap = Partial<Record<ComponentName | (string & {}), any>>;
 
 defineOptions({
   name: 'ProComponentProvider',
@@ -52,21 +56,45 @@ const props = defineProps<Props>();
 
 /*
  * 遍历 componentVars 的每个 key，获取或创建对应的 inject 配置
- * 将用户提供的值合并到默认值上，通过 provide 注入到子组件树
- * 子组件通过 inject(config.injectionKey) 获取合并后的配置
+ * 将用户提供的值合并到默认值上，通过 provide 响应式注入到子组件树
+ * 子组件通过 inject(config.injectionKey) 获取合并后的计算属性配置
  */
+(Object.keys(INJECT_CONFIG) as Array<keyof typeof INJECT_CONFIG>).forEach(
+  key => {
+    const config = INJECT_CONFIG[key];
+    provide(
+      config.injectionKey as any,
+      computed(() => ({
+        ...config.default,
+        ...getObject(
+          toValue(props.componentVars)?.[key as keyof ComponentVars]
+        ),
+      }))
+    );
+  }
+);
+
+// 为内置集合之外的 componentVars 自定义 key 补建同构注入通道
 if (props.componentVars) {
-  Object.entries(props.componentVars).forEach(([key, val]) => {
-    const config = ensureInjectConfig(key);
-    // 用户配置覆盖默认值
-    provide(config.injectionKey, { ...config.default, ...getObject(val) });
+  Object.keys(props.componentVars).forEach(key => {
+    if (!(key in INJECT_CONFIG)) {
+      const config = ensureInjectConfig(key);
+      provide(
+        config.injectionKey as any,
+        computed(() => ({
+          ...config.default,
+          ...getObject((props.componentVars as any)?.[key]),
+        }))
+      );
+    }
   });
 }
 
 // 注入自定义组件映射，BaseField 在解析组件时会优先使用此映射
-if (props.componentMap) {
-  provide(INJECT_COMPONENTS, props.componentMap);
-}
+provide(
+  INJECT_COMPONENTS,
+  computed(() => props.componentMap)
+);
 
 // 注入内置文案覆盖，useLocale 在解析文案时会优先使用
 provide(

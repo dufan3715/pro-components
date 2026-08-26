@@ -31,7 +31,7 @@ import {
   GridProps,
   useProviderDisabled,
 } from '../../../../shared/ui';
-import { computed, inject, toValue } from 'vue';
+import { computed, inject, toRaw, toValue } from 'vue';
 import type { Fields, Grid } from '../../types';
 import { BaseField, SlotComponent, ContainerFragment } from '..';
 import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
@@ -44,49 +44,64 @@ type Props = {
   fields?: Fields;
   disabled?: boolean;
 };
-const {
-  grid = undefined,
-  fields = [],
-  disabled = undefined,
-} = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  grid: undefined,
+  fields: () => [],
+  disabled: undefined,
+});
 
-const validFields = computed(() => fields.filter?.(field => !field.hidden));
+const validFields = computed(() =>
+  (props.fields ?? []).filter(field => !field.hidden)
+);
 
-useProviderDisabled(computed(() => disabled));
+useProviderDisabled(computed(() => props.disabled));
 
 const config = INJECT_CONFIG['pro-form'];
-
-const { grid: injectGrid } = inject(config.injectionKey, config.default);
+const injectFormConfig = inject(config.injectionKey, config.default);
+const injectGrid = computed(() => toValue(injectFormConfig)?.grid);
 
 const enableGrid = computed(() => {
-  if (grid !== undefined) return !!grid;
-  return !!injectGrid;
+  if (props.grid !== undefined) return !!props.grid;
+  return !!injectGrid.value;
 });
 
 const computedGridProps = computed<GridProps>(() => {
   return enableGrid.value
-    ? { ...getObject(injectGrid), ...getObject(grid) }
+    ? { ...getObject(injectGrid.value), ...getObject(props.grid) }
     : {};
 });
 
-const formItemRefs: any[] = [];
-const componentRefs: any[] = [];
+/**
+ * 以字段原始对象为 key 登记 FormItem / 控件实例，供 getFormItemRef / getComponentRef 读取；
+ * WeakMap 不参与响应式追踪，条目随字段对象回收自动释放。
+ */
+const formItemInstanceMap = new WeakMap<object, any>();
+const componentInstanceMap = new WeakMap<object, any>();
 
-const onFormItemMounted = (index: number, formItemProps?: any) => {
-  const field = validFields.value[index];
-  Object.assign(field, {
-    getFormItemRef: () => formItemRefs[index],
-    getFormItemComputedProps: () => formItemProps,
-  });
+const setFormItemRef = (field: any, el: any, formItemProps?: any) => {
+  if (!field || typeof field !== 'object') return;
+  const raw = toRaw(field);
+  if (el) {
+    formItemInstanceMap.set(raw, el);
+    raw.getFormItemRef = () => formItemInstanceMap.get(raw);
+    raw.getFormItemComputedProps = () => formItemProps;
+  } else {
+    formItemInstanceMap.delete(raw);
+  }
 };
 
-const onComponentMounted = (index: number) => {
-  const field = validFields.value[index];
-  Object.assign(field, {
-    getComponentRef: () => componentRefs[index]?.getComponentRef(),
-    getComponentComputedProps: () =>
-      componentRefs[index]?.getComponentComputedProps(),
-  });
+const setComponentRef = (field: any, el: any) => {
+  if (!field || typeof field !== 'object') return;
+  const raw = toRaw(field);
+  if (el) {
+    componentInstanceMap.set(raw, el);
+    raw.getComponentRef = () =>
+      componentInstanceMap.get(raw)?.getComponentRef();
+    raw.getComponentComputedProps = () =>
+      componentInstanceMap.get(raw)?.getComponentComputedProps();
+  } else {
+    componentInstanceMap.delete(raw);
+  }
 };
 
 const groupedFields = useGroupFieldAttrs(validFields);
@@ -108,10 +123,9 @@ const groupedFields = useGroupFieldAttrs(validFields);
         >
           <FormItem
             v-bind="item.formItemProps"
-            :ref="el => (formItemRefs[index] = el)"
+            :ref="el => setFormItemRef(item.rawField, el, item.formItemProps)"
             :name="toPath(item.path)"
             :path="item.path"
-            @vue:mounted="onFormItemMounted(index, item.formItemProps)"
           >
             <template
               v-for="(slot, name) in item.formItemSlots"
@@ -126,17 +140,16 @@ const groupedFields = useGroupFieldAttrs(validFields);
             </template>
             <template v-if="item.rawField.fields">
               <BaseFormItem
-                :grid="(item.rawField as any).grid ?? grid"
+                :grid="(item.rawField as any).grid ?? props.grid"
                 :fields="item.rawField.fields"
                 :disabled="toValue(item.rawField.disabled)"
               />
             </template>
             <template v-else>
               <BaseField
-                :ref="el => (componentRefs[index] = el)"
+                :ref="el => setComponentRef(item.rawField, el)"
                 v-bind="item.componentProps"
                 :path="item.path"
-                @vue:mounted="onComponentMounted(index)"
               />
             </template>
           </FormItem>

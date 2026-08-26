@@ -31,6 +31,8 @@
     "url": "git+https://github.com/dufan3715/pro-components.git"
   },
   "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prebuild": "tsx ../../scripts/generate-api-json.ts element-plus-pro && tsx ../../scripts/generate-init-ai.ts element-plus-pro",
     "build": "vue-tsc --noEmit && vite build",
     "prepublishOnly": "pnpm build"
@@ -47,7 +49,10 @@
     "vue-component-type-helpers": "^3.2.5"
   },
   "devDependencies": {
-    "element-plus": "^2.13.6"
+    "@vue/test-utils": "^2.4.11",
+    "element-plus": "^2.13.6",
+    "happy-dom": "^20.11.6",
+    "vitest": "^4.1.11"
   },
   "sideEffects": [
     "**/*.css",

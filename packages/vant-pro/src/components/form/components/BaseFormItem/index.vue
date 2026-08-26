@@ -15,7 +15,7 @@
  * 2. 通过 useGroupFieldAttrs Hook 纯计算各字段属性与路径
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
  *
- * @param {Fields<D>} [fields] - 字段配置数组
+ * @param {Fields} [fields] - 字段配置数组
  *
  * @internal
  */
@@ -30,7 +30,9 @@ type Props = {
   fields?: Fields;
 };
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  fields: () => [],
+});
 
 const validFields = computed(() => {
   const f = toValue(props.fields);
@@ -39,6 +41,18 @@ const validFields = computed(() => {
 });
 
 const groupedFields = useGroupFieldAttrs(validFields);
+
+// 以字段原始对象为 key 登记控件实例，经 getComponentRef 对外提供；随字段回收自动释放
+const componentRefMap = new WeakMap<object, any>();
+const setComponentRef = (rawField: object, el: any) => {
+  if (el) {
+    componentRefMap.set(rawField, el);
+  }
+};
+
+defineExpose({
+  getComponentRef: (rawField: object) => componentRefMap.get(rawField),
+});
 </script>
 
 <template>
@@ -53,7 +67,11 @@ const groupedFields = useGroupFieldAttrs(validFields);
       </ContainerFragment>
     </template>
     <template v-else>
-      <BaseField v-bind="item.componentProps" :path="item.path" />
+      <BaseField
+        :ref="el => setComponentRef(item.rawField, el)"
+        v-bind="item.componentProps"
+        :path="item.path"
+      />
     </template>
   </template>
 </template>

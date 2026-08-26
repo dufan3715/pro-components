@@ -48,29 +48,13 @@ export function isPlainObject(v: unknown): v is Record<string, any> {
 }
 
 /** 与 lodash pick 语义对齐：返回新对象，仅含 keys 中存在于对象（含继承）的属性 */
-export function pick<T extends object, K extends keyof T>(
+export function pick<T extends object, K extends PropertyKey>(
   object: T,
   keys: readonly K[]
-): Pick<T, K> {
-  const result = {} as Pick<T, K>;
+): Pick<T, Extract<K, keyof T>> {
+  const result = {} as Pick<T, Extract<K, keyof T>>;
   for (const key of keys) {
     if (key in object) (result as any)[key] = (object as any)[key];
-  }
-  return result;
-}
-
-/**
- * 与 lodash omit 的**顶层 key**语义对齐（差异声明：lodash 的 paths 参数支持点分嵌套路径，本实现仅过滤顶层 key；表单场景无嵌套需求，JSDoc 注明）
- */
-export function omit<T extends object, K extends keyof T>(
-  object: T,
-  keys: readonly K[]
-): Omit<T, K> {
-  const result = {} as Omit<T, K>;
-  for (const key of Object.keys(object)) {
-    if (!(keys as readonly PropertyKey[]).includes(key)) {
-      (result as any)[key] = (object as any)[key];
-    }
   }
   return result;
 }
@@ -117,5 +101,33 @@ export function camelizeProperties(
 ): Record<string, any> {
   return Object.fromEntries(
     Object.entries(obj).map(([key, value]) => [camelize(key), value])
+  );
+}
+
+/**
+ * 判断目标值是否为 Promise 或 Thenable 对象
+ *
+ * @description 符合 Promises/A+ 规范的 Thenable 判定：
+ * 1. 目标值非 null/undefined
+ * 2. 目标值类型为 object 或 function
+ * 3. 目标值拥有类型为 function 的 `then` 属性
+ *
+ * @param val - 待检查的任意值
+ * @returns 如果是 Promise/Thenable 则返回 true 并收窄类型为 `Promise<T>`
+ *
+ * @example
+ * ```ts
+ * isPromise(Promise.resolve(1)) // true
+ * isPromise(new Promise(() => {})) // true
+ * isPromise({ then: () => {} }) // true
+ * isPromise(null) // false
+ * isPromise({}) // false
+ * ```
+ */
+export function isPromise<T = any>(val: unknown): val is Promise<T> {
+  return (
+    val !== null &&
+    (typeof val === 'object' || typeof val === 'function') &&
+    typeof (val as Record<string, any>).then === 'function'
   );
 }

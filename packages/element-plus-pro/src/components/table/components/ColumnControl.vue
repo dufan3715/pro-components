@@ -11,28 +11,27 @@ import type { Column, Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
 import { useLocale } from '../../../locale';
+import { normalizePathKey } from '../../../shared/core';
 
 type Props = {
   columns: Columns;
   table?: Table;
   columnControl?: ColumnControlConfig;
 };
-const {
-  columns,
-  table = undefined,
-  columnControl = undefined,
-} = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  table: undefined,
+  columnControl: undefined,
+});
 
 const { t } = useLocale();
 
-const open = ref(false);
 const checkAll = ref(false);
 const indeterminate = ref(false);
 
 const getColumnKey = (column: Column, index: number) => {
-  const key = column.key ?? column.prop;
-  if (key === undefined || key === null) return `__col_${index}`;
-  return Array.isArray(key) ? key.join('.') : String(key);
+  const rawKey = column.key ?? column.prop;
+  if (rawKey === undefined || rawKey === null) return `__col_${index}`;
+  return normalizePathKey(rawKey);
 };
 
 const checkedColumnsOptions = computed<
@@ -44,13 +43,13 @@ const checkedColumnsOptions = computed<
     column: Column;
   }>
 >(() =>
-  columns
+  props.columns
     .map((item, index) => {
       const key = getColumnKey(item, index);
-      const excluded = columnControl?.excludedKeys?.some(
+      const excluded = props.columnControl?.excludedKeys?.some(
         ek => String(ek) === key
       );
-      const disabled = columnControl?.disabledKeys?.some(
+      const disabled = props.columnControl?.disabledKeys?.some(
         dk => String(dk) === key
       );
       const label = String(
@@ -85,7 +84,7 @@ const checkedColumnKeys = computed({
   set(val: string[]) {
     checkedColumnsOptions.value.forEach(item => {
       if (item.disabled) return;
-      table?.setColumn(item.value as any, {
+      props.table?.setColumn(item.value as any, {
         hidden: !val.includes(item.value),
       });
     });
@@ -130,16 +129,16 @@ watch(
 
 // 强制 disabledKeys 列始终展示
 onMounted(() => {
-  columnControl?.disabledKeys?.forEach(key => {
-    table?.setColumn(String(key), { hidden: false });
+  props.columnControl?.disabledKeys?.forEach(key => {
+    props.table?.setColumn(String(key), { hidden: false });
   });
 });
 
 watch(
-  () => columnControl?.disabledKeys,
+  () => props.columnControl?.disabledKeys,
   keys => {
     keys?.forEach(key => {
-      table?.setColumn(String(key), { hidden: false });
+      props.table?.setColumn(String(key), { hidden: false });
     });
   },
   { deep: true }
@@ -147,19 +146,14 @@ watch(
 </script>
 
 <template>
-  <Dropdown
-    trigger="click"
-    :hide-on-click="false"
-    :visible="open"
-    @visible-change="val => (open = val)"
-  >
+  <Dropdown trigger="click" :hide-on-click="false">
     <Button text class="pro-table_column-control_button">
       <FilterOutlined />
     </Button>
     <template #dropdown>
       <DropdownMenu>
         <DropdownItem
-          v-if="!columnControl?.disableCheckAll"
+          v-if="!props.columnControl?.disableCheckAll"
           :disabled="true"
           :divided="false"
         >

@@ -18,7 +18,9 @@ const config = useConfig();
 
 const size = defineModel<Size>('size');
 
-size.value = size.value ?? config.componentSize?.value ?? 'large';
+const currentSize = computed(
+  () => size.value ?? config.componentSize?.value ?? 'large'
+);
 
 const items = computed(() => [
   { label: t('table.sizeDefault'), key: 'large' },
@@ -34,7 +36,7 @@ const items = computed(() => [
     </Button>
     <template #popupRender>
       <Menu
-        :selected-keys="[size as string]"
+        :selected-keys="[currentSize as string]"
         style="min-width: 80px"
         :items="items"
         @click="({ key }) => (size = key as any)"

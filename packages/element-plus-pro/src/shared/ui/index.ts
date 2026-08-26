@@ -84,14 +84,17 @@ export const paginationProps = () => (Pagination as any).props || {};
 export const gridItemProps = () => (GridItem as any).props || {};
 export const formItemProps = () => (FormItem as any).props || {};
 
-const DisabledContextKey = Symbol('pro-form-disabled-context');
+const DisabledContextKey = Symbol.for('pro-form-disabled-context');
 
 export const useDisabledContext = () => {
   const formDisabled = useFormDisabled();
-  return inject(
-    DisabledContextKey,
-    computed(() => !!formDisabled.value)
-  );
+  const customDisabled = inject<any>(DisabledContextKey, undefined);
+  return computed(() => {
+    if (customDisabled !== undefined && toValue(customDisabled) !== undefined) {
+      return Boolean(toValue(customDisabled));
+    }
+    return Boolean(formDisabled.value);
+  });
 };
 
 export const useDisabledContextProvider = (
@@ -102,5 +105,8 @@ export const useDisabledContextProvider = (
     computed(() => !!toValue(disabled))
   );
 };
+
+export const useInjectDisabled = useDisabledContext;
+export const useProviderDisabled = useDisabledContextProvider;
 
 export type NamePath = string | number | (string | number)[];
