@@ -43,9 +43,14 @@ export {
 } from 'antdv-next';
 
 export type FormItemInstance = InstanceType<typeof FormItem>;
-export const tableProps = () => (Table as any).props || {};
-export const gridItemProps = () => (Col as any).props || {};
-export const formItemProps = () => (FormItem as any).props || {};
+
+const _tableProps = (Table as any).props || {};
+const _gridItemProps = (Col as any).props || {};
+const _formItemProps = (FormItem as any).props || {};
+
+export const tableProps = () => _tableProps;
+export const gridItemProps = () => _gridItemProps;
+export const formItemProps = () => _formItemProps;
 
 export {
   useDisabledContext,

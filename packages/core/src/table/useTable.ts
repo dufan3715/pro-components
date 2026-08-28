@@ -520,7 +520,6 @@ const useTable = <
     placement?: 'before' | 'after'
   ) {
     if (newColumns.length === 0) return;
-    normalizeColumns(newColumns);
     if (path) {
       const matches: GroupMatch[] = [];
       updaterMatch(
@@ -530,14 +529,23 @@ const useTable = <
         },
         options
       );
+      // 多位点匹配时克隆列对象并独立生成 key，单位点保持原引用
+      const multiSite = matches.length > 1;
+      if (!multiSite) normalizeColumns(newColumns);
       applyByGroupDesc(matches, ({ group, index }) => {
         const insertIndex = placement === 'after' ? index + 1 : index;
-        group.splice(insertIndex, 0, ...newColumns);
+        group.splice(
+          insertIndex,
+          0,
+          ...(multiSite
+            ? newColumns.map(col => normalizeColumn({ ...col }))
+            : newColumns)
+        );
       });
     } else if (placement === 'after') {
-      columns.value.push(...(newColumns as any));
+      columns.value.push(...(normalizeColumns(newColumns) as any));
     } else {
-      columns.value.unshift(...(newColumns as any));
+      columns.value.unshift(...(normalizeColumns(newColumns) as any));
     }
   }
 

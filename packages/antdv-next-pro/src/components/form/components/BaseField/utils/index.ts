@@ -40,3 +40,14 @@ export const getInitProps = (
   }
   return {};
 };
+
+/** 已告警过的未知组件名（模块级去重，避免 computed 重算导致刷屏） */
+const warnedUnknownComponents = new Set<string>();
+
+export function warnUnknownComponent(name: string) {
+  if (warnedUnknownComponents.has(name)) return;
+  warnedUnknownComponents.add(name);
+  console.warn(
+    `[pro-components] 未识别的组件类型 "${name}"，已降级为原生元素渲染。如为自定义组件请在 componentMap 或 ProComponentProvider 中注册。`
+  );
+}

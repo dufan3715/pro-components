@@ -87,7 +87,15 @@ function cachedParse(p: string): string[] {
   let s = pathCache.get(p);
   if (s === undefined) {
     s = parsePath(p);
-    if (pathCache.size >= PATH_CACHE_LIMIT) pathCache.clear();
+    if (pathCache.size >= PATH_CACHE_LIMIT) {
+      // FIFO 分批驱逐最旧的 10%：整体 clear 会造成周期性全量 miss 抖动
+      const batch = Math.ceil(PATH_CACHE_LIMIT * 0.1);
+      let evicted = 0;
+      for (const key of pathCache.keys()) {
+        pathCache.delete(key);
+        if (++evicted >= batch) break;
+      }
+    }
     pathCache.set(p, s);
   }
   return s;

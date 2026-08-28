@@ -52,9 +52,9 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: undefined,
 });
 
-// 过滤掉 hidden 字段，隐藏字段不渲染
+// 过滤掉 hidden 字段；hidden 支持 Ref/ComputedRef/getter 等响应式形态（统一使用 toValue 取值）
 const validFields = computed(() =>
-  (props.fields ?? []).filter(field => !field.hidden)
+  (props.fields ?? []).filter(field => !toValue(field.hidden))
 );
 
 // 向子组件提供 disabled 上下文（优先使用自身的 props.disabled，无显式指定时继承父级上下文）

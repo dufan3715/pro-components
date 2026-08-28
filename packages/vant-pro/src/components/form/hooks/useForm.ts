@@ -125,9 +125,12 @@ export function useForm(...args: any[]) {
 
   const form = coreUseForm(...(args as any));
   if (!isRoot) {
-    return form;
+    if (!(form as any).formPopup) {
+      (form as any).formPopup = useFormPopup(true);
+    }
+    return form as Form<any>;
   }
   const formPopup = useFormPopup(true);
   (form as any).formPopup = formPopup;
-  return form;
+  return form as Form<any>;
 }

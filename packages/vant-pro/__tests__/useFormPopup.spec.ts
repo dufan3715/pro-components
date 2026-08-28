@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { useFormPopup } from '../src/components/form/hooks/useFormPopup';
 import { useForm } from '../src/components/form/hooks/useForm';
@@ -186,5 +186,31 @@ describe('useFormPopup Hook & Popup 交互测试 (vant-pro)', () => {
     popup.updateProps({ position: 'top', round: false });
     expect(popup.props.position).toBe('top');
     expect(popup.props.round).toBe(false);
+  });
+
+  // ----------------------------------------------------
+  // M10 [判别]: useForm(false) 与 useFormPopup(false) 孤立调用安全回退
+  // ----------------------------------------------------
+  it('M10 [判别]: useForm(false) 在无注入上下文时回退根实例，仍正确补挂 formPopup', () => {
+    const form = useForm(false);
+    expect(form).toBeDefined();
+    expect(form.formPopup).toBeDefined();
+    expect(form.formPopup.visible.value).toBe(false);
+    form.formPopup.open('address', '330000');
+    expect(form.formPopup.visible.value).toBe(true);
+    expect(form.formPopup.popupFieldPath.value).toBe('address');
+  });
+
+  it('M10 [判别]: useFormPopup(false) 在无注入上下文时发出告警并安全回退创建独立弹层', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const popup = useFormPopup(false);
+    expect(popup).toBeDefined();
+    expect(popup.visible.value).toBe(false);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '[useFormPopup] root=false 但未找到注入的父弹层实例'
+      )
+    );
+    warnSpy.mockRestore();
   });
 });

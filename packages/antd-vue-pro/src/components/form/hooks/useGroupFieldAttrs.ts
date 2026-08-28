@@ -14,6 +14,9 @@ const formItemPropKeys = Object.keys(formItemProps()).concat([
   'formItemContainer',
 ]);
 const gridItemPropKeys = Object.keys(gridItemProps());
+// 模块级 Set：字段循环内 O(1) 命中，替代数组 includes 线性扫描
+const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
+const formItemPropKeySet = new Set<string>(formItemPropKeys);
 
 export interface GroupedField {
   path: string;
@@ -60,6 +63,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           lg,
           xl,
           xxl,
+          formItemContainer: injectFormItemContainer,
           ...injectRest
         } = rawInject;
 
@@ -70,6 +74,8 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
             : { xs, sm, md, lg, xl, xxl, span: injectSpan };
 
         gridItemProps = fields ? { span: span ?? 24 } : initGridItemProps;
+        // 字段级容器优先，回退注入级配置
+        const container = formItemContainer ?? injectFormItemContainer;
         formItemProps = mergeProps(
           injectRest,
           { class: injectClassName, style: injectStyle },
@@ -78,9 +84,9 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         );
 
         Object.keys(rest).forEach(k => {
-          if (gridItemPropKeys.includes(k)) {
+          if (gridItemPropKeySet.has(k)) {
             gridItemProps[k] = rest[k];
-          } else if (formItemPropKeys.includes(k)) {
+          } else if (formItemPropKeySet.has(k)) {
             formItemProps[k] = rest[k];
           } else {
             componentProps[k] = rest[k];
@@ -106,7 +112,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           formItemProps: formItemProps as any,
           formItemSlots,
           componentProps,
-          formItemContainer,
+          formItemContainer: container,
           rawField: field,
         };
       }

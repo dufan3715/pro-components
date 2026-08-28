@@ -4,7 +4,7 @@
  * @description Extends the core language pack with element-plus specific
  * date/time picker placeholder texts.
  */
-import { enUS } from '@qin-ui/pro-components-core';
+import { enUS } from '../shared/core';
 
 export default {
   ...enUS,

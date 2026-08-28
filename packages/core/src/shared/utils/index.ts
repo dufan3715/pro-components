@@ -5,9 +5,15 @@ import { camelize } from 'vue';
  *
  * 覆盖业务场景（JSON 型表单/分页数据）：
  * - 原生路径：JSON 全类型、循环引用、Date/RegExp/Map/Set/Error、稀疏数组、undefined/NaN/-0 均保留
- * - 降级路径（structuredClone 抛 DataCloneError，如含函数属性）：JSON 往返，函数与 symbol key 静默丢弃
+ * - 降级路径（structuredClone 缺失，或抛 DataCloneError 如含函数属性）：JSON 往返。
+ *   该路径的类型变形超出「丢函数」范畴，首次进入时输出一次性告警：
+ *   · 函数与 Symbol 键静默丢弃
+ *   · Date → ISO 字符串、Map/Set/RegExp/Error → {}、NaN/Infinity → null
+ *   · 顶层入参本身不可序列化（函数/undefined/Symbol）→ 返回原引用（快照隔离失效）
  * - 最后兜底（环境无 structuredClone 且数据含循环引用导致 JSON 亦失败）：告警并返回原引用（快照隔离失效，需感知）
  */
+let warnedJsonFallback = false;
+
 export function cloneDeep<T>(value: T): T {
   if (typeof structuredClone === 'function') {
     try {
@@ -15,6 +21,12 @@ export function cloneDeep<T>(value: T): T {
     } catch {
       // DataCloneError：函数等不可结构化类型 → 走 JSON 降级
     }
+  }
+  if (!warnedJsonFallback) {
+    warnedJsonFallback = true;
+    console.warn(
+      '[pro-components] cloneDeep 已降级为 JSON 拷贝：函数与 Symbol 键丢失；Date → ISO 字符串、Map/Set/RegExp/Error → {}、NaN/Infinity → null；顶层入参不可序列化时原样返回引用。'
+    );
   }
   try {
     const json = JSON.stringify(value);

@@ -47,7 +47,7 @@ import {
   getInjectConfig,
 } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
-import { getInitProps } from './utils';
+import { getInitProps, warnUnknownComponent } from './utils';
 import { useLocale } from '../../../../locale';
 import { Field as VanField } from '../../../../shared/ui';
 
@@ -219,9 +219,7 @@ const is = computed(() => {
     const resolved =
       customMap?.[props.component] || (componentMap as any)[props.component];
     if (resolved) return resolved;
-    console.warn(
-      `[pro-components] 未识别的组件类型 "${props.component}"，已降级为原生元素渲染。如为自定义组件请在 componentMap 或 ProComponentProvider 中注册。`
-    );
+    warnUnknownComponent(props.component);
     return props.component;
   }
   return props.component;

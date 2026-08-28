@@ -13,11 +13,7 @@ import {
   type MaybeRef,
 } from 'vue';
 import { useLocale as useElLocale, localeContextKey } from 'element-plus';
-import {
-  format,
-  resolveLocaleName,
-  type ProLocaleName,
-} from '@qin-ui/pro-components-core';
+import { format, resolveLocaleName, type ProLocaleName } from '../shared/core';
 import zhCN from './zh-CN';
 import zhTW from './zh-TW';
 import enUS from './en-US';

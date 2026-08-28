@@ -89,7 +89,7 @@ export type Columns<D extends Data = Data> = Array<Column<D>>;
  * ```
  */
 export type ColumnControlConfig<K extends string | number = string | number> = {
-  /** 列在下拉中的显示名称映射，key 为列 key/dataIndex，用于 title 为 vnode 时无法正常渲染 */
+  /** 列在下拉中的自定义显示名称映射（key 为列标识），用于定制展示文案或覆盖非字符串标题 */
   labels?: Partial<Record<K, string>>;
   /** 不在下拉中出现的列 keys（始终展示，不参与勾选） */
   excludedKeys?: K[];

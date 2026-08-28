@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Button, Dropdown, Checkbox } from '../../../shared/ui';
-import { computed, h, onMounted, ref, watch } from 'vue';
+import { computed, h, ref, watch } from 'vue';
 import type { Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
@@ -112,20 +112,15 @@ watch(
   { immediate: true }
 );
 
-// 强制 disabledKeys 列始终展示
-onMounted(() => {
-  props.columnControl?.disabledKeys?.forEach(key => {
-    props.table?.setColumn?.(String(key), { hidden: false });
-  });
-});
-
+// disabledKeys 指定的列始终强制展示
 watch(
   () => props.columnControl?.disabledKeys,
   keys => {
     keys?.forEach(key => {
       props.table?.setColumn?.(String(key), { hidden: false });
     });
-  }
+  },
+  { immediate: true, deep: true }
 );
 
 const items = computed<any>(() => {

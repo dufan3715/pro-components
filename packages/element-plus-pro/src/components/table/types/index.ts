@@ -80,6 +80,7 @@ export type Columns<D extends Data = Data> = Array<Column<D>>;
  * @example
  * ```ts
  * const config: ColumnControlConfig<'name' | 'age'> = {
+ *   labels: { name: '姓名', age: '年龄' },
  *   excludedKeys: [],
  *   disabledKeys: ['name'],
  *   disableCheckAll: false,
@@ -87,6 +88,8 @@ export type Columns<D extends Data = Data> = Array<Column<D>>;
  * ```
  */
 export type ColumnControlConfig<K extends string | number = string | number> = {
+  /** 列在下拉中的自定义显示名称映射（key 为列标识），用于定制展示文案或覆盖非字符串标题 */
+  labels?: Partial<Record<K, string>>;
   /** 不在下拉中出现的列 keys（始终展示，不参与勾选） */
   excludedKeys?: K[];
   /** 在下拉中显示但不可取消勾选的列 keys（始终展示，始终勾选） */

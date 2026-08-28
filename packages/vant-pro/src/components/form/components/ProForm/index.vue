@@ -43,7 +43,11 @@ import { INJECT_CONFIG } from '../../../component-provider/constants';
 import { BaseFormItem } from '..';
 import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { VModelProps, PathProps } from '../../types';
-import { Path, camelizeProperties } from '../../../../shared/core';
+import {
+  Path,
+  camelizeProperties,
+  createFormProxy,
+} from '../../../../shared/core';
 import type { Form } from '../../hooks/useForm';
 import { useForm } from '../../hooks/useForm';
 
@@ -69,27 +73,9 @@ const currentForm = computed(
 
 /**
  * 表单实例代理：操作全部转发至 currentForm 当前实例；
- * 下游持有本代理即可，:form 运行期替换无需重绑。
+ * 下游持有本代理即可，:form 运行期替换无需重绑；方法具有引用记忆化。
  */
-const formProxy = new Proxy({} as F, {
-  get(_, prop) {
-    const target = currentForm.value as any;
-    const val = target?.[prop];
-    if (typeof val === 'function') {
-      return (...args: any[]) => (currentForm.value as any)?.[prop]?.(...args);
-    }
-    return val;
-  },
-  set(_, prop, value) {
-    if (currentForm.value) {
-      (currentForm.value as any)[prop] = value;
-    }
-    return true;
-  },
-  has(_, prop) {
-    return Boolean(currentForm.value && prop in currentForm.value);
-  },
-});
+const formProxy = createFormProxy(() => currentForm.value);
 
 provide(InjectionFormKey, formProxy);
 
@@ -138,13 +124,17 @@ const popupContentId = computed(() => {
     currentForm.value?.formPopup?.contentId?.value || 'pro-form-popup-content'
   );
 });
+
+const formAttrs = computed(() => {
+  return mergeProps(injectAttrs.value, camelizeProperties(attrs));
+});
 </script>
 
 <template>
   <VanForm
     :key="formKey"
     :ref="setFormRef"
-    v-bind="mergeProps(injectAttrs, camelizeProperties(attrs))"
+    v-bind="formAttrs"
     class="pro-form"
     @submit.prevent
   >

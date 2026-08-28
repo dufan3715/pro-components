@@ -6,7 +6,7 @@ import {
   DropdownItem,
   Checkbox,
 } from '../../../shared/ui';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { Column, Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
@@ -52,12 +52,18 @@ const checkedColumnsOptions = computed<
       const disabled = props.columnControl?.disabledKeys?.some(
         dk => String(dk) === key
       );
-      const label = String(
-        item.label ??
-          (item as any).title ??
-          item.prop ??
-          t('table.columnFallback', { index: index + 1 })
-      );
+      const rawTitle = item.label ?? (item as any).title;
+      const titleLabel = typeof rawTitle === 'string' ? rawTitle : undefined;
+      const propLabel =
+        item.prop !== undefined && item.prop !== null
+          ? String(item.prop)
+          : undefined;
+      const label =
+        (props.columnControl?.labels?.[key] as string) ??
+        titleLabel ??
+        propLabel ??
+        key ??
+        t('table.columnFallback', { index: index + 1 });
       return {
         label,
         value: key,
@@ -96,7 +102,6 @@ const onCheckAllChange = (value: any) => {
   checkedColumnKeys.value = checked
     ? controllableOptions.value.map(item => item.value)
     : [];
-  indeterminate.value = false;
 };
 
 const toggleColumnsItem = (val: string) => {
@@ -127,13 +132,7 @@ watch(
   { immediate: true }
 );
 
-// 强制 disabledKeys 列始终展示
-onMounted(() => {
-  props.columnControl?.disabledKeys?.forEach(key => {
-    props.table?.setColumn(String(key), { hidden: false });
-  });
-});
-
+// disabledKeys 指定的列始终强制展示
 watch(
   () => props.columnControl?.disabledKeys,
   keys => {
@@ -141,7 +140,7 @@ watch(
       props.table?.setColumn(String(key), { hidden: false });
     });
   },
-  { deep: true }
+  { immediate: true, deep: true }
 );
 </script>
 

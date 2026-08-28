@@ -59,10 +59,6 @@ import { Space, Button, FormProps } from '../../../shared/ui';
 import {
   AllowedComponentProps,
   computed,
-  ref,
-  watch,
-  watchEffect,
-  onBeforeUnmount,
   type Component,
   type DefineComponent,
 } from 'vue';
@@ -70,6 +66,7 @@ import ProForm from '../../form';
 import { type Form } from '../../form';
 import DownOutlined from './icons/DownOutlined.vue';
 import { useLocale } from '../../../locale';
+import { useSearchFormExpand } from '../../../shared/core';
 
 defineOptions({ name: 'SearchForm' });
 
@@ -92,188 +89,21 @@ type Emits = {
 };
 const emit = defineEmits<Emits>();
 
-const proFormHeight = ref<'unset' | number>('unset');
-const collapseHeight = ref(0);
-const rowHeight = ref(32);
-
-let resizeObserver: ResizeObserver | null = null;
-let intersectionObserver: IntersectionObserver | null = null;
-
-const cleanupObservers = () => {
-  if (resizeObserver) {
-    resizeObserver.disconnect();
-    resizeObserver = null;
-  }
-  if (intersectionObserver) {
-    intersectionObserver.disconnect();
-    intersectionObserver = null;
-  }
-};
-
-onBeforeUnmount(() => {
-  cleanupObservers();
-});
-
-const computedExpand = computed(() => {
-  if (!props.expand) return false;
-  if (props.expand === true) return { minExpandRows: 2, expandStatus: false };
-  return {
-    minExpandRows: Math.max(Math.floor(props.expand.minExpandRows ?? 2), 1),
-    expandStatus: props.expand.expandStatus ?? false,
-  };
-});
-
-const showExpandToggle = ref(false);
-
-const expandStatus = ref(true);
-
-const updateHeights = () => {
-  if (!props.expand || !props.form?.formRef?.value) return;
-  const proFormEl = (props.form.formRef.value as any)?.$el;
-  if (!proFormEl) return;
-
-  const itemHeight = proFormEl
-    ?.querySelector("[class*='-form-item']")
-    ?.getBoundingClientRect?.()?.height;
-  if (itemHeight && itemHeight > 0) {
-    rowHeight.value = itemHeight;
-  }
-
-  // 使用 scrollHeight 测量自然展开高度，突破固定高度与 overflow: hidden 样式的自引用限制
-  const naturalHeight =
-    proFormEl.scrollHeight || proFormEl.getBoundingClientRect?.()?.height || 0;
-  if (naturalHeight > 0) {
-    proFormHeight.value = naturalHeight;
-  }
-};
-
-// 手动展开/收起标记：置位后自动测量不再覆盖用户操作
-const isManualToggle = ref(false);
-
-const changeExpandStatus = () => {
-  isManualToggle.value = true;
-  expandStatus.value = !expandStatus.value;
-};
-
-// 检查字段是否有值（非 null、非 undefined、非空字符串、非空数组、非空对象）
-const hasFieldValue = (val: any) =>
-  val !== null &&
-  val !== undefined &&
-  val !== '' &&
-  !(Array.isArray(val) && val.length === 0) &&
-  !(typeof val === 'object' && Object.keys(val).length === 0);
-
-/*
- * 使用 IntersectionObserver 检测折叠状态下隐藏字段是否有值
- * 如果有值则自动展开，让用户看到已填写的搜索条件
- */
-const setInitExpandStatus = () => {
-  if (isManualToggle.value) return;
-  const initStatus = computedExpand.value
-    ? computedExpand.value.expandStatus
-    : false;
-  expandStatus.value = initStatus;
-  if (props.form?.formRef?.value && computedExpand.value) {
-    const formEl = (props.form.formRef.value as any).$el;
-    const formItemsEl = formEl?.querySelectorAll?.(
-      "[class*='-form-item'] > [path]"
-    );
-    if (!formItemsEl || formItemsEl.length === 0) return;
-    if (intersectionObserver) {
-      intersectionObserver.disconnect();
-    }
-    intersectionObserver = new IntersectionObserver(
-      entries => {
-        if (isManualToggle.value) return;
-        expandStatus.value = entries.some(e => {
-          // 如果隐藏字段（intersectionRatio === 0）有值，则自动展开
-          if (e.intersectionRatio === 0) {
-            const path = e.target.getAttribute('path');
-            const searchFieldValue = path
-              ? props.form?.getFormData?.(path)
-              : undefined;
-            return hasFieldValue(searchFieldValue);
-          }
-          return computedExpand.value
-            ? computedExpand.value.expandStatus
-            : false;
-        });
-        intersectionObserver?.disconnect();
-      },
-      { root: formEl }
-    );
-    formItemsEl.forEach((element: Element) => {
-      intersectionObserver?.observe(element);
-    });
-  }
-};
-
-watch(
-  [
-    () => props.form?.fields.value?.filter(f => !f.hidden)?.length,
-    () => props.form?.formRef?.value,
-    () => props.expand,
-  ],
-  () => {
-    updateHeights();
-  },
-  { flush: 'post', immediate: true }
-);
-
-watch(
-  () => props.form?.formRef?.value,
-  val => {
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-      resizeObserver = null;
-    }
-    const formEl = (val as any)?.$el;
-    if (formEl && typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(() => {
-        updateHeights();
-      });
-      resizeObserver.observe(formEl);
-    }
-  },
-  { immediate: true }
-);
-
-watchEffect(
-  () => {
-    if (typeof proFormHeight.value !== 'number') return;
-    if (props.layout === 'grid' && computedExpand.value) {
-      const { minExpandRows } = computedExpand.value;
-      collapseHeight.value = Math.min(
-        minExpandRows * rowHeight.value + (minExpandRows - 1) * props.rowGap,
-        +proFormHeight.value
-      );
-      showExpandToggle.value = +proFormHeight.value - collapseHeight.value > 1;
-      if (showExpandToggle.value) {
-        setInitExpandStatus();
-      }
-    } else {
-      showExpandToggle.value = false;
-    }
-  },
-  { flush: 'post' }
-);
+const { showExpandToggle, expandStatus, changeExpandStatus, heightStyle } =
+  useSearchFormExpand(props);
 
 const layoutProps = computed(() => {
-  const currentHeight = expandStatus.value
-    ? proFormHeight.value
-    : collapseHeight.value;
-  const heightStyle =
-    currentHeight !== 'unset' && currentHeight !== undefined
-      ? `${currentHeight}px`
-      : undefined;
-
   return props.layout === 'grid'
     ? {
         grid: {
           gutter: [props.columnGap, props.rowGap] as [number, number],
           style: { flex: 1, marginRight: '12px' },
         },
-        style: { display: 'flex', overflow: 'hidden', height: heightStyle },
+        style: {
+          display: 'flex',
+          overflow: 'hidden',
+          height: heightStyle.value,
+        },
       }
     : {
         layout: 'inline' as any,

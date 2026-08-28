@@ -4,7 +4,7 @@
  * @description 在 core 通用语言包基础上，扩展 element-plus 特有的
  * 日期/时间组件占位符文案。
  */
-import { zhCN } from '@qin-ui/pro-components-core';
+import { zhCN } from '../shared/core';
 
 export default {
   ...zhCN,

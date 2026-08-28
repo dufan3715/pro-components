@@ -152,7 +152,7 @@ useTable({ columns, data, pageParam, searchParam, searchFields }); // 数据源�
 
 关键 prop：`table`（useTable 实例）、`search`（数据查询方法 `() => Promise`，ProTable 内部调用，非自动触发）、`addIndexColumn`、`immediateSearch`、`control`、`searchFormConfig`（含 `hidden`/`container`/`layout`/`expand`）、`tableContainer`、`columns`（覆盖实例列配置）、`data`（覆盖实例数据源）、`pagination`（`false` | 分页属性）。
 
-**列控制（control）**：`control` 支持布尔值或 `{ sizeControl, columnControl }` 对象；`columnControl` 可为布尔值或 `ColumnControlConfig`：`excludedKeys`（不在下拉出现、始终展示）、`disabledKeys`（显示但不可取消勾选）、`disableCheckAll`（禁用全选/取消全选）。element-plus 列标题用 `label`（字符串）渲染，无需 labels 映射；列 key 取 `prop` / `columnKey` / 索引。
+**列控制（control）**：`control` 支持布尔值或 `{ sizeControl, columnControl }` 对象；`columnControl` 可为布尔值或 `ColumnControlConfig`：`labels`（列在下拉中的显示名映射，label 为 vnode 或函数时必用）、`excludedKeys`（不在下拉出现、始终展示）、`disabledKeys`（显示但不可取消勾选）、`disableCheckAll`（禁用全选/取消全选）。列 key 取 `prop` 或自定义 `key`。
 
 **数据流**：搜索->重置分页到第 1 页->调 `search()`；分页/排序变化->更新 `pageParam`->调 `search()`；重置->`resetQueryParams()`->调 `search()`。
 

@@ -134,6 +134,61 @@ describe('控制组件与全局 Provider 测试', () => {
   });
 
   // ----------------------------------------------------
+  // CC-A1 [判别]: ColumnControl 列标题 VNode/函数时安全降级，且 labels 优先
+  // ----------------------------------------------------
+  it('CC-A1 [判别]: ColumnControl 列标题为 VNode 时安全降级不产生 [object Object]，且 labels 配置优先', async () => {
+    const table = useTable({
+      columns: [
+        {
+          prop: 'vnodeCol',
+          label: h('span', { class: 'custom-header' }, '自定义表头'),
+        } as any,
+        { prop: 'fnCol', label: () => '函数表头' } as any,
+        { key: 'customAlias', label: '原标题' } as any,
+        { key: 'noPropOrLabel' } as any,
+      ],
+      data: [],
+    });
+
+    const wrapper = mount(ColumnControl, {
+      props: {
+        columns: table.columns.value,
+        table,
+        columnControl: {
+          labels: {
+            customAlias: '自定义别名',
+          },
+        },
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    const vm = wrapper.vm as any;
+    const options = vm.checkedColumnsOptions;
+
+    // VNode 列安全降级为 prop 名称，绝不为 [object Object]
+    const vnodeOpt = options.find((o: any) => o.value === 'vnodeCol');
+    expect(vnodeOpt?.label).toBe('vnodeCol');
+    expect(vnodeOpt?.label).not.toContain('[object Object]');
+
+    // 函数列安全降级为 prop 名称
+    const fnOpt = options.find((o: any) => o.value === 'fnCol');
+    expect(fnOpt?.label).toBe('fnCol');
+
+    // labels 自定义别名优先覆盖
+    const aliasOpt = options.find((o: any) => o.value === 'customAlias');
+    expect(aliasOpt?.label).toBe('自定义别名');
+
+    // 无 label 无 prop 列降级为 key
+    const fallbackOpt = options.find((o: any) => o.value === 'noPropOrLabel');
+    expect(fallbackOpt?.label).toBe('noPropOrLabel');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // PC-A1 [判别]: ProComponentProvider componentVars 动态修改响应式生效
   // ----------------------------------------------------
   it('PC-A1 [判别]: 运行期动态修改 Provider 的 componentVars，子组件立即响应新配置', async () => {

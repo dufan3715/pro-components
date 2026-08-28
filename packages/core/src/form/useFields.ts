@@ -358,6 +358,7 @@ const useFields = <
    * 根据路径或查找函数获取字段配置
    *
    * @description 返回的是字段的**活引用**（响应式对象）：通过 API 外直接修改它等同于绕过 `setField` 直接变异状态（可行但不推荐）；类型层的 `Readonly` 仅为约定，运行时不做只读保护。
+   * 注意口径：当指定 `options.all: true` 且未匹配到任何字段时返回空数组 `[]`；单数形式未匹配时返回 `undefined`。
    */
   function getField(
     path: Path<D> | FieldFindBy<D, F>,
@@ -534,6 +535,11 @@ const useFields = <
 
   /**
    * 获取指定字段的父级字段
+   *
+   * @description 查询指定字段的父级容器：
+   * - 对于嵌套子字段，返回其真实父字段的活引用；
+   * - 对于顶层字段，返回包含当前 fields 的虚拟根对象 `{ fields: fields.value }`（每次调用即时构造）；
+   * - 未匹配时，`options.all: true` 返回 `[]`，单数形式返回 `undefined`。
    */
   function getParentField(
     path: Path<D> | FieldFindBy<D, F>,
@@ -569,7 +575,12 @@ const useFields = <
       );
       applyByGroupDesc(matches, ({ group, index }) => {
         const insertIndex = placement === 'after' ? index + 1 : index;
-        group.splice(insertIndex, 0, ...newFields);
+        // 多位点匹配时浅拷贝字段对象，单位点保持原引用
+        group.splice(
+          insertIndex,
+          0,
+          ...(matches.length > 1 ? newFields.map(f => ({ ...f })) : newFields)
+        );
       });
     } else if (placement === 'after') {
       fields.value.push(...newFields);

@@ -14,6 +14,9 @@ const formItemPropKeys = Object.keys(formItemProps()).concat([
   'formItemContainer',
 ]);
 const gridItemPropKeys = Object.keys(gridItemProps());
+// 模块级 Set：字段循环内 O(1) 命中，替代数组 includes 线性扫描
+const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
+const formItemPropKeySet = new Set<string>(formItemPropKeys);
 
 export interface GroupedField {
   path: string;
@@ -60,6 +63,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           lg,
           xl,
           xxl,
+          formItemContainer: injectFormItemContainer,
           ...injectRest
         } = rawInject;
 
@@ -76,12 +80,14 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           { class: toValue(formItemClass), style: toValue(formItemStyle) },
           formItemDataAttrs
         );
-        const container = formItemContainer ?? rawInject.formItemContainer;
+        // 字段级容器优先，回退注入级配置；注入级键已解构剔除，
+        // 不再随 injectRest 泄漏为 FormItem 的无效 DOM 属性
+        const container = formItemContainer ?? injectFormItemContainer;
 
         Object.keys(rest).forEach(k => {
-          if (gridItemPropKeys.includes(k)) {
+          if (gridItemPropKeySet.has(k)) {
             gridItemProps[k] = rest[k];
-          } else if (formItemPropKeys.includes(k)) {
+          } else if (formItemPropKeySet.has(k)) {
             (formItemProps as any)[k] = rest[k];
           } else {
             componentProps[k] = rest[k];

@@ -7,7 +7,7 @@ import {
   MenuItem,
   Checkbox,
 } from '../../../shared/ui';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../hooks/useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
@@ -121,13 +121,7 @@ watch(
   { immediate: true }
 );
 
-// 强制 disabledKeys 列始终展示
-onMounted(() => {
-  props.columnControl?.disabledKeys?.forEach(key => {
-    props.table?.setColumn?.(String(key), { hidden: false });
-  });
-});
-
+// disabledKeys 指定的列始终强制展示
 watch(
   () => props.columnControl?.disabledKeys,
   keys => {
@@ -135,7 +129,7 @@ watch(
       props.table?.setColumn?.(String(key), { hidden: false });
     });
   },
-  { deep: true }
+  { immediate: true, deep: true }
 );
 </script>
 

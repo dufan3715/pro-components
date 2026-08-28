@@ -1,12 +1,13 @@
 import { RequiredComponentVars } from '../types';
-import { InjectionKey, Component } from 'vue';
+import { InjectionKey, Component, type ComputedRef } from 'vue';
 
 const getPopupContainer = (triggerNode: any) =>
   triggerNode.closest?.("form[class*='-form']") ||
   (typeof document !== 'undefined' ? document.body : undefined);
 
 export const INJECT_COMPONENTS: InjectionKey<
-  Partial<Record<string, Component>>
+  | ComputedRef<Partial<Record<string, Component>> | undefined>
+  | Partial<Record<string, Component>>
 > = Symbol('INJECT_COMPONENTS');
 
 export type InjectConfigEntry<T = any> = {
@@ -70,7 +71,7 @@ export const INJECT_CONFIG: {
     injectionKey: Symbol(''),
     default: {
       max: 10 ** 15 - 1,
-      min: -(10 ** 15 + 1),
+      min: -(10 ** 15 - 1),
       controls: false,
       style: { width: '100%' },
     },

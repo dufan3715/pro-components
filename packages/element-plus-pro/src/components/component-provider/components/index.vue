@@ -93,9 +93,10 @@ if (props.componentVars) {
 }
 
 // 注入自定义组件映射，BaseField 在解析组件时会优先使用此映射
-if (props.componentMap) {
-  provide(INJECT_COMPONENTS, props.componentMap);
-}
+provide(
+  INJECT_COMPONENTS,
+  computed(() => props.componentMap)
+);
 
 // 注入内置文案覆盖，useLocale 在解析文案时会优先使用
 provide(

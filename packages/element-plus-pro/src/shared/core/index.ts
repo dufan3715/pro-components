@@ -5,7 +5,9 @@
 export {
   // hooks
   useForm,
+  createFormProxy,
   useTable,
+  useSearchFormExpand,
   useFields,
   useFormData,
   useFormRef,
@@ -23,6 +25,15 @@ export {
   pick,
   isPlainObject,
   isPromise,
+  // locale
+  zhCN,
+  zhTW,
+  enUS,
+  format,
+  resolveLocaleName,
+  type ProLocale,
+  type ProLocaleName,
+  type ProLocaleKey,
   // types
   type Data,
   type Path,

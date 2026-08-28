@@ -75,6 +75,8 @@ import { Column, Columns, ColumnControlConfig } from '../types';
 
 defineOptions({ name: 'ProTable', inheritAttrs: false });
 
+const tableProperties = Object.keys(tableProps());
+
 type Control = {
   sizeControl: boolean;
   columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
@@ -114,8 +116,6 @@ const config = INJECT_CONFIG['pro-table'];
 const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
-const tableProperties = Object.keys(tableProps());
-
 const injectAttrs = computed<TableProps>(
   () => pick(injectProps.value, tableProperties) as TableProps
 );
@@ -140,14 +140,17 @@ const tableAttrs = computed<TableProps>(() => {
 const size = defineModel<TableProps['size']>('size');
 const loading = defineModel<boolean>('loading', { default: false });
 
-// 核心搜索方法：设置 loading 状态，调用外部 search 函数
+// 递增序号做请求竞态守卫，仅最新一次请求可变更 loading
+let searchSequence = 0;
 const _search = async () => {
+  const seq = ++searchSequence;
   const searchPromise = (props.search || attrs.onSearch)?.();
-  if (isPromise(searchPromise)) {
-    loading.value = true;
-    try {
-      await searchPromise;
-    } finally {
+  if (!isPromise(searchPromise)) return;
+  loading.value = true;
+  try {
+    await searchPromise;
+  } finally {
+    if (seq === searchSequence) {
       loading.value = false;
     }
   }
@@ -161,8 +164,15 @@ const reset = () => {
   });
 };
 
+const customSlotNames = [
+  'search-form',
+  'button-bar',
+  'toolbar',
+  'table',
+] as const;
+
 type CustomSlots = Readonly<
-  Partial<Record<'search-form' | 'button-bar' | 'toolbar' | 'table', Slot>>
+  Partial<Record<(typeof customSlotNames)[number], Slot>>
 >;
 type TableSlots = Omit<ComponentSlots<typeof ATable>, 'bodyCell'> &
   Readonly<{
@@ -176,14 +186,10 @@ type TableSlots = Omit<ComponentSlots<typeof ATable>, 'bodyCell'> &
 type Slots = Omit<TableSlots & CustomSlots, 'default'>;
 
 const slots = defineSlots<Slots>();
-const {
-  'search-form': searchFormSlot,
-  'button-bar': buttonBarSlot,
-  toolbar: toolbarSlot,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  table: tableSlot,
-  ...tableSlots
-} = slots;
+const forwardedSlotNames = () =>
+  (Object.keys(slots) as Array<Extract<keyof Slots, string>>).filter(
+    name => !customSlotNames.includes(name as any)
+  );
 
 const searchPage1st = () => {
   props.table?.setPageParam?.({ current: 1 });
@@ -210,14 +216,24 @@ const computedTableContainer = computed(() => {
 type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
 type RecordType = ReturnGenericParameterTypes<T>;
 
-const renderIndex: ColumnType['render'] = (_, __, index) => index + 1;
+// 序号列随分页偏移：第 n 页首行序号 = (n-1)*pageSize + i + 1（无分页时退化为 index+1）
+const getIndex = (i: number) => {
+  const pageParam = props.table?.pageParam;
+  if (pageParam && computedPagination.value !== false) {
+    const current = pageParam.current ?? 1;
+    const pageSize = pageParam.pageSize ?? 10;
+    return (current - 1) * pageSize + i + 1;
+  }
+  return i + 1;
+};
 
 const indexColumn = computed<ColumnType>(() => ({
   title: t('table.index'),
   dataIndex: '_index',
   key: '_index',
   width: 80,
-  render: renderIndex,
+  // antdv-next 的 render 为位置参数签名：(value, record, index)
+  render: (_value: any, _record: any, index: number) => getIndex(index),
 }));
 
 const computedColumns = computed<Columns<RecordType>>(() => {
@@ -274,13 +290,14 @@ const onTableChange: any = (...args: any[]) => {
   _search();
 };
 
-const showSearch = computed(() => {
+const searchFormVisible = computed(() => {
   const rawFields = props.table?.searchForm?.fields;
   const fieldList =
     (Array.isArray(rawFields) ? rawFields : rawFields?.value) ?? [];
   return !!(
-    searchFormSlot ||
-    (!computedSearchFormConfig.value.hidden && fieldList.length > 0)
+    computedSearchFormConfig.value?.hidden !== true &&
+    props.table?.searchForm &&
+    fieldList.filter(item => !toValue(item.hidden)).length > 0
   );
 });
 
@@ -311,13 +328,18 @@ onMounted(() => {
     _search();
   }
 });
+
+defineExpose({
+  /** 手动触发一次查询（与内部搜索共用 loading 竞态守卫），便于外部刷新列表 */
+  search: _search,
+});
 </script>
 
 <template>
   <div class="pro-table" :class="attrs.class" :style="attrs.style">
     <!-- 搜索表单区域 -->
     <ContainerFragment
-      v-if="showSearch"
+      v-if="searchFormVisible || $slots['search-form']"
       :component="computedSearchFormConfig.container"
     >
       <slot
@@ -326,7 +348,7 @@ onMounted(() => {
       >
         <SearchForm
           v-if="props.table?.searchForm"
-          :form="props.table?.searchForm"
+          :form="props.table.searchForm"
           v-bind="computedSearchFormConfig"
           @search="searchPage1st"
           @reset="reset"
@@ -339,11 +361,11 @@ onMounted(() => {
       <!-- 工具栏区域：操作按钮（左）+ 视图控制按钮（右） -->
       <div class="pro-table_header">
         <!-- 自定义操作按钮区（如新增、批量删除等） -->
-        <div v-if="buttonBarSlot" class="pro-table_header_button-bar">
+        <div v-if="$slots['button-bar']" class="pro-table_header_button-bar">
           <slot name="button-bar" />
         </div>
 
-        <div v-if="toolbarSlot" class="pro-table_header_toolbar">
+        <div v-if="$slots['toolbar']" class="pro-table_header_toolbar">
           <slot name="toolbar" />
         </div>
 
@@ -393,7 +415,7 @@ onMounted(() => {
         >
           <!-- 透传非默认插槽给 ATable（如 headerCell、bodyCell 等） -->
           <template
-            v-for="(_, name) of tableSlots"
+            v-for="name of forwardedSlotNames()"
             :key="name"
             #[name]="scoped"
           >

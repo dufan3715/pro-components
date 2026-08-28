@@ -79,10 +79,15 @@ export {
 
 export type TableProps = _TableProps<any>;
 
-export const tableProps = () => (Table as any).props || {};
-export const paginationProps = () => (Pagination as any).props || {};
-export const gridItemProps = () => (GridItem as any).props || {};
-export const formItemProps = () => (FormItem as any).props || {};
+const _tableProps = (Table as any).props || {};
+const _paginationProps = (Pagination as any).props || {};
+const _gridItemProps = (GridItem as any).props || {};
+const _formItemProps = (FormItem as any).props || {};
+
+export const tableProps = () => _tableProps;
+export const paginationProps = () => _paginationProps;
+export const gridItemProps = () => _gridItemProps;
+export const formItemProps = () => _formItemProps;
 
 const DisabledContextKey = Symbol.for('pro-form-disabled-context');
 

@@ -20,7 +20,7 @@ import {
   resolveLocaleName,
   type ProLocale,
   type ProLocaleName,
-} from '@qin-ui/pro-components-core';
+} from '../shared/core';
 import { useCurrentLang } from 'vant/es/locale';
 
 export { zhCN, zhTW, enUS };

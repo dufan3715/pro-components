@@ -47,7 +47,8 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const validFields = computed(() =>
-  (props.fields ?? []).filter(field => !field.hidden)
+  // hidden 支持 Ref/ComputedRef/getter 等响应式形态（统一使用 toValue 取值）
+  (props.fields ?? []).filter(field => !toValue(field.hidden))
 );
 
 const config = INJECT_CONFIG['pro-form'];

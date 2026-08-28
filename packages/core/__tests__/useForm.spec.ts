@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h, provide } from 'vue';
 import { mount } from '@vue/test-utils';
-import useForm from '../src/form/useForm';
+import useForm, { createFormProxy } from '../src/form/useForm';
 import useFormData from '../src/form/useFormData';
 import { InjectionFormKey } from '../src/form/constants';
 
@@ -119,5 +119,68 @@ describe('useForm', () => {
     });
     mount(Parent);
     expect(childFormDataStore.formData).toBe(parentForm.formData);
+  });
+
+  describe('createFormProxy (T29 / S2 / 5.8)', () => {
+    it('代理属性读写与反射 API 完整性', () => {
+      const current = {
+        formData: { count: 1 },
+        setFormData: vi.fn(),
+      };
+      const proxy = createFormProxy(() => current);
+
+      // 属性读取与 has 判定
+      expect(proxy.formData.count).toBe(1);
+      expect('formData' in proxy).toBe(true);
+      expect('notExist' in proxy).toBe(false);
+
+      // 属性写入
+      (proxy as any).formData = { count: 2 };
+      expect(current.formData.count).toBe(2);
+
+      // ownKeys 与 getOwnPropertyDescriptor 反射
+      expect(Object.keys(proxy)).toContain('formData');
+      expect(Object.getOwnPropertyDescriptor(proxy, 'formData')).toBeDefined();
+    });
+
+    it('方法引用记忆化（解决 5.8 引用不稳定缺陷）', () => {
+      const current = {
+        setFormData: vi.fn((key: string, val: any) => ({ [key]: val })),
+      };
+      const proxy = createFormProxy(() => current);
+
+      const fn1 = proxy.setFormData;
+      const fn2 = proxy.setFormData;
+
+      // 关键断言：多次读取同一个方法，必须返回完全恒等的函数引用
+      expect(fn1).toBe(fn2);
+
+      // 调用测试
+      fn1('name', 'Antigravity');
+      expect(current.setFormData).toHaveBeenCalledWith('name', 'Antigravity');
+    });
+
+    it('运行期切换目标实例时，代理实时路由至新实例', () => {
+      const formA = {
+        formData: { id: 'A' },
+        getFormData: vi.fn(() => 'A'),
+      };
+      const formB = {
+        formData: { id: 'B' },
+        getFormData: vi.fn(() => 'B'),
+      };
+
+      let activeForm = formA;
+      const proxy = createFormProxy(() => activeForm);
+
+      expect(proxy.formData.id).toBe('A');
+      expect(proxy.getFormData()).toBe('A');
+
+      // 运行期动态切换实例
+      activeForm = formB;
+      expect(proxy.formData.id).toBe('B');
+      expect(proxy.getFormData()).toBe('B');
+      expect(formB.getFormData).toHaveBeenCalledTimes(1);
+    });
   });
 });

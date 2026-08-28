@@ -5,6 +5,7 @@
 >
 import { get, normalizePathKey } from '../../../shared/core';
 import { TableColumn } from '../../../shared/ui';
+import { SlotComponent } from '../../form';
 import type { Column, Columns } from '../types';
 import { computed } from 'vue';
 
@@ -66,8 +67,9 @@ const getColumnProps = (column: Column<D>) => {
       v-bind="getColumnProps(column)"
     >
       <template #default="scope">
-        <component
-          :is="
+        <!-- 经 SlotComponent 渲染：支持组件、VNode 与文本等多种形态 -->
+        <SlotComponent
+          :component="
             column.render?.({
               ...scope,
               column,

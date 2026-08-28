@@ -1,5 +1,42 @@
 # @qin-ui/element-plus-pro
 
+## 1.3.1
+
+### Patch Changes
+
+- 评审修复与架构治理批次：
+
+  **缺陷修复与体验增强**
+  - 修复序号列不分页偏移：第 n 页首行序号为 `(n-1)*pageSize+1`（R1，三桌面包统一对齐）
+  - 修复 `{ all: true }` 批量插入在多个位点共享同一对象引用导致的隐式联动（R2，core；表格列各位点独立补齐自动 key）
+  - 修复注入级 `formItemContainer` 配置不生效并泄漏为 DOM 属性（R6/C4）
+  - antdv-next-pro：恢复搜索区"全部字段隐藏时不渲染"的判定（R7/C2）；恢复 disabledKeys 的 deep watch 并合并初始化逻辑（M5/C5/S5）
+  - 修复 ProTable setup 期插槽快照：条件渲染的工具栏等插槽可动态响应（R5）
+  - 修复请求竞态下 loading 被先结束的旧请求熄灭；新增 `ProTable.search()` 实例方法（M1）
+  - componentMap 改为响应式无条件注入：运行期首次赋值/整体替换即时生效（M2/C8）
+  - element-plus-pro：`column.render` 返回字符串等原始值按文本渲染，不再被解析为组件名（R4）
+  - element-plus-pro：`ColumnControl` 增加 VNode/函数列标题类型守卫并支持 `columnControl.labels` 自定义别名映射（R-A1）
+  - vant-pro：弹层 open 未携带初值时清空上一次残留值（M7）
+  - 三桌面 BaseField：清理 `mergedProps` 中恒空的 `{ class: initProps.componentClass, style: initProps.componentStyle }` entry（S-A1）
+
+  **架构收敛与性能优化**
+  - useSearchFormExpand 核心测量与自适应逻辑统一下沉至 core 纯逻辑层，三桌面包统一复用（S4）
+  - createFormProxy 引入方法引用按 key 缓存记忆化，确保方法引用恒等（5.8）
+  - useGroupFieldAttrs 属性键查表改模块级 Set（P1）
+  - 四包 ProForm 属性合并提升为 computed 记忆化，避免破坏底层 Form 组件 props 浅比较（P2）
+  - pathCache 满额改 FIFO 分批驱逐，消除周期性全量 miss（5.2）
+  - 未知组件名告警按名称模块级 Set 去重，四包统一全生命周期仅告警一次（M4）
+  - cloneDeep JSON 降级路径输出一次性类型变形告警，JSDoc 列明精确变换表（T18）
+  - 统一组件库双向绑定语法至 Vue 3.5+ `defineModel`（S6）
+
+  **工程化与规范**
+  - CI 接入 `pnpm -r test` 自动化测试；根 package.json 补齐 `packageManager` 锁定
+  - 产物构建采用 `output.intro` 自动内联样式加载，业务方无需手动导入 CSS
+  - 沉淀最高架构协作契约 `AGENTS.md` 与评审治理档案 `CODE_REVIEW.md`
+
+- Updated dependencies []:
+  - @qin-ui/pro-components-core@2.0.1
+
 ## 1.3.0
 
 ### Minor Changes

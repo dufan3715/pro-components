@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build:
-    name: Lint & Build
+    name: Lint & Test & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -36,6 +36,9 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+      - name: Test all packages
+        run: pnpm -r test
 
       - name: Build all packages
         run: pnpm -r --filter "./packages/*" build

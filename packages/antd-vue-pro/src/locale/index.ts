@@ -20,7 +20,7 @@ import {
   resolveLocaleName,
   type ProLocale,
   type ProLocaleName,
-} from '@qin-ui/pro-components-core';
+} from '../shared/core';
 import { useConfigContextInject } from '../shared/ui';
 
 export { zhCN, zhTW, enUS };

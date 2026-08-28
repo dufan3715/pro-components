@@ -14,6 +14,9 @@ const formItemPropKeys = Object.keys(formItemProps()).filter(
   k => k !== 'disabled'
 );
 const gridItemPropKeys = Object.keys(gridItemProps());
+// 模块级 Set：字段循环内 O(1) 命中，替代数组 includes 线性扫描
+const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
+const formItemPropKeySet = new Set<string>(formItemPropKeys);
 
 export interface GroupedField {
   path: string;
@@ -75,9 +78,9 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         const container = formItemContainer ?? injectFormItemContainer;
 
         Object.keys(rest).forEach(k => {
-          if (gridItemPropKeys.includes(k)) {
+          if (gridItemPropKeySet.has(k)) {
             gridItemProps[k] = rest[k];
-          } else if (formItemPropKeys.includes(k)) {
+          } else if (formItemPropKeySet.has(k)) {
             (formItemProps as any)[k] = rest[k];
           } else {
             componentProps[k] = rest[k];

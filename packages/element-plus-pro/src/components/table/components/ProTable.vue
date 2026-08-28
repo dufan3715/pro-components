@@ -83,6 +83,9 @@ defineOptions({
   inheritAttrs: false,
 });
 
+const tableProperties = Object.keys(tableProps());
+const paginationProperties = Object.keys(paginationProps());
+
 type Control = {
   sizeControl: boolean;
   columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
@@ -137,9 +140,6 @@ const config = INJECT_CONFIG['pro-table'];
 const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
-const tableProperties = Object.keys(tableProps());
-const paginationProperties = Object.keys(paginationProps());
-
 const attrs = useAttrs() as Record<string, any>;
 
 const injectTableAttrs = computed(() => {
@@ -156,14 +156,17 @@ const attrsTableProps = computed(() => {
 const size = defineModel<TableProps['size']>('size');
 const loading = defineModel<boolean>('loading', { default: false });
 
-// 核心搜索方法：设置 loading 状态，调用外部 search 函数
+// 递增序号做请求竞态守卫，仅最新一次请求可变更 loading
+let searchSequence = 0;
 const _search = async () => {
+  const seq = ++searchSequence;
   const searchPromise = (props.search || attrs.onSearch)?.();
-  if (isPromise(searchPromise)) {
-    loading.value = true;
-    try {
-      await searchPromise;
-    } finally {
+  if (!isPromise(searchPromise)) return;
+  loading.value = true;
+  try {
+    await searchPromise;
+  } finally {
+    if (seq === searchSequence) {
       loading.value = false;
     }
   }
@@ -177,29 +180,21 @@ const reset = () => {
   });
 };
 
-type CustomSlots = Readonly<
-  Partial<Record<'search-form' | 'button-bar' | 'toolbar' | 'table', Slot>>
->;
+const customSlotNames = [
+  'search-form',
+  'button-bar',
+  'toolbar',
+  'table',
+] as const;
 
+type CustomSlots = Readonly<
+  Partial<Record<(typeof customSlotNames)[number], Slot>>
+>;
 type Slots = CustomSlots & Readonly<Record<string, Slot>>;
 
 const slots = useSlots() as Slots;
-const searchFormSlot = slots['search-form'];
-const buttonBarSlot = slots['button-bar'];
-const toolbarSlot = slots['toolbar'];
-
-const tableSlots = computed(() => {
-  const customNames = new Set([
-    'search-form',
-    'button-bar',
-    'toolbar',
-    'table',
-  ]);
-  return Object.fromEntries(
-    Object.entries(slots).filter(([name]) => !customNames.has(name))
-  ) as Record<string, Slot>;
-});
-const tableSlotNames = computed(() => Object.keys(tableSlots.value));
+const forwardedSlotNames = () =>
+  Object.keys(slots).filter(name => !customSlotNames.includes(name as any));
 
 const searchPage1st = () => {
   props.table?.setPageParam?.({ current: 1 });
@@ -328,15 +323,14 @@ const onPaginationChange = (currentPage: number, pageSize: number) => {
   attrs.onChange?.(currentPage, pageSize);
 };
 
-const showSearch = computed(() => {
+const searchFormVisible = computed(() => {
   const searchFields = props.table?.searchForm?.fields;
   const fieldList =
     (Array.isArray(searchFields) ? searchFields : searchFields?.value) ?? [];
   return !!(
-    searchFormSlot ||
-    ((computedSearchFormConfig.value as any)?.hidden !== true &&
-      props.table?.searchForm &&
-      fieldList.filter((item: any) => !item.hidden)?.length > 0)
+    (computedSearchFormConfig.value as any)?.hidden !== true &&
+    props.table?.searchForm &&
+    fieldList.filter((item: any) => !toValue(item.hidden))?.length > 0
   );
 });
 
@@ -372,12 +366,17 @@ onMounted(() => {
     _search();
   }
 });
+
+defineExpose({
+  /** 手动触发一次查询（与内部搜索共用 loading 竞态守卫），便于外部刷新列表 */
+  search: _search,
+});
 </script>
 
 <template>
   <div class="pro-table" :class="attrs.class" :style="attrs.style">
     <ContainerFragment
-      v-if="showSearch"
+      v-if="searchFormVisible || $slots['search-form']"
       :component="computedSearchFormConfig.container"
     >
       <slot name="search-form">
@@ -393,10 +392,10 @@ onMounted(() => {
 
     <ContainerFragment :component="computedTableContainer">
       <div class="pro-table_header">
-        <div v-if="buttonBarSlot" class="pro-table_header_button-bar">
+        <div v-if="$slots['button-bar']" class="pro-table_header_button-bar">
           <slot name="button-bar" />
         </div>
-        <div v-if="toolbarSlot" class="pro-table_header_toolbar">
+        <div v-if="$slots['toolbar']" class="pro-table_header_toolbar">
           <slot name="toolbar" />
         </div>
         <div
@@ -428,7 +427,11 @@ onMounted(() => {
           :data="computedDataSource"
         >
           <TableColumnRenderer :columns="normalizedRawColumns" />
-          <template v-for="name in tableSlotNames" :key="name" #[name]="scoped">
+          <template
+            v-for="name in forwardedSlotNames()"
+            :key="name"
+            #[name]="scoped"
+          >
             <slot :name="name" v-bind="scoped" />
           </template>
         </ElTable>

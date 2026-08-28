@@ -20,7 +20,7 @@ import {
   resolveLocaleName,
   type ProLocale,
   type ProLocaleName,
-} from '@qin-ui/pro-components-core';
+} from '../shared/core';
 import { useConfig } from 'antdv-next/dist/config-provider/context';
 
 export { zhCN, zhTW, enUS };

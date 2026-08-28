@@ -1,5 +1,5 @@
 import { RequiredComponentVars } from '../types';
-import { InjectionKey, Component } from 'vue';
+import { InjectionKey, Component, type ComputedRef } from 'vue';
 
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;
@@ -61,7 +61,7 @@ export const INJECT_CONFIG: {
     injectionKey: Symbol(''),
     default: {
       max: 10 ** 15 - 1,
-      min: -(10 ** 15 + 1),
+      min: -(10 ** 15 - 1),
       controls: false,
       style: { width: '100%' },
     },
@@ -165,7 +165,8 @@ export const INJECT_CONFIG: {
 };
 
 export const INJECT_COMPONENTS: InjectionKey<
-  Partial<Record<string, Component>>
+  | ComputedRef<Partial<Record<string, Component>> | undefined>
+  | Partial<Record<string, Component>>
 > = Symbol('INJECT_COMPONENTS');
 
 const DYNAMIC_INJECT_CONFIG: Record<string, InjectConfigEntry> =

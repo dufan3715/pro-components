@@ -5,3 +5,7 @@ export {
   normalizeColumns,
   type Table,
 } from './useTable';
+export {
+  default as useSearchFormExpand,
+  type UseSearchFormExpandProps,
+} from './useSearchFormExpand';

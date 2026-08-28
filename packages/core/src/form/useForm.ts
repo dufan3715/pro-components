@@ -158,4 +158,61 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   };
 }
 
+/**
+ * 创建具有方法引用记忆化与动态目标代理能力的表单代理对象
+ *
+ * @description
+ * 1. 动态转发：当下游组件持有本代理时，若顶层 ProForm 的 `:form` prop 发生动态替换，所有属性读写与方法调用均实时路由至最新的 Form 实例；
+ * 2. 引用稳定性（记忆化）：内部对函数类型属性进行按 key 缓存，确保同一方法的函数引用恒等（`proxy.setFormData === proxy.setFormData`），支持用作事件处理器与 watcher 依赖。
+ *
+ * @template F - 表单实例类型
+ * @param {() => F | undefined} getCurrentForm - 返回当前活跃表单实例的 getter 函数
+ * @returns {F} 具有引用稳定性的表单代理对象
+ *
+ * @public
+ */
+export function createFormProxy<F extends object = any>(
+  getCurrentForm: () => F | undefined
+): F {
+  const methodCache = new Map<string | symbol, (...args: any[]) => any>();
+
+  return new Proxy({} as F, {
+    get(_, prop) {
+      const current = getCurrentForm() as any;
+      const val = current?.[prop];
+      if (typeof val === 'function') {
+        let cached = methodCache.get(prop);
+        if (!cached) {
+          cached = (...args: any[]) =>
+            (getCurrentForm() as any)?.[prop]?.(...args);
+          methodCache.set(prop, cached);
+        }
+        return cached;
+      }
+      return val;
+    },
+    set(_, prop, value) {
+      const current = getCurrentForm();
+      if (current) {
+        (current as any)[prop] = value;
+      }
+      return true;
+    },
+    has(_, prop) {
+      const current = getCurrentForm();
+      return Boolean(current && prop in current);
+    },
+    ownKeys() {
+      const current = getCurrentForm();
+      return current ? Reflect.ownKeys(current) : [];
+    },
+    getOwnPropertyDescriptor(_, prop) {
+      const current = getCurrentForm();
+      return current
+        ? Reflect.getOwnPropertyDescriptor(current, prop)
+        : undefined;
+    },
+  });
+}
+
 export default useForm;

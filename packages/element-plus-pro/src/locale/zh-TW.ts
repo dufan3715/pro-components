@@ -4,7 +4,7 @@
  * @description 在 core 通用語言包基礎上，擴展 element-plus 特有的
  * 日期/時間元件佔位符文案。
  */
-import { zhTW } from '@qin-ui/pro-components-core';
+import { zhTW } from '../shared/core';
 
 export default {
   ...zhTW,

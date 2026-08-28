@@ -71,8 +71,6 @@ export type FormPopup = {
 /** 弹出层注入 key */
 export const InjectionPopupKey = Symbol('form-popup');
 
-let popupInstanceCounter = 0;
-
 /**
  * @qin-ui/vant-pro 表单弹出层管理 Hook
  *
@@ -95,14 +93,19 @@ export function useFormPopup(root?: boolean): FormPopup;
 
 export function useFormPopup(initRoot?: boolean): FormPopup {
   if (!initRoot) {
-    const injectStore = inject<FormPopup | undefined>(
-      InjectionPopupKey,
-      undefined
+    if (getCurrentInstance()) {
+      const injectStore = inject<FormPopup | undefined>(
+        InjectionPopupKey,
+        undefined
+      );
+      if (injectStore) return injectStore;
+    }
+    console.warn(
+      '[useFormPopup] root=false 但未找到注入的父弹层实例（当前不在 ProForm 组件上下文中），已回退为创建独立弹层。'
     );
-    if (injectStore) return injectStore;
   }
 
-  const instanceId = ++popupInstanceCounter;
+  const instanceId = Math.random().toString(16).slice(2);
   const contentId = computed(() => `pro-form-popup-content-${instanceId}`);
   const teleportTo = computed(() => `#${contentId.value}`);
 
@@ -140,9 +143,8 @@ export function useFormPopup(initRoot?: boolean): FormPopup {
     resetProps();
     popupFieldPath.value = path;
     activeFieldId.value = fieldId;
-    if (initialValue !== undefined) {
-      popupFieldValue.value = initialValue;
-    }
+    // 无条件赋值：连续打开不同字段时，避免显示上一个字段残留的旧值
+    popupFieldValue.value = initialValue;
     if (customProps) {
       Object.assign(props, customProps);
     }
