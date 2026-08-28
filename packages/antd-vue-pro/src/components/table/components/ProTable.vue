@@ -196,6 +196,26 @@ const forwardedSlotNames = () =>
     name => !customSlotNames.includes(name as any)
   );
 
+const columnRequiredSlotNames = new Set([
+  'bodyCell',
+  'headerCell',
+  'customFilterDropdown',
+  'customFilterIcon',
+]);
+
+/**
+ * 判定插槽是否具备渲染条件（守卫过渡状态或空列下 column 为 undefined 的情况）
+ * 当列被动态隐藏或所有列均隐藏时，旧单元格销毁过渡帧或空占位中 column 可能为 undefined，
+ * 此时直接阻断依赖 column 的业务插槽调用，防止访问 column 属性抛出 TypeError；
+ * 非列依赖的表格级插槽（如 emptyText、footer、summary 等）始终正常渲染。
+ */
+const isSlotRenderable = (name: string, scoped: any) => {
+  if (columnRequiredSlotNames.has(name)) {
+    return visibleComputedColumns.value.length > 0 && Boolean(scoped?.column);
+  }
+  return true;
+};
+
 const searchPage1st = () => {
   props.table?.setPageParam?.({ current: 1 });
   _search();
@@ -234,8 +254,8 @@ const getIndex = (i: number) => {
 
 const indexColumn = computed<ColumnType>(() => ({
   title: t('table.index'),
-  dataIndex: '_index',
-  key: '_index',
+  dataIndex: '__INDEX__',
+  key: '__INDEX__',
   width: 80,
   customRender: ({ index }) => getIndex(index),
 }));
@@ -394,7 +414,11 @@ defineExpose({
             :key="name"
             #[name]="scoped"
           >
-            <slot :name="name" v-bind="scoped" />
+            <slot
+              v-if="isSlotRenderable(name, scoped)"
+              :name="name"
+              v-bind="scoped"
+            />
           </template>
         </ATable>
       </slot>

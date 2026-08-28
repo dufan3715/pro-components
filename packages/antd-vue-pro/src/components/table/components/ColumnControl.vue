@@ -46,7 +46,11 @@ const checkedColumnsOptions = computed<
         : item.dataIndex);
     if (!rawKey || !item.title) return [];
     const key = String(rawKey);
-    if (props.columnControl?.excludedKeys?.some(ek => String(ek) === key))
+    // 默认排除内部序号列 __INDEX__ 及显式指定的 excludedKeys
+    if (
+      key === '__INDEX__' ||
+      props.columnControl?.excludedKeys?.some(ek => String(ek) === key)
+    )
       return [];
     const disabled =
       props.columnControl?.disabledKeys?.some(dk => String(dk) === key) ??

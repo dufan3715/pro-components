@@ -1,5 +1,12 @@
 # @qin-ui/element-plus-pro
 
+## 1.3.2
+
+### Patch Changes
+
+- - fix(table): 统一内部序号列标识为 `__INDEX__` 并在 `ColumnControl` 中默认排除，避免无效果操作
+  - fix(table): 增加 `isSlotRenderable` 守卫 `bodyCell`、`headerCell` 等列依赖插槽，防御列隐藏/空列状态下访问 `column` 属性触发 `TypeError`
+
 ## 1.3.1
 
 ### Patch Changes

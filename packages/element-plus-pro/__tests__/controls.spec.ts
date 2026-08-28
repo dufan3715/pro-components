@@ -121,10 +121,13 @@ describe('控制组件与全局 Provider 测试', () => {
 
     await flushPromises();
 
-    // 验证 checkedColumnsOptions 已经排除了 secret 列
+    // 验证 checkedColumnsOptions 已经排除了 secret 列，且默认排除 __INDEX__ 序号列
     const vm = wrapper.vm as any;
     expect(
       vm.checkedColumnsOptions.some((opt: any) => opt.value === 'secret')
+    ).toBe(false);
+    expect(
+      vm.checkedColumnsOptions.some((opt: any) => opt.value === '__INDEX__')
     ).toBe(false);
     expect(
       vm.checkedColumnsOptions.some((opt: any) => opt.value === 'name')

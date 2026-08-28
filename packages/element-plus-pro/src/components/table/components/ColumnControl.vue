@@ -46,9 +46,11 @@ const checkedColumnsOptions = computed<
   props.columns
     .map((item, index) => {
       const key = getColumnKey(item, index);
-      const excluded = props.columnControl?.excludedKeys?.some(
-        ek => String(ek) === key
-      );
+      // 默认排除内部序号列 __INDEX__ 及显式指定的 excludedKeys
+      const excluded =
+        key === '__INDEX__' ||
+        (item as any).type === 'index' ||
+        props.columnControl?.excludedKeys?.some(ek => String(ek) === key);
       const disabled = props.columnControl?.disabledKeys?.some(
         dk => String(dk) === key
       );

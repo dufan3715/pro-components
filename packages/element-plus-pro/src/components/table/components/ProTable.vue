@@ -237,7 +237,7 @@ const normalizedRawColumns = computed(() => {
   if (props.addIndexColumn ?? injectProps.value.addIndexColumn) {
     return [
       {
-        key: '_index',
+        key: '__INDEX__',
         type: 'index',
         label: t('table.index'),
         width: 80,
@@ -410,7 +410,7 @@ defineExpose({
         >
           <ColumnControl
             :columns="
-              normalizedRawColumns.filter(item => item.key !== '_index')
+              normalizedRawColumns.filter(item => item.key !== '__INDEX__')
             "
             :table="props.table"
             :column-control="columnControlConfig"

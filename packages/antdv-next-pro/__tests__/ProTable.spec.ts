@@ -350,4 +350,38 @@ describe('ProTable 组件测试', () => {
     }
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PT-A8: isSlotRenderable 守卫 bodyCell 插槽 column 参数
+  // ----------------------------------------------------
+  it('PT-A8 [判别]: isSlotRenderable 在 bodyCell 存在 column 时正常渲染，并在解构 column 属性时不抛出异常', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [{ id: 1, name: 'Alice', age: 20 }],
+    });
+
+    let renderedCount = 0;
+    const { wrapper } = mountProTable({
+      table,
+      slots: {
+        bodyCell: ({ column, record }: any) => {
+          renderedCount++;
+          // 直接访问 column 属性
+          const key = column.key;
+          const dataIndex = column.dataIndex;
+          return h(
+            'span',
+            { class: 'custom-body-cell' },
+            `${key || dataIndex}-${record.name}`
+          );
+        },
+      },
+    });
+
+    await flushPromises();
+    const cells = wrapper.findAll('.custom-body-cell');
+    expect(cells.length).toBeGreaterThan(0);
+    expect(renderedCount).toBeGreaterThan(0);
+    wrapper.unmount();
+  });
 });
