@@ -1,5 +1,16 @@
 # @qin-ui/pro-components-core
 
+## 2.0.2
+
+### Patch Changes
+
+- - **core**:
+    - 修复 `setFormData` 类型定义，补齐顶级已知字段泛型重载与 `ExtendWithAny` 批量覆盖兼容性；
+    - 恢复 `getFormData` 2 层与 3 层嵌套路径的强类型推导重载；
+    - 优化 `setFormData`、`getFormData` 与 `getField` 的 JSDoc 结构，消除 TypeScript 方法重载在 IDE Hover 时产生的首行文字无格式拼接问题。
+  - **UI 适配层 (antd-vue-pro / antdv-next-pro / element-plus-pro / vant-pro)**:
+    - 完善 `useForm` JSDoc 中 `setFormData` 四种调用形态说明并对齐最新 core 类型定义。
+
 ## 2.0.1
 
 ### Patch Changes
