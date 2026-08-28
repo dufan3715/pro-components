@@ -28,9 +28,28 @@ describe('useFormData', () => {
     expect(getFormData('name')).toBe('张三');
   });
 
-  it('FD-04 getFormData 嵌套路径', () => {
-    const { getFormData } = useFormData({ address: { city: '北京' } });
-    expect(getFormData('address.city' as any)).toBe('北京');
+  it('FD-04 getFormData 2层与3层嵌套路径强类型推导', () => {
+    interface NestedUser {
+      user: {
+        name: string;
+        address: {
+          city: string;
+        };
+      };
+      address: {
+        city: string;
+      };
+    }
+    const { getFormData } = useFormData<NestedUser>({
+      user: { name: '张三', address: { city: '上海' } },
+      address: { city: '北京' },
+    });
+    // 2 层推导，无需 as any
+    const city: string = getFormData('address.city');
+    expect(city).toBe('北京');
+    // 3 层推导，无需 as any
+    const userCity: string = getFormData('user.address.city');
+    expect(userCity).toBe('上海');
   });
 
   it('FD-05 getFormData 数组下标路径', () => {
@@ -180,5 +199,42 @@ describe('useFormData', () => {
     expect(store.getFormData('a.b.c.d')).toBe(100);
     store.setFormData('a.b.c.d', (v: number) => v + 50);
     expect(store.getFormData('a.b.c.d')).toBe(150);
+  });
+
+  it('FD-21 泛型结构下支持已知 key 强类型写入与函数式更新', () => {
+    interface UserForm {
+      name: string;
+      count: number;
+    }
+    const store = useFormData<UserForm>({ name: '张三', count: 1 });
+    store.setFormData('name', '李四');
+    expect(store.getFormData('name')).toBe('李四');
+    store.setFormData('count', prev => prev + 1);
+    expect(store.getFormData('count')).toBe(2);
+  });
+
+  it('FD-22 批量覆盖支持带有扩展属性的对象（ExtendWithAny 兼容）', () => {
+    interface StrictProfile {
+      nickname: string;
+      age: number;
+    }
+    const store = useFormData<StrictProfile>({ nickname: 'Alice', age: 18 });
+    // 验证允许传入含有动态额外 key 的对象并覆盖
+    store.setFormData({ nickname: 'Bob', extraTag: 'vip' } as any);
+    expect(store.formData.nickname).toBe('Bob');
+    expect(store.formData.extraTag).toBe('vip');
+    expect(store.formData.age).toBeUndefined();
+  });
+
+  it('FD-23 函数式批量更新支持返回展开对象', () => {
+    interface CounterForm {
+      count: number;
+      label: string;
+    }
+    const store = useFormData<CounterForm>({ count: 10, label: '计数' });
+    store.setFormData(prev => ({ ...prev, count: prev.count + 5, extra: 999 }));
+    expect(store.formData.count).toBe(15);
+    expect(store.formData.label).toBe('计数');
+    expect((store.formData as any).extra).toBe(999);
   });
 });

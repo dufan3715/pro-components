@@ -13,71 +13,77 @@ export interface UseFormDataReturn<D extends Data = Data> {
   formData: ExtendWithAny<D>;
 
   /**
-   * 获取指定路径的表单数据
+   * 获取表单数据
    *
-   * @template K - 数据对象的顶级 key
-   * @param {K} path - 数据路径
+   * @description 支持通过顶级字段 key 或点分隔深层路径（如 `'address.city'`）读取数据。
+   *
+   * @template K - 顶级字段 Key
+   * @param {K} path - 数据字段路径
    * @returns {D[K]} 对应路径的值
    *
    * @example
    * ```ts
-   * const name = getFormData('name')
-   * const city = getFormData('address.city')
+   * const name = getFormData('name')           // 顶级字段（强类型推导）
+   * const city = getFormData('address.city')   // 2 层嵌套（强类型推导）
+   * const street = getFormData('user.address.street') // 3 层嵌套（强类型推导）
+   * const dynamic = getFormData(dynamicPath)   // 动态深层路径
    * ```
    */
   getFormData<K extends keyof D>(path: K): D[K];
-  /**
-   * 获取深层路径的表单数据
-   *
-   * @param {Path<D>} path - 点分隔的深层路径
-   * @returns {any} 对应路径的值
-   */
+  getFormData<K extends keyof D & string, K1 extends keyof D[K] & string>(
+    path: `${K}.${K1}`
+  ): D[K][K1];
+  getFormData<
+    K extends keyof D & string,
+    K1 extends keyof D[K] & string,
+    K2 extends keyof D[K][K1] & string,
+  >(
+    path: `${K}.${K1}.${K2}`
+  ): D[K][K1][K2];
   getFormData(path: Path<D>): any;
 
   /**
-   * 设置指定路径的表单数据
+   * 设置表单数据
    *
-   * @param {Path<D>} path - 数据路径
-   * @param {any} value - 新值，支持直接值或基于旧值的更新函数
+   * @description 支持以下四种调用方式：
+   * - **1. 路径设置**：`setFormData('name', '张三')` 或 `setFormData('address.city', '北京')`
+   * - **2. 路径函数式更新**：`setFormData('count', prev => (prev ?? 0) + 1)`
+   * - **3. 批量覆盖**：`setFormData({ name: '李四', age: 20 })`（全量替换，未指定的 key 会被删除）
+   * - **4. 函数式批量更新**：`setFormData(prev => ({ ...prev, name: '王五' }))`
+   *
+   * @template K - 顶级字段 Key
+   * @param {K} path - 顶级字段路径
+   * @param {D[K] | ((preValue: Readonly<D[K]>) => D[K])} value - 新值或基于旧值的更新函数
    *
    * @example
    * ```ts
-   * // 直接设置
-   * setFormData('name', '张三')
-   * setFormData('address.city', '北京')
+   * // 1. 字段设置
+   * setFormData('name', '李四')
+   * setFormData('address.city', '上海')
    *
-   * // 函数式更新（基于旧值）
+   * // 2. 字段函数式更新
    * setFormData('count', prev => (prev ?? 0) + 1)
+   *
+   * // 3. 批量覆盖整个表单
+   * setFormData({ name: '王五', age: 30 })
+   *
+   * // 4. 函数式批量更新
+   * setFormData(prev => ({ ...prev, name: '赵六' }))
    * ```
    */
+  setFormData<K extends keyof D>(
+    path: K,
+    value: D[K] | ((preValue: Readonly<D[K]>) => D[K])
+  ): void;
   setFormData(
     path: Path<D>,
     value: any | ((preValue: Readonly<any>) => any)
   ): void;
-  /**
-   * 批量覆盖表单数据（全量替换）
-   *
-   * @description 用新对象全量替换当前 formData，不在新对象中的 key 会被删除
-   * @param {DeepPartial<D>} value - 新的表单数据对象
-   *
-   * @example
-   * ```ts
-   * setFormData({ name: '李四', age: 20 })
-   * ```
-   */
-  setFormData(value: DeepPartial<D>): void;
-  /**
-   * 基于当前数据函数式批量更新
-   *
-   * @param {Function} updater - 接收当前 formData，返回新的数据对象
-   *
-   * @example
-   * ```ts
-   * setFormData(prev => ({ ...prev, name: '王五' }))
-   * ```
-   */
+  setFormData(value: ExtendWithAny<DeepPartial<D>>): void;
   setFormData(
-    value: (formData: ExtendWithAny<D>) => DeepPartial<D> | undefined
+    updater: (
+      formData: ExtendWithAny<D>
+    ) => ExtendWithAny<DeepPartial<D>> | void | undefined
   ): void;
 }
 

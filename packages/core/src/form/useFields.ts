@@ -28,46 +28,33 @@ export interface UseFieldsReturn<
   fields: Ref<F[]>;
 
   /**
-   * 根据路径或查找函数获取字段配置
+   * 获取字段配置
+   *
+   * @description 支持通过字段路径（如 `'name'`）或自定义查找函数匹配字段配置。
    *
    * @param {Path<D> | FieldFindBy<D, F>} path - 字段路径字符串或查找函数
+   * @param {object} [options] - 选项
+   * @param {boolean} [options.all=false] - 是否返回所有匹配项。为 `true` 时返回字段数组，为 `false`（默认）时返回第一个匹配项
    * @returns {FR<F, FormInstance> | undefined} 匹配到的字段配置（只读），未找到返回 undefined
    *
    * @example
    * ```ts
-   * // 通过路径
+   * // 通过路径获取
    * getField('name')
-   * getField('city')
+   * getField('address.city')
    *
-   * // 通过查找函数
+   * // 通过查找函数获取
    * getField(f => f.label === '姓名')
+   *
+   * // 获取所有匹配的字段数组
+   * getField(f => f.label?.includes('地址'), { all: true })
    * ```
    */
   getField(path: Path<D> | FieldFindBy<D, F>): FR<F, FormInstance> | undefined;
-  /**
-   * 根据路径或查找函数获取字段配置（指定不匹配所有）
-   *
-   * @param path - 字段路径或查找函数
-   * @param options - 选项，{ all: false } 表示只返回第一个匹配
-   * @returns 匹配到的字段配置
-   */
   getField(
     path: Path<D> | FieldFindBy<D, F>,
     options?: { all?: false }
   ): FR<F, FormInstance> | undefined;
-  /**
-   * 根据路径或查找函数获取所有匹配的字段配置
-   *
-   * @param path - 字段路径或查找函数
-   * @param options - 选项，{ all: true } 表示返回所有匹配
-   * @returns {FR<F, FormInstance>[] | undefined} 所有匹配的字段配置数组
-   *
-   * @example
-   * ```ts
-   * // 查找所有 label 包含 '地址' 的字段
-   * getField(f => f.label?.includes('地址'), { all: true })
-   * ```
-   */
   getField(
     path: Path<D> | FieldFindBy<D, F>,
     options: { all: true }

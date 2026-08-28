@@ -18,10 +18,11 @@ import type { FormInstance } from '../../../shared/ui';
  *
  * @property formData  - 响应式表单数据对象，可直接读写，支持深层路径如 `formData.address.city`
  * @property getFormData - 获取指定路径的表单数据，支持点号分隔的深层路径，如 `getFormData('address.city')`
- * @property setFormData - 设置表单数据，支持三种调用方式：<br>
+ * @property setFormData - 设置表单数据，支持四种调用方式：<br>
  *   1. `setFormData(path, value)` — 设置指定路径的值<br>
  *   2. `setFormData(path, prev => newVal)` — 函数式更新<br>
- *   3. `setFormData({ ... })` — 批量覆盖整个表单
+ *   3. `setFormData({ ... })` — 批量覆盖整个表单<br>
+ *   4. `setFormData(prev => ({ ...prev, name: '新' }))` — 基于当前数据函数式批量更新
  * @property fields      - 字段配置数组（响应式 Ref），ProForm 根据此数组渲染表单字段
  * @property getField     - 获取字段配置，支持路径字符串（如 `'name'`）或查找函数（如 `f => f.label === '姓名'`）
  * @property setField     - 更新字段配置，默认合并模式（Object.assign），可通过 `{ updateType: 'rewrite' }` 覆盖
