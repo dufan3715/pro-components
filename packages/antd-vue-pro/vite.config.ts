@@ -10,7 +10,8 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
-      rollupTypes: false,
+      entryRoot: 'src',
+      include: ['src'],
       compilerOptions: { declarationMap: true },
     }),
   ],

@@ -7,7 +7,14 @@ const entry = path.resolve(__dirname, 'src/index.ts');
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), dts({ compilerOptions: { declarationMap: true } })],
+  plugins: [
+    vue(),
+    dts({
+      entryRoot: 'src',
+      include: ['src'],
+      compilerOptions: { declarationMap: true },
+    }),
+  ],
   build: {
     target: 'modules',
     outDir: 'es',
