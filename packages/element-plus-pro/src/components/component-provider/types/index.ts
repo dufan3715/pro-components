@@ -11,6 +11,7 @@ import { ProFormProps } from '../../form';
 import type { SearchFormProps } from '../../table/components/SearchForm.vue';
 import { AllowedComponentProps } from 'vue';
 import type { ComponentProps } from 'vue-component-type-helpers';
+import { ColumnControlConfig } from 'src/components/table/types';
 
 type PP<T extends Record<string, any>> = Partial<T & AllowedComponentProps>;
 
@@ -33,7 +34,12 @@ export type RequiredComponentVars = {
   'pro-table': PP<
     TableProps & {
       pagination?: false | Partial<PaginationProps>;
-      control?: boolean | { sizeControl?: boolean; columnControl?: boolean };
+      control?:
+        | boolean
+        | {
+            sizeControl?: boolean;
+            columnControl?: boolean | ColumnControlConfig;
+          };
       searchFormConfig?: Partial<Omit<SearchFormProps, 'form'>> & {
         hidden?: boolean;
         container?: ContainerComponent | false;

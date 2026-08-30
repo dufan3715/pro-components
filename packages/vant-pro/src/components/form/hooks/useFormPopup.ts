@@ -7,6 +7,7 @@ import {
   type Ref,
   ref,
   getCurrentInstance,
+  useId,
 } from 'vue';
 import { Popup } from '../../../shared/ui';
 import type { ComponentProps } from 'vue-component-type-helpers';
@@ -62,11 +63,19 @@ export type FormPopup = {
   activeFieldId: Ref<number | string | undefined>;
   /** 当前弹出层字段的值 */
   popupFieldValue: Ref<any | undefined>;
-  /** 唯一 DOM 容器 ID（防止多实例 Teleport 冲突） */
+  /** 唯一 DOM 容器 ID */
   contentId: ComputedRef<string>;
   /** 唯一 Teleport 目标选择器 */
   teleportTo: ComputedRef<string>;
 };
+
+/**
+ * 无组件上下文的独立弹层 id 兜底种子（`standalone-1`, `standalone-2`, ...）。
+ *
+ * @internal 模块级可变状态，不对外暴露。
+ * @remarks 仅服务不在组件 setup 内调用的命令式独立弹层场景；组件上下文内的弹层容器 id 由 useId() 派生。
+ */
+let fallbackPopupIdSeed = 0;
 
 /** 弹出层注入 key */
 export const InjectionPopupKey = Symbol('form-popup');
@@ -105,7 +114,9 @@ export function useFormPopup(initRoot?: boolean): FormPopup {
     );
   }
 
-  const instanceId = Math.random().toString(16).slice(2);
+  const instanceId = getCurrentInstance()
+    ? useId()
+    : `standalone-${++fallbackPopupIdSeed}`;
   const contentId = computed(() => `pro-form-popup-content-${instanceId}`);
   const teleportTo = computed(() => `#${contentId.value}`);
 
@@ -143,7 +154,7 @@ export function useFormPopup(initRoot?: boolean): FormPopup {
     resetProps();
     popupFieldPath.value = path;
     activeFieldId.value = fieldId;
-    // 无条件赋值：连续打开不同字段时，避免显示上一个字段残留的旧值
+    // 无条件赋值：打开字段时写入当前初值，不残留上一个字段的旧值
     popupFieldValue.value = initialValue;
     if (customProps) {
       Object.assign(props, customProps);

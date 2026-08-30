@@ -1,6 +1,5 @@
 /**
- * 统一 re-export @qin-ui/pro-components-core，包内所有文件通过此文件引入 core 内容，
- * 避免直接散列依赖 @qin-ui/pro-components-core，便于将来统一维护。
+ * 统一 re-export @qin-ui/pro-components-core，包内所有文件通过此文件引入 core 内容。
  */
 export {
   // hooks

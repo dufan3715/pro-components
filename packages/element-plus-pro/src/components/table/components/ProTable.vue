@@ -37,6 +37,7 @@ import {
   type PaginationProps,
   Table as ElTable,
   type TableProps,
+  type TableEmits,
   tableProps,
   paginationProps,
 } from '../../../shared/ui';
@@ -119,7 +120,11 @@ type Props = {
   columns?: Columns<RecordType>;
   data?: RecordType[];
   pagination?: false | Partial<PaginationProps>;
-} & Omit<TableProps, 'data'>;
+} & /* @vue-ignore */ Omit<TableProps, 'data'>;
+
+type Emits = {} & /* @vue-ignore */ TableEmits<RecordType>;
+
+defineEmits<Emits>();
 
 const props = withDefaults(defineProps<Props>(), {
   table: undefined,
@@ -142,8 +147,36 @@ const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
 const attrs = useAttrs() as Record<string, any>;
 
+const PRO_TABLE_EXCLUDED_ATTR_KEYS = new Set([
+  'class',
+  'style',
+  'onSearch',
+  'onChange',
+  'onUpdate:size',
+  'onUpdate:loading',
+  'data',
+  'columns',
+  'size',
+  'pagination',
+]);
+
+const PRO_TABLE_PROVIDER_KEYS = new Set([
+  'pagination',
+  'searchFormConfig',
+  'control',
+  'immediateSearch',
+  'addIndexColumn',
+  'tableContainer',
+]);
+
 const injectTableAttrs = computed(() => {
-  return pick(injectProps.value, tableProperties) as Partial<TableProps>;
+  const tableConfig: Record<string, any> = {};
+  for (const [key, value] of Object.entries(injectProps.value)) {
+    if (!PRO_TABLE_PROVIDER_KEYS.has(key)) {
+      tableConfig[key] = value;
+    }
+  }
+  return tableConfig as Partial<TableProps>;
 });
 
 const attrsTableProps = computed(() => {
@@ -151,6 +184,16 @@ const attrsTableProps = computed(() => {
     camelizeProperties(attrs),
     tableProperties
   ) as Partial<TableProps>;
+});
+
+const restTableAttrs = computed(() => {
+  const rest: Record<string, any> = {};
+  for (const [key, value] of Object.entries(attrs)) {
+    if (!PRO_TABLE_EXCLUDED_ATTR_KEYS.has(key)) {
+      rest[key] = value;
+    }
+  }
+  return rest;
 });
 
 const size = defineModel<TableProps['size']>('size');
@@ -263,9 +306,13 @@ const computedDataSource = computed<any[]>(() => {
 const computedTableProps = computed<TableProps>(() => {
   const merged = {
     ...injectTableAttrs.value,
+    ...restTableAttrs.value,
     ...attrsTableProps.value,
   } as TableProps;
   delete (merged as any).data;
+  delete (merged as any).columns;
+  delete (merged as any).size;
+  delete (merged as any).pagination;
   return merged;
 });
 
@@ -313,6 +360,7 @@ const onCurrentChange = (current: number) => {
   _search();
 };
 
+// 改变 pageSize 时重置回第 1 页并重新查询
 const onSizeChange = (pageSize: number) => {
   props.table?.setPageParam?.({ pageSize, current: 1 });
   _search();

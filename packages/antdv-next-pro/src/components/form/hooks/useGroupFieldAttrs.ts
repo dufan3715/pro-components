@@ -17,6 +17,7 @@ const gridItemPropKeys = Object.keys(gridItemProps());
 // 模块级 Set：字段循环内 O(1) 命中，替代数组 includes 线性扫描
 const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
 const formItemPropKeySet = new Set<string>(formItemPropKeys);
+const formItemSlotKeySet = new Set<string>(FORM_ITEM_SLOT_KEYS);
 
 export interface GroupedField {
   path: string;
@@ -33,7 +34,7 @@ export interface GroupedField {
  *
  * @description
  * 1. 响应式集成 ProComponentProvider 的 `pro-form-item` 全局变量配置；
- * 2. 剥离 `extraProps`（用户自定义字段标识袋）：保留在字段原始对象上供业务层存取，渲染层经解构剥离，避免落入 componentProps 透传为无效 DOM 属性。
+ * 2. 剥离 `extraProps`（用户自定义字段标识袋）：保留在字段原始对象上供业务层存取，渲染层经解构剥离，不落入 componentProps 透传。
  */
 export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
   const config = INJECT_CONFIG['pro-form-item'];
@@ -80,8 +81,10 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           { class: toValue(formItemClass), style: toValue(formItemStyle) },
           formItemDataAttrs
         );
-        // 字段级容器优先，回退注入级配置；注入级键已解构剔除，
-        // 不再随 injectRest 泄漏为 FormItem 的无效 DOM 属性
+        /*
+         * 字段级容器优先，回退注入级配置；注入级键已解构剔除
+         * 不随 injectRest 透传为 FormItem 的 DOM 属性
+         */
         const container = formItemContainer ?? injectFormItemContainer;
 
         Object.keys(rest).forEach(k => {
@@ -96,7 +99,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
 
         Object.assign(componentProps, componentDataAttrs);
         Object.keys(slots).forEach(k => {
-          if (FORM_ITEM_SLOT_KEYS.includes(k as any)) {
+          if (formItemSlotKeySet.has(k)) {
             formItemSlots[k] = slots[k];
             formItemProps[k] = slots[k];
           } else {

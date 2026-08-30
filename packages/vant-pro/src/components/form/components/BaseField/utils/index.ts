@@ -36,7 +36,7 @@ export const getInitProps = (
   return {};
 };
 
-/** 已告警过的未知组件名（模块级去重，避免 computed 重算导致刷屏） */
+/** 已告警过的未知组件名（模块级去重集合） */
 const warnedUnknownComponents = new Set<string>();
 
 export function warnUnknownComponent(name: string) {

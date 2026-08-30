@@ -323,7 +323,6 @@ describe('ProTable 组件测试', () => {
   // PT-09: 现状锁定（2.5 搜索竞态不处理）
   // ----------------------------------------------------
   it('PT-09: 现状锁定（2.5 搜索竞态不处理）：支持传入外部 search 函数', async () => {
-    // 现状锁定，未修复
     let callCount = 0;
     const asyncSearch = async () => {
       callCount++;
@@ -382,6 +381,117 @@ describe('ProTable 组件测试', () => {
     const cells = wrapper.findAll('.custom-body-cell');
     expect(cells.length).toBeGreaterThan(0);
     expect(renderedCount).toBeGreaterThan(0);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A11 [判别]: 仅 Provider 配置 onChange 时，表格 change 回放 Provider 监听器
+  // ----------------------------------------------------
+  it('PT-A11 [判别]: 仅 Provider 配置 onChange 时，表格 change 触发 Provider 监听器', async () => {
+    const received: any[] = [];
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+    });
+
+    const componentVars = {
+      'pro-table': {
+        onChange: (...args: any[]) => {
+          received.push(args[0]);
+        },
+      },
+    };
+
+    const wrapper = mount(ProComponentProvider, {
+      props: { componentVars },
+      slots: {
+        default: () => h(ProTable, { table }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const aTable = wrapper.findComponent({ name: 'ATable' });
+    expect(aTable.exists()).toBe(true);
+    aTable.vm.$emit('change', { current: 2, pageSize: 10 });
+    await flushPromises();
+
+    expect(received).toHaveLength(1);
+    expect(received[0]).toMatchObject({ current: 2, pageSize: 10 });
+    // 原有分页链路不回归
+    expect(table.pageParam.current).toBe(2);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A12 [判别]: 模板 @change 与 Provider onChange 同时存在时，模板监听器优先（覆盖语义）
+  // ----------------------------------------------------
+  it('PT-A12 [判别]: 模板 @change 与 Provider onChange 同时存在时，仅模板监听器触发', async () => {
+    const calls: string[] = [];
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+    });
+
+    const componentVars = {
+      'pro-table': {
+        onChange: () => {
+          calls.push('provider');
+        },
+      },
+    };
+
+    const wrapper = mount(ProComponentProvider, {
+      props: { componentVars },
+      slots: {
+        default: () =>
+          h(ProTable, {
+            table,
+            onChange: () => {
+              calls.push('attrs');
+            },
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const aTable = wrapper.findComponent({ name: 'ATable' });
+    expect(aTable.exists()).toBe(true);
+    aTable.vm.$emit('change', { current: 2, pageSize: 10 });
+    await flushPromises();
+
+    expect(calls).toEqual(['attrs']);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A13 [判别]: search 无参调用契约（签名 () => Promise<unknown> 与运行时一致）
+  // ----------------------------------------------------
+  it('PT-A13 [判别]: search 以无参形式被调用，类型签名与运行时契约一致', async () => {
+    const callArgs: unknown[][] = [];
+    const searchSpy = (...args: unknown[]) => {
+      callArgs.push(args);
+      return Promise.resolve();
+    };
+
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+    });
+
+    const { wrapper } = mountProTable({
+      table,
+      search: searchSpy,
+      props: { immediateSearch: true },
+    });
+    await flushPromises();
+
+    expect(callArgs.length).toBeGreaterThan(0);
+    // 判别：运行时从不向 search 传参，携带 params 形参的实现永远收到 undefined
+    expect(callArgs.every(args => args.length === 0)).toBe(true);
     wrapper.unmount();
   });
 });

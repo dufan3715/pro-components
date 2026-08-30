@@ -5,7 +5,7 @@
  * ## 架构设计说明
  *
  * `useForm` 是表单系统的核心大脑。它的核心设计理念是 **"状态管理与 UI 渲染解耦"**。
- * 在这里，表单逻辑不再依赖于具体的 UI 框架（如 Ant Design / Element Plus），而是被抽象为了纯粹的 Vue 响应式状态流（Reactive Data）。
+ * 表单逻辑不依赖具体 UI 框架（如 Ant Design / Element Plus），是纯粹的 Vue 响应式状态流（Reactive Data）。
  *
  * ### 核心职责
  * 1. **数据中枢**：统一管理表单数据 (`formData`) 的读写，支持基于路径（如 `'user.address.city'`）的深层数据代理操作。
@@ -127,6 +127,7 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
 function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   ...args: any[]
 ) {
+  // 运行时按入参形态分派两种重载：单参 boolean 仅为 root 标记，否则为 数据+字段+root
   let initFormData = {} as any,
     initFields = [],
     root = true;
@@ -142,6 +143,7 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
     initFields = args[1];
     root = (args[2] as boolean) ?? true;
   }
+  // root=false：优先复用注入的父表单实例（子表单与父完全同体）；不可得时告警并回退为独立根表单
   if (!root) {
     if (getCurrentInstance()) {
       const injectForm = inject(InjectionFormKey);
@@ -163,7 +165,7 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
  *
  * @description
  * 1. 动态转发：当下游组件持有本代理时，若顶层 ProForm 的 `:form` prop 发生动态替换，所有属性读写与方法调用均实时路由至最新的 Form 实例；
- * 2. 引用稳定性（记忆化）：内部对函数类型属性进行按 key 缓存，确保同一方法的函数引用恒等（`proxy.setFormData === proxy.setFormData`），支持用作事件处理器与 watcher 依赖。
+ * 2. 引用稳定性：同一方法的函数引用恒等（`proxy.setFormData === proxy.setFormData`），可直接用作事件处理器与 watcher 依赖。
  *
  * @template F - 表单实例类型
  * @param {() => F | undefined} getCurrentForm - 返回当前活跃表单实例的 getter 函数
@@ -177,6 +179,10 @@ export function createFormProxy<F extends object = any>(
   const methodCache = new Map<string | symbol, (...args: any[]) => any>();
 
   return new Proxy({} as F, {
+    /*
+     * 每次访问实时取当前实例：:form 运行期替换后属性读写无需重绑
+     * 函数属性经 methodCache 包装后引用恒等（调用时再次取当前实例，双重保证动态路由）
+     */
     get(_, prop) {
       const current = getCurrentForm() as any;
       const val = current?.[prop];
@@ -191,6 +197,7 @@ export function createFormProxy<F extends object = any>(
       }
       return val;
     },
+    // 转发写入当前实例；实例缺失时静默丢弃（返回 true，挂载前经代理写入是无效操作）
     set(_, prop, value) {
       const current = getCurrentForm();
       if (current) {
@@ -198,6 +205,7 @@ export function createFormProxy<F extends object = any>(
       }
       return true;
     },
+    // 以下三个 trap 支撑 in / Object.keys / 展开 / JSON 序列化对当前实例的反射
     has(_, prop) {
       const current = getCurrentForm();
       return Boolean(current && prop in current);

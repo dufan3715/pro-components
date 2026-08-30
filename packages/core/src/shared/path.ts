@@ -17,10 +17,28 @@
 
 const PATH_CACHE_LIMIT = 5000;
 const pathCache = new Map<string, string[]>();
+// 告警去重集合容量上限
+const WARNED_PATHS_LIMIT = 5000;
 const warnedPaths = new Set<string>();
+
+/** FIFO 分批驱逐最旧的 10% */
+function evictOldestBatch(
+  store: Set<string> | Map<string, unknown>,
+  limit: number
+) {
+  const batch = Math.ceil(limit * 0.1);
+  let evicted = 0;
+  for (const key of store.keys()) {
+    store.delete(key);
+    if (++evicted >= batch) break;
+  }
+}
 
 function warnInvalid(p: string, reason: string) {
   if (warnedPaths.has(p)) return;
+  if (warnedPaths.size >= WARNED_PATHS_LIMIT) {
+    evictOldestBatch(warnedPaths, WARNED_PATHS_LIMIT);
+  }
   warnedPaths.add(p);
   console.warn(
     `[pro-components] 非法路径 "${p}"：${reason}。支持语法：点分('a.b')、数字段('list.0')、简单括号('a[0]')。`
@@ -88,13 +106,7 @@ function cachedParse(p: string): string[] {
   if (s === undefined) {
     s = parsePath(p);
     if (pathCache.size >= PATH_CACHE_LIMIT) {
-      // FIFO 分批驱逐最旧的 10%：整体 clear 会造成周期性全量 miss 抖动
-      const batch = Math.ceil(PATH_CACHE_LIMIT * 0.1);
-      let evicted = 0;
-      for (const key of pathCache.keys()) {
-        pathCache.delete(key);
-        if (++evicted >= batch) break;
-      }
+      evictOldestBatch(pathCache, PATH_CACHE_LIMIT);
     }
     pathCache.set(p, s);
   }
@@ -132,6 +144,7 @@ export function get(
     path = cachedParse(path);
   }
   let cur = obj as any;
+  // 中间段取到 null/undefined 即视为路径断裂返回 undefined；终点值本身为 null/undefined 时原样返回
   for (let i = 0; i < path.length; i++) {
     cur = cur[path[i]];
     if (cur === undefined || cur === null) {
@@ -170,6 +183,10 @@ export function set(
   const n = path.length;
   if (n === 0) return obj;
   let nested = obj as any;
+  /*
+   * 中间层遍历：层级缺失时自动创建（下一段为数字 key 建数组，否则建对象）
+   * 任一中间段为原型敏感键则整条路径放弃写入
+   */
   for (let i = 0; i < n - 1; i++) {
     const key = path[i];
     if (isDangerousKey(key)) return obj;
@@ -186,7 +203,7 @@ export function set(
   return obj;
 }
 
-/** 对齐 lodash assignValue：自身属性且 SameValueZero 等值时跳过，避免无谓的响应式触发 */
+/** 自身属性且 SameValueZero 等值时跳过写入，语义对齐 lodash assignValue */
 function assignValue(object: any, key: string | number, value: unknown) {
   const cur = object[key];
   if (

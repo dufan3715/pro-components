@@ -31,6 +31,7 @@
 import {
   type Component,
   computed,
+  getCurrentInstance,
   inject,
   mergeProps,
   ref,
@@ -53,8 +54,6 @@ import { Field as VanField } from '../../../../shared/ui';
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
 
-let baseFieldInstanceCounter = 0;
-
 const uiFieldPropsKeys = Object.keys(VanField.props || {});
 
 type Props = {
@@ -69,7 +68,10 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useLocale();
 
 const form = useForm(false);
-// 全局默认配置：按组件名解析注入描述符；inject 须在 setup 同步期调用
+/**
+ * 全局默认配置：按组件名解析注入描述符，inject 须在 setup 同步期调用。
+ * 组件名仅取 setup 期初始值——运行期变更不会切换 Provider 的默认值预设。
+ */
 const config = getInjectConfig(props.component);
 const rawInjectComponentProps = inject(config.injectionKey, config.default);
 
@@ -109,10 +111,21 @@ const value = computed({
       }
     }
     form?.setFormData?.(props.path, newVal);
+    /*
+     * 字段配置/attrs 传入的 onUpdate:* 监听器与内部写值组合回放，参数为组件原始 emit 值
+     * popup 字段在 confirm 提交时经此 setter 触发，滚动选择过程的中间值不会误触监听器
+     */
+    const { onUpdateValue } = groupedAttrs.value;
+    if (typeof onUpdateValue === 'function') {
+      onUpdateValue(val);
+    } else if (Array.isArray(onUpdateValue)) {
+      onUpdateValue.forEach(listener => listener(val));
+    }
   },
 });
 
-const fieldUid = ++baseFieldInstanceCounter;
+// 字段实例唯一标识：复用组件实例 uid，用于弹层开启时的字段归属匹配
+const fieldUid = getCurrentInstance()!.uid;
 
 const popupCloseEventName = computed(() => {
   let confirm = 'onConfirm';
@@ -155,7 +168,11 @@ const groupedAttrs = computed(() => {
 
   // prettier-ignore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { valueFormatter, displayFormatter, modelProp, slots, fieldClass, fieldStyle, componentContainer, popup, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: _onUpdateModelVal, ...bindAttrs } = mergedProps as Record<string, any>;
+  const { valueFormatter, displayFormatter, modelProp, slots, fieldClass, fieldStyle, componentContainer, popup, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: onUpdateValue, ...bindAttrs } = mergedProps as Record<string, any>;
+  /*
+   * 弹层提交语义：confirm 事件把 popupFieldValue 经 value setter 写入 formData 后关闭弹层
+   * cancel 直接关闭不写值；confirm/cancel 事件名按组件映射并合并字段/attrs 上的同名监听器
+   */
   if (popup) {
     const {
       [popupCloseEventName.value.confirm]: confirmEvent,
@@ -192,10 +209,11 @@ const groupedAttrs = computed(() => {
     fieldAttrs,
     slots,
     componentContainer,
-    modelProp: modelProp,
+    modelProp,
     valueFormatter,
     displayFormatter,
     popup,
+    onUpdateValue,
   };
 });
 
@@ -270,6 +288,7 @@ defineExpose({
     :path="props.path"
   >
     <template v-if="popupAble">
+      <!-- name 使 vant Form 能按 name 寻址到本字段 -->
       <VanField
         ref="fieldRef"
         v-bind="{
@@ -279,6 +298,7 @@ defineExpose({
           ...groupedAttrs.fieldAttrs,
         }"
         :model-value="displayValue"
+        :name="props.path"
         @click="onFieldClick"
       />
       <ContainerFragment

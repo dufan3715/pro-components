@@ -34,7 +34,7 @@ describe('跨包一致性 · vant-pro', () => {
     popup.open('address', ['110000', '110100']);
     expect(popup.popupFieldValue.value).toEqual(['110000', '110100']);
 
-    // 连续打开另一个字段且不带初值：不得显示上一个字段的旧值（修复前会残留）
+    // 连续打开另一个字段且不带初值：不得显示上一个字段的旧值
     popup.open('birthday');
     expect(popup.popupFieldValue.value).toBeUndefined();
     expect(popup.popupFieldPath.value).toBe('birthday');

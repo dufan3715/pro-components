@@ -127,6 +127,7 @@ export interface UseFormDataReturn<D extends Data = Data> {
 const useFormData = <D extends Data = Data>(
   initFormData?: ExtendWithAny<DeepPartial<D>>
 ): UseFormDataReturn<D> => {
+  // 未传初始数据且处于组件上下文时，复用父级提供的数据 store（子表单默认与父共享数据）
   if (initFormData === undefined && getCurrentInstance()) {
     const injectFormDataStore = inject(InjectionFormDataKey, undefined);
     if (injectFormDataStore) return injectFormDataStore as never;
@@ -143,6 +144,7 @@ const useFormData = <D extends Data = Data>(
   }
 
   function setFormData(...args: any[]) {
+    // 单实现分派四种重载形态：两参为路径设置/函数式更新，单参为批量覆盖/函数式批量
     let path;
     let value;
     if (args.length >= 2) {
@@ -163,6 +165,7 @@ const useFormData = <D extends Data = Data>(
         value = value(preValue);
       }
       if (!isPlainObject(value)) return;
+      // 批量覆盖：先删除新对象不含的自有 key 再合并——全量替换语义（非 merge），formData 引用保持不变
       const newKeys = new Set(Object.keys(value));
       Object.keys(formData).forEach(key => {
         if (!newKeys.has(key)) {
@@ -174,6 +177,7 @@ const useFormData = <D extends Data = Data>(
   }
 
   const formDataStore = { formData, getFormData, setFormData } as any;
+  // 组件上下文中把数据 store 提供给下游，支撑多级表单的数据复用
   if (getCurrentInstance()) {
     provide(InjectionFormDataKey, formDataStore);
   }

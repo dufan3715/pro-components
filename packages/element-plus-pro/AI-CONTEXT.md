@@ -45,7 +45,7 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/element-plus-pro';
 
 ### 隐式默认行为（INJECT_CONFIG，易踩坑）
 
-由 `ProComponentProvider` 注入，优先级低于 Field 配置。**不写也有这些默认值，需知晓以免行为与预期不符：**
+由 `ProComponentProvider` 注入，优先级低于 Field 配置。**不写也有这些默认值，需知晓以免行为与预期不符**；其中 `maxlength` / `max` / `min` / `controls` 属非中性默认（超长输入被静默截断、数值范围受限、步进按钮隐藏），业务要求更高时在 Field 或 `componentVars` 中显式覆盖：
 
 | component                                     | 默认预设                                                                                                                                                                                                                                |
 | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/element-plus-pro';
 | `input`                                       | `{ maxlength: 100, clearable: true }`                                                                                                                                                                                                   |
 | `input.textarea`                              | `{ maxlength: 200, autosize: {minRows:3,maxRows:6}, showWordLimit: true, clearable: true }`                                                                                                                                             |
 | `input.password`                              | `{ showPassword: true, maxlength: 100, clearable: true }`                                                                                                                                                                               |
-| `input-number`                                | `{ max: 1e15-1, min: -(1e15+1), controls: false, style:{width:'100%'} }`                                                                                                                                                                |
+| `input-number`                                | `{ max: 1e15-1, min: -(1e15-1), controls: false, style:{width:'100%'} }`                                                                                                                                                                |
 | `autocomplete`                                | `{ clearable: true }`                                                                                                                                                                                                                   |
 | `select` / `cascader` / `tree-select`         | `{ clearable: true }`                                                                                                                                                                                                                   |
 | `date-picker` / `time-picker` / `time-select` | `{ style:{width:'100%'} }`                                                                                                                                                                                                              |
@@ -62,7 +62,7 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/element-plus-pro';
 | `pro-table`                                   | `{ pagination:{layout:'total, sizes, prev, pager, next, jumper', pageSizes:[10,20,30,40,50,100], background:true}, searchFormConfig:{layout:'grid', expand:{minExpandRows:2, expandStatus:false}}, control:true, addIndexColumn:true }` |
 
 > `modelProp` 控制 v-model 绑定名，element-plus 默认 `'modelValue'`（即 `v-model`）。
-> `date-picker` 支持按 type 子类型分别预设：`date-picker.date` / `.dates` / `.daterange` / `.datetime` / `.datetimerange` / `.week` / `.month` / `.monthrange` / `.months` / `.year` / `.yearrange` / `.years`，范围类型自动生成 `startPlaceholder`/`endPlaceholder`。
+> `date-picker` 支持按 type 子类型分别预设：`date-picker.date` / `.dates` / `.daterange` / `.datetime` / `.datetimerange` / `.week` / `.month` / `.monthrange` / `.months` / `.year` / `.yearrange` / `.years`，范围类型自动生成 `startPlaceholder`/`endPlaceholder`；预设 key 在 setup 期定型，运行期变更 `type` 不会切换预设。
 > `checkbox-group` / `radio-group` / `slider` / `transfer` 无预设（`{}`）。
 > **占位符由 locale 兜底**：未显式设置 `placeholder` 时按组件类型自动生成（input 类 -> `input.placeholder`，select/cascader/tree-select 类 -> `select.placeholder`，日期/时间类 -> `date-picker.placeholder`，范围类型 -> `date-picker.start`/`date-picker.end` 等），语言随宿主组件库自动切换。
 
@@ -116,7 +116,7 @@ useTable({ columns, data, pageParam, searchParam, searchFields }); // 数据源�
 | `table.searchForm`                                                    | 搜索表单实例（Form 类型，所有 useForm 方法可用）       |
 | `table.setColumn` / `deleteColumn` / `appendColumn` / `prependColumn` | 列增删改查（用法同 setField，支持 `{all:true}`）       |
 | `table.setPageParam(patch)`                                           | 设置分页参数                                           |
-| `table.resetQueryParams()`                                            | 重置分页到第一页 + 恢复搜索条件到初始值                |
+| `table.resetQueryParams()`                                            | 恢复分页与搜索条件到初始化快照                         |
 
 ## 关键约定
 

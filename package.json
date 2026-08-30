@@ -38,7 +38,7 @@
     "@eslint/json": "^0.11.0",
     "@stylelint-less/postcss-less": "^6.1.0",
     "@vitejs/plugin-vue": "^5.2.3",
-    "ant-design-vue": "^4.2.5",
+    "ant-design-vue": "^4.2.6",
     "eslint": "^9.24.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-vue": "^10.0.0",

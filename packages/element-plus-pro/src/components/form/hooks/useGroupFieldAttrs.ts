@@ -17,6 +17,7 @@ const gridItemPropKeys = Object.keys(gridItemProps());
 // 模块级 Set：字段循环内 O(1) 命中，替代数组 includes 线性扫描
 const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
 const formItemPropKeySet = new Set<string>(formItemPropKeys);
+const formItemSlotKeySet = new Set<string>(FORM_ITEM_SLOT_KEYS);
 
 export interface GroupedField {
   path: string;
@@ -89,7 +90,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
 
         Object.assign(componentProps, componentDataAttrs);
         Object.keys(slots).forEach(k => {
-          if (FORM_ITEM_SLOT_KEYS.includes(k as any)) {
+          if (formItemSlotKeySet.has(k)) {
             formItemSlots[k] = slots[k];
           } else {
             componentProps.slots[k] = slots[k];

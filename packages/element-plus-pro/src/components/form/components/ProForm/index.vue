@@ -9,8 +9,8 @@
  *
  * 1. 数据隔离：ProForm 本身不负责存储和管理表单状态，所有核心状态（formData, fields, 校验规则）
  *    均交由底层的 `useForm`（@qin-ui/pro-components-core）驱动。
- * 2. 上下文透传：通过 `provide` 将核心状态下发给子组件，避免了深层嵌套的 Props 传递。
- * 3. 递归渲染：网格布局和具体字段的解析交由 `<BaseFormItem>` 递归完成，实现了 UI 布局与表单逻辑的解耦。
+ * 2. 上下文透传：通过 `provide` 将核心状态下发给子组件。
+ * 3. 递归渲染：网格布局和具体字段的解析交由 `<BaseFormItem>` 递归完成。
  *
  * 通过配置驱动的方式快速构建表单，支持：
  * - 字段联动、嵌套字段、自定义组件、网格布局
@@ -86,6 +86,10 @@ const fields = computed(() => {
 const formData = computed(() => currentForm.value?.formData);
 const setFormRef = (el: any) => currentForm.value?.setFormRef?.(el);
 
+/*
+ * formKey 子树重挂载契约：以 WeakMap 为每个 form 实例生成自增 key，绑定到原生 Form 的 :key
+ * :form 运行期替换为全新实例时强制整棵表单子树重新挂载，重置宿主校验状态与深层字段非受控状态
+ */
 let formInstanceCounter = 0;
 const formInstanceKeyMap = new WeakMap<object, number>();
 const getFormKey = (f: object) => {
@@ -129,6 +133,7 @@ provide(InjectionFormSlotsKey, slots);
 </script>
 
 <template>
+  <!-- el-form 渲染原生 form 元素，拦截回车触发的默认提交 -->
   <ElForm
     :key="formKey"
     :ref="setFormRef"

@@ -174,14 +174,14 @@ ProForm/ProTable 是渲染引擎，所有真实 UI 来自 ant-design-vue。**Fie
 
 #### 内置默认预设（INJECT_CONFIG）
 
-ProComponentProvider 内置了一套默认属性预设，**即使不配置 `componentVars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。以下为各组件的内置默认值（写代码时需知晓，避免行为与预期不符）：
+ProComponentProvider 内置了一套默认属性预设，**即使不配置 `componentVars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。以下为各组件的内置默认值（写代码时需知晓，避免行为与预期不符）。其中部分值会改变宿主组件原生行为（如 `maxlength` 静默截断超长输入、`input-number` 限制数值范围并隐藏步进按钮），排查「输入被截断 / 数值有上限」类问题前先核对本清单：
 
 | component                                      | 默认预设                                                                                                                                                                                                                                                      |
 | :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `switch`                                       | `{ modelProp: 'checked' }` —— v-model 绑定 `checked` 而非 `value`                                                                                                                                                                                             |
 | `input` / `input-password`                     | `{ maxlength: 100, allowClear: true, placeholder: '请输入' }`                                                                                                                                                                                                 |
 | `textarea`                                     | `{ maxlength: 200, autoSize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true, placeholder: '请输入' }`                                                                                                                                          |
-| `input-number`                                 | `{ max: 1e15-1, min: -(1e15+1), controls: false, placeholder: '请输入', style: { width: '100%' } }`                                                                                                                                                           |
+| `input-number`                                 | `{ max: 1e15-1, min: -(1e15-1), controls: false, placeholder: '请输入', style: { width: '100%' } }`                                                                                                                                                           |
 | `select` / `cascader`                          | `{ allowClear: true, placeholder: '请选择', getPopupContainer }`                                                                                                                                                                                              |
 | `date-picker` / `range-picker` / `time-picker` | `{ allowClear: true, getPopupContainer, style: { width: '100%' } }`                                                                                                                                                                                           |
 | `pro-form`                                     | `{ grid: { gutter: { xs: 8, sm: 16, md: 16, lg: 24 } } }`                                                                                                                                                                                                     |
@@ -189,6 +189,7 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 | `pro-table`                                    | `{ pagination: { showTotal, showSizeChanger, pageSizeOptions: ['10', '20', '30', '40', '50', '100'], showQuickJumper: true }, searchFormConfig: { layout: 'grid', expand: { minExpandRows: 2, expandStatus: false } }, control: true, addIndexColumn: true }` |
 
 > `modelProp` 控制 v-model 绑定的属性名，默认 `'value'`（即 `v-model:value`）。`switch` 经预设绑定为 `checked`，通常无需手动设置。
+> `showTotal`（分页总计）与 `placeholder` 不在 INJECT_CONFIG 预设内，由 locale 体系提供，可在 Field / ProTable 配置中显式覆盖。
 
 ---
 
@@ -327,7 +328,7 @@ const table = useTable<D, T>({
 | `appendColumn(key, col)`  | 在某一个列的后方动态追加配置列                            | `(key, col) => void`   |
 | `prependColumn(key, col)` | 在某一个列的前方动态插入配置列                            | `(key, col) => void`   |
 | `setPageParam(param)`     | 增量设置当前分页参数值，支持传入对象或更新函数            | `(param) => void`      |
-| `resetQueryParams()`      | 重置搜索参数，并恢复分页至第 1 页                         | `() => void`           |
+| `resetQueryParams()`      | 恢复分页与搜索参数到初始化快照                            | `() => void`           |
 
 #### 列配置（Column）
 

@@ -48,7 +48,7 @@ describe('跨包一致性 · element-plus-pro', () => {
           {
             prop: 'a',
             label: 'A',
-            // 返回原始字符串（含特殊字符）：修复前会被当作组件/标签名解析
+            // 返回原始字符串（含特殊字符），不作为组件/标签名解析
             render: ({ cellValue }: any) => cellValue ?? '<unknown-tag>',
           },
         ] as any,

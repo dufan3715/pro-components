@@ -267,10 +267,7 @@ type WithFields<D extends Data = Data> = WithRef<
 /**
  * @description 合并 FormItem 插槽与组件插槽
  */
-export type MergeSlots<
-  T extends abstract new (...args: any) => any,
-  CS = ComponentSlots<T>,
-> = Partial<{
+export type MergeSlots<T, CS = ComponentSlots<T>> = Partial<{
   [K in keyof FormItemSlots | keyof CS]: K extends keyof FormItemSlots
     ? FormItemSlots[K]
     : K extends keyof CS
@@ -283,10 +280,7 @@ export type MergeSlots<
  * @template T - Vue 组件类型
  * @template D - 数据对象类型
  */
-type WithComponent<
-  T extends abstract new (...args: any) => any,
-  D extends Data = Data,
-> = Omit<
+type WithComponent<T, D extends Data = Data> = Omit<
   WithCommon<Partial<ComponentProps<T>>, D>,
   keyof VNodeProps | 'slots'
 > & {

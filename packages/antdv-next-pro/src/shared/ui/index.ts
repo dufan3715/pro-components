@@ -1,4 +1,5 @@
 import { Col, Table, FormItem } from 'antdv-next';
+import type { ComponentProps } from 'vue-component-type-helpers';
 
 export {
   theme,
@@ -51,6 +52,9 @@ const _formItemProps = (FormItem as any).props || {};
 export const tableProps = () => _tableProps;
 export const gridItemProps = () => _gridItemProps;
 export const formItemProps = () => _formItemProps;
+
+// 补齐导出 TableProps 缺失的 onChange/onExpand 等事件处理器成员
+export type TableComponentProps = ComponentProps<typeof Table>;
 
 export {
   useDisabledContext,

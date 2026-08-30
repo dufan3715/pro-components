@@ -301,4 +301,36 @@ describe('BaseField 组件测试', () => {
     expect(inputEl.attributes('internaltag')).toBeUndefined();
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BF-B5 [判别]: 字段配置传入的 onUpdate:modelValue 监听器与内部写值组合回放
+  // ----------------------------------------------------
+  it('BF-B5 [判别]: onUpdate:modelValue 监听器在内部写值后回放，接收组件原始 emit 值', async () => {
+    const received: any[] = [];
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        component: 'input',
+        'onUpdate:modelValue': (val: any) => {
+          received.push(val);
+        },
+      } as any,
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    await wrapper.find('input').setValue('张三');
+    await flushPromises();
+
+    // 内部写值成功（组合而非替换）
+    expect(form.getFormData('name')).toBe('张三');
+    // 监听器回放组件原始 emit 值
+    expect(received).toEqual(['张三']);
+
+    wrapper.unmount();
+  });
 });

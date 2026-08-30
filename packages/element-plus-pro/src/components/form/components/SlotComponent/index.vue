@@ -14,9 +14,10 @@ type Props = {
 };
 defineProps<Props>();
 
-// 可组件化渲染判定：VNode / 函数（含函数式组件）/ 组件定义对象；
-// 其余（string/number/boolean/null/undefined）一律按文本渲染，
-// 避免字符串返回值被 <component :is> 当作标签名解析
+/*
+ * 可组件化渲染判定：VNode / 函数（含函数式组件）/ 组件定义对象
+ * 其余（string/number/boolean/null/undefined）一律按文本渲染，不作为 <component :is> 的标签名解析
+ */
 const isRenderable = (c: Props['component']) =>
   c !== null &&
   c !== undefined &&

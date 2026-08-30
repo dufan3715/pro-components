@@ -32,6 +32,7 @@ import {
   type FormProps,
   type FormItemProps,
   type TableProps as _TableProps,
+  type TableEmits,
   type TableColumnCtx as ColumnType,
   type PaginationProps,
   type RowProps as GridProps,
@@ -75,6 +76,7 @@ export {
   type GridProps,
   type GridItemProps,
   type ColumnType,
+  type TableEmits,
 };
 
 export type TableProps = _TableProps<any>;

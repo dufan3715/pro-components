@@ -3,10 +3,10 @@
  * @description 搜索表单高度测量、网格折叠与自适应展开状态管理核心 Hook
  *
  * ## 核心职责
- * 1. 自然高度与单行高度测量：利用 scrollHeight 突破 overflow: hidden 约束，配合 ResizeObserver 监听表单尺寸变化；
+ * 1. 自然高度与单行高度测量：测量表单自然展开高度与单行高度，并监听表单尺寸变化驱动更新（测量写入含死区）；
  * 2. 折叠高度计算与溢出检测：根据 minExpandRows 与 rowGap 计算折叠高度，判断是否显示展开/收起按钮；
- * 3. 溢出字段初值自动展开：利用 IntersectionObserver 检测隐藏区域内是否有已填写的搜索值，有值自动展开；
- * 4. 用户交互锁定：记录 isManualToggle，防止动态重测覆盖用户手动折叠/展开意图；
+ * 3. 溢出字段初值自动展开：检测隐藏区域内是否有已填写的搜索值，有值自动展开；
+ * 4. 用户交互锁定：置位 isManualToggle 后，自动测量不覆盖用户手动折叠/展开状态；
  * 5. 跨包统一高度状态导出（heightStyle, currentHeight, showExpandToggle, expandStatus）。
  */
 import {
@@ -18,6 +18,9 @@ import {
   type ComputedRef,
   type Ref,
 } from 'vue';
+
+// 测量写入死区（px）：与上次写入值的差异小于该值时不更新状态
+const MEASURE_DEAD_ZONE_PX = 2;
 
 export interface UseSearchFormExpandProps {
   form: any;
@@ -53,8 +56,16 @@ export function useSearchFormExpand(
 
   let resizeObserver: ResizeObserver | null = null;
   let intersectionObserver: IntersectionObserver | null = null;
+  let measuredEl: any;
+  let lastAppliedNaturalHeight: number | undefined;
+  let lastAppliedRowHeight: number | undefined;
+  let measureRafId: number | null = null;
 
   const cleanupObservers = () => {
+    if (measureRafId !== null) {
+      cancelAnimationFrame(measureRafId);
+      measureRafId = null;
+    }
     if (resizeObserver) {
       resizeObserver.disconnect();
       resizeObserver = null;
@@ -79,31 +90,62 @@ export function useSearchFormExpand(
   });
 
   const showExpandToggle = ref(false);
-  const expandStatus = ref(true);
+  // 初始展开状态与 expand 配置对齐（默认折叠）
+  const expandStatus = ref(
+    computedExpand.value ? computedExpand.value.expandStatus : false
+  );
 
   const updateHeights = () => {
     if (!props.expand || !props.form?.formRef?.value) return;
     const proFormEl = (props.form.formRef.value as any)?.$el;
     if (!proFormEl) return;
 
+    // 新表单元素重建测量基线
+    if (measuredEl !== proFormEl) {
+      measuredEl = proFormEl;
+      lastAppliedNaturalHeight = undefined;
+      lastAppliedRowHeight = undefined;
+    }
+
     const itemHeight = proFormEl
       ?.querySelector("[class*='-form-item']")
       ?.getBoundingClientRect?.()?.height;
-    if (itemHeight && itemHeight > 0) {
+    if (
+      itemHeight &&
+      itemHeight > 0 &&
+      (lastAppliedRowHeight === undefined ||
+        Math.abs(itemHeight - lastAppliedRowHeight) >= MEASURE_DEAD_ZONE_PX)
+    ) {
       rowHeight.value = itemHeight;
+      lastAppliedRowHeight = itemHeight;
     }
 
-    // 使用 scrollHeight 测量自然展开高度，突破固定高度与 overflow: hidden 样式的自引用限制
+    // 测量自然展开高度
     const naturalHeight =
       proFormEl.scrollHeight ||
       proFormEl.getBoundingClientRect?.()?.height ||
       0;
-    if (naturalHeight > 0) {
+    if (
+      naturalHeight > 0 &&
+      (lastAppliedNaturalHeight === undefined ||
+        Math.abs(naturalHeight - lastAppliedNaturalHeight) >=
+          MEASURE_DEAD_ZONE_PX)
+    ) {
       proFormHeight.value = naturalHeight;
+      lastAppliedNaturalHeight = naturalHeight;
     }
   };
 
-  // 手动展开/收起标记：置位后自动测量不再覆盖用户操作
+  // 同一帧内的多次测量请求合并为一次
+  const scheduleMeasure = () => {
+    if (measureRafId !== null) return;
+    measureRafId = requestAnimationFrame(() => {
+      measureRafId = null;
+      updateHeights();
+    });
+  };
+
+  // 手动展开/收起标记：置位后自动测量不覆盖用户操作
   const isManualToggle = ref(false);
 
   const changeExpandStatus = () => {
@@ -163,6 +205,10 @@ export function useSearchFormExpand(
     }
   };
 
+  /*
+   * 测量驱动：可见字段数 / formRef 实例 / expand 配置任一变化后重测
+   * flush: 'post' 保证在 DOM 更新完成后读取新布局，immediate 覆盖首次挂载
+   */
   watch(
     [
       () => props.form?.fields?.value?.filter((f: any) => !f.hidden)?.length,
@@ -175,6 +221,10 @@ export function useSearchFormExpand(
     { flush: 'post', immediate: true }
   );
 
+  /*
+   * ResizeObserver 随表单实例重挂：实例替换时断开旧监听并观察新容器
+   * 回调仅排队 scheduleMeasure，同一帧内的多次尺寸变化合并为一次测量
+   */
   watch(
     () => props.form?.formRef?.value,
     val => {
@@ -185,7 +235,7 @@ export function useSearchFormExpand(
       const formEl = (val as any)?.$el;
       if (formEl && typeof ResizeObserver !== 'undefined') {
         resizeObserver = new ResizeObserver(() => {
-          updateHeights();
+          scheduleMeasure();
         });
         resizeObserver.observe(formEl);
       }
@@ -220,9 +270,11 @@ export function useSearchFormExpand(
     { flush: 'post' }
   );
 
-  const currentHeight = computed(() =>
-    expandStatus.value ? proFormHeight.value : collapseHeight.value
-  );
+  // 首次测量完成前不施加高度约束
+  const currentHeight = computed(() => {
+    if (proFormHeight.value === 'unset') return 'unset';
+    return expandStatus.value ? proFormHeight.value : collapseHeight.value;
+  });
 
   const heightStyle = computed(() => {
     const h = currentHeight.value;

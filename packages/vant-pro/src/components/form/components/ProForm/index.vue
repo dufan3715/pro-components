@@ -9,8 +9,8 @@
  *
  * 1. 数据隔离：ProForm 本身不负责存储和管理表单状态，所有核心状态（formData, fields, 校验规则）
  *    均交由底层的 `useForm`（@qin-ui/pro-components-core）驱动。
- * 2. 上下文透传：通过 `provide` 将核心状态下发给子组件，避免了深层嵌套的 Props 传递。
- * 3. 递归渲染：具体字段的解析交由 `<BaseFormItem>` 递归完成，实现了 UI 布局与表单逻辑的解耦。
+ * 2. 上下文透传：通过 `provide` 将核心状态下发给子组件。
+ * 3. 递归渲染：具体字段的解析交由 `<BaseFormItem>` 递归完成。
  *
  * 通过配置驱动的方式快速构建移动端表单，支持：
  * - 字段联动、嵌套字段、自定义组件
@@ -112,6 +112,10 @@ const slots = defineSlots<Partial<FieldSlots & { default: Slot }>>();
  */
 provide(InjectionFormSlotsKey, slots);
 
+/*
+ * 共享弹层容器：模板内 <Popup> 的 show/close 直连 formPopup 状态
+ * popup 字段的真实组件经 Teleport 挂载到 contentId 对应的 div；popupProps 剔除 container 后透传
+ */
 const popupProps = computed(() => {
   const rawPopupProps = currentForm.value?.formPopup?.props || {};
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

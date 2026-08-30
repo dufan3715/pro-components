@@ -124,6 +124,7 @@ export function useForm(...args: any[]) {
     isRoot = args[2];
   }
 
+  // 所有表单实例统一附加 formPopup：非根实例复用注入父表单自带的弹层对象（缺失时补建），根实例新建
   const form = coreUseForm(...(args as any));
   if (!isRoot) {
     if (!(form as any).formPopup) {

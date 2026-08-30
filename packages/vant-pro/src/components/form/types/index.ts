@@ -36,7 +36,7 @@ export type VModelProps<T = any> = {
  *
  * @description
  * - 声明两个形参 `(newVal, oldVal)` 时，底层按需读取并传入写入前旧值快照深拷贝；
- * - 声明单形参 `(newVal)` 时，底层不读取旧值，以避免不必要的深拷贝性能开销。
+ * - 声明单形参 `(newVal)` 时，底层不读取旧值，不执行旧值深拷贝。
  */
 export type ValueFormatter =
   | { (val: any, oldVal?: any): any }
@@ -218,10 +218,7 @@ type WithFields<D extends Data = Data> = WithRef<
 /**
  * @description 合并 VanField 插槽与组件插槽
  */
-export type MergeSlots<
-  T extends abstract new (...args: any) => any,
-  CS = ComponentSlots<T>,
-> = Partial<{
+export type MergeSlots<T, CS = ComponentSlots<T>> = Partial<{
   [K in keyof FieldSlots | keyof CS]: K extends keyof FieldSlots
     ? FieldSlots[K]
     : K extends keyof CS
@@ -229,10 +226,7 @@ export type MergeSlots<
       : SlotComponentType;
 }>;
 
-type WithComponent<
-  T extends abstract new (...args: any) => any,
-  D extends Data = Data,
-> = Omit<
+type WithComponent<T, D extends Data = Data> = Omit<
   WithCommon<Partial<ComponentProps<T>>, D>,
   keyof VNodeProps | 'slots'
 > & {

@@ -133,6 +133,37 @@ describe('控制组件与全局 Provider 测试', () => {
   });
 
   // ----------------------------------------------------
+  // CC-A2 [判别]: 无 key 列不进入列控面板
+  // ----------------------------------------------------
+  it('CC-A2 [判别]: 无 key 且无 title 的列不出现在列控面板选项中', async () => {
+    // 直接传入未经理化的原始列配置（经 core useTable 的列会自动补齐 key）
+    const wrapper = mount(ColumnControl, {
+      props: {
+        columns: [
+          { key: 'id', title: 'ID' },
+          { title: '无键列' },
+          { key: '', title: '空串键列' },
+        ] as any,
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    const options = (wrapper.vm as any).checkedColumnsOptions;
+
+    // 有 key 列正常出现
+    expect(options.some((opt: any) => opt.value === 'id')).toBe(true);
+    // 判别点：空串 key 与无 key 列均被过滤，面板项与有效列一一对应
+    expect(
+      options.some((opt: any) => String(opt.value).startsWith('__col_'))
+    ).toBe(false);
+    expect(options.length).toBe(1);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // PC-A1 [判别]: ProComponentProvider componentVars 动态修改响应式生效
   // ----------------------------------------------------
   it('PC-A1 [判别]: 运行期动态修改 Provider 的 componentVars，子组件立即响应新配置', async () => {

@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@vue/test-utils": "^2.4.11",
-    "ant-design-vue": "^4",
+    "ant-design-vue": "^4.2.6",
     "happy-dom": "^20.11.6",
     "vitest": "^4.1.11"
   },

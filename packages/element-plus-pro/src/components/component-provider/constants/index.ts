@@ -122,6 +122,18 @@ export const INJECT_CONFIG: {
     injectionKey: Symbol(''),
     default: { style: { width: '100%' } },
   },
+  'date-picker.quarter': {
+    injectionKey: Symbol(''),
+    default: { style: { width: '100%' } },
+  },
+  'date-picker.quarters': {
+    injectionKey: Symbol(''),
+    default: { style: { width: '100%' } },
+  },
+  'date-picker.quarterrange': {
+    injectionKey: Symbol(''),
+    default: { style: { width: '100%' } },
+  },
   'date-picker.datetime': {
     injectionKey: Symbol(''),
     default: { style: { width: '100%' } },

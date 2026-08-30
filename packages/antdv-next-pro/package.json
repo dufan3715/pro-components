@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@vue/test-utils": "^2.4.11",
-    "antdv-next": "^1.1.0",
+    "antdv-next": "^1.5.2",
     "happy-dom": "^20.11.6",
     "vitest": "^4.1.11"
   },

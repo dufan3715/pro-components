@@ -103,6 +103,25 @@ describe('shared/path', () => {
       );
       warnSpy.mockRestore();
     });
+
+    it('warnedPaths 有界：超量后 FIFO 驱逐最旧记录，早期路径可再次告警', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        // 灌满告警去重集合并触发驱逐（5000 上限 + 10% 批驱逐）
+        for (let i = 0; i <= 5000; i++) toPath(`legacy_${i}[`);
+        const countAfterFill = warnSpy.mock.calls.length;
+
+        // 最近写入的路径仍在去重集合内：不重复告警
+        toPath('legacy_5000[');
+        expect(warnSpy.mock.calls.length).toBe(countAfterFill);
+
+        // 最早写入的路径已被驱逐：去重失效，允许再次告警
+        toPath('legacy_0[');
+        expect(warnSpy.mock.calls.length).toBe(countAfterFill + 1);
+      } finally {
+        warnSpy.mockRestore();
+      }
+    });
   });
 
   describe('与 lodash-es 的有意分歧用例锁定', () => {

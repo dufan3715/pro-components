@@ -28,9 +28,10 @@ const { t } = useLocale();
 const checkAll = ref(false);
 const indeterminate = ref(false);
 
-const getColumnKey = (column: Column, index: number) => {
+const getColumnKey = (column: Column) => {
   const rawKey = column.key ?? column.prop;
-  if (rawKey === undefined || rawKey === null) return `__col_${index}`;
+  if (rawKey === undefined || rawKey === null || rawKey === '')
+    return undefined;
   return normalizePathKey(rawKey);
 };
 
@@ -43,39 +44,39 @@ const checkedColumnsOptions = computed<
     column: Column;
   }>
 >(() =>
-  props.columns
-    .map((item, index) => {
-      const key = getColumnKey(item, index);
-      // 默认排除内部序号列 __INDEX__ 及显式指定的 excludedKeys
-      const excluded =
-        key === '__INDEX__' ||
-        (item as any).type === 'index' ||
-        props.columnControl?.excludedKeys?.some(ek => String(ek) === key);
-      const disabled = props.columnControl?.disabledKeys?.some(
-        dk => String(dk) === key
-      );
-      const rawTitle = item.label ?? (item as any).title;
-      const titleLabel = typeof rawTitle === 'string' ? rawTitle : undefined;
-      const propLabel =
-        item.prop !== undefined && item.prop !== null
-          ? String(item.prop)
-          : undefined;
-      const label =
-        (props.columnControl?.labels?.[key] as string) ??
-        titleLabel ??
-        propLabel ??
-        key ??
-        t('table.columnFallback', { index: index + 1 });
-      return {
-        label,
-        value: key,
-        checked: !item.hidden || !!disabled,
-        disabled: !!disabled,
-        column: item,
-        excluded,
-      };
-    })
-    .filter(item => !item.excluded)
+  props.columns.flatMap(item => {
+    const key = getColumnKey(item);
+    // 无 key/prop 列不进入列控面板
+    if (key === undefined) return [];
+    // 默认排除内部序号列 __INDEX__ 及显式指定的 excludedKeys
+    if (
+      key === '__INDEX__' ||
+      (item as any).type === 'index' ||
+      props.columnControl?.excludedKeys?.some(ek => String(ek) === key)
+    )
+      return [];
+    const disabled =
+      props.columnControl?.disabledKeys?.some(dk => String(dk) === key) ??
+      false;
+    const rawTitle = item.label ?? (item as any).title;
+    const titleLabel = typeof rawTitle === 'string' ? rawTitle : undefined;
+    const propLabel =
+      item.prop !== undefined && item.prop !== null
+        ? String(item.prop)
+        : undefined;
+    const label =
+      (props.columnControl?.labels?.[key] as string) ??
+      titleLabel ??
+      propLabel ??
+      key;
+    return {
+      label,
+      value: key,
+      checked: !item.hidden || !!disabled,
+      disabled: !!disabled,
+      column: item,
+    };
+  })
 );
 
 /** 可被用户勾选/取消的列（非 disabled） */

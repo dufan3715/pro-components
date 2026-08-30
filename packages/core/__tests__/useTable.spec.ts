@@ -213,6 +213,35 @@ describe('useTable', () => {
     expect(toRaw(dataSource.value)).toBe(ds);
   });
 
+  it('TT-22 [判别] 自动列 key 为实例级种子，多实例互不影响', () => {
+    const t1 = useTable<any>({ columns: [{ title: 'A' }, { title: 'B' }] });
+    const t2 = useTable<any>({ columns: [{ title: 'C' }] });
+    expect(t1.columns.value.map(c => c.key)).toEqual(['__col_1', '__col_2']);
+    // 判别点：两个实例的自动 key 序列各自独立从 1 计数，互不延续
+    expect(t2.columns.value[0].key).toBe('__col_1');
+  });
+
+  it('TT-23 [判别] 动态增列沿用实例级种子序列', () => {
+    const { columns, appendColumn } = useTable<any>({
+      columns: [{ key: 'a' }],
+    });
+    appendColumn(undefined, { title: 'B' });
+    appendColumn(undefined, { title: 'C' });
+    expect(columns.value.map(c => c.key)).toEqual(['a', '__col_1', '__col_2']);
+  });
+
+  it('TT-24 显式 allocateKey 生效并递归至 children', () => {
+    let n = 0;
+    const allocate = () => `k${++n}`;
+    expect(normalizeColumn({ title: 'x' } as any, allocate).key).toBe('k1');
+    const cols = normalizeColumns(
+      [{ title: 'p', children: [{ title: 'c' }] }] as any,
+      allocate
+    );
+    expect(cols[0].key).toBe('k2');
+    expect((cols[0].children as any)[0].key).toBe('k3');
+  });
+
   describe('直接变异 (DC 组)', () => {
     it('DC-01 直接变异 columns.value 后 setColumn / deleteColumn 正常操作', () => {
       const { columns, setColumn, deleteColumn } = useTable<any>({

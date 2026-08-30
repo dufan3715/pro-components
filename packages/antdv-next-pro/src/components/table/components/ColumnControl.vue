@@ -48,7 +48,7 @@ const checkedColumnsOptions = computed<
     const disabled =
       props.columnControl?.disabledKeys?.some(dk => String(dk) === key) ??
       false;
-    // labels 优先；title 为字符串时直接使用；vnode 等其他类型降级为 key，避免渲染异常
+    // labels 优先；title 为字符串时直接使用；vnode 等其他类型降级为 key
     const label =
       (props.columnControl?.labels?.[key] as string) ??
       (typeof item.title === 'string' ? item.title : key);

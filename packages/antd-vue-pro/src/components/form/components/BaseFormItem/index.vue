@@ -55,6 +55,7 @@ const validFields = computed(() =>
   (props.fields ?? []).filter(field => !toValue(field.hidden))
 );
 
+// 向下注入表单级禁用上下文，BaseField 经 useInjectDisabled 消费
 useProviderDisabled(computed(() => props.disabled));
 
 const config = INJECT_CONFIG['pro-form'];
@@ -88,6 +89,8 @@ const setFormItemRef = (field: any, el: any, formItemProps?: any) => {
     raw.getFormItemComputedProps = () => formItemProps;
   } else {
     formItemInstanceMap.delete(raw);
+    delete raw.getFormItemRef;
+    delete raw.getFormItemComputedProps;
   }
 };
 
@@ -102,6 +105,8 @@ const setComponentRef = (field: any, el: any) => {
       componentInstanceMap.get(raw)?.getComponentComputedProps();
   } else {
     componentInstanceMap.delete(raw);
+    delete raw.getComponentRef;
+    delete raw.getComponentComputedProps;
   }
 };
 

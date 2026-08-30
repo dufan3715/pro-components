@@ -158,7 +158,6 @@ describe('useFields', () => {
   });
 
   it('FF-19 函数路径默认 all=true（锁现状 C1）', () => {
-    // C1: 与 JSDoc 不符，修复阶段对齐文档
     const { fields, setField } = useFields<any>([
       { path: 'a', disabled: false },
       { path: 'b', disabled: false },
@@ -213,7 +212,6 @@ describe('useFields', () => {
   });
 
   it('FF-25 deleteField 函数路径默认 all=true（锁现状 C1）', () => {
-    // C1: 与 JSDoc 不符，修复阶段对齐文档
     const { fields, deleteField } = useFields<any>([
       { path: 'a', label: '姓名' },
       { path: 'b', label: '其他', fields: [{ path: 'c', label: '姓名' }] },
@@ -240,7 +238,6 @@ describe('useFields', () => {
       { path: 'd', label: 'D' },
     ]);
     deleteField((f: any) => ['A', 'B', 'C'].includes(f.label), { all: true });
-    // 当前实现只删除了部分，剩余 ['b', 'd']；修复后预期为 ['d']
     expect(fields.value.map((f: any) => f.path)).toEqual(['d']);
   });
 
@@ -289,7 +286,6 @@ describe('useFields', () => {
       { path: 'b' },
     ]);
     appendField(() => true, { path: 'x' }, { all: true });
-    // 当前为 ['a', 'x', 'x', 'b']，修复后预期为 ['a', 'x', 'b', 'x']
     expect(fields.value.map((f: any) => f.path)).toEqual(['a', 'x', 'b', 'x']);
   });
 
@@ -318,7 +314,6 @@ describe('useFields', () => {
       { path: 'b' },
     ]);
     prependField(() => true, { path: 'x' }, { all: true });
-    // 当前为 ['x', 'x', 'a', 'b']，修复后预期为 ['x', 'a', 'x', 'b']
     expect(fields.value.map((f: any) => f.path)).toEqual(['x', 'a', 'x', 'b']);
   });
 

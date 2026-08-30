@@ -45,7 +45,7 @@ export type SearchFormProps = {
  *
  * 1. 内部渲染 ProForm，使用 table.searchForm 管理搜索条件
  * 2. 支持 grid（网格）和 inline（行内）两种布局
- * 3. 网格布局下支持展开/折叠：通过 IntersectionObserver 自动检测哪些字段溢出
+ * 3. 网格布局下支持展开/折叠（溢出检测与初值自动展开见下方机制说明）
  * 4. 提供搜索、重置、展开/折叠按钮（支持自定义）
  *
  * ## 展开/折叠机制

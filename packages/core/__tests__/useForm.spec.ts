@@ -42,7 +42,6 @@ describe('useForm', () => {
 
   it('UF-06 [红] 单参对象初始化数据', () => {
     const form = useForm({ name: '张三' } as any);
-    // 修复后预期：formData.name === '张三'；当前实现单参被当作 root 处理，formData 为 {}
     expect(form.formData.name).toBe('张三');
   });
 

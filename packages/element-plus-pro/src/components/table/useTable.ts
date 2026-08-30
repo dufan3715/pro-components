@@ -31,7 +31,7 @@ import type { Ref } from 'vue';
  * @property appendColumn - 在指定列后追加新列，传 undefined 在末尾追加
  * @property prependColumn - 在指定列前插入新列，传 undefined 在开头插入
  * @property setPageParam - 设置分页参数，支持部分更新和函数式更新
- * @property resetQueryParams - 重置分页到第一页并恢复搜索条件到初始值
+ * @property resetQueryParams - 恢复分页与搜索条件到初始化时的快照（含自定义分页键，非固定回到第一页）
  *
  * @example
  * ```ts

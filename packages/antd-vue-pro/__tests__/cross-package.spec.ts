@@ -34,7 +34,7 @@ describe('跨包一致性 · antd-vue-pro', () => {
     });
     table.setPageParam({ current: 2, pageSize: 10 });
     await flushPromises();
-    // 第二页首个数据行的序号列应为 11（修复前从 1 重新计数）
+    // 第二页首个数据行的序号列应为 11
     const firstRowFirstCell = wrapper.findAll('tbody tr')[0]?.findAll('td')[0];
     expect(firstRowFirstCell?.text()).toBe('11');
     wrapper.unmount();

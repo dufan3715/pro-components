@@ -161,7 +161,7 @@ import { ProComponentProvider } from '@qin-ui/vant-pro';
 
 #### 内置默认预设（INJECT_CONFIG）
 
-ProComponentProvider 内置了一套默认属性预设，**即使不配置 `componentVars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。vant 版预设极简，仅以下两项有默认值，其余内置组件均无预设：
+ProComponentProvider 内置了一套默认属性预设，**即使不配置 `componentVars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。vant 版预设极简，仅以下两项有默认值，其余内置组件均无预设；表单右对齐与校验滚动定位属移动端体验默认，可在 Field 或 `componentVars` 中覆盖：
 
 | component  | 默认预设                                                                                                                                                         |
 | :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -169,6 +169,7 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 | `field`    | `{ clearable: true, placeholder: '请输入' }`                                                                                                                     |
 
 > `modelProp` 默认 `'modelValue'`（vant 统一约定，即 `v-model:modelValue`）。
+> `placeholder` 不在 INJECT_CONFIG 预设内，由 locale 体系兜底自动生成。
 
 `ComponentVars` 支持为以下组件类型配置默认属性：`pro-form` / `field` / `switch` / `stepper` / `rate` / `slider` / `uploader` / `checkbox-group` / `radio-group` / `picker` / `date-picker` / `time-picker` / `cascader` / `area` / `signature` / `button`。
 

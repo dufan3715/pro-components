@@ -45,6 +45,7 @@ export const localePacks: Record<ProLocaleName, ProLocale> = {
 export const resolveLocaleName = (lang?: string | null): ProLocaleName => {
   if (!lang) return 'zh-CN';
   const name = lang.toLowerCase();
+  // 繁体判定先于 zh 前缀判定：zh-hant / zh-tw 系同样以 zh 开头，顺序颠倒会误归简体
   const isTraditional =
     name.startsWith('zh-tw') ||
     name.startsWith('zh_tw') ||

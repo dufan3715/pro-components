@@ -92,20 +92,16 @@ export const INJECT_COMPONENTS: InjectionKey<
 const DYNAMIC_INJECT_CONFIG: Record<string, InjectConfigEntry> =
   Object.create(null);
 
+const ANONYMOUS_INJECT_CONFIG: InjectConfigEntry = {
+  injectionKey: Symbol('anonymous:config'),
+  default: {},
+};
+
 export const getInjectConfig = (key?: any): InjectConfigEntry => {
   if (!key || typeof key !== 'string') {
-    return {
-      injectionKey: Symbol('anonymous:config'),
-      default: {},
-    };
+    return ANONYMOUS_INJECT_CONFIG;
   }
-  return (
-    (INJECT_CONFIG as Record<string, InjectConfigEntry>)[key] ||
-    DYNAMIC_INJECT_CONFIG[key] || {
-      injectionKey: Symbol(`dynamic:${key}`),
-      default: {},
-    }
-  );
+  return ensureInjectConfig(key);
 };
 
 export const ensureInjectConfig = (key: string): InjectConfigEntry => {

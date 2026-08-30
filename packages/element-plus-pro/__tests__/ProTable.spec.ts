@@ -347,4 +347,239 @@ describe('ProTable 组件测试', () => {
     );
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PT-E1 [判别]: ProTable 透传 @row-click 事件并在点击行时正确触发
+  // ----------------------------------------------------
+  it('PT-E1 [判别]: ProTable 透传 @row-click 事件并在点击行时正确触发', async () => {
+    let clickedRow: any = null;
+    let clickedColumn: any = null;
+    const onRowClick = (row: any, column: any) => {
+      clickedRow = row;
+      clickedColumn = column;
+    };
+
+    const table = useTable({
+      columns: [
+        { prop: 'id', label: 'ID' },
+        { prop: 'name', label: '姓名' },
+      ],
+      data: [
+        { id: 1, name: '张三' },
+        { id: 2, name: '李四' },
+      ],
+    });
+
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        onRowClick,
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    // 找到 ElTable 并触发 row-click 事件
+    const elTable = wrapper.findComponent({ name: 'ElTable' });
+    expect(elTable.exists()).toBe(true);
+
+    const mockRow = { id: 1, name: '张三' };
+    const mockCol = { property: 'name' };
+    elTable.vm.$emit('row-click', mockRow, mockCol);
+    await flushPromises();
+
+    expect(clickedRow).toEqual(mockRow);
+    expect(clickedColumn).toEqual(mockCol);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-E2 [判别]: ProTable 透传 @selection-change 事件并在勾选变化时正确触发
+  // ----------------------------------------------------
+  it('PT-E2 [判别]: ProTable 透传 @selection-change 事件并在勾选变化时正确触发', async () => {
+    let selectionResult: any[] = [];
+    const onSelectionChange = (selection: any[]) => {
+      selectionResult = selection;
+    };
+
+    const table = useTable({
+      columns: [
+        { type: 'selection', width: 55 },
+        { prop: 'name', label: '姓名' },
+      ],
+      data: [
+        { id: 1, name: '张三' },
+        { id: 2, name: '李四' },
+      ],
+    });
+
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        onSelectionChange,
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    const elTable = wrapper.findComponent({ name: 'ElTable' });
+    expect(elTable.exists()).toBe(true);
+
+    const selectedRows = [{ id: 1, name: '张三' }];
+    elTable.vm.$emit('selection-change', selectedRows);
+    await flushPromises();
+
+    expect(selectionResult).toEqual(selectedRows);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-E3 [判别]: ProTable 透传 @sort-change 事件并在排序变更时正确触发
+  // ----------------------------------------------------
+  it('PT-E3 [判别]: ProTable 透传 @sort-change 事件并在排序变更时正确触发', async () => {
+    let sortPayload: any = null;
+    const onSortChange = (payload: any) => {
+      sortPayload = payload;
+    };
+
+    const table = useTable({
+      columns: [{ prop: 'age', label: '年龄', sortable: true }],
+      data: [{ age: 18 }, { age: 25 }],
+    });
+
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        onSortChange,
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    const elTable = wrapper.findComponent({ name: 'ElTable' });
+    expect(elTable.exists()).toBe(true);
+
+    const mockSort = { column: {}, prop: 'age', order: 'descending' };
+    elTable.vm.$emit('sort-change', mockSort);
+    await flushPromises();
+
+    expect(sortPayload).toEqual(mockSort);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-E4 [判别]: ProTable 透传 @current-change 事件并在高亮行切换时正确触发
+  // ----------------------------------------------------
+  it('PT-E4 [判别]: ProTable 透传 @current-change 事件并在高亮行切换时正确触发', async () => {
+    let currentRowResult: any = null;
+    const onCurrentChange = (currentRow: any) => {
+      currentRowResult = currentRow;
+    };
+
+    const table = useTable({
+      columns: [{ prop: 'name', label: '姓名' }],
+      data: [{ name: '王五' }],
+    });
+
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        highlightCurrentRow: true,
+        onCurrentChange,
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    const elTable = wrapper.findComponent({ name: 'ElTable' });
+    expect(elTable.exists()).toBe(true);
+
+    const mockCurrent = { name: '王五' };
+    elTable.vm.$emit('current-change', mockCurrent, null);
+    await flushPromises();
+
+    expect(currentRowResult).toEqual(mockCurrent);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-E5 [判别]: ProComponentProvider 全局注入的表格事件正确透传与生效
+  // ----------------------------------------------------
+  it('PT-E5 [判别]: ProComponentProvider 全局注入的表格事件正确透传与生效', async () => {
+    let providerClickedRow: any = null;
+    const onRowClick = (row: any) => {
+      providerClickedRow = row;
+    };
+
+    const table = useTable({
+      columns: [{ prop: 'name', label: '姓名' }],
+      data: [{ name: '赵六' }],
+    });
+
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': {
+            onRowClick,
+            stripe: true,
+          },
+        },
+      },
+      slots: {
+        default: () => h(ProTable, { table }),
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    const elTable = wrapper.findComponent({ name: 'ElTable' });
+    expect(elTable.exists()).toBe(true);
+
+    const mockRow = { name: '赵六' };
+    elTable.vm.$emit('row-click', mockRow);
+    await flushPromises();
+
+    expect(providerClickedRow).toEqual(mockRow);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-E6 [判别]: 直接声明在 ProTable 上的原生 props (stripe/border/rowKey 等) 正确透传至 ElTable
+  // ----------------------------------------------------
+  it('PT-E6 [判别]: 直接声明在 ProTable 上的原生 props (stripe/border/rowKey 等) 正确透传至 ElTable', async () => {
+    const table = useTable({
+      columns: [{ prop: 'name', label: '姓名' }],
+      data: [{ id: 'row-1', name: '张三' }],
+    });
+
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        stripe: true,
+        border: true,
+        rowKey: 'id',
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    const elTable = wrapper.findComponent({ name: 'ElTable' });
+    expect(elTable.exists()).toBe(true);
+    expect(elTable.props('stripe')).toBe(true);
+    expect(elTable.props('border')).toBe(true);
+    expect(elTable.props('rowKey')).toBe('id');
+
+    wrapper.unmount();
+  });
 });

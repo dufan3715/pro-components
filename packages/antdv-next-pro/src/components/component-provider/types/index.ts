@@ -1,4 +1,8 @@
-import { GridItemProps, FormItemProps, TableProps } from '../../../shared/ui';
+import {
+  GridItemProps,
+  FormItemProps,
+  TableComponentProps,
+} from '../../../shared/ui';
 import { ComponentName, GetComponentType } from '../../form/constants';
 import { Base, Grid } from '../../form/types';
 import { ProFormProps } from '../../form';
@@ -23,7 +27,7 @@ type FP<T extends Record<string, any>> = Partial<
 
 export type RequiredComponentVars = {
   'pro-table': PP<
-    TableProps &
+    TableComponentProps &
       Pick<
         ProTableProps,
         | 'control'

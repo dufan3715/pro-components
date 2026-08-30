@@ -43,14 +43,14 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/antdv-next-pro';
 
 ### 隐式默认行为（INJECT_CONFIG，易踩坑）
 
-由 `ProComponentProvider` 注入，优先级低于 Field 配置。**不写也有这些默认值，需知晓以免行为与预期不符：**
+由 `ProComponentProvider` 注入，优先级低于 Field 配置。**不写也有这些默认值，需知晓以免行为与预期不符**；其中 `maxlength` / `max` / `min` / `controls` 属非中性默认（超长输入被静默截断、数值范围受限、步进按钮隐藏），业务要求更高时在 Field 或 `componentVars` 中显式覆盖：
 
 | component                                                            | 默认预设                                                                                                                                                                                                                      |
 | :------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `switch`                                                             | `{ modelProp: 'checked' }` -> v-model 绑 `checked` 而非 `value`                                                                                                                                                               |
 | `input` / `input-password`                                           | `{ maxlength: 100, allowClear: true }`                                                                                                                                                                                        |
 | `textarea`                                                           | `{ maxlength: 200, autoSize: {minRows:3,maxRows:6}, showCount: true, allowClear: true }`                                                                                                                                      |
-| `input-number`                                                       | `{ max: 1e15-1, min: -(1e15+1), controls: false, style:{width:'100%'} }`                                                                                                                                                      |
+| `input-number`                                                       | `{ max: 1e15-1, min: -(1e15-1), controls: false, style:{width:'100%'} }`                                                                                                                                                      |
 | `select` / `cascader` / `auto-complete`                              | `{ allowClear: true, getPopupContainer }`                                                                                                                                                                                     |
 | `date-picker` / `range-picker` / `time-picker` / `time-range-picker` | `{ allowClear: true, getPopupContainer, style:{width:'100%'} }`                                                                                                                                                               |
 | `pro-form`                                                           | `{ grid: { gutter: {xs:8, sm:16, md:16, lg:24} } }`                                                                                                                                                                           |
@@ -58,7 +58,7 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/antdv-next-pro';
 | `pro-table`                                                          | `{ pagination:{showSizeChanger, pageSizeOptions:['10','20','30','40','50','100'], showQuickJumper:true}, searchFormConfig:{layout:'grid', expand:{minExpandRows:2, expandStatus:false}}, control:true, addIndexColumn:true }` |
 
 > `modelProp` 控制 v-model 绑定名，默认 `'value'`->`v-model:value`。
-> `date-picker` 支持按 picker 子类型分别预设：`date-picker.date` / `.week` / `.month` / `.year` / `.quarter`，默认值同上。
+> `date-picker` 支持按 picker 子类型分别预设：`date-picker.date` / `.week` / `.month` / `.year` / `.quarter`，默认值同上；预设 key 在 setup 期定型，运行期变更 `picker` 不会切换预设。
 > `input-search` / `input-otp` / `checkbox-group` / `radio-group` / `slider` / `tree-select` / `transfer` 无预设（`{}`）。
 > **占位符由 locale 兜底**：未显式设置 `placeholder` 时按组件类型自动生成（input 类 -> `input.placeholder`，select/cascader/auto-complete 类 -> `select.placeholder`），语言随宿主组件库自动切换。
 
@@ -112,7 +112,7 @@ useTable({ columns, dataSource, pageParam, searchParam, searchFields });
 | `table.searchForm`                                                    | 搜索表单实例（Form 类型，所有 useForm 方法可用）       |
 | `table.setColumn` / `deleteColumn` / `appendColumn` / `prependColumn` | 列增删改查（用法同 setField，支持 `{all:true}`）       |
 | `table.setPageParam(patch)`                                           | 设置分页参数                                           |
-| `table.resetQueryParams()`                                            | 重置分页到第一页 + 恢复搜索条件到初始值                |
+| `table.resetQueryParams()`                                            | 恢复分页与搜索条件到初始化快照                         |
 
 ## 关键约定
 

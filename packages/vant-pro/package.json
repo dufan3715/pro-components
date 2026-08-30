@@ -53,7 +53,7 @@
   "devDependencies": {
     "@vue/test-utils": "^2.4.11",
     "happy-dom": "^20.11.6",
-    "vant": "^4.9.15",
+    "vant": "^4.10.0",
     "vitest": "^4.1.11"
   },
   "sideEffects": [

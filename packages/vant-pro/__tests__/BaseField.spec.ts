@@ -338,4 +338,71 @@ describe('BaseField 组件测试 (vant-pro)', () => {
     expect(form.formPopup.visible.value).toBe(false);
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // VP-B5 [判别]: 字段配置传入的 onUpdate:modelValue 监听器与内部写值组合回放
+  // ----------------------------------------------------
+  it('VP-B5 [判别]: onUpdate:modelValue 监听器在内部写值后回放，接收组件原始 emit 值', async () => {
+    const received: any[] = [];
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        component: 'field',
+        'onUpdate:modelValue': (val: any) => {
+          received.push(val);
+        },
+      } as any,
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    await wrapper.find('input').setValue('张三');
+    await flushPromises();
+
+    // 内部写值成功（组合而非替换）
+    expect(form.getFormData('name')).toBe('张三');
+    // 监听器回放组件原始 emit 值
+    expect(received).toEqual(['张三']);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-B6 [判别]: popup 字段可被 vant Form 按 name 寻址校验
+  // ----------------------------------------------------
+  it('VP-B6 [判别]: popup 字段支持 formRef.validate(path) 按名校验与 resetValidation(path) 重置', async () => {
+    const form = useForm({ city: '' }, [
+      {
+        path: 'city',
+        component: 'cascader',
+        popup: true,
+        rules: [{ required: true, message: '请选择城市' }],
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点：popup 字段以 name 参与 vant Form 寻址，validate('city') 按名命中并以 { name, message } 拒绝
+    await expect(form.formRef.value?.validate('city')).rejects.toMatchObject({
+      message: '请选择城市',
+    });
+    await flushPromises();
+    // 校验错误信息回显在该字段上
+    expect(wrapper.text()).toContain('请选择城市');
+
+    // 按名重置校验状态
+    form.formRef.value?.resetValidation('city');
+    await flushPromises();
+    expect(wrapper.text()).not.toContain('请选择城市');
+
+    wrapper.unmount();
+  });
 });

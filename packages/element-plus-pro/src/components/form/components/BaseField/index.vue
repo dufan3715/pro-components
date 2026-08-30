@@ -68,7 +68,11 @@ const componentRef = ref<any>();
 
 const attrs: any = useAttrs();
 
-// 全局默认配置注入：key = 组件名 + type 修饰段；inject 须在 setup 同步期调用
+/**
+ * 全局默认配置注入：key = 组件名 + type 修饰段，inject 须在 setup 同步期调用。
+ * 组件名与 `type` 仅取 setup 期初始值——运行期变更不会切换 Provider 的默认值预设
+ * （`date-picker.month` 等子类型预设需在初始渲染前确定）。
+ */
 const typeVal = attrs.type;
 const injectConfigKey =
   typeof props.component === 'string'
@@ -114,6 +118,13 @@ const value = computed({
       newVal = setFormatter(val, oldVal);
     }
     form.setFormData?.(props.path, newVal);
+    // 字段配置/attrs 传入的 onUpdate:* 监听器与内部写值组合回放，参数为组件原始 emit 值
+    const { onUpdateValue } = groupedAttrs.value;
+    if (typeof onUpdateValue === 'function') {
+      onUpdateValue(val);
+    } else if (Array.isArray(onUpdateValue)) {
+      onUpdateValue.forEach(listener => listener(val));
+    }
   },
 });
 
@@ -148,7 +159,7 @@ const groupedAttrs = computed(() => {
 
   // prettier-ignore
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { valueFormatter, modelProp, slots, componentClass, componentStyle, componentContainer, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: _onUpdateModelVal, ...bindAttrs } = mergedProps as any;
+  const { valueFormatter, modelProp, slots, componentClass, componentStyle, componentContainer, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: onUpdateValue, ...bindAttrs } = mergedProps as any;
 
   return {
     attrs: bindAttrs,
@@ -156,6 +167,7 @@ const groupedAttrs = computed(() => {
     componentContainer,
     modelProp: modelPropName,
     valueFormatter,
+    onUpdateValue,
   };
 });
 

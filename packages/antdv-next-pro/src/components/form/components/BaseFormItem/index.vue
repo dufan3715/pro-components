@@ -150,7 +150,7 @@ const groupedFields = useGroupFieldAttrs(validFields);
               <SlotComponent
                 :path="item.path"
                 :component="slot"
-                v-bind="scoped"
+                v-bind="scoped as any"
               />
             </template>
             <template v-if="item.rawField.fields">

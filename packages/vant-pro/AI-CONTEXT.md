@@ -46,7 +46,7 @@ import { ProForm, useForm, useFormPopup } from '@qin-ui/vant-pro';
 
 ### 隐式默认行为（INJECT_CONFIG，易踩坑）
 
-由 `ProComponentProvider` 注入，优先级低于 Field 配置。**vant 版预设极简**，仅以下两项有默认值，其余内置组件（switch/stepper/rate/slider/uploader/checkbox-group/radio-group/picker/date-picker/time-picker/cascader/area/signature/button）均 `{}` 无预设：
+由 `ProComponentProvider` 注入，优先级低于 Field 配置。**vant 版预设极简**，仅以下两项有默认值，其余内置组件（switch/stepper/rate/slider/uploader/checkbox-group/radio-group/picker/date-picker/time-picker/cascader/area/signature/button）均 `{}` 无预设；表单右对齐与校验滚动定位属移动端体验默认，可在 Field 或 `componentVars` 中覆盖：
 
 | component  | 默认预设                                                                                                                                                         |
 | :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |

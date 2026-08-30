@@ -273,6 +273,10 @@ const useFields = <
 
   const _map = new Map<string, MapPathValue>();
 
+  /*
+   * 缓存快查：按坐标直达字段，并回验其当前归一化路径是否仍与缓存键一致
+   * 失配（字段被删/换/改名）即删除缓存条目并返回 false，由调用方回退全量遍历——永不返回过期结果
+   */
   const cacheMatch = (
     pathStr: string,
     updater: FieldUpdater<D, F>
@@ -306,6 +310,10 @@ const useFields = <
       const bool = cacheMatch(pathStr, updater);
       if (bool) return;
     }
+    /*
+     * BFS 全量遍历：遍历过程中顺带登记未缓存的路径坐标（遍历即建索引）
+     * 命中后非 all 模式立即返回，即 BFS 层序意义上的"第一个匹配"
+     */
     const queue = fields.value.map((field, i) => ({
       field,
       fieldPath: [i] as MapPathValue,
@@ -409,12 +417,14 @@ const useFields = <
         if (updateType === 'rewrite') {
           parentField.fields![fieldIndex] = value as F;
         } else {
-          // 合并更新。Object.assign 无法覆盖只读 ref（如 computed）属性：Vue 的 reactive
-          // set 拦截器在 isReadonly(oldValue) && isRef(oldValue) && !isRef(value) 时会
-          // 直接 return false 并告警，导致该属性仍指向原 ComputedRef。这里对「旧值是 ref、
-          // 新值不是 ref」的属性先 delete 再赋值，使其被原始值真正替换。
-          // 注意：旧值必须通过 toRaw 读取，否则 reactive proxy 的 get 会自动 unwrap ref，
-          // 导致 isRef 判断恒为 false。
+          /*
+           * 合并更新。Object.assign 无法覆盖只读 ref（如 computed）属性：Vue 的 reactive
+           * set 拦截器在 isReadonly(oldValue) && isRef(oldValue) && !isRef(value) 时会
+           * 直接 return false 并告警，导致该属性仍指向原 ComputedRef。这里对「旧值是 ref、
+           * 新值不是 ref」的属性先 delete 再赋值，使其被原始值真正替换。
+           * 注意：旧值必须通过 toRaw 读取，否则 reactive proxy 的 get 会自动 unwrap ref，
+           * 导致 isRef 判断恒为 false。
+           */
           const rawTarget = toRaw(preField);
           for (const key of Object.keys(value)) {
             if (isRef((rawTarget as any)[key]) && !isRef((value as any)[key])) {
@@ -449,6 +459,10 @@ const useFields = <
     options?: UpdateFieldOptions
   ) {
     if (!path) return;
+    /*
+     * 两段式变更：先收集全部匹配的 { 父级数组, 索引 } 快照（不做任何变更）
+     * 再经 applyByGroupDesc 按组降序 splice，多位点删除不产生索引错位
+     */
     const matches: GroupMatch<F>[] = [];
     updaterMatch(
       path,

@@ -75,7 +75,7 @@ export function pick<T extends object, K extends PropertyKey>(
  * 安全地将任意值转换为对象
  *
  * @description 如果传入的值是普通对象（plain object），直接返回；
- * 否则返回空对象 `{}`。用于确保值始终为可操作的对象类型。
+ * 否则返回空对象 `{}`。
  *
  * @param val - 任意值
  * @returns 如果 val 是普通对象则返回它，否则返回空对象

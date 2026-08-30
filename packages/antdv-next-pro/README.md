@@ -492,14 +492,14 @@ const config = {
 
 #### 内置默认预设（INJECT_CONFIG）
 
-ProComponentProvider 内置了一套默认属性预设，**即使不配置 `componentVars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。以下为各组件的内置默认值（写代码时需知晓，避免行为与预期不符）：
+ProComponentProvider 内置了一套默认属性预设，**即使不配置 `componentVars` 也会生效**。Field 配置优先级最高，会覆盖这些预设。以下为各组件的内置默认值（写代码时需知晓，避免行为与预期不符）。其中部分值会改变宿主组件原生行为（如 `maxlength` 静默截断超长输入、`input-number` 限制数值范围并隐藏步进按钮），排查「输入被截断 / 数值有上限」类问题前先核对本清单：
 
 | component                                                            | 默认预设                                                                                                                                                                                                                                                      |
 | :------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `switch`                                                             | `{ modelProp: 'checked' }` -- v-model 绑定 `checked` 而非 `value`                                                                                                                                                                                             |
 | `input` / `input-password`                                           | `{ maxlength: 100, allowClear: true, placeholder: '请输入' }`                                                                                                                                                                                                 |
 | `textarea`                                                           | `{ maxlength: 200, autoSize: { minRows: 3, maxRows: 6 }, showCount: true, allowClear: true, placeholder: '请输入' }`                                                                                                                                          |
-| `input-number`                                                       | `{ max: 1e15-1, min: -(1e15+1), controls: false, placeholder: '请输入', style: { width: '100%' } }`                                                                                                                                                           |
+| `input-number`                                                       | `{ max: 1e15-1, min: -(1e15-1), controls: false, placeholder: '请输入', style: { width: '100%' } }`                                                                                                                                                           |
 | `select` / `cascader` / `auto-complete`                              | `{ allowClear: true, placeholder: '请选择', getPopupContainer }`                                                                                                                                                                                              |
 | `date-picker` / `range-picker` / `time-picker` / `time-range-picker` | `{ allowClear: true, getPopupContainer, style: { width: '100%' } }`                                                                                                                                                                                           |
 | `pro-form`                                                           | `{ grid: { gutter: { xs: 8, sm: 16, md: 16, lg: 24 } } }`                                                                                                                                                                                                     |
@@ -508,6 +508,7 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 
 > `modelProp` 控制 v-model 绑定的属性名，默认 `'value'`（即 `v-model:value`）。`switch` 经预设绑定为 `checked`，通常无需手动设置。
 > antdv-next 的 `date-picker` 还支持按 picker 子类型分别预设：`date-picker.date` / `.week` / `.month` / `.year` / `.quarter`。
+> `showTotal`（分页总计）与 `placeholder` 不在 INJECT_CONFIG 预设内，由 locale 体系提供，可在 Field / ProTable 配置中显式覆盖。
 
 ---
 

@@ -91,7 +91,7 @@ type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
 
 type Props = {
   table?: T;
-  search?: (params?: any) => Promise<any> | any;
+  search?: () => Promise<unknown>;
   addIndexColumn?: boolean;
   control?: boolean | Partial<Control>;
   immediateSearch?: boolean;
@@ -201,7 +201,7 @@ const columnRequiredSlotNames = new Set([
 /**
  * 判定插槽是否具备渲染条件（守卫过渡状态或空列下 column 为 undefined 的情况）
  * 当列被动态隐藏或所有列均隐藏时，旧单元格销毁过渡帧或空占位中 column 可能为 undefined，
- * 此时直接阻断依赖 column 的业务插槽调用，防止访问 column 属性抛出 TypeError；
+ * 此时阻断依赖 column 的业务插槽调用；
  * 非列依赖的表格级插槽（如 emptyText、footer、summary 等）始终正常渲染。
  */
 const isSlotRenderable = (name: string, scoped: any) => {
@@ -306,7 +306,8 @@ const computedPagination = computed<PaginationProps | false>(() => {
 
 const onTableChange: any = (...args: any[]) => {
   props.table?.setPageParam?.(args[0]);
-  attrs.onChange?.(...args);
+  // change 回放：模板监听器优先，未绑定时回退 Provider 全局配置
+  (attrs.onChange ?? injectProps.value.onChange)?.(...args);
   _search();
 };
 

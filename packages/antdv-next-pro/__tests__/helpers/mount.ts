@@ -63,7 +63,7 @@ export const mountProTable = (
     columns?: Column[];
     dataSource?: any[];
     searchFields?: Field[];
-    search?: (params: any) => any;
+    search?: () => any;
     props?: Record<string, any>;
     slots?: Record<string, any>;
   } = {}

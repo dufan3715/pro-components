@@ -58,6 +58,46 @@ describe('BaseFormItem 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // BI-A4 [判别]: 卸载后字段对象上的注入访问器同步删除
+  // ----------------------------------------------------
+  it('BI-A4 [判别]: 字段卸载后 getFormItemRef 等注入访问器从字段对象上删除', async () => {
+    const f1: Field = { path: 'field1', label: '字段1', component: 'input' };
+    const f2: Field = { path: 'field2', label: '字段2', component: 'input' };
+
+    const form = useForm({}, [f1, f2]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 挂载期字段对象携带注入访问器
+    expect(typeof (f1 as any).getFormItemRef).toBe('function');
+    expect(typeof (f1 as any).getFormItemComputedProps).toBe('function');
+    expect(typeof (f1 as any).getComponentRef).toBe('function');
+    expect(typeof (f1 as any).getComponentComputedProps).toBe('function');
+
+    // 删除字段 f1：其 ref 回调以 null 触发清理
+    form.fields.value.splice(0, 1);
+    await flushPromises();
+
+    // 判别点：访问器属性本身被删除（而非仅返回 undefined）
+    expect((f1 as any).getFormItemRef).toBeUndefined();
+    expect((f1 as any).getFormItemComputedProps).toBeUndefined();
+    expect((f1 as any).getComponentRef).toBeUndefined();
+    expect((f1 as any).getComponentComputedProps).toBeUndefined();
+    // 在册字段不受影响
+    expect(typeof (f2 as any).getFormItemRef).toBe('function');
+
+    // 整体卸载同理
+    wrapper.unmount();
+    await flushPromises();
+    expect((f2 as any).getFormItemRef).toBeUndefined();
+    expect((f2 as any).getComponentComputedProps).toBeUndefined();
+  });
+
+  // ----------------------------------------------------
   // BI-01: hidden 过滤
   // ----------------------------------------------------
   it('BI-01: hidden: true 的字段不应被渲染', async () => {

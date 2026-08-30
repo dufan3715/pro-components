@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { defineComponent, h } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import { useFormPopup } from '../src/components/form/hooks/useFormPopup';
 import { useForm } from '../src/components/form/hooks/useForm';
@@ -212,5 +213,113 @@ describe('useFormPopup Hook & Popup 交互测试 (vant-pro)', () => {
       )
     );
     warnSpy.mockRestore();
+  });
+
+  // ----------------------------------------------------
+  // VP-V12 [判别]: 弹层容器 id 跨独立挂载可复现（useId 派生，SSR hydration 稳定）
+  // ----------------------------------------------------
+  it('VP-V12 [判别]: 组件上下文内创建的弹层容器 id 跨独立挂载保持一致', async () => {
+    // 表单须在组件 setup 内创建
+    const captureForm = () => {
+      let captured: any;
+      const HostApp = defineComponent({
+        setup() {
+          captured = useForm({ city: 'Hangzhou' }, [
+            { path: 'city', label: '城市', component: 'picker', popup: true },
+          ]);
+          return () => h(ProForm, { form: captured });
+        },
+      });
+      return { HostApp, getForm: () => captured };
+    };
+
+    const app1 = captureForm();
+    const w1 = mount(app1.HostApp, {
+      global: { stubs: { transition: false, teleport: true } },
+    });
+    await flushPromises();
+    // Popup 默认懒渲染，先打开弹层使容器 div 落地
+    app1.getForm().formPopup.open('city', 'Hangzhou');
+    await flushPromises();
+    const div1 = w1.find('div[id^="pro-form-popup-content"]');
+    expect(div1.exists()).toBe(true);
+    const id1 = div1.attributes('id');
+    expect(id1).toBe(app1.getForm().formPopup.contentId.value);
+
+    const app2 = captureForm();
+    const w2 = mount(app2.HostApp, {
+      global: { stubs: { transition: false, teleport: true } },
+    });
+    await flushPromises();
+    app2.getForm().formPopup.open('city', 'Hangzhou');
+    await flushPromises();
+    const id2 = w2.find('div[id^="pro-form-popup-content"]').attributes('id');
+
+    // 判别：仅应用级 useId 计数器的 id 序列跨挂载可复现
+    expect(id2).toBe(id1);
+    w1.unmount();
+    w2.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-V13 [判别]: 同一应用内多个 ProForm 的弹层容器 id 互不相同
+  // ----------------------------------------------------
+  it('VP-V13 [判别]: 同一应用内多个 ProForm 的弹层容器 id 互不相同', async () => {
+    const forms: any[] = [];
+    const HostApp = defineComponent({
+      setup() {
+        forms.push(
+          useForm({ city: 'a' }, [
+            { path: 'city', label: '城市A', component: 'picker', popup: true },
+          ]),
+          useForm({ city: 'b' }, [
+            { path: 'city', label: '城市B', component: 'picker', popup: true },
+          ])
+        );
+        return () =>
+          h('div', [
+            h(ProForm, { form: forms[0] }),
+            h(ProForm, { form: forms[1] }),
+          ]);
+      },
+    });
+    const w = mount(HostApp, {
+      global: { stubs: { transition: false, teleport: true } },
+    });
+    await flushPromises();
+    forms[0].formPopup.open('city', 'a');
+    forms[1].formPopup.open('city', 'b');
+    await flushPromises();
+    const ids = w
+      .findAll('div[id^="pro-form-popup-content"]')
+      .map(d => d.attributes('id'));
+    expect(ids.length).toBe(2);
+    expect(ids[0]).not.toBe(ids[1]);
+    w.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-V14 [判别]: 弹层字段归属标识与字段组件实例 uid 恒等
+  // ----------------------------------------------------
+  it('VP-V14 [判别]: 弹层字段归属标识与字段组件实例 uid 恒等', async () => {
+    const form = useForm({ city: 'Hangzhou' }, [
+      { path: 'city', label: '城市', component: 'picker', popup: true },
+    ]);
+    const w = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false, teleport: true } },
+    });
+    await flushPromises();
+
+    const fieldComp = w.findComponent({ name: 'BaseField' });
+    await w.findComponent(VanField).trigger('click');
+    await flushPromises();
+
+    expect(form.formPopup.visible.value).toBe(true);
+    // 判别：归属标识直接取组件实例 uid，而非模块级自增计数器
+    expect(form.formPopup.activeFieldId.value).toBe(
+      (fieldComp.vm as any).$.uid
+    );
+    w.unmount();
   });
 });
