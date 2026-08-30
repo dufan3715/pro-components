@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "description": "二次封装antd vue组件",
   "bin": {
     "antd-vue-pro": "./bin/init-ai.mjs"

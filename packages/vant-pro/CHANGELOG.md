@@ -1,5 +1,51 @@
 # @qin-ui/vant-pro
 
+## 1.3.3
+
+### Patch Changes
+
+- 206e205: BaseField 补充注入配置 key 的行为边界 JSDoc 声明：组件名与 `picker`（element-plus 为 `type`）仅取 setup 期初始值，运行期变更不会切换 Provider 的默认值预设（`date-picker.month` 等子类型预设需在初始渲染前确定）。纯文档说明，无行为变化。
+- 206e205: docs(source-comments): 全包源码注释完善——面向 sourceMap 进源码阅读场景
+
+  面向「使用方经 declarationMap / sourceMap 进入包源码阅读」的场景补齐与修正注释，运行时行为零变化：
+  - **core**：补齐关键逻辑段注释——`useForm` 的入参分派 / root 注入回退链 / `createFormProxy` 各 trap（实时取实例 + methodCache 引用记忆化）、`useFormData` 的注入复用与批量覆盖「先删后合」语义、`useFields` 的路径缓存回验自愈 / BFS 建索引 / 两段式降序 splice、`useTable` 的分页白名单 / 快照恢复 / DFS 匹配 key→dataIndex 顺序 / 列 key 兜底链、`path.ts` 的断裂语义与中间层建层规则、`useSearchFormExpand` 的测量驱动源与 RO 生命周期、locale 繁体判定顺序；
+  - **UI 四包**：补齐 `ProForm` 的 `:key="formKey"` 子树重挂载契约注释（三包同构）、antdv-next 的 attrs.disabled 归一下发、element-plus 的 `@submit.prevent` 与 `onSizeChange` 重置回第 1 页、vant 的共享弹层容器 / popup 提交语义 / formPopup 附加策略；
+  - **JSDoc 偏差修正**：三桌面包 `useTable` 的 `resetQueryParams` 由「重置分页到第一页」更正为「恢复到初始化快照」；三包 `SearchForm` 文档的 IntersectionObserver 职责描述与实现对齐；
+  - **注释规范落地**：超过 1 行的注释统一为 `/* */` 块注释（AGENTS.md §2.2 新规），`// prettier-ignore` / `// eslint-disable-next-line` 工具指令对保留。
+
+  纯注释变更，公开 API 与运行时行为零变化（五包 build / 454 测试 / vue-tsc / prettier 全绿）。
+
+- 206e205: fix(base-field): 字段级 `onUpdate:*` 监听器不再被静默丢弃 (R-04)
+  - 此前字段配置或 attrs 上传入的 `onUpdate:value`（element-plus/vant 为 `onUpdate:modelValue`）会在 BaseField 属性解构时被剥离丢弃，监听器永不触发；
+  - 现改为与内部写值组合：先写入 formData（含 valueFormatter 转换），随后以组件**原始 emit 值**回放该监听器；`mergeProps` 合并为数组的多个监听器按序全部回放；
+  - vant-pro 的 popup 型字段同样生效：监听器在 confirm 提交时触发，滚动选择过程的中间值不会误触；
+  - 四包同构同步修复，新增判别测试 BF-B5 / VP-B5。
+
+- 206e205: fix(ssr): 消除模块级自增种子与随机 id 在 SSR 下的 hydration 隐患 (R-06)
+  - **core `useTable`**：无 key 列的自动标识（`__col_N`）改由实例级种子生成，每次 `useTable` 调用独立从 1 计数，SSR 下服务端与客户端按相同列配置得到一致 key 序列；`normalizeColumn` / `normalizeColumns` 新增可选 `allocateKey` 参数供调用方注入生成函数，独立调用（未传参）时回退模块级兜底种子，行为向后兼容；
+  - **vant-pro `useFormPopup`**：弹层容器 id（Teleport 目标 `#pro-form-popup-content-*` 会渲染进 DOM）由 `Math.random()` 改为 Vue 3.5 `useId()` 派生，SSR 下服务端/客户端 id 一致，消除 hydration mismatch 与 Teleport 目标失配；无组件上下文的命令式独立弹层（不参与 hydration）回退 `standalone-N` 兜底计数器，多实例仍互不冲突；
+  - **vant-pro `BaseField`**：弹层字段归属标识 `fieldUid` 由模块级自增计数器改为直接复用组件实例 uid（`getCurrentInstance().uid`，同页面唯一）；该值仅参与运行期比对、不落入 DOM，SSR 不受影响，开发期 HMR 与多实例行为不变；
+  - 附带评估：四包 ProForm 的 `formInstanceCounter`（`:key="formKey"` 重挂载契约）key 不落 DOM、语义绑定 form 实例身份，无需调整；
+  - 新增判别测试：core TT-22~TT-24（实例级种子序列、动态增列延续、显式 `allocateKey` 递归）、vant VP-V12~VP-V14（跨挂载 id 可复现、同应用多实例唯一、归属标识与实例 uid 恒等）。
+
+- 206e205: `getInjectConfig` 对未知组件 key 命中即写入动态缓存（与 `ensureInjectConfig` 及其余三包语义对齐）：
+  - 同一自定义组件 key 多次寻址返回同一注入配置，此前每次生成一次性 Symbol，`inject` 恒取默认值；
+  - `ProComponentProvider` 注册的自定义 `componentVars` key 现在可被字段侧 `getInjectConfig` 命中；
+  - 非字符串 component 共享同一 anonymous 注入配置，行为不变（恒取默认值）。
+
+- 206e205: fix(base-field): popup 型字段可被 vant Form 按 name 寻址校验 (R-05)
+  - popup 分支的展示 `VanField` 此前未绑定 `name`，在 vant 表单注册表中为匿名字段：`formRef.validate(path)` / `validate([path])` 按 name 匹配不到，以裸 `Promise.reject()`（reason 为 `undefined`）落空，`resetValidation(path)` 静默无操作；
+  - 现补 `:name="props.path"` 与非 popup 分支对齐：按名校验命中并以 `{ name, message }` 拒绝、校验错误信息回显在该字段下方、按名重置可清除；
+  - 整表 `validate()`（无参）行为不变（本就覆盖全部注册子字段）；popup 交互主链路（点击 → 弹层 → confirm 回填 formData）不受影响；
+  - 新增判别测试 VP-B6。
+
+- Updated dependencies [206e205]
+- Updated dependencies [206e205]
+- Updated dependencies [206e205]
+- Updated dependencies [206e205]
+- Updated dependencies [206e205]
+  - @qin-ui/pro-components-core@2.0.3
+
 ## 1.3.2
 
 ### Patch Changes

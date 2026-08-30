@@ -1,5 +1,47 @@
 # @qin-ui/pro-components-core
 
+## 2.0.3
+
+### Patch Changes
+
+- 206e205: docs(source-comments): 全包源码注释完善——面向 sourceMap 进源码阅读场景
+
+  面向「使用方经 declarationMap / sourceMap 进入包源码阅读」的场景补齐与修正注释，运行时行为零变化：
+  - **core**：补齐关键逻辑段注释——`useForm` 的入参分派 / root 注入回退链 / `createFormProxy` 各 trap（实时取实例 + methodCache 引用记忆化）、`useFormData` 的注入复用与批量覆盖「先删后合」语义、`useFields` 的路径缓存回验自愈 / BFS 建索引 / 两段式降序 splice、`useTable` 的分页白名单 / 快照恢复 / DFS 匹配 key→dataIndex 顺序 / 列 key 兜底链、`path.ts` 的断裂语义与中间层建层规则、`useSearchFormExpand` 的测量驱动源与 RO 生命周期、locale 繁体判定顺序；
+  - **UI 四包**：补齐 `ProForm` 的 `:key="formKey"` 子树重挂载契约注释（三包同构）、antdv-next 的 attrs.disabled 归一下发、element-plus 的 `@submit.prevent` 与 `onSizeChange` 重置回第 1 页、vant 的共享弹层容器 / popup 提交语义 / formPopup 附加策略；
+  - **JSDoc 偏差修正**：三桌面包 `useTable` 的 `resetQueryParams` 由「重置分页到第一页」更正为「恢复到初始化快照」；三包 `SearchForm` 文档的 IntersectionObserver 职责描述与实现对齐；
+  - **注释规范落地**：超过 1 行的注释统一为 `/* */` 块注释（AGENTS.md §2.2 新规），`// prettier-ignore` / `// eslint-disable-next-line` 工具指令对保留。
+
+  纯注释变更，公开 API 与运行时行为零变化（五包 build / 454 测试 / vue-tsc / prettier 全绿）。
+
+- 206e205: fix(path): 告警去重集合 `warnedPaths` 增加容量上界 (R-23)
+
+  `pathCache` 有 5000 上限 + FIFO 批驱逐，但 `warnedPaths` 只增不减：长时运行进程中动态拼接的海量互异非法路径（如把用户输入直接当 path）会使该集合缓慢无界增长。
+  - `warnedPaths` 套用与 `pathCache` 相同的策略：5000 上限，超限 FIFO 分批驱逐最旧的 10%；
+  - 驱逐逻辑抽为共用 `evictOldestBatch`，两处存储复用同一实现；
+  - 行为影响：被驱逐的早期路径再次出现时会重复输出一次告警（仅 dev 提示噪音，无功能影响）；稳态内存占用有界（约 5000 条路径字符串）；
+  - 新增判别测试：灌满 5001 条互异非法路径后，最近路径不重复告警、最早路径（已被驱逐）可再次告警。
+
+- 206e205: fix(use-search-form-expand): 初始展开状态与配置对齐，未测量前不施加高度约束 (R-12)
+  - `expandStatus` 初值由写死的 `true` 改为与 `expand` 配置对齐（默认折叠、`expandStatus: true` 配置初始展开），消除「测量前按展开渲染、测量完成后收缩」的状态偏差；无溢出场景下状态不再泄漏为初始 `true`；
+  - `currentHeight` 在首次测量完成前（`proFormHeight` 仍为 `'unset'`）返回 `'unset'`，不施加高度约束——避免初值折叠化后测量前渲染出 `0px` 空白帧，与未开启 `expand` 的渲染行为一致；
+  - 已知边界：搜索字段晚于首帧就绪（接口下发配置）、SSR 水合、容器初始隐藏等「测量晚于首帧」场景，折叠高度的落定仍伴随一次布局调整——折叠高度在测量前物理上不可知，此为 DOM 度量的固有限制，本修复消除的是语义偏差与 0px 帧隐患；
+  - 新增判别测试 SE-01~SE-04（初始状态对齐、未测量守卫、折叠落定、展开配置保持）。
+
+- 206e205: 修复 useSearchFormExpand 高度测量链路的反馈振荡与展开按钮闪烁：
+  - ResizeObserver 触发的测量改为 requestAnimationFrame 合帧，同一帧内的多次尺寸变化只测量一次，卸载时取消未执行的测量帧；
+  - 测量写入增加 2px 死区：自然高度与单行高度与上次写入值差异小于 2px 时不更新状态，分数像素布局（缩放、flex 均分）下不再出现 ±1px 振荡；
+  - 更换表单元素（`:form` 运行期替换）时按元素身份重建测量基线，新元素的首次测量始终写入。
+
+  边界：±1px 内的真实尺寸变化不再触发高度状态更新，属有意取舍。
+
+- 206e205: fix(ssr): 消除模块级自增种子与随机 id 在 SSR 下的 hydration 隐患 (R-06)
+  - **core `useTable`**：无 key 列的自动标识（`__col_N`）改由实例级种子生成，每次 `useTable` 调用独立从 1 计数，SSR 下服务端与客户端按相同列配置得到一致 key 序列；`normalizeColumn` / `normalizeColumns` 新增可选 `allocateKey` 参数供调用方注入生成函数，独立调用（未传参）时回退模块级兜底种子，行为向后兼容；
+  - **vant-pro `useFormPopup`**：弹层容器 id（Teleport 目标 `#pro-form-popup-content-*` 会渲染进 DOM）由 `Math.random()` 改为 Vue 3.5 `useId()` 派生，SSR 下服务端/客户端 id 一致，消除 hydration mismatch 与 Teleport 目标失配；无组件上下文的命令式独立弹层（不参与 hydration）回退 `standalone-N` 兜底计数器，多实例仍互不冲突；
+  - **vant-pro `BaseField`**：弹层字段归属标识 `fieldUid` 由模块级自增计数器改为直接复用组件实例 uid（`getCurrentInstance().uid`，同页面唯一）；该值仅参与运行期比对、不落入 DOM，SSR 不受影响，开发期 HMR 与多实例行为不变；
+  - 附带评估：四包 ProForm 的 `formInstanceCounter`（`:key="formKey"` 重挂载契约）key 不落 DOM、语义绑定 form 实例身份，无需调整；
+  - 新增判别测试：core TT-22~TT-24（实例级种子序列、动态增列延续、显式 `allocateKey` 递归）、vant VP-V12~VP-V14（跨挂载 id 可复现、同应用多实例唯一、归属标识与实例 uid 恒等）。
+
 ## 2.0.2
 
 ### Patch Changes

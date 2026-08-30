@@ -1,5 +1,58 @@
 # @qin-ui/element-plus-pro
 
+## 1.3.4
+
+### Patch Changes
+
+- 206e205: BaseField 补充注入配置 key 的行为边界 JSDoc 声明：组件名与 `picker`（element-plus 为 `type`）仅取 setup 期初始值，运行期变更不会切换 Provider 的默认值预设（`date-picker.month` 等子类型预设需在初始渲染前确定）。纯文档说明，无行为变化。
+- 206e205: docs(source-comments): 全包源码注释完善——面向 sourceMap 进源码阅读场景
+
+  面向「使用方经 declarationMap / sourceMap 进入包源码阅读」的场景补齐与修正注释，运行时行为零变化：
+  - **core**：补齐关键逻辑段注释——`useForm` 的入参分派 / root 注入回退链 / `createFormProxy` 各 trap（实时取实例 + methodCache 引用记忆化）、`useFormData` 的注入复用与批量覆盖「先删后合」语义、`useFields` 的路径缓存回验自愈 / BFS 建索引 / 两段式降序 splice、`useTable` 的分页白名单 / 快照恢复 / DFS 匹配 key→dataIndex 顺序 / 列 key 兜底链、`path.ts` 的断裂语义与中间层建层规则、`useSearchFormExpand` 的测量驱动源与 RO 生命周期、locale 繁体判定顺序；
+  - **UI 四包**：补齐 `ProForm` 的 `:key="formKey"` 子树重挂载契约注释（三包同构）、antdv-next 的 attrs.disabled 归一下发、element-plus 的 `@submit.prevent` 与 `onSizeChange` 重置回第 1 页、vant 的共享弹层容器 / popup 提交语义 / formPopup 附加策略；
+  - **JSDoc 偏差修正**：三桌面包 `useTable` 的 `resetQueryParams` 由「重置分页到第一页」更正为「恢复到初始化快照」；三包 `SearchForm` 文档的 IntersectionObserver 职责描述与实现对齐；
+  - **注释规范落地**：超过 1 行的注释统一为 `/* */` 块注释（AGENTS.md §2.2 新规），`// prettier-ignore` / `// eslint-disable-next-line` 工具指令对保留。
+
+  纯注释变更，公开 API 与运行时行为零变化（五包 build / 454 测试 / vue-tsc / prettier 全绿）。
+
+- 206e205: fix(base-field): 字段级 `onUpdate:*` 监听器不再被静默丢弃 (R-04)
+  - 此前字段配置或 attrs 上传入的 `onUpdate:value`（element-plus/vant 为 `onUpdate:modelValue`）会在 BaseField 属性解构时被剥离丢弃，监听器永不触发；
+  - 现改为与内部写值组合：先写入 formData（含 valueFormatter 转换），随后以组件**原始 emit 值**回放该监听器；`mergeProps` 合并为数组的多个监听器按序全部回放；
+  - vant-pro 的 popup 型字段同样生效：监听器在 confirm 提交时触发，滚动选择过程的中间值不会误触；
+  - 四包同构同步修复，新增判别测试 BF-B5 / VP-B5。
+
+- 206e205: fix(base-form-item): 字段卸载时同步删除字段对象上的注入访问器 (R-21)
+
+  `BaseFormItem` 卸载（或字段被移除）触发 ref 回调收到 `null` 时，此前仅清理 WeakMap 条目，`getFormItemRef` / `getFormItemComputedProps` / `getComponentRef` / `getComponentComputedProps` 闭包仍残留在用户字段对象上——业务对字段做 `{ ...field }` 浅拷贝或序列化会携带这些内部函数。
+  - 以 antdv-next-pro 现行为为准对齐：`null` 分支在 WeakMap 删除之外同步 `delete` 字段对象上的四个注入访问器；
+  - 运行期挂载行为不变（访问器仍在册、实例读取链路不变）；
+  - 新增判别测试 BI-A4（三包同构）：断言卸载后访问器**属性本身**被删除（既有 BI-A3 仅断言返回值 undefined，无法判别残留闭包）。
+
+- 206e205: fix(column-control): 无 key/prop 列不再出现在列控面板 (R-17)
+
+  `ColumnControl` 此前为无 key/prop 列合成序号 key（`__col_${index}`）使其进入面板，但该合成 key 与真实列无关联——`setColumn(合成key, ...)` 在 core 中无法寻址而静默 no-op，勾选状态与实际列显隐脱节；列序变化时合成 key 也会漂移。现与 antd-vue-pro / antdv-next-pro 对齐：
+  - 无 key、无 prop 或 key 为空串的列直接不进入列控面板（列控仅针对可寻址的有效列）；
+  - 面板项移除对 `table.columnFallback` 文案兜底的依赖（key 必然非空）；
+  - 经 core `useTable` 的列会被自动补齐 key，不受影响；直接传 `columns` prop 的原始列配置中被过滤的列仍正常渲染，仅不提供列控开关；
+  - 新增判别测试 CC-A2（三包同构：无 key/空串 key 列被过滤，合成 key 不再出现）。
+
+- 206e205: fix(element-plus-pro): 修复 ProTable 丢弃 ElTable 原生事件监听与声明式属性透传问题 (R-01, R-26)
+  - 建立 `PRO_TABLE_EXCLUDED_ATTR_KEYS` 排除机制，将未被 ProTable 自身消费的所有 `attrs`（包含所有 `onXxx` 事件监听器及扩展属性）透传至底层 `<ElTable>` (R-01)；
+  - 在 `Props` 类型的 `TableProps` 扩展中补充 `/* @vue-ignore */`，使直接声明在 `<ProTable>` 上的 Element Plus 原生属性（如 `stripe`、`border`、`rowKey` 等）正常流入 `attrs` 并透传至 `<ElTable>` (R-26)；
+  - 通过 `defineEmits` 类型声明（基于 element-plus `TableEmits`）为模板层 `@event` 提供事件类型提示与补全；
+  - 完善 `ProComponentProvider` 全局注入配置与 attrs 的优先级合并链路。
+
+- 206e205: refactor(use-group-field-attrs): `FORM_ITEM_SLOT_KEYS` 判定改为模块级 Set（SIMP-07）
+
+  字段循环内的 FormItem 插槽名判定由数组 `includes`（O(n) 线性扫描 + `as any` 断言）改为模块级 `Set.has`（O(1)），与同文件 `gridItemPropKeySet` / `formItemPropKeySet` 的既有优化对齐；导出的 `FORM_ITEM_SLOT_KEYS` 常量数组及其元组类型（`GroupedField.formItemSlots` 的键类型来源）保持不变，公开 API 无影响。纯内部实现优化，行为零变化（slots 分组行为由既有 hooks-locale / BaseFormItem 测试覆盖）。
+
+- Updated dependencies [206e205]
+- Updated dependencies [206e205]
+- Updated dependencies [206e205]
+- Updated dependencies [206e205]
+- Updated dependencies [206e205]
+  - @qin-ui/pro-components-core@2.0.3
+
 ## 1.3.3
 
 ### Patch Changes
