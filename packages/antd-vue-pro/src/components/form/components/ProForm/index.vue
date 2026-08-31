@@ -122,7 +122,6 @@ const attrs = useAttrs();
  */
 const injectAttrs = computed(() => {
   const raw = toValue(injectFormConfig);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { grid: _injectGrid, ...rest } = raw || {};
   return rest;
 });

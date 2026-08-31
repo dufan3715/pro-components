@@ -50,23 +50,11 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
 
       if (isPlainObject(field)) {
         // prettier-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { path, name, fields, formItemClass, formItemStyle, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, extraProps, formItemContainer, ...rest } =
           field as any;
 
-        const {
-          class: injectClassName,
-          style: injectStyle,
-          span: injectSpan,
-          xs,
-          sm,
-          md,
-          lg,
-          xl,
-          xxl,
-          formItemContainer: injectFormItemContainer,
-          ...injectRest
-        } = rawInject;
+        // prettier-ignore
+        const { class: injectClassName, style: injectStyle, span: injectSpan, xs, sm, md, lg, xl, xxl, formItemContainer: injectFormItemContainer, ...injectRest } = rawInject;
 
         // 字段显式 span 优先，否则回退注入配置的响应式断点
         const initGridItemProps =

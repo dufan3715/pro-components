@@ -167,7 +167,6 @@ const groupedAttrs = computed(() => {
   ) as Required<FieldType>;
 
   // prettier-ignore
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { valueFormatter, displayFormatter, modelProp, slots, fieldClass, fieldStyle, componentContainer, popup, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: onUpdateValue, ...bindAttrs } = mergedProps as Record<string, any>;
   /*
    * 弹层提交语义：confirm 事件把 popupFieldValue 经 value setter 写入 formData 后关闭弹层

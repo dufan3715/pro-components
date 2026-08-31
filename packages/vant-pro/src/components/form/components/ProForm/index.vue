@@ -118,7 +118,6 @@ provide(InjectionFormSlotsKey, slots);
  */
 const popupProps = computed(() => {
   const rawPopupProps = currentForm.value?.formPopup?.props || {};
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { container: _container, ...rest } = rawPopupProps;
   return rest;
 });

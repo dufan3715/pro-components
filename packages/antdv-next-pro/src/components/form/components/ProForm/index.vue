@@ -114,7 +114,6 @@ const injectFormConfig = inject(config.injectionKey, config.default);
 
 // 从 ProComponentProvider 获取全局配置，与传入的 props 合并
 const injectAttrs = computed(() => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { grid: _injectGrid, ...rest } = toValue(injectFormConfig) || {};
   return rest;
 });

@@ -35,7 +35,6 @@ const normalizedColumns = computed(() => {
 });
 
 const getColumnProps = (column: Column<D>) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { hidden, render, key, children, ...rest } = column;
   const prop = column.prop ? normalizePathKey(column.prop) : undefined;
   const columnKey = key ? normalizePathKey(key) : prop;

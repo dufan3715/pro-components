@@ -158,7 +158,6 @@ const groupedAttrs = computed(() => {
   ) as Required<Field>;
 
   // prettier-ignore
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { valueFormatter, modelProp, slots, componentClass, componentStyle, componentContainer, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: onUpdateValue, ...bindAttrs } = mergedProps as any;
 
   return {

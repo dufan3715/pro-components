@@ -1,15 +1,14 @@
 <script lang="ts" setup>
-import { ProTable, useTable } from '../../packages/element-plus-pro/src';
-
-const table = useTable();
-
-const handleRowClick = () => {};
+import SearchFormPlayground from './views/SearchFormPlayground.vue';
 </script>
 
 <template>
-  <div>
-    <ProTable :table="table" @row-dblclick="handleRowClick"></ProTable>
-  </div>
+  <SearchFormPlayground />
 </template>
 
-<style scoped lang="css"></style>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+}
+</style>

@@ -20,7 +20,6 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
 
       if (isPlainObject(field)) {
         // prettier-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { path, name, fieldContainer: fc, fields, hidden, extraProps, ...rest } = field as any;
         componentProps = rest;
         fieldContainer = fc;
