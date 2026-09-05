@@ -211,6 +211,8 @@ describe('ProTable 组件测试', () => {
     const searchBtn = wrapper.find('.pro-table_search-form_search-button');
     if (searchBtn.exists()) {
       await searchBtn.trigger('click');
+      // submit 按钮点击会引发原生 form submit（模拟浏览器完整行为）
+      await wrapper.find('form').trigger('submit');
       await flushPromises();
       expect(loadingModel.value).toBe(true);
     }
@@ -250,8 +252,68 @@ describe('ProTable 组件测试', () => {
     const searchBtn = wrapper.find('.pro-table_search-form_search-button');
     if (searchBtn.exists()) {
       await searchBtn.trigger('click');
+      // submit 按钮点击会引发原生 form submit（模拟浏览器完整行为）
+      await wrapper.find('form').trigger('submit');
       await flushPromises();
       expect(called).toBe(true);
+      expect(loadingModel.value).toBe(false);
+    }
+    wrapper.unmount();
+  });
+
+  it('PT-A10b [判别]: 异步查询在途时发起同步查询，loading 不悬挂（异步完成后正常复位）', async () => {
+    let resolveSearch: any;
+    const asyncSearch = () =>
+      new Promise(resolve => {
+        resolveSearch = resolve;
+      });
+    let syncCalled = false;
+    const syncSearch = () => {
+      syncCalled = true;
+    };
+
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [],
+      searchFields: [{ path: 'name', label: '姓名', component: 'input' }],
+    });
+
+    const loadingModel = ref(false);
+    const { wrapper } = mountProTable({
+      table,
+      search: asyncSearch,
+      props: {
+        loading: loadingModel.value,
+        'onUpdate:loading': (val: boolean) => {
+          loadingModel.value = val;
+        },
+      },
+    });
+
+    await flushPromises();
+    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+
+    // 第一步：触发异步查询，loading 置位
+    if (searchBtn.exists()) {
+      await searchBtn.trigger('click');
+      // submit 按钮点击会引发原生 form submit（模拟浏览器完整行为）
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+      expect(loadingModel.value).toBe(true);
+
+      // 第二步：异步在途时替换为同步查询并触发——同步查询不推进竞态序号
+      await wrapper.setProps({ search: syncSearch });
+      await searchBtn.trigger('click');
+      // submit 按钮点击会引发原生 form submit（模拟浏览器完整行为）
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+      expect(syncCalled).toBe(true);
+      // 判别点：同步查询不清除也不冻结在途异步请求的 loading
+      expect(loadingModel.value).toBe(true);
+
+      // 第三步：最初的异步请求 resolve，loading 正常复位（不悬挂）
+      resolveSearch?.();
+      await flushPromises();
       expect(loadingModel.value).toBe(false);
     }
     wrapper.unmount();
@@ -580,6 +642,29 @@ describe('ProTable 组件测试', () => {
     expect(elTable.props('border')).toBe(true);
     expect(elTable.props('rowKey')).toBe('id');
 
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // PT-06 [判别]: 深层 prop 列（无 render）由 el-table lodash get 原生渲染
+  // ----------------------------------------------------
+  it('PT-A16 [判别]: prop 配置深层路径（如 address.city）的普通列正常渲染数据', async () => {
+    const table = useTable({
+      columns: [
+        { prop: 'name', label: '姓名' },
+        { prop: 'address.city', label: '城市' },
+      ],
+      data: [{ name: '张三', address: { city: '杭州' } }],
+    });
+    const wrapper = mount(ProTable, {
+      props: { table },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const rows = wrapper.findAll('.el-table__row');
+    expect(rows.length).toBe(1);
+    // 深层 prop 列渲染嵌套数据（el-table defaultRenderCell 经 lodash get 取值）
+    expect(rows[0].text()).toContain('杭州');
     wrapper.unmount();
   });
 });

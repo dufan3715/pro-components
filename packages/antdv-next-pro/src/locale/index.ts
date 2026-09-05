@@ -21,7 +21,7 @@ import {
   type ProLocale,
   type ProLocaleName,
 } from '../shared/core';
-import { useConfig } from 'antdv-next/dist/config-provider/context';
+import { useConfig as useConfigContext } from 'antdv-next/dist/config-provider/context';
 
 export { zhCN, zhTW, enUS };
 
@@ -50,7 +50,7 @@ export const LOCALE_INJECT_KEY: InjectionKey<
  * ```
  */
 export const useLocale = () => {
-  const config = useConfig();
+  const config = useConfigContext();
   const override = inject(LOCALE_INJECT_KEY, undefined);
 
   const lang = computed<ProLocaleName>(() =>

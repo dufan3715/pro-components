@@ -7,11 +7,11 @@ import {
 } from '../../../shared/ui';
 import { ComponentName, GetComponentType } from '../../form/constants';
 import { Base, Grid, ContainerComponent } from '../../form/types';
-import { ProFormProps } from '../../form';
+import { ProFormProps } from '../../form/components';
 import type { SearchFormProps } from '../../table/components/SearchForm.vue';
 import { AllowedComponentProps } from 'vue';
 import type { ComponentProps } from 'vue-component-type-helpers';
-import { ColumnControlConfig } from 'src/components/table/types';
+import { ColumnControlConfig } from '../../table/types';
 
 type PP<T extends Record<string, any>> = Partial<T & AllowedComponentProps>;
 

@@ -354,4 +354,56 @@ describe('控制组件与全局 Provider 测试', () => {
     expect(wrapper.find('.custom-colored-tag').text()).toBe('cyan-blue');
     wrapper.unmount();
   });
+  // ----------------------------------------------------
+  // CC-03 [判别]: 勾选操作仅写 hidden 真实翻转的列，未变化列不被重写
+  // ----------------------------------------------------
+  it('CC-03 [判别]: 勾选/取消单列时仅该列触发 setColumn，其余列不被写入', async () => {
+    const table = useTable({
+      columns: [
+        { prop: 'a', label: 'A' },
+        { prop: 'b', label: 'B' },
+        { prop: 'c', label: 'C' },
+      ],
+      data: [],
+    });
+    // spy：包装 table.setColumn 计数
+    const setColumnCalls: string[] = [];
+    const rawSetColumn = table.setColumn.bind(table);
+    (table as any).setColumn = (key: any, column: any, opts?: any) => {
+      setColumnCalls.push(String(key));
+      return rawSetColumn(key, column, opts);
+    };
+
+    const wrapper = mount(ColumnControl, {
+      props: { columns: table.columns.value, table },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    const vm = wrapper.vm as any;
+
+    // 场景1：取消勾选列 b —— 旧实现会对 a/b/c 全部 setColumn，新实现仅写 b
+    setColumnCalls.length = 0;
+    vm.checkedColumnKeys = vm.checkedColumnKeys.filter(
+      (k: string) => k !== 'b'
+    );
+    await flushPromises();
+    expect(setColumnCalls).toEqual(['b']);
+    expect(table.columns.value.find(c => c.key === 'b')?.hidden).toBe(true);
+    expect(table.columns.value.find(c => c.key === 'a')?.hidden).toBeFalsy();
+
+    // 场景2：恢复勾选 b —— 仅写 b
+    setColumnCalls.length = 0;
+    vm.checkedColumnKeys = [...vm.checkedColumnKeys, 'b'];
+    await flushPromises();
+    expect(setColumnCalls).toEqual(['b']);
+    expect(table.columns.value.find(c => c.key === 'b')?.hidden).toBeFalsy();
+
+    // 场景3：写入与当前一致的状态 —— 零写入（幂等无副作用）
+    setColumnCalls.length = 0;
+    vm.checkedColumnKeys = [...vm.checkedColumnKeys];
+    await flushPromises();
+    expect(setColumnCalls).toEqual([]);
+
+    wrapper.unmount();
+  });
 });

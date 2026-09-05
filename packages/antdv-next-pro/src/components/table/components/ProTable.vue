@@ -50,7 +50,7 @@ import {
   type Slot,
 } from 'vue';
 import { INJECT_CONFIG } from '../../component-provider/constants';
-import { ContainerFragment } from '../../form';
+import ContainerFragment from '../../form/components/ContainerFragment/index.vue';
 import type { ContainerComponent } from '../../form/types';
 import SearchForm from './SearchForm.vue';
 import { SearchFormProps } from './SearchForm.vue';
@@ -64,12 +64,10 @@ import {
   camelizeProperties,
   Path,
 } from '../../../shared/core';
-import {
-  DefaultSearchFormContainer,
-  DefaultTableContainer,
-  SizeControl,
-  ColumnControl,
-} from '.';
+import DefaultSearchFormContainer from './DefaultSearchFormContainer.vue';
+import DefaultTableContainer from './DefaultTableContainer.vue';
+import SizeControl from './SizeControl.vue';
+import ColumnControl from './ColumnControl.vue';
 import { ComponentSlots } from 'vue-component-type-helpers';
 import { Column, Columns, ColumnControlConfig } from '../types';
 
@@ -142,10 +140,26 @@ const loading = defineModel<boolean>('loading', { default: false });
 
 // 递增序号做请求竞态守卫，仅最新一次请求可变更 loading
 let searchSequence = 0;
+let warnedSearchConfig = false;
+const warnSearchConfig = (reason: string) => {
+  if (warnedSearchConfig) return;
+  warnedSearchConfig = true;
+  console.warn(`[ProTable] ${reason}`);
+};
 const _search = async () => {
-  const seq = ++searchSequence;
+  if (props.search && attrs.onSearch) {
+    warnSearchConfig(
+      '同时配置了 :search prop 与 @search 监听，@search 监听不会被执行，请仅保留其一。'
+    );
+  }
   const searchPromise = (props.search || attrs.onSearch)?.();
-  if (!isPromise(searchPromise)) return;
+  if (!isPromise(searchPromise)) {
+    warnSearchConfig(
+      'search 未返回 Promise，本次查询不参与 loading 竞态管理（在途请求的 loading 状态保持不变）。'
+    );
+    return;
+  }
+  const seq = ++searchSequence;
   loading.value = true;
   try {
     await searchPromise;

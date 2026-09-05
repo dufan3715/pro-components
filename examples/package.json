@@ -20,6 +20,7 @@
     "legacy-antd-vue-pro": "npm:@qin-ui/antd-vue-pro@2.3.3",
     "legacy-antdv-next-pro": "npm:@qin-ui/antdv-next-pro@1.3.2",
     "legacy-element-plus-pro": "npm:@qin-ui/element-plus-pro@1.2.3",
+    "legacy-pro-components-core": "npm:@qin-ui/pro-components-core@1.1.3",
     "legacy-vant-pro": "npm:@qin-ui/vant-pro@1.2.2",
     "vant": "^4.10.0"
   }

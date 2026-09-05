@@ -62,8 +62,8 @@ import {
   type Component,
   type DefineComponent,
 } from 'vue';
-import ProForm from '../../form';
-import { type Form } from '../../form';
+import ProForm from '../../form/components/ProForm/index.vue';
+import { type Form } from '../../form/hooks/useForm';
 import DownOutlined from './icons/DownOutlined.vue';
 import { useLocale } from '../../../locale';
 import { useSearchFormExpand } from '../../../shared/core';

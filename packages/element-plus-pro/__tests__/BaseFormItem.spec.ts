@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
@@ -95,6 +95,85 @@ describe('BaseFormItem 组件测试', () => {
     await flushPromises();
     expect((f2 as any).getFormItemRef).toBeUndefined();
     expect((f2 as any).getComponentComputedProps).toBeUndefined();
+  });
+
+  // ----------------------------------------------------
+  // BI-A6 [判别]: frozen 字段对象不抛错，访问器挂载失败输出一次性告警
+  // ----------------------------------------------------
+  it('BI-A6 [判别]: Object.freeze 的字段对象渲染不抛错，访问器挂载失败仅告警一次', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const frozenField: Field = Object.freeze({
+        path: 'frozen',
+        label: '冻结字段',
+        component: 'input',
+      });
+      const normalField: Field = {
+        path: 'normal',
+        label: '普通字段',
+        component: 'input',
+      };
+
+      const form = useForm({}, [frozenField, normalField]);
+      const wrapper = mount(ProForm, {
+        props: { form },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+
+      // 判别点 1：渲染不崩溃，两个字段都正常渲染
+      expect(wrapper.html()).toContain('冻结字段');
+      expect(wrapper.html()).toContain('普通字段');
+
+      // 判别点 2：frozen 字段访问器静默缺失（WeakMap 注册不受影响，但对象不可写故访问器无法挂载）
+      expect((frozenField as any).getFormItemRef).toBeUndefined();
+      // 普通字段访问器正常挂载
+      expect(typeof (normalField as any).getFormItemRef).toBe('function');
+
+      // 判别点 3：告警输出且去重（setFormItemRef + setComponentRef 两轮挂载仅一条）
+      const warnCalls = warnSpy.mock.calls
+        .map(c => String(c[0]))
+        .filter(msg => msg.includes('字段配置对象不可写'));
+      expect(warnCalls.length).toBe(1);
+      wrapper.unmount();
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+  // ----------------------------------------------------
+  // BI-A5 [判别]: 无 path 字段插删后组件实例按对象身份复用，不随数组索引错位
+  // ----------------------------------------------------
+  it('BI-A5 [判别]: 无 path 字段以稳定对象 key 渲染，头部插入新字段后原字段实例不复用错位', async () => {
+    const g1: Field = { label: '分组1', fields: [] };
+    const g2: Field = { label: '分组2', fields: [] };
+
+    const form = useForm({}, [g1, g2]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const g1Ref = (g1 as any).getFormItemRef?.();
+    const g2Ref = (g2 as any).getFormItemRef?.();
+    expect(g1Ref).toBeDefined();
+    expect(g2Ref).toBeDefined();
+
+    // 头部插入新的无 path 字段：若 key 退化为数组索引，g2 的组件实例会被 g1 复用错位
+    const g0: Field = { label: '分组0', fields: [] };
+    form.fields.value.unshift(g0);
+    await flushPromises();
+
+    // 判别点：实例与字段对象身份保持绑定，g2 移位后仍持有自身实例而非 g1 的
+    expect((g1 as any).getFormItemRef?.()).toBe(g1Ref);
+    expect((g2 as any).getFormItemRef?.()).toBe(g2Ref);
+
+    // 中部删除同样不引起错位
+    form.fields.value.splice(1, 1); // 删除 g1
+    await flushPromises();
+    expect((g2 as any).getFormItemRef?.()).toBe(g2Ref);
+    wrapper.unmount();
   });
 
   // ----------------------------------------------------
@@ -198,6 +277,42 @@ describe('BaseFormItem 组件测试', () => {
     await flushPromises();
     const customContainer = wrapper.find('.custom-box-userPhone');
     expect(customContainer.exists()).toBe(true);
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // BI-07 [判别]: 分组字段默认整行 span 24，显式 span 优先，栅格属性透传
+  // ----------------------------------------------------
+  it('BI-07 [判别]: 分组字段默认整行 span=24，显式 span/offset 正确透传至栅格容器', async () => {
+    const form = useForm({}, [
+      {
+        label: '默认分组',
+        fields: [{ path: 'a', label: 'A', component: 'input' }],
+      },
+      {
+        label: '半宽分组',
+        span: 12,
+        fields: [{ path: 'b', label: 'B', component: 'input' }],
+      },
+      {
+        label: '带偏移分组',
+        span: 8,
+        offset: 4,
+        fields: [{ path: 'c', label: 'C', component: 'input' }],
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form, grid: true },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+    // 默认分组占满 24 栅格
+    expect(wrapper.find('.el-col-24').exists()).toBe(true);
+    // 显式 span 12 的分组
+    expect(wrapper.find('.el-col-12').exists()).toBe(true);
+    // 显式 offset 4 的分组（此前分组分支会静默丢弃 offset）
+    expect(wrapper.find('.el-col-offset-4').exists()).toBe(true);
     wrapper.unmount();
   });
 });

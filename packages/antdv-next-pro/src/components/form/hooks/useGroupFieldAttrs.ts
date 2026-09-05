@@ -62,7 +62,10 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
             ? { span }
             : { xs, sm, md, lg, xl, xxl, span: injectSpan };
 
-        gridItemProps = fields ? { span: span ?? 24 } : initGridItemProps;
+        // 分组字段默认整行（span 兜底 24），注入断点同样生效
+        gridItemProps = fields
+          ? { ...initGridItemProps, span: span ?? 24 }
+          : initGridItemProps;
         formItemProps = mergeProps(
           injectRest as any,
           { class: injectClassName, style: injectStyle },

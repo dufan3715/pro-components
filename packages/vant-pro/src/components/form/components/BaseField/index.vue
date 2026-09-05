@@ -41,7 +41,8 @@ import {
 } from 'vue';
 import { cloneDeep } from '../../../../shared/core';
 import type { Field as FieldType } from '../../types';
-import { ContainerFragment, SlotComponent } from '..';
+import ContainerFragment from '../ContainerFragment/index.vue';
+import SlotComponent from '../SlotComponent/index.vue';
 import { componentMap, InjectionFormSlotsKey } from '../../constants';
 import {
   INJECT_COMPONENTS,
@@ -51,6 +52,10 @@ import { useForm } from '../../hooks/useForm';
 import { getInitProps, warnUnknownComponent } from './utils';
 import { useLocale } from '../../../../locale';
 import { Field as VanField } from '../../../../shared/ui';
+
+const cloneDeepIfObject = (val: unknown) =>
+  // 原始值直接传递，引用值克隆快照
+  typeof val === 'object' && val !== null ? cloneDeep(val) : val;
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
 
@@ -106,7 +111,7 @@ const value = computed({
       if (setter) {
         newVal =
           setter.length > 1
-            ? setter(newVal, cloneDeep(form?.getFormData?.(props.path)))
+            ? setter(newVal, cloneDeepIfObject(form?.getFormData?.(props.path)))
             : setter(newVal);
       }
     }
@@ -179,7 +184,13 @@ const groupedAttrs = computed(() => {
     } = bindAttrs as any;
     Object.assign(bindAttrs, {
       [popupCloseEventName.value.confirm]: (...args: any[]) => {
-        value.value = form?.formPopup?.popupFieldValue?.value;
+        // Signature 无 v-model，签名图经 submit 事件载荷传出；其余组件取弹层当前值
+        const submitPayload = args[0];
+        const nextValue =
+          props.component === 'signature' && submitPayload?.image !== undefined
+            ? submitPayload.image
+            : form?.formPopup?.popupFieldValue?.value;
+        value.value = nextValue;
         form?.formPopup?.close();
         confirmEvent?.(...args);
       },
@@ -192,10 +203,8 @@ const groupedAttrs = computed(() => {
 
   const fieldAttrs = Object.keys(bindAttrs).reduce(
     (acc, key) => {
-      if (
-        (uiFieldPropsKeys.includes(key) || key.startsWith('on')) &&
-        key !== 'type'
-      ) {
+      // 事件仅绑内层组件（经 bindAttrs），不进外层 VanField，避免冒泡类事件双触发
+      if (uiFieldPropsKeys.includes(key) && key !== 'type' && key !== 'name') {
         acc[key] = (bindAttrs as any)[key];
       }
       return acc;
@@ -216,9 +225,9 @@ const groupedAttrs = computed(() => {
   };
 });
 
-// 从 ProForm 插槽注入的 slots 集合（优先级最高）
-const formSlots = inject(InjectionFormSlotsKey, undefined) as
-  | Record<string, any>
+// 从 ProForm 插槽注入的 slots 集合（优先级最高；shallowRef 形态，computed 内经 .value 读取建立依赖）
+const injectedFormSlots = inject(InjectionFormSlotsKey, undefined) as
+  | { value: Record<string, any> | undefined }
   | undefined;
 
 // 从 ProComponentProvider 注入的自定义组件映射
@@ -229,7 +238,7 @@ const customComponents = inject(INJECT_COMPONENTS, {});
  * ProForm 插槽 → 自定义组件映射 → 内置组件映射 → 原始 component 值
  */
 const is = computed(() => {
-  const teleportSlot = props.path && formSlots?.[props.path];
+  const teleportSlot = props.path && injectedFormSlots?.value?.[props.path];
   if (teleportSlot) return teleportSlot;
   if (typeof props.component === 'string') {
     const customMap = toValue(customComponents) as any;
@@ -356,6 +365,7 @@ defineExpose({
         v-else
         ref="fieldRef"
         v-bind="groupedAttrs.fieldAttrs"
+        :model-value="displayValue"
         :name="props.path"
       >
         <template #input>

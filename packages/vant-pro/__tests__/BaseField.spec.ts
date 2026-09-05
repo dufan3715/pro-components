@@ -405,4 +405,138 @@ describe('BaseField 组件测试 (vant-pro)', () => {
 
     wrapper.unmount();
   });
+  // ----------------------------------------------------
+  // BF-B10 [判别]: 旧值为原始类型时跳过深拷贝，直接引用传递
+  // ----------------------------------------------------
+  it('BF-B10 [判别]: 双参 formatter 旧值为原始类型（字符串/数字）时不触发 cloneDeep', async () => {
+    // 大字符串：若仍走 cloneDeep（JSON 降级路径）则行为异常；原始值路径应为同引用传递
+    const bigStr = 'x'.repeat(100000);
+    let receivedOld: any;
+    const form = useForm({ note: bigStr, count: 3 }, [
+      {
+        path: 'note',
+        component: 'field',
+        valueFormatter: (val: any, oldVal: any) => {
+          if (receivedOld === undefined) receivedOld = oldVal;
+          return val;
+        },
+      },
+      {
+        path: 'count',
+        component: 'field',
+        valueFormatter: (val: any, oldVal: any) => {
+          return Number(val) + (typeof oldVal === 'number' ? 0 : 0);
+        },
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const inputs = wrapper.findAll('input');
+    await inputs[0].setValue('typed');
+    await flushPromises();
+
+    // 判别点：原始类型旧值直接引用（零拷贝），值与写入前一致
+    expect(receivedOld).toBe(bigStr);
+
+    // 数字旧值同样零拷贝路径，行为正确
+    const numericInput = inputs[1];
+    await numericInput.setValue('7');
+    await flushPromises();
+    expect(form.getFormData('count')).toBe(7);
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // VP-V10 [判别]: Signature 弹层确认时经 submit 事件载荷把签名图写入 formData
+  // ----------------------------------------------------
+  it('VP-F13a [判别]: Signature 弹层确认后，签名图数据经 submit 载荷写入 formData（非弹层初值）', async () => {
+    const form = useForm({ sign: '' }, [
+      { path: 'sign', component: 'signature', popup: true },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false, teleport: true } },
+    });
+    await flushPromises();
+
+    // 打开弹层（模拟业务点击字段）
+    form.formPopup.open('sign', 'old-base64');
+    await flushPromises();
+
+    const fieldComp = wrapper.findComponent({ name: 'BaseField' });
+    const computedProps = (fieldComp.vm as any).getComponentComputedProps();
+
+    // 模拟 Signature emit submit：{ image, canvas } 载荷
+    computedProps.onSubmit?.({ image: 'NEW-SIGN-BASE64', canvas: {} });
+    await flushPromises();
+
+    // 判别点：formData 收到 submit 载荷的 image，而非弹层初值（旧实现恒写回初值）
+    expect(form.getFormData('sign')).toBe('NEW-SIGN-BASE64');
+    expect(form.formPopup.visible.value).toBe(false);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-V11 [判别]: 内联（非弹层）Picker 类字段绑定 model-value 供 VanField 校验取值
+  // ----------------------------------------------------
+  it('VP-F13b [判别]: 内联选择器字段的 VanField 收到 model-value，校验可取到真实值', async () => {
+    // vant DatePicker 的 modelValue 为列值数组
+    const form = useForm({ date: ['2026', '9', '4'] }, [
+      { path: 'date', component: 'date-picker' },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const vanField = wrapper.findComponent(VanField);
+    // 判别点：VanField 收到 model-value（vant DatePicker 归一为补零列值）
+    expect(vanField.props('modelValue')).toEqual(['2026', '09', '04']);
+
+    const newDate = ['2027', '01', '02'];
+    form.setFormData('date', newDate);
+    await flushPromises();
+    expect(vanField.props('modelValue')).toEqual(newDate);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-V12 [判别]: 字段配置的事件监听仅绑内层组件，外层 VanField 不重复绑定
+  // ----------------------------------------------------
+  it('VP-F13c [判别]: on 开头的字段事件不进入外层 VanField，避免冒泡类事件双触发', async () => {
+    let clickCount = 0;
+    const form = useForm({ flag: false }, [
+      {
+        path: 'flag',
+        component: 'switch',
+        onClick: () => {
+          clickCount++;
+        },
+      } as any,
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const vanField = wrapper.findComponent(VanField);
+    // 判别点：onClick 只绑内层 Switch，外层 VanField 不携带
+    expect((vanField.props() as any).onClick).toBeUndefined();
+    expect((vanField.vm as any).$.attrs.onClick).toBeUndefined();
+
+    // 内层组件的事件仍然生效
+    const switchComp = wrapper.findComponent({ name: 'VanSwitch' });
+    await switchComp.trigger('click');
+    expect(clickCount).toBe(1);
+    wrapper.unmount();
+  });
 });

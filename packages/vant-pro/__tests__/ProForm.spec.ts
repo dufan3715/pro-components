@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { h, shallowRef, nextTick } from 'vue';
+import { defineComponent, h, shallowRef, nextTick, ref } from 'vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { Field as VanField, Form as VanForm } from '../src/shared/ui';
@@ -73,6 +73,86 @@ describe('ProForm 组件测试 (vant-pro)', () => {
     const updatedInputEl = wrapper.find('input');
     expect((updatedInputEl.element as HTMLInputElement).value).toBe('Bob');
     expect(form2.formRef.value).toBeTruthy();
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-B2 [判别]: 运行期 :form 置空时回退内部表单，不崩溃且可读写
+  // ----------------------------------------------------
+  it('VP-B2 [判别]: 运行期 :form 置空时回退内部表单实例，渲染不中断', async () => {
+    const form1 = useForm({ username: 'Alice' }, [
+      { path: 'username', component: 'field' },
+    ]);
+
+    const currentFormRef = shallowRef<any>(form1);
+
+    const wrapper = mount(
+      {
+        setup() {
+          return () => h(ProForm, { form: currentFormRef.value });
+        },
+      },
+      {
+        global: { stubs: { transition: false } },
+      }
+    );
+
+    await flushPromises();
+    expect((wrapper.find('input').element as HTMLInputElement).value).toBe(
+      'Alice'
+    );
+
+    // 运行期置空 :form（条件清空表单场景）
+    currentFormRef.value = undefined;
+    await nextTick();
+    await flushPromises();
+
+    // 渲染不中断，子树以回退的内部表单渲染（回退表单字段列表为空）
+    expect(wrapper.find('form').exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it('VP-B2b [判别]: :form 置空后，子组件经注入代理读写回退的内部表单', async () => {
+    let probe: any;
+    const ChildComponent = {
+      setup() {
+        probe = useForm(false);
+        return () => h('div', { class: 'child-form' }, 'child');
+      },
+    };
+
+    const form1 = useForm({ username: 'Alice' }, [
+      { path: 'username', component: 'field' },
+    ]);
+    const currentFormRef = shallowRef<any>(form1);
+
+    const wrapper = mount(
+      {
+        setup() {
+          return () =>
+            h(
+              ProForm,
+              { form: currentFormRef.value },
+              { default: () => h(ChildComponent) }
+            );
+        },
+      },
+      {
+        global: { stubs: { transition: false } },
+      }
+    );
+
+    await flushPromises();
+    expect(probe.getFormData('username')).toBe('Alice');
+
+    currentFormRef.value = undefined;
+    await nextTick();
+    await flushPromises();
+
+    // 回退内部表单：可写可读，且旧实例数据不被污染
+    probe.setFormData('username', 'written-to-fallback');
+    expect(probe.getFormData('username')).toBe('written-to-fallback');
+    expect(form1.getFormData('username')).toBe('Alice');
     wrapper.unmount();
   });
 
@@ -187,6 +267,48 @@ describe('ProForm 组件测试 (vant-pro)', () => {
     const vanForm = wrapper.findComponent(VanForm);
     expect(vanForm.props('labelWidth')).toBe('120px');
     expect(vanForm.props('inputAlign')).toBe('center');
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // VP-C1 [判别]: 运行期动态增删字段插槽可被 BaseField 感知
+  // ----------------------------------------------------
+  it('VP-C1 [判别]: 父组件运行期增/删以 path 命名的插槽后，字段渲染随之前后切换', async () => {
+    const form = useForm({}, [
+      { path: 'kw', label: '关键词', component: 'field' },
+    ]);
+    const showSlot = ref(true);
+    const Parent = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProForm,
+            { form },
+            {
+              ...(showSlot.value
+                ? {
+                    kw: () => h('span', { class: 'kw-slot-on' }, 'SLOT-RENDER'),
+                  }
+                : {}),
+            }
+          );
+      },
+    });
+    const wrapper = mount(Parent, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.kw-slot-on').exists()).toBe(true);
+
+    // 运行期移除插槽：字段回退为内置组件渲染
+    showSlot.value = false;
+    await flushPromises();
+    expect(wrapper.find('.kw-slot-on').exists()).toBe(false);
+    expect(wrapper.find('input').exists()).toBe(true);
+
+    // 运行期恢复插槽：字段再次切换为插槽渲染
+    showSlot.value = true;
+    await flushPromises();
+    expect(wrapper.find('.kw-slot-on').exists()).toBe(true);
     wrapper.unmount();
   });
 });

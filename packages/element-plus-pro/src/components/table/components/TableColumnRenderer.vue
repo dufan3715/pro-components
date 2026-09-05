@@ -5,9 +5,9 @@
 >
 import { get, normalizePathKey } from '../../../shared/core';
 import { TableColumn } from '../../../shared/ui';
-import { SlotComponent } from '../../form';
+import SlotComponent from '../../form/components/SlotComponent/index.vue';
 import type { Column, Columns } from '../types';
-import { computed } from 'vue';
+import { computed, toRaw } from 'vue';
 
 defineOptions({ name: 'TableColumnRenderer' });
 
@@ -18,9 +18,26 @@ const props = withDefaults(defineProps<Props>(), {
   columns: () => [],
 });
 
-const getColumnKey = (column: Column<D>, index: number) => {
+/*
+ * 无 key/prop 列的稳定渲染 key：以列原始对象为 key 分配自增 id，
+ * 列插删/重排/过滤时保持 key 与对象绑定，不随数组位置漂移
+ */
+let columnKeySeed = 0;
+const columnKeyMap = new WeakMap<object, number>();
+const getStableColumnKey = (column: unknown): number => {
+  const raw = toRaw(column as object);
+  let key = columnKeyMap.get(raw);
+  if (key === undefined) {
+    key = ++columnKeySeed;
+    columnKeyMap.set(raw, key);
+  }
+  return key;
+};
+
+const getColumnKey = (column: Column<D>) => {
   const rawKey = column.key ?? column.prop;
-  if (rawKey === undefined || rawKey === null) return `__col_${index}`;
+  if (rawKey === undefined || rawKey === null)
+    return getStableColumnKey(column);
   return normalizePathKey(rawKey);
 };
 
@@ -48,10 +65,7 @@ const getColumnProps = (column: Column<D>) => {
 </script>
 
 <template>
-  <template
-    v-for="(column, index) in normalizedColumns"
-    :key="getColumnKey(column, index)"
-  >
+  <template v-for="column in normalizedColumns" :key="getColumnKey(column)">
     <!-- 分组列（递归子列） -->
     <TableColumn
       v-if="column.children && column.children.length > 0"

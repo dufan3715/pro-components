@@ -63,8 +63,8 @@ import {
   type Component,
   type DefineComponent,
 } from 'vue';
-import ProForm from '../../form';
-import { type Form } from '../../form';
+import ProForm from '../../form/components/ProForm/index.vue';
+import { type Form } from '../../form/hooks/useForm';
 import DownOutlined from './icons/DownOutlined.vue';
 import { useLocale } from '../../../locale';
 import { useSearchFormExpand } from '../../../shared/core';
@@ -122,6 +122,7 @@ const onReset = () => {
   emit('reset');
 };
 
+// 查询按钮为 native-type=submit：点击与回车统一经表单 submit 事件触发
 const onSearch = () => {
   emit('search');
 };
@@ -132,6 +133,7 @@ const onSearch = () => {
     v-bind="layoutProps"
     :form="props.form"
     class="pro-table_search-form transition"
+    @submit.prevent="onSearch"
   >
     <Space alignment="start" class="pro-table_search-form_button-group">
       <slot name="reset-button" :on-reset="onReset">
@@ -162,7 +164,6 @@ const onSearch = () => {
             class="pro-table_search-form_search-button"
             type="primary"
             native-type="submit"
-            @click="onSearch"
           >
             {{ t('table.query') }}
           </Button>

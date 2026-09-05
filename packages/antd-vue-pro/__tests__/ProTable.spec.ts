@@ -252,6 +252,59 @@ describe('ProTable 组件测试', () => {
     wrapper.unmount();
   });
 
+  it('PT-A10b [判别]: 异步查询在途时发起同步查询，loading 不悬挂（异步完成后正常复位）', async () => {
+    let resolveSearch: any;
+    const asyncSearch = () =>
+      new Promise(resolve => {
+        resolveSearch = resolve;
+      });
+    let syncCalled = false;
+    const syncSearch = () => {
+      syncCalled = true;
+    };
+
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+    });
+
+    const loadingModel = ref(false);
+    const { wrapper } = mountProTable({
+      table,
+      search: asyncSearch,
+      props: {
+        loading: loadingModel.value,
+        'onUpdate:loading': (val: boolean) => {
+          loadingModel.value = val;
+        },
+      },
+    });
+
+    await flushPromises();
+    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+
+    // 第一步：触发异步查询，loading 置位
+    if (searchBtn.exists()) {
+      await searchBtn.trigger('click');
+      await flushPromises();
+      expect(loadingModel.value).toBe(true);
+
+      // 第二步：异步在途时替换为同步查询并触发——同步查询不推进竞态序号
+      await wrapper.setProps({ search: syncSearch });
+      await searchBtn.trigger('click');
+      await flushPromises();
+      expect(syncCalled).toBe(true);
+      // 判别点：同步查询不清除也不冻结在途异步请求的 loading
+      expect(loadingModel.value).toBe(true);
+
+      // 第三步：最初的异步请求 resolve，loading 正常复位（不悬挂）
+      resolveSearch?.();
+      await flushPromises();
+      expect(loadingModel.value).toBe(false);
+    }
+    wrapper.unmount();
+  });
+
   // ----------------------------------------------------
   // PT-06: 搜索区显隐控制
   // ----------------------------------------------------

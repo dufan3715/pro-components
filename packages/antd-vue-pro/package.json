@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "description": "二次封装antd vue组件",
   "bin": {
     "antd-vue-pro": "./bin/init-ai.mjs"
@@ -23,7 +23,8 @@
     "README.md",
     "LICENSE",
     "api.json",
-    "AI-CONTEXT.md"
+    "AI-CONTEXT.md",
+    "tsconfig.json"
   ],
   "homepage": "https://dufan3715.github.io/pro-components/",
   "repository": {

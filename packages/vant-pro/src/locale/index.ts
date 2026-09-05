@@ -21,7 +21,7 @@ import {
   type ProLocale,
   type ProLocaleName,
 } from '../shared/core';
-import { useCurrentLang } from 'vant/es/locale';
+import { useCurrentLang } from 'vant';
 
 export { zhCN, zhTW, enUS };
 

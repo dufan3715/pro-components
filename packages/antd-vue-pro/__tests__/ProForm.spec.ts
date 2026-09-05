@@ -86,8 +86,87 @@ describe('ProForm 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PF-H1 [判别]: 嵌套路径 'user.address.city' 生成段数组 name
+  // PF-B2 [判别]: 运行期 :form 置空时回退内部表单，不崩溃且可读写
   // ----------------------------------------------------
+  it('PF-B2 [判别]: 运行期 :form 置空时回退内部表单实例，渲染不中断', async () => {
+    const form1 = useForm({ username: 'user-one' }, [
+      { path: 'username', component: 'input' },
+    ]);
+
+    const activeForm = ref<any>(form1);
+
+    const Parent = defineComponent({
+      setup() {
+        return () => h(ProForm, { form: activeForm.value });
+      },
+    });
+
+    const wrapper = mount(Parent, {
+      global: {
+        stubs: {
+          transition: false,
+        },
+      },
+    });
+    await flushPromises();
+    expect((wrapper.find('input').element as HTMLInputElement).value).toBe(
+      'user-one'
+    );
+
+    // 运行期置空 :form（条件清空表单场景）
+    activeForm.value = undefined;
+    await flushPromises();
+
+    // 渲染不中断，子树以回退的内部表单渲染（回退表单字段列表为空）
+    expect(wrapper.find('form').exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it('PF-B2b [判别]: :form 置空后，子组件经注入代理读写回退的内部表单', async () => {
+    let probe: any;
+    const ChildComponent = defineComponent({
+      setup() {
+        probe = useForm(false);
+        return () => h('div', { class: 'child-form' }, 'child');
+      },
+    });
+
+    const form1 = useForm({ username: 'user-one' }, [
+      { path: 'username', component: 'input' },
+    ]);
+    const activeForm = ref<any>(form1);
+
+    const Parent = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProForm,
+            { form: activeForm.value },
+            { default: () => h(ChildComponent) }
+          );
+      },
+    });
+
+    const wrapper = mount(Parent, {
+      global: {
+        stubs: {
+          transition: false,
+        },
+      },
+    });
+    await flushPromises();
+    expect(probe.getFormData('username')).toBe('user-one');
+
+    activeForm.value = undefined;
+    await flushPromises();
+
+    // 回退内部表单：可写可读，且旧实例数据不被污染
+    probe.setFormData('username', 'written-to-fallback');
+    expect(probe.getFormData('username')).toBe('written-to-fallback');
+    expect(form1.getFormData('username')).toBe('user-one');
+    wrapper.unmount();
+  });
+
   it('PF-H1 [判别]: 嵌套路径字段生成正确的段数组 name 属性', async () => {
     const { wrapper } = mountProForm({
       fields: createNestedFields(),
@@ -190,6 +269,48 @@ describe('ProForm 组件测试', () => {
     await flushPromises();
     const formComp = wrapper.find('.pro-form');
     expect(formComp.classes()).toContain('ant-form-inline');
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // PF-C1 [判别]: 运行期动态增删字段插槽可被 BaseField 感知
+  // ----------------------------------------------------
+  it('PF-C1 [判别]: 父组件运行期增/删以 path 命名的插槽后，字段渲染随之前后切换', async () => {
+    const form = useForm({}, [
+      { path: 'kw', label: '关键词', component: 'input' },
+    ]);
+    const showSlot = ref(true);
+    const Parent = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProForm,
+            { form },
+            {
+              ...(showSlot.value
+                ? {
+                    kw: () => h('span', { class: 'kw-slot-on' }, 'SLOT-RENDER'),
+                  }
+                : {}),
+            }
+          );
+      },
+    });
+    const wrapper = mount(Parent, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.kw-slot-on').exists()).toBe(true);
+
+    // 运行期移除插槽：字段回退为内置组件渲染
+    showSlot.value = false;
+    await flushPromises();
+    expect(wrapper.find('.kw-slot-on').exists()).toBe(false);
+    expect(wrapper.find('input').exists()).toBe(true);
+
+    // 运行期恢复插槽：字段再次切换为插槽渲染
+    showSlot.value = true;
+    await flushPromises();
+    expect(wrapper.find('.kw-slot-on').exists()).toBe(true);
     wrapper.unmount();
   });
 });

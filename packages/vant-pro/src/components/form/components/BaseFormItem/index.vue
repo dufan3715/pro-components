@@ -19,10 +19,27 @@
  *
  * @internal
  */
-import { computed, toValue } from 'vue';
+import { computed, toRaw, toValue } from 'vue';
 import type { Fields } from '../../types';
-import { BaseField, ContainerFragment } from '..';
+import BaseField from '../BaseField/index.vue';
+import ContainerFragment from '../ContainerFragment/index.vue';
 import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
+
+/*
+ * 无 path 字段的稳定渲染 key：以字段原始对象为 key 分配自增 id，
+ * 字段插删/重排/过滤时保持 key 与对象绑定，不随数组位置漂移
+ */
+let fieldKeySeed = 0;
+const fieldKeyMap = new WeakMap<object, number>();
+const getFieldKey = (field: unknown): number => {
+  const raw = toRaw(field as object);
+  let key = fieldKeyMap.get(raw);
+  if (key === undefined) {
+    key = ++fieldKeySeed;
+    fieldKeyMap.set(raw, key);
+  }
+  return key;
+};
 
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
@@ -42,21 +59,66 @@ const validFields = computed(() => {
 
 const groupedFields = useGroupFieldAttrs(validFields);
 
-// 以字段原始对象为 key 登记控件实例，经 getComponentRef 对外提供；随字段回收自动释放
+/** 已告警过的字段对象（不可写场景去重） */
+const warnedFrozenFields = new WeakSet<object>();
+const defineFieldAccessors = (
+  raw: object,
+  accessors: Record<string, () => any>
+) => {
+  try {
+    for (const [key, getter] of Object.entries(accessors)) {
+      // 不可枚举：不进入 Object.keys / spread，不随字段配置透传
+      Object.defineProperty(raw, key, {
+        value: getter,
+        enumerable: false,
+        configurable: true,
+        writable: true,
+      });
+    }
+  } catch {
+    if (!warnedFrozenFields.has(raw)) {
+      warnedFrozenFields.add(raw);
+      console.warn(
+        '[pro-components] 字段配置对象不可写（如被 Object.freeze），getComponentRef 等实例访问器挂载失败。'
+      );
+    }
+  }
+};
+
+/*
+ * 以字段原始对象（toRaw）为 key 登记控件实例，挂接 getComponentRef 等访问器供业务层调用；
+ * 随字段回收自动释放
+ */
 const componentRefMap = new WeakMap<object, any>();
-const setComponentRef = (rawField: object, el: any) => {
+const setComponentRef = (field: object, el: any) => {
+  const raw = toRaw(field);
   if (el) {
-    componentRefMap.set(rawField, el);
+    componentRefMap.set(raw, el);
+    defineFieldAccessors(raw, {
+      getComponentRef: () => componentRefMap.get(raw)?.getComponentRef?.(),
+      getComponentComputedProps: () =>
+        componentRefMap.get(raw)?.getComponentComputedProps?.(),
+    });
+  } else {
+    componentRefMap.delete(raw);
+    delete (raw as any).getComponentRef;
+    delete (raw as any).getComponentComputedProps;
   }
 };
 
 defineExpose({
-  getComponentRef: (rawField: object) => componentRefMap.get(rawField),
+  getComponentRef: (rawField: object) =>
+    componentRefMap.get(toRaw(rawField))?.getComponentRef?.(),
+  getComponentComputedProps: (rawField: object) =>
+    componentRefMap.get(toRaw(rawField))?.getComponentComputedProps?.(),
 });
 </script>
 
 <template>
-  <template v-for="(item, index) in groupedFields" :key="item.path || index">
+  <template
+    v-for="item in groupedFields"
+    :key="item.path || getFieldKey(item.rawField)"
+  >
     <template v-if="item.rawField.fields">
       <ContainerFragment
         :component="item.fieldContainer"
@@ -68,7 +130,7 @@ defineExpose({
     </template>
     <template v-else>
       <BaseField
-        :ref="el => setComponentRef(item.rawField, el)"
+        :ref="(el: any) => setComponentRef(item.rawField, el)"
         v-bind="item.componentProps"
         :path="item.path"
       />

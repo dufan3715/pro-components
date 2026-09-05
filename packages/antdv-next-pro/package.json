@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antdv-next-pro",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "基于 antdv-next 的二次封装组件",
   "bin": {
     "antdv-next-pro": "./bin/init-ai.mjs"
@@ -27,7 +27,8 @@
     "README.md",
     "LICENSE",
     "api.json",
-    "AI-CONTEXT.md"
+    "AI-CONTEXT.md",
+    "tsconfig.json"
   ],
   "homepage": "https://dufan3715.github.io/pro-components/",
   "repository": {

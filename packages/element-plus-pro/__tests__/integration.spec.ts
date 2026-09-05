@@ -86,9 +86,10 @@ describe('全链路集成与端到端协同测试', () => {
     await searchInput.setValue('核心用户');
     await flushPromises();
 
-    // 2. 点击查询按钮
+    // 2. 点击查询按钮（submit 按钮点击引发原生 form submit）
     const queryBtn = wrapper.find('.pro-table_search-form_search-button');
     await queryBtn.trigger('click');
+    await wrapper.find('form').trigger('submit');
     await flushPromises();
 
     // 验证：分页归 1，且 search 函数收到了最新的搜索条件与分页参数

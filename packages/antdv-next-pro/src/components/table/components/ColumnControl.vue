@@ -73,10 +73,12 @@ const checkedColumnKeys = computed({
     );
   },
   set(val) {
+    // 仅写 hidden 发生翻转的列
+    const checkedSet = new Set(val);
     checkedColumnsOptions.value.forEach(item => {
-      if (item.disabled) return;
+      if (item.disabled || item.checked === checkedSet.has(item.value)) return;
       props.table?.setColumn?.(item.value, {
-        hidden: !val.includes(item.value),
+        hidden: !checkedSet.has(item.value),
       });
     });
   },

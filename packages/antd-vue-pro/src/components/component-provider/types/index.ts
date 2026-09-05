@@ -1,6 +1,6 @@
 import { GridItemProps, FormItemProps, TableProps } from '../../../shared/ui';
 import { Base, Grid } from '../../form/types';
-import { ProFormProps } from '../../form';
+import { ProFormProps } from '../../form/components';
 import { ProTableProps } from '../../table';
 import { AllowedComponentProps } from 'vue';
 

@@ -29,16 +29,19 @@ import {
   FormProps as ElFormProps,
 } from '../../../../shared/ui';
 import {
+  computed,
   inject,
   mergeProps,
+  onUpdated,
   provide,
+  shallowRef,
   toValue,
-  type Slot,
-  computed,
+  triggerRef,
   useAttrs,
+  type Slot,
 } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
-import { BaseFormItem } from '..';
+import BaseFormItem from '../BaseFormItem/index.vue';
 import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { Grid, VModelProps, PathProps } from '../../types';
 import {
@@ -63,12 +66,12 @@ const props = withDefaults(defineProps<Props>(), {
 
 /**
  * 依赖注入中心：
- * 若外部未传 form 实例，则自动初始化内部表单实例；
+ * 未传 form 实例（含运行期置空）时惰性初始化内部表单实例；
  * 将 Form 实例注入到 Vue Context 中，供深层子组件跨层级直接访问数据和方法。
  */
-const fallbackForm = props.form ? undefined : useForm();
+let fallbackForm: F | undefined;
 const currentForm = computed(
-  () => props.form ?? (fallbackForm as unknown as F)
+  () => props.form ?? (fallbackForm ??= useForm() as unknown as F)
 );
 
 /**
@@ -93,6 +96,7 @@ const setFormRef = (el: any) => currentForm.value?.setFormRef?.(el);
 let formInstanceCounter = 0;
 const formInstanceKeyMap = new WeakMap<object, number>();
 const getFormKey = (f: object) => {
+  if (f == null) return 0;
   if (!formInstanceKeyMap.has(f)) {
     formInstanceKeyMap.set(f, ++formInstanceCounter);
   }
@@ -124,11 +128,15 @@ type FieldSlots = Record<ExtractPath<F>, Slot<FieldSlotProps>>;
 
 const slots = defineSlots<Partial<FieldSlots & { default: Slot }>>();
 
-/**
+/*
  * 动态插槽映射中心 (Slot Teleporting)：
- * 在 setup 同步期直接提供响应式 slots 上下文容器，供深层 BaseField 按需动态获取插槽
+ * slots 以 shallowRef 注入，组件每次更新后触发通知，深层 BaseField 可感知父级运行期增删的具名插槽
  */
-provide(InjectionFormSlotsKey, slots);
+const formSlotsRef = shallowRef<Record<string, any>>(slots);
+onUpdated(() => {
+  triggerRef(formSlotsRef);
+});
+provide(InjectionFormSlotsKey, formSlotsRef);
 </script>
 
 <template>

@@ -292,13 +292,15 @@ const useTable = <
   D extends Data = Data,
   T extends Data = ExtendWithAny<D>,
   C extends BaseColumn<T> = BaseColumn<T>,
->(params: {
-  columns?: Columns<T, C>;
-  dataSource?: T[];
-  pageParam?: PageParam;
-  searchParam?: ExtendWithAny<DeepPartial<D>>;
-  searchFields?: Fields<D>;
-}): Table<D, T, C> => {
+>(
+  params: {
+    columns?: Columns<T, C>;
+    dataSource?: T[];
+    pageParam?: PageParam;
+    searchParam?: ExtendWithAny<DeepPartial<D>>;
+    searchFields?: Fields<D>;
+  } = {}
+): Table<D, T, C> => {
   const {
     columns: initColumns = [],
     dataSource: initDataSource = [],
@@ -432,7 +434,14 @@ const useTable = <
           }
           group[columnIndex] = normalized;
         } else {
-          Object.assign(preColumn, value);
+          const merged = value as C;
+          // 合并新增的 children 就地补齐子列 key
+          if (merged.children !== undefined) {
+            merged.children = merged.children.map((child: any) =>
+              normalizeColumn(child, allocateColumnKey)
+            );
+          }
+          Object.assign(preColumn, merged);
         }
       },
       rest

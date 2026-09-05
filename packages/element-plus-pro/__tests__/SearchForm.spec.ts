@@ -219,6 +219,8 @@ describe('SearchForm 组件测试', () => {
     expect(wrapper.emitted('reset')).toHaveLength(1);
 
     await wrapper.find('.pro-table_search-form_search-button').trigger('click');
+    // submit 按钮点击引发原生 form submit
+    await wrapper.find('form').trigger('submit');
     expect(wrapper.emitted('search')).toHaveLength(1);
 
     wrapper.unmount();
@@ -276,6 +278,29 @@ describe('SearchForm 组件测试', () => {
 
     await flushPromises();
     expect(wrapper.exists()).toBe(true);
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // SF-02b [判别]: 查询按钮经 submit 路径单发 search；回车触发同一路径
+  // ----------------------------------------------------
+  it('SF-02b [判别]: 查询按钮统一走 submit 路径触发 search，回车与点击同一路径', async () => {
+    const form = useForm({}, [{ path: 'name', component: 'input' }]);
+
+    const wrapper = mount(SearchForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点 1：回车（form submit）触发 search
+    const formEl = wrapper.find('form');
+    await formEl.trigger('submit');
+    expect(wrapper.emitted('search')).toHaveLength(1);
+
+    // 判别点 2：再次回车——每次提交独立触发，不被吞（快速连续查询合法）
+    await formEl.trigger('submit');
+    expect(wrapper.emitted('search')).toHaveLength(2);
+
     wrapper.unmount();
   });
 });

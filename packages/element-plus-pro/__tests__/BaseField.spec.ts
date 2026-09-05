@@ -333,4 +333,49 @@ describe('BaseField 组件测试', () => {
 
     wrapper.unmount();
   });
+  // ----------------------------------------------------
+  // BF-B10 [判别]: 旧值为原始类型时跳过深拷贝，直接引用传递
+  // ----------------------------------------------------
+  it('BF-B10 [判别]: 双参 formatter 旧值为原始类型（字符串/数字）时不触发 cloneDeep', async () => {
+    // 大字符串：若仍走 cloneDeep（JSON 降级路径）则行为异常；原始值路径应为同引用传递
+    const bigStr = 'x'.repeat(100000);
+    let receivedOld: any;
+    const form = useForm({ note: bigStr, count: 3 }, [
+      {
+        path: 'note',
+        component: 'input',
+        valueFormatter: (val: any, oldVal: any) => {
+          if (receivedOld === undefined) receivedOld = oldVal;
+          return val;
+        },
+      },
+      {
+        path: 'count',
+        component: 'input',
+        valueFormatter: (val: any, oldVal: any) => {
+          return Number(val) + (typeof oldVal === 'number' ? 0 : 0);
+        },
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const inputs = wrapper.findAll('input');
+    await inputs[0].setValue('typed');
+    await flushPromises();
+
+    // 判别点：原始类型旧值直接引用（零拷贝），值与写入前一致
+    expect(receivedOld).toBe(bigStr);
+
+    // 数字旧值同样零拷贝路径，行为正确
+    const numericInput = inputs[1];
+    await numericInput.setValue('7');
+    await flushPromises();
+    expect(form.getFormData('count')).toBe(7);
+    wrapper.unmount();
+  });
 });

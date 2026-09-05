@@ -35,9 +35,27 @@ import {
 } from '../../../../shared/ui';
 import { computed, inject, toRaw, toValue } from 'vue';
 import type { Fields, Grid } from '../../types';
-import { BaseField, SlotComponent, ContainerFragment } from '..';
+import BaseField from '../BaseField/index.vue';
+import SlotComponent from '../SlotComponent/index.vue';
+import ContainerFragment from '../ContainerFragment/index.vue';
 import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
+
+/*
+ * 无 path 字段的稳定渲染 key：以字段原始对象为 key 分配自增 id，
+ * 字段插删/重排/过滤时保持 key 与对象绑定，不随数组位置漂移
+ */
+let fieldKeySeed = 0;
+const fieldKeyMap = new WeakMap<object, number>();
+const getFieldKey = (field: unknown): number => {
+  const raw = toRaw(field as object);
+  let key = fieldKeyMap.get(raw);
+  if (key === undefined) {
+    key = ++fieldKeySeed;
+    fieldKeyMap.set(raw, key);
+  }
+  return key;
+};
 
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
@@ -86,14 +104,42 @@ const computedGridProps = computed<GridProps>(() => {
 const formItemRefMap = new WeakMap<object, any>();
 const componentRefMap = new WeakMap<object, any>();
 
+/** 已告警过的字段对象（不可写场景去重） */
+const warnedFrozenFields = new WeakSet<object>();
+const defineFieldAccessors = (
+  raw: object,
+  accessors: Record<string, () => any>
+) => {
+  try {
+    for (const [key, getter] of Object.entries(accessors)) {
+      // 不可枚举：不进入 Object.keys / spread，不随字段配置透传
+      Object.defineProperty(raw, key, {
+        value: getter,
+        enumerable: false,
+        configurable: true,
+        writable: true,
+      });
+    }
+  } catch {
+    if (!warnedFrozenFields.has(raw)) {
+      warnedFrozenFields.add(raw);
+      console.warn(
+        '[pro-components] 字段配置对象不可写（如被 Object.freeze），getFormItemRef / getComponentRef 等实例访问器挂载失败。'
+      );
+    }
+  }
+};
+
 const setFormItemRef = (field: any, el: any, formItemProps: any) => {
   const raw = toRaw(field);
   if (!raw || typeof raw !== 'object') return;
 
   if (el) {
     formItemRefMap.set(raw, el);
-    raw.getFormItemRef = () => formItemRefMap.get(raw);
-    raw.getFormItemComputedProps = () => formItemProps;
+    defineFieldAccessors(raw, {
+      getFormItemRef: () => formItemRefMap.get(raw),
+      getFormItemComputedProps: () => formItemProps,
+    });
   } else {
     formItemRefMap.delete(raw);
     delete raw.getFormItemRef;
@@ -107,9 +153,11 @@ const setComponentRef = (field: any, el: any) => {
 
   if (el) {
     componentRefMap.set(raw, el);
-    raw.getComponentRef = () => componentRefMap.get(raw)?.getComponentRef?.();
-    raw.getComponentComputedProps = () =>
-      componentRefMap.get(raw)?.getComponentComputedProps?.();
+    defineFieldAccessors(raw, {
+      getComponentRef: () => componentRefMap.get(raw)?.getComponentRef?.(),
+      getComponentComputedProps: () =>
+        componentRefMap.get(raw)?.getComponentComputedProps?.(),
+    });
   } else {
     componentRefMap.delete(raw);
     delete raw.getComponentRef;
@@ -125,7 +173,10 @@ const groupedFields = useGroupFieldAttrs(validFields);
     :component="enableGrid ? AGrid : undefined"
     v-bind="computedGridProps"
   >
-    <template v-for="(item, index) of groupedFields" :key="item.path || index">
+    <template
+      v-for="item of groupedFields"
+      :key="item.path || getFieldKey(item.rawField)"
+    >
       <ContainerFragment
         :component="enableGrid ? AGridItem : undefined"
         v-bind="item.gridItemProps"

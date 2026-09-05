@@ -16,6 +16,21 @@ describe('useTable', () => {
     expect(pageParam).toEqual({ current: 1, pageSize: 10, total: 0 });
   });
 
+  it('TT-01b [判别] 无参/undefined 调用回退默认配置，不崩溃', () => {
+    const noArgs = useTable();
+    expect(noArgs.columns.value).toEqual([]);
+    expect(noArgs.dataSource.value).toEqual([]);
+    expect(noArgs.pageParam).toEqual({ current: 1, pageSize: 10, total: 0 });
+
+    const undefinedArg = useTable(undefined);
+    expect(undefinedArg.columns.value).toEqual([]);
+    expect(undefinedArg.pageParam).toEqual({
+      current: 1,
+      pageSize: 10,
+      total: 0,
+    });
+  });
+
   it('TT-02 pageParam 为 reactive', () => {
     const { pageParam } = useTable({});
     expect(isReactive(pageParam)).toBe(true);
@@ -73,6 +88,27 @@ describe('useTable', () => {
     setColumn('name', { title: '新' } as any);
     expect(columns.value[0].title).toBe('新');
     expect(columns.value[0].width).toBe(100);
+  });
+
+  it('TT-10b [判别] setColumn merge 新增 children 就地补齐子列 key', () => {
+    const { columns, setColumn, deleteColumn } = useTable<any>({
+      columns: [{ key: 'x', title: 'X' }],
+    });
+    setColumn('x', { children: [{ title: 'raw' }] } as any);
+    const child = columns.value[0].children?.[0] as any;
+    // 无 key 子列补实例级种子 key
+    expect(child.key).toMatch(/^__col_\d+$/);
+
+    // 已有显式 key 的子列不被覆盖
+    setColumn('x', { children: [{ key: 'explicit', title: 'kept' }] } as any);
+    const child2 = columns.value[0].children?.[0] as any;
+    expect(child2.key).toBe('explicit');
+
+    // 判别点：补齐 key 后按子列 key 定位可用
+    setColumn('explicit', { title: 'updated' } as any);
+    expect((columns.value[0].children as any[])[0].title).toBe('updated');
+    deleteColumn('explicit');
+    expect((columns.value[0].children as any[]).length).toBe(0);
   });
 
   it('TT-11 setColumn rewrite 替换并继承 key', () => {
