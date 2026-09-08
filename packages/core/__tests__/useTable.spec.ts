@@ -278,6 +278,52 @@ describe('useTable', () => {
     expect((cols[0].children as any)[0].key).toBe('k3');
   });
 
+  it('TT-25 [判别] columns 整体重赋值后同步补齐 key', () => {
+    const { columns } = useTable<any>({
+      columns: [{ key: 'a', title: 'A' }],
+    });
+    const frozenCol = Object.freeze({ title: 'F' }) as any;
+    columns.value = [
+      { dataIndex: 'name', title: '姓名' },
+      { title: '自增' },
+      { key: 'explicit', title: '显式保留' },
+      { title: '分组', children: [{ title: '子列' }] },
+      frozenCol,
+    ] as any;
+    // 判别点：赋值语句返回后 key 即已补齐（无需 nextTick）
+    expect(columns.value[0].key).toBe('name');
+    expect(columns.value[1].key).toMatch(/^__col_\d+$/);
+    expect(columns.value[2].key).toBe('explicit');
+    expect((columns.value[3].children as any)[0].key).toMatch(/^__col_\d+$/);
+    // 冻结列以副本替换槽位，原冻结对象不被写入
+    expect(Object.isFrozen(columns.value[4])).toBe(false);
+    expect(columns.value[4].key).toMatch(/^__col_\d+$/);
+    expect((frozenCol as any).key).toBeUndefined();
+  });
+
+  it('TT-26 [判别] 整体重赋值保持引用与可变异语义', () => {
+    const { columns, setColumn, deleteColumn } = useTable<any>({
+      columns: [{ key: 'a', title: 'A' }],
+    });
+    const newColumns = [{ title: 'B' }, { title: 'C' }] as any;
+    columns.value = newColumns;
+    // 判别点：重赋值不换引用，新数组被收编为状态本体
+    expect(toRaw(columns.value)).toBe(newColumns);
+
+    // resizeColumn 式直接变异对新数组可见
+    const proxyCol = columns.value[0];
+    (proxyCol as any).width = 120;
+    expect(newColumns[0].width).toBe(120);
+
+    // 判别点：按补齐的 key 定位恢复可用，删除效果同步反映到原数组
+    const autoKey = newColumns[0].key;
+    setColumn(autoKey, { title: 'B-New' });
+    expect(newColumns[0].title).toBe('B-New');
+    deleteColumn(autoKey);
+    expect(columns.value.length).toBe(1);
+    expect(newColumns[0].title).toBe('C');
+  });
+
   describe('直接变异 (DC 组)', () => {
     it('DC-01 直接变异 columns.value 后 setColumn / deleteColumn 正常操作', () => {
       const { columns, setColumn, deleteColumn } = useTable<any>({

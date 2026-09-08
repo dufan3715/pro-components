@@ -15,7 +15,7 @@
  *
  * @internal 本模块为底层基建，外部业务通常调用上层 UI 封装包二次导出的 typed useTable。
  */
-import { Reactive, reactive, Ref, ref, toValue } from 'vue';
+import { Reactive, reactive, Ref, ref, toValue, watch } from 'vue';
 import { applyByGroupDesc, GroupMatch } from '../shared/internals';
 import {
   BaseColumn,
@@ -153,7 +153,7 @@ export type Table<
  * @template C - 列配置类型，继承自 BaseColumn<T>
  *
  * @param {object} params - 表格配置参数
- * @param {Columns<T, C>} [params.columns] - 初始列配置。会直接包裹（复用）传入的数组引用，并被 normalizeColumns 就地补齐 key（`@mutates`）
+ * @param {Columns<T, C>} [params.columns] - 初始列配置。会直接包裹（复用）传入的数组引用，并被 normalizeColumns 就地补齐 key（`@mutates`）；后续整体重赋值返回实例的 columns（`.value =`）时会同步对新数组就地补齐缺失的 key
  * @param {T[]} [params.dataSource] - 初始数据源。会直接包裹（复用）传入的数组引用，后续对返回实例的变更会穿透到调用方原对象
  * @param {PageParam} [params.pageParam] - 初始分页参数。会直接包裹（复用）传入的对象引用，后续对返回实例的变更会穿透到调用方原对象
  * @param {ExtendWithAny<DeepPartial<D>>} [params.searchParam] - 初始搜索参数
@@ -317,6 +317,15 @@ const useTable = <
   const columns = ref<Columns<T, C>>(
     normalizeColumns(initColumns, allocateColumnKey)
   ) as Ref<Columns<T, C>>;
+
+  // 整体重赋值 columns.value 时，同步对新数组执行与初始化一致的规范化（就地补 key）
+  watch(
+    columns,
+    cols => {
+      normalizeColumns(cols, allocateColumnKey);
+    },
+    { flush: 'sync' }
+  );
 
   const dataSource = ref<T[]>(initDataSource) as Ref<T[]>;
 
