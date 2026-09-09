@@ -1,5 +1,16 @@
 # @qin-ui/pro-components-core
 
+## 2.0.6
+
+### Patch Changes
+
+- 修复 ProTable SearchForm 在 Modal/Dialog 缩放过渡内挂载时折叠高度测量错误（如 antd Modal zoom 动画期间挂载，折叠高度被错误计算为 28.8px 并误显示展开按钮）
+  - 折叠高度改为按真实行边界测量（第 minExpandRows 行的底部），不再以首字段行高乘行数推算：含 textarea 等不均匀行高字段的表单，折叠/收起时不再拦腰截断字段所在行；
+  - 行边界测量沿 offsetParent 坐标链累加布局盒读数（offsetTop / offsetHeight）：栅格列祖先（如 antd Col 默认 position: relative）导致行元素与表单不共享坐标系时，行边界依然正确测量，不再出现收起态全量展开（无折叠效果、无展开按钮）；
+  - 行高与自然高度读取改用布局盒属性（scrollHeight），测量读数不受祖先元素 transform 缩放影响，Modal zoom 过渡首帧即可测得正确高度；
+  - ResizeObserver 同时观察表单容器与全部顶层行元素，textarea 等自适应高度字段随内容变化长高/变矮后，收起态与展开态高度均自动重测；
+  - 行数不足 minExpandRows 或行边界不可测时，折叠高度取自然高度（全量展示、不显示展开按钮）/ 回退既有行高算术。
+
 ## 2.0.5
 
 ### Patch Changes
