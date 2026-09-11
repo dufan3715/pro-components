@@ -1,9 +1,7 @@
-<script lang="ts" setup>
-import SearchFormPlayground from './views/SearchFormPlayground.vue';
-</script>
+<script lang="ts" setup></script>
 
 <template>
-  <SearchFormPlayground />
+  <RouterView />
 </template>
 
 <style>

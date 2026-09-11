@@ -458,6 +458,292 @@ const onSearch9 = async () => {
 };
 
 // ----------------------------------------------------
+// 场景 10: Modal 缩放动画与单字段防误判 (Modal Zoom & Single-field Defense)
+// ----------------------------------------------------
+const isSingleModalVisible = ref(false);
+const isMultiModalVisible = ref(false);
+
+// 场景 10-1: 单字段 AddModal 场景 (1个字段，1行)
+const table10Single = useTable({
+  columns: tableColumns,
+  dataSource: mockDatabase.slice(0, 3),
+  searchFields: [
+    {
+      path: 'keyword',
+      label: '检索关键字',
+      component: 'input',
+      placeholder: '请输入关键字检索...',
+    },
+  ],
+});
+const onSearch10Single = async () => {
+  addLog('场景10 单字段Modal查询', table10Single.searchForm.formData);
+};
+
+// 场景 10-2: 多字段 Modal 场景 (6个字段)
+const table10Multi = useTable({
+  columns: tableColumns,
+  dataSource: mockDatabase.slice(0, 3),
+  searchFields: [
+    { path: 'name', label: '用户姓名', component: 'input' },
+    { path: 'phone', label: '联系电话', component: 'input' },
+    {
+      path: 'dept',
+      label: '部门',
+      component: 'select',
+      options: [
+        { label: '研发部', value: '研发部' },
+        { label: '市场部', value: '市场部' },
+      ],
+    },
+    {
+      path: 'role',
+      label: '角色',
+      component: 'select',
+      options: [
+        { label: '管理员', value: '管理员' },
+        { label: '普通用户', value: '普通用户' },
+      ],
+    },
+    { path: 'email', label: '邮箱', component: 'input' },
+    { path: 'remark', label: '备注', component: 'input' },
+  ],
+});
+const onSearch10Multi = async () => {
+  addLog('场景10 多字段Modal查询', table10Multi.searchForm.formData);
+};
+
+// ----------------------------------------------------
+// 场景 11: Textarea 不均匀行高与真实行边界截断 (Non-uniform Row Heights)
+// ----------------------------------------------------
+const s11MinRows = ref(2);
+const table11 = useTable({
+  columns: tableColumns,
+  dataSource: mockDatabase.slice(0, 5),
+  searchFields: [
+    {
+      path: 'desc',
+      label: '多行备注(76px)',
+      component: 'textarea',
+      rows: 3,
+      span: 16,
+      placeholder: '第1行Textarea高度约76px，按真实行底折叠',
+    },
+    {
+      path: 'dept',
+      label: '所属部门',
+      component: 'select',
+      span: 8,
+      options: [
+        { label: '研发部', value: '研发部' },
+        { label: '产品部', value: '产品部' },
+        { label: '财务部', value: '财务部' },
+      ],
+      placeholder: '请选择部门',
+    },
+    {
+      path: 'name',
+      label: '用户姓名',
+      component: 'input',
+      span: 8,
+      placeholder: '第2行字段 (32px)',
+    },
+    {
+      path: 'phone',
+      label: '手机号码',
+      component: 'input',
+      span: 8,
+      placeholder: '第2行字段 (32px)',
+    },
+    {
+      path: 'status',
+      label: '状态',
+      component: 'select',
+      span: 8,
+      options: [
+        { label: '正常', value: 'active' },
+        { label: '停用', value: 'inactive' },
+      ],
+    },
+    {
+      path: 'date',
+      label: '登记日期',
+      component: 'date-picker',
+      span: 8,
+    },
+    {
+      path: 'email',
+      label: '电子邮箱',
+      component: 'input',
+      span: 8,
+    },
+    {
+      path: 'extraInfo',
+      label: '详细补充',
+      component: 'input',
+      span: 8,
+    },
+  ],
+});
+const onSearch11 = async () => {
+  addLog('场景11 Textarea不均匀行高查询', table11.searchForm.formData);
+};
+
+// ----------------------------------------------------
+// 场景 12: ResizeObserver 行元素动态尺寸自愈 (Textarea AutoSize & Dynamic Resize Auto-heal)
+// ----------------------------------------------------
+const table12 = useTable({
+  columns: tableColumns,
+  dataSource: mockDatabase.slice(0, 5),
+  searchFields: [
+    {
+      path: 'dynamicDesc',
+      label: '自适应描述(autoSize)',
+      component: 'textarea',
+      autoSize: { minRows: 2, maxRows: 8 },
+      span: 16,
+      placeholder:
+        '在此输入多行文字打字换行，或点击下方预设按钮，观察表单折叠高度实时自愈...',
+    },
+    {
+      path: 'title',
+      label: '任务标题',
+      component: 'input',
+      span: 8,
+      placeholder: '请输入任务名称',
+    },
+    {
+      path: 'priority',
+      label: '任务优先级',
+      component: 'select',
+      span: 8,
+      options: [
+        { label: '高 (P0)', value: 'high' },
+        { label: '中 (P1)', value: 'medium' },
+        { label: '低 (P2)', value: 'low' },
+      ],
+    },
+    {
+      path: 'owner',
+      label: '负责人',
+      component: 'input',
+      span: 8,
+    },
+    {
+      path: 'deadline',
+      label: '截止时间',
+      component: 'date-picker',
+      span: 8,
+    },
+    {
+      path: 'category',
+      label: '所属分类',
+      component: 'input',
+      span: 8,
+    },
+  ],
+});
+
+const setShortText = () => {
+  table12.searchForm.setFormData('dynamicDesc', '这是单行短文本内容。');
+  addLog('场景12 注入短文本 (32px)', table12.searchForm.formData);
+};
+
+const setMediumText = () => {
+  table12.searchForm.setFormData(
+    'dynamicDesc',
+    '第1行：需求分析与架构设计\n第2行：Core层真实行边界算法改造\n第3行：ResizeObserver观察行元素\n第4行：表单高度平滑自愈刷新'
+  );
+  addLog('场景12 注入4行文本 (88px)', table12.searchForm.formData);
+};
+
+const setLongText = () => {
+  table12.searchForm.setFormData(
+    'dynamicDesc',
+    '第1行：需求调研与缺陷分析 (Modal 28.8px 缩放污染)\n第2行：分析 offsetTop 与 getBoundingClientRect 差异\n第3行：构建行区间垂直重叠聚类算法\n第4行：ResizeObserver 扩展至全部行元素并同步 diff\n第5行：解决 textarea autoSize 增长后表单高度钉死问题\n第6行：提供行边界不可测时的安全行高算术降级\n第7行：补充全量同构单元测试与用例编号\n第8行：验证收起态与展开态自愈刷新成功'
+  );
+  addLog('场景12 注入8行长文本 (176px)', table12.searchForm.formData);
+};
+
+const clearText = () => {
+  table12.searchForm.setFormData('dynamicDesc', '');
+  addLog('场景12 清空描述文本', table12.searchForm.formData);
+};
+
+const onSearch12 = async () => {
+  addLog('场景12 自愈调试台查询', table12.searchForm.formData);
+};
+
+// ----------------------------------------------------
+// 场景 13: 复杂混合跨列与行边界可视化标尺 (Mixed Spans & Boundary Visualizer)
+// ----------------------------------------------------
+const showBoundaryRuler = ref(true);
+const table13 = useTable({
+  columns: tableColumns,
+  dataSource: mockDatabase.slice(0, 5),
+  searchFields: [
+    {
+      path: 'projectIntro',
+      label: '项目简介(跨16列/90px)',
+      component: 'textarea',
+      rows: 3,
+      span: 16,
+      placeholder: '行1字段：跨16列多行输入框',
+    },
+    {
+      path: 'projectType',
+      label: '项目类型(跨8列)',
+      component: 'select',
+      span: 8,
+      options: [
+        { label: '重点攻坚', value: 'key' },
+        { label: '常规迭代', value: 'normal' },
+      ],
+    },
+    {
+      path: 'projectName',
+      label: '项目名称',
+      component: 'input',
+      span: 8,
+      placeholder: '行2字段 (32px)',
+    },
+    {
+      path: 'projectLeader',
+      label: '负责人',
+      component: 'input',
+      span: 8,
+      placeholder: '行2字段 (32px)',
+    },
+    {
+      path: 'projectCycle',
+      label: '项目周期',
+      component: 'range-picker',
+      span: 8,
+    },
+    {
+      path: 'techStack',
+      label: '技术选型(跨16列)',
+      component: 'input',
+      span: 16,
+    },
+    {
+      path: 'projectLevel',
+      label: '重要级别(跨8列)',
+      component: 'select',
+      span: 8,
+      options: [
+        { label: 'S级', value: 'S' },
+        { label: 'A级', value: 'A' },
+        { label: 'B级', value: 'B' },
+      ],
+    },
+  ],
+});
+const onSearch13 = async () => {
+  addLog('场景13 复杂混合跨列查询', table13.searchForm.formData);
+};
+
+// ----------------------------------------------------
 // 4. 场景 10: 交互式实时调试台 (Live Playground)
 // ----------------------------------------------------
 const liveConfig = reactive({
@@ -579,6 +865,10 @@ onUnmounted(() => {
               { label: '07 按钮插槽', value: 's7' },
               { label: '08 间距定制', value: 's8' },
               { label: '09 容器与显隐', value: 's9' },
+              { label: '10 Modal Zoom', value: 's10' },
+              { label: '11 Textarea 行高', value: 's11' },
+              { label: '12 动态行高自愈', value: 's12' },
+              { label: '13 混合高度标尺', value: 's13' },
             ]"
           />
         </div>
@@ -1068,6 +1358,312 @@ onUnmounted(() => {
             />
           </div>
         </div>
+
+        <!-- ==================================================== -->
+        <!-- 场景 10: Modal 缩放动画与单字段防误判 -->
+        <!-- ==================================================== -->
+        <div
+          v-if="activeScenarioKey === 's10' || activeScenarioKey === 'all'"
+          class="scenario-card"
+        >
+          <div class="card-header">
+            <div class="header-left">
+              <span
+                class="scenario-tag"
+                style="color: #0369a1; background: #e0f2fe"
+                >场景 10</span
+              >
+              <h3>
+                Modal 缩放动画防污染与单字段防误判 (Modal Zoom & Single-field
+                Defense)
+              </h3>
+            </div>
+            <span class="header-desc"
+              >验证：Antd Modal scale(0.2)→1
+              进入动画首帧读取布局盒属性（offsetTop/offsetHeight），不受祖先
+              transform 缩放污染（解决 28.8px 假溢出）</span
+            >
+          </div>
+
+          <div class="scenario-actions-bar">
+            <span class="actions-label">弹窗场景触发器：</span>
+            <a-space wrap>
+              <a-button type="primary" @click="isSingleModalVisible = true">
+                🪟 打开单字段弹窗 (AddModal 场景 - 1 字段 1 行)
+              </a-button>
+              <a-button @click="isMultiModalVisible = true">
+                🪟 打开多字段弹窗 (复杂 6 字段场景)
+              </a-button>
+            </a-space>
+          </div>
+
+          <div class="diagnose-box">
+            <span class="diagnose-title">🔍 核心修复与验证判定标准：</span>
+            <div class="diagnose-list">
+              <div class="diagnose-item">
+                1.
+                <b>单字段弹窗</b
+                >：自然高度=32px，折叠高度=32px，<b>展开/收起按钮绝对不出现</b>（旧版因
+                28.8px 缩放污染误报出现按钮）。
+              </div>
+              <div class="diagnose-item">
+                2.
+                <b>多字段弹窗</b>：弹窗缩放动画结束后折叠高度依然精准落在真实第
+                2 行底部，展开收起交互平滑流畅。
+              </div>
+            </div>
+          </div>
+
+          <!-- 单字段弹窗 -->
+          <a-modal
+            v-model:open="isSingleModalVisible"
+            title="单字段 AddModal 场景测试 (1 个字段 1 行)"
+            :footer="null"
+            width="600px"
+            destroy-on-close
+          >
+            <div class="modal-inner-info">
+              💡
+              <b>防误判验证</b
+              >：观察表单右侧是否出现多余的「展开/收起」按钮。正确表现为：只有 1
+              个输入框与查询/重置按钮，无展开按钮。
+            </div>
+            <ProTable
+              :table="table10Single"
+              :search="onSearch10Single"
+              :search-form-config="{
+                expand: { minExpandRows: 2, expandStatus: false },
+              }"
+            />
+          </a-modal>
+
+          <!-- 多字段弹窗 -->
+          <a-modal
+            v-model:open="isMultiModalVisible"
+            title="多字段 Modal 场景测试 (6 个字段)"
+            :footer="null"
+            width="800px"
+            destroy-on-close
+          >
+            <div class="modal-inner-info">
+              💡 <b>多行测量验证</b>：Modal 缩放动画完成后，表单折叠高度取前 2
+              行真实底部，点击展开/收起平稳过渡。
+            </div>
+            <ProTable
+              :table="table10Multi"
+              :search="onSearch10Multi"
+              :search-form-config="{
+                expand: { minExpandRows: 2, expandStatus: false },
+              }"
+            />
+          </a-modal>
+        </div>
+
+        <!-- ==================================================== -->
+        <!-- 场景 11: Textarea 不均匀行高与真实行边界截断 -->
+        <!-- ==================================================== -->
+        <div
+          v-if="activeScenarioKey === 's11' || activeScenarioKey === 'all'"
+          class="scenario-card"
+        >
+          <div class="card-header">
+            <div class="header-left">
+              <span
+                class="scenario-tag"
+                style="color: #92400e; background: #fef3c7"
+                >场景 11</span
+              >
+              <h3>
+                Textarea 不均匀行高与真实行边界截断 (Non-uniform Row Heights)
+              </h3>
+            </div>
+            <span class="header-desc"
+              >验证：第 1 行为 76px Textarea 时，折叠高度准确取第 1
+              行真实底部，不再被 32px input 算术行高拦腰切断</span
+            >
+          </div>
+
+          <div class="scenario-actions-bar">
+            <span class="actions-label">折叠行数切换 (minExpandRows)：</span>
+            <a-radio-group
+              v-model:value="s11MinRows"
+              button-style="solid"
+              size="small"
+            >
+              <a-radio-button :value="1"
+                >折叠保留 1 行 (含 76px Textarea 行)</a-radio-button
+              >
+              <a-radio-button :value="2"
+                >折叠保留 2 行 (Textarea行 + 普通Input行)</a-radio-button
+              >
+            </a-radio-group>
+          </div>
+
+          <div class="table-wrapper">
+            <ProTable
+              :table="table11"
+              :search="onSearch11"
+              :search-form-config="{
+                expand: { minExpandRows: s11MinRows, expandStatus: false },
+              }"
+            />
+          </div>
+
+          <div
+            class="diagnose-box"
+            style="background: #fffbeb; border-color: #fde68a"
+          >
+            <span class="diagnose-title" style="color: #92400e"
+              >📐 布局盒真实行聚类分析：</span
+            >
+            <div class="diagnose-list" style="color: #78350f">
+              <div class="diagnose-item">
+                • <b>第 1 行 (Row 1)</b>：包含 Textarea (跨16列, 高度约76px) +
+                Select (跨8列, 高度32px)，垂直重叠聚类为一行，行底约为
+                <b>76px</b>。
+              </div>
+              <div class="diagnose-item">
+                • <b>传统算法缺陷对比</b>：旧算术推算 `1 × 32px = 32px`，导致
+                Textarea 只有上半截可见；新算法精准测量行底 `76px`，完整呈现。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================================================== -->
+        <!-- 场景 12: ResizeObserver 行元素动态自愈测试 -->
+        <!-- ==================================================== -->
+        <div
+          v-if="activeScenarioKey === 's12' || activeScenarioKey === 'all'"
+          class="scenario-card"
+        >
+          <div class="card-header">
+            <div class="header-left">
+              <span
+                class="scenario-tag"
+                style="color: #15803d; background: #dcfce7"
+                >场景 12</span
+              >
+              <h3>
+                ResizeObserver 行元素观察与动态尺寸自愈 (Dynamic Resize
+                Auto-heal)
+              </h3>
+            </div>
+            <span class="header-desc"
+              >验证：RO 同时监听全部顶层行元素，Textarea autoSize
+              内容增高触发行盒变化，表单高度在折叠态/展开态均能实时自愈重测刷新</span
+            >
+          </div>
+
+          <!-- 动态文本注入快捷按钮 -->
+          <div class="scenario-actions-bar">
+            <span class="actions-label">动态内容模拟注入：</span>
+            <a-space wrap>
+              <a-button size="small" @click="setShortText">
+                📝 填入 1 行短文本 (32px)
+              </a-button>
+              <a-button size="small" type="dashed" @click="setMediumText">
+                📝 填入 4 行中等文本 (88px)
+              </a-button>
+              <a-button size="small" type="primary" ghost @click="setLongText">
+                📝 填入 8 行长文本 (176px - 触发大幅自愈)
+              </a-button>
+              <a-button size="small" danger ghost @click="clearText">
+                🗑️ 清空文本
+              </a-button>
+            </a-space>
+          </div>
+
+          <div class="table-wrapper">
+            <ProTable
+              :table="table12"
+              :search="onSearch12"
+              :search-form-config="{
+                expand: { minExpandRows: 1, expandStatus: false },
+              }"
+            />
+          </div>
+
+          <div class="diagnose-box">
+            <span class="diagnose-title">🔄 动态自愈机制说明：</span>
+            <div class="diagnose-list">
+              <div class="diagnose-item">
+                • <b>折叠状态下自愈</b>：即使外层表单容器被 `overflow: hidden`
+                钉死在折叠高度，Textarea 行高度变高时，同一 RO
+                立即感知到该行元素变化并合帧重测，折叠高度自动变大贴合新行底。
+              </div>
+              <div class="diagnose-item">
+                • <b>展开状态下自愈</b>：展开时 Textarea autoSize 增高，自然高度
+                `scrollHeight` 动态重测，页面布局不发生遮挡。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================================================== -->
+        <!-- 场景 13: 复杂混合跨列与行边界可视化标尺 -->
+        <!-- ==================================================== -->
+        <div
+          v-if="activeScenarioKey === 's13' || activeScenarioKey === 'all'"
+          class="scenario-card"
+        >
+          <div class="card-header">
+            <div class="header-left">
+              <span
+                class="scenario-tag"
+                style="color: #7e22ce; background: #f3e8ff"
+                >场景 13</span
+              >
+              <h3>
+                复杂混合跨列与可视化行边界分析 (Mixed Spans & Boundary
+                Visualizer)
+              </h3>
+            </div>
+            <div class="header-action">
+              <a-switch
+                v-model:checked="showBoundaryRuler"
+                checked-children="显示行聚类说明"
+                un-checked-children="隐藏行聚类说明"
+              />
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <ProTable
+              :table="table13"
+              :search="onSearch13"
+              :search-form-config="{
+                expand: { minExpandRows: 2, expandStatus: false },
+              }"
+            />
+          </div>
+
+          <div
+            v-if="showBoundaryRuler"
+            class="diagnose-box"
+            style="background: #faf5ff; border-color: #e9d5ff"
+          >
+            <span class="diagnose-title" style="color: #7e22ce"
+              >📊 多列与多高度垂直区间重叠聚类结果分析：</span
+            >
+            <div class="diagnose-list" style="color: #6b21a8">
+              <div class="diagnose-item">
+                • <b>第 1 行</b>：项目简介 (span: 16, 高度90px) 与 项目类型
+                (span: 8, 高度32px) 在同处于 top 0px 区间，聚类为 Row 1，行底为
+                90px。
+              </div>
+              <div class="diagnose-item">
+                • <b>第 2 行</b>：项目名称 (span: 8) + 负责人 (span: 8) +
+                项目周期 (span: 8)，聚类为 Row 2，行底为 90px + rowGap + 32px。
+              </div>
+              <div class="diagnose-item">
+                • <b>自适应联动</b>：拖动上方「视口滑块」至 480px (移动端)
+                时，所有 span 自动变为 24 满宽单列，行数重排为 7
+                行，折叠高度自动按前 2 单行重算！
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -1434,5 +2030,62 @@ onUnmounted(() => {
 .log-data {
   color: #38bdf8;
   word-break: break-all;
+}
+
+/* 新增场景相关扩展样式 */
+.scenario-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.actions-label {
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.diagnose-box {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+}
+
+.diagnose-title {
+  display: block;
+  margin-bottom: 6px;
+  color: #166534;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.diagnose-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #15803d;
+  font-size: 12px;
+}
+
+.diagnose-item b {
+  color: #14532d;
+}
+
+.modal-inner-info {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  color: #0369a1;
+  font-size: 13px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
 }
 </style>
