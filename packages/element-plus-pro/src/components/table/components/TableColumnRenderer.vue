@@ -1,22 +1,17 @@
-<script
-  lang="ts"
-  setup
-  generic="D extends Record<string, any> = Record<string, any>"
->
+<script lang="ts">
+/**
+ * @component TableColumnRenderer
+ * @description 列配置渲染器：把列数组渲染为 el-table-column 树，支持分组列（children）、自定义 render 列与深层路径取值。
+ *
+ * @param {Columns} [columns] - 列配置数组
+ *
+ * @internal
+ */
+import { defineComponent, h, toRaw, toValue, type PropType } from 'vue';
 import { get, normalizePathKey } from '../../../shared/core';
 import { TableColumn } from '../../../shared/ui';
 import SlotComponent from '../../form/components/SlotComponent/index.vue';
 import type { Column, Columns } from '../types';
-import { computed, toRaw, toValue } from 'vue';
-
-defineOptions({ name: 'TableColumnRenderer' });
-
-type Props = {
-  columns: Columns<D>;
-};
-const props = withDefaults(defineProps<Props>(), {
-  columns: () => [],
-});
 
 /*
  * 无 key/prop 列的稳定渲染 key：以列原始对象为 key 分配自增 id，
@@ -24,8 +19,10 @@ const props = withDefaults(defineProps<Props>(), {
  */
 let columnKeySeed = 0;
 const columnKeyMap = new WeakMap<object, number>();
-const getStableColumnKey = (column: unknown): number => {
-  const raw = toRaw(column as object);
+const getStableColumnKey = (column: unknown): string | number => {
+  if (column === null || typeof column !== 'object')
+    return `raw_${String(column)}`;
+  const raw = toRaw(column);
   let key = columnKeyMap.get(raw);
   if (key === undefined) {
     key = ++columnKeySeed;
@@ -34,24 +31,20 @@ const getStableColumnKey = (column: unknown): number => {
   return key;
 };
 
-const getColumnKey = (column: Column<D>) => {
+const getColumnKey = (column: Column) => {
   const rawKey = column.key ?? column.prop;
   if (rawKey === undefined || rawKey === null)
     return getStableColumnKey(column);
   return normalizePathKey(rawKey);
 };
 
-const getCellValue = (row: Record<string, any>, column: Column<D>) => {
+const getCellValue = (row: Record<string, any>, column: Column) => {
   const path = column.prop;
   if (!path) return undefined;
   return get(row, path);
 };
 
-const normalizedColumns = computed(() => {
-  return props.columns.filter(column => !toValue(column.hidden));
-});
-
-const getColumnProps = (column: Column<D>) => {
+const getColumnProps = (column: Column) => {
   const { hidden, render, key, children, ...rest } = column;
   const prop = column.prop ? normalizePathKey(column.prop) : undefined;
   const columnKey = key ? normalizePathKey(key) : prop;
@@ -62,38 +55,49 @@ const getColumnProps = (column: Column<D>) => {
     columnKey,
   };
 };
+
+/*
+ * 递归渲染列树：element-plus 仅在父列默认插槽中收集 ElTableColumn 直系 vnode 或函数式组件，
+ * 因此子列以同层 vnode 数组展开（而非再包一层状态组件），深层分组同样成立
+ */
+const renderColumn = (column: Column): any => {
+  const hasChildren =
+    Array.isArray(column.children) && column.children.length > 0;
+  const vnodeProps = { key: getColumnKey(column), ...getColumnProps(column) };
+  if (hasChildren) {
+    return h(TableColumn, vnodeProps, {
+      default: () => column.children!.map(child => renderColumn(child)),
+    });
+  }
+  if (typeof column.render === 'function') {
+    return h(TableColumn, vnodeProps, {
+      default: (scope: any) =>
+        h(SlotComponent, {
+          component: column.render!({
+            ...scope,
+            column,
+            cellValue: getCellValue(scope.row, column),
+          }),
+        }),
+    });
+  }
+  return h(TableColumn, vnodeProps);
+};
+
+export default defineComponent({
+  name: 'TableColumnRenderer',
+  inheritAttrs: false,
+  props: {
+    columns: {
+      type: Array as PropType<Columns>,
+      default: () => [],
+    },
+  },
+  setup(props) {
+    return () =>
+      props.columns
+        .filter(column => !toValue(column.hidden))
+        .map(column => renderColumn(column));
+  },
+});
 </script>
-
-<template>
-  <template v-for="column in normalizedColumns" :key="getColumnKey(column)">
-    <!-- 分组列（递归子列） -->
-    <TableColumn
-      v-if="column.children && column.children.length > 0"
-      v-bind="getColumnProps(column)"
-    >
-      <TableColumnRenderer :columns="column.children" />
-    </TableColumn>
-
-    <!-- 自定义 render 列 -->
-    <TableColumn
-      v-else-if="typeof column.render === 'function'"
-      v-bind="getColumnProps(column)"
-    >
-      <template #default="scope">
-        <!-- 经 SlotComponent 渲染：支持组件、VNode 与文本等多种形态 -->
-        <SlotComponent
-          :component="
-            column.render?.({
-              ...scope,
-              column,
-              cellValue: getCellValue(scope.row, column),
-            })
-          "
-        />
-      </template>
-    </TableColumn>
-
-    <!-- 普通列（Element Plus 原生渲染） -->
-    <TableColumn v-else v-bind="getColumnProps(column)" />
-  </template>
-</template>

@@ -687,4 +687,44 @@ describe('ProTable 组件测试', () => {
     expect(offWrapper.text()).not.toContain('序号');
     offWrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PT-A17 [判别]: 分组列（children）渲染多级表头与子列数据，深层分组同样成立
+  // ----------------------------------------------------
+  it('PT-A17 [判别]: 分组列渲染多级表头与子列数据，深层分组同样成立', async () => {
+    const { wrapper } = await mountProTable({
+      table: useTable({
+        columns: [
+          {
+            label: '一级分组',
+            children: [
+              { prop: 'c1', label: '子列1' },
+              {
+                label: '二级分组',
+                children: [{ prop: 'c2', label: '深层子列' }],
+              },
+            ],
+          },
+          { prop: 'c3', label: '普通列' },
+        ] as any,
+        data: [{ c1: 'v1', c2: 'v2', c3: 'v3' }],
+      }),
+    });
+    await flushPromises();
+
+    const headerTexts = wrapper
+      .findAll('.el-table__header th')
+      .map(th => th.text());
+    expect(headerTexts).toContain('一级分组');
+    expect(headerTexts).toContain('子列1');
+    expect(headerTexts).toContain('二级分组');
+    expect(headerTexts).toContain('深层子列');
+    expect(headerTexts).toContain('普通列');
+
+    const bodyText = wrapper.find('.el-table__body').text();
+    expect(bodyText).toContain('v1');
+    expect(bodyText).toContain('v2');
+    expect(bodyText).toContain('v3');
+    wrapper.unmount();
+  });
 });
