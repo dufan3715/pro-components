@@ -381,4 +381,111 @@ describe('BaseField 组件测试', () => {
     expect(form.getFormData('count')).toBe(7);
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BF-A15 [判别]: 控件 id 与 label[for] 关联，变更校验经 field-value-change 触发
+  // ----------------------------------------------------
+  it('BF-A15 [判别]: 输入控件 id 与 label[for] 关联，必填校验随值变更触发且无字段项收集告警', async () => {
+    const warnSpy = vi.spyOn(console, 'warn');
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'input',
+        rules: [{ required: true, message: '请输入姓名' }],
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const input = wrapper.find('input');
+    const label = wrapper.find('label');
+    expect(input.attributes('id')).toBeTruthy();
+    expect(label.attributes('for')).toBe(input.attributes('id'));
+
+    await input.setValue('x');
+    await flushPromises();
+    await input.setValue('');
+    await flushPromises();
+    expect(wrapper.find('.ant-form-item-explain-error').exists()).toBe(true);
+    expect(
+      warnSpy.mock.calls.filter(args =>
+        String(args[0]).includes('can only collect one field item')
+      )
+    ).toHaveLength(0);
+
+    warnSpy.mockRestore();
+    wrapper.unmount();
+    document.body.innerHTML = '';
+  });
+
+  // ----------------------------------------------------
+  // BF-A15b [判别]: 自定义控件同样经 field-value-change 触发校验；autoLink:false 时不自动校验
+  // ----------------------------------------------------
+  it('BF-A15b [判别]: 自定义控件变更校验经 field-value-change 触发，autoLink:false 时不自动校验', async () => {
+    const CustomInput = defineComponent({
+      name: 'CustomInput',
+      props: { value: { type: String, default: '' } },
+      emits: ['update:value'],
+      setup(props, { emit }) {
+        return () =>
+          h('input', {
+            class: 'custom-input',
+            value: props.value,
+            onInput: (e: any) => emit('update:value', e.target.value),
+          });
+      },
+    });
+    const fields = (extra: Record<string, any>) =>
+      [
+        {
+          path: 'name',
+          label: '姓名',
+          component: CustomInput,
+          rules: [{ required: true, message: '请输入姓名' }],
+          ...extra,
+        },
+      ] as any;
+
+    // 自定义控件不注入 FormItem 上下文，校验仍经字段事件回传触发
+    const form = useForm({ name: '' }, fields({}));
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    const input = wrapper.find('input.custom-input');
+    expect(input.exists()).toBe(true);
+    await input.setValue('x');
+    await flushPromises();
+    await input.setValue('');
+    await flushPromises();
+    expect(wrapper.find('.ant-form-item-explain-error').exists()).toBe(true);
+    wrapper.unmount();
+
+    // autoLink: false 表示由用户自行校验，字段层不触发
+    const noLinkForm = useForm({ name: '' }, fields({ autoLink: false }));
+    const noLinkWrapper = mount(ProForm, {
+      props: { form: noLinkForm },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    const noLinkInput = noLinkWrapper.find('input.custom-input');
+    await noLinkInput.setValue('x');
+    await flushPromises();
+    await noLinkInput.setValue('');
+    await flushPromises();
+    expect(noLinkWrapper.find('.ant-form-item-explain-error').exists()).toBe(
+      false
+    );
+    noLinkWrapper.unmount();
+    document.body.innerHTML = '';
+  });
 });

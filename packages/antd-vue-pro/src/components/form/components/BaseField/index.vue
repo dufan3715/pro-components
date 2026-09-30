@@ -37,10 +37,7 @@ import {
   useAttrs,
 } from 'vue';
 import { cloneDeep } from '../../../../shared/core';
-import {
-  useInjectDisabled,
-  useInjectFormItemContext,
-} from '../../../../shared/ui';
+import { useInjectDisabled } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import ContainerFragment from '../ContainerFragment/index.vue';
 import SlotComponent from '../SlotComponent/index.vue';
@@ -74,9 +71,12 @@ const form = useForm(false);
 
 const componentRef = ref<any>();
 
-const formItemContext = useInjectFormItemContext();
-const triggerFormItemChange = () => {
-  formItemContext.onFieldChange();
+const emit = defineEmits<{
+  (e: 'field-value-change', value: unknown): void;
+}>();
+// 值写入 formData 后向外广播，字段级校验由上级 FormItem 订阅该事件触发
+const triggerFormItemChange = (value: unknown) => {
+  emit('field-value-change', value);
 };
 
 const attrs: any = useAttrs();
@@ -131,7 +131,7 @@ const value = computed({
       newVal = setFormatter(val, oldVal);
     }
     form.setFormData?.(props.path, newVal);
-    triggerFormItemChange();
+    triggerFormItemChange(newVal);
     // 字段配置/attrs 传入的 onUpdate:* 监听器与内部写值组合回放，参数为组件原始 emit 值
     const { onUpdateValue } = groupedAttrs.value;
     if (typeof onUpdateValue === 'function') {

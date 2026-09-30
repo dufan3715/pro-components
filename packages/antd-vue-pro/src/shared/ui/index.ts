@@ -48,10 +48,7 @@ export {
   useProviderDisabled,
 } from 'ant-design-vue/es/config-provider/DisabledContext';
 export { colProps as gridItemProps } from 'ant-design-vue/es/grid/Col';
-export {
-  formItemProps,
-  useInjectFormItemContext,
-} from 'ant-design-vue/es/form';
+export { formItemProps } from 'ant-design-vue/es/form';
 export { type NamePath } from 'ant-design-vue/es/form/interface';
 export { type MenuItemType } from 'ant-design-vue/es/menu/src/interface';
 

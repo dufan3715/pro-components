@@ -124,6 +124,16 @@ const defineFieldAccessors = (
   }
 };
 
+/*
+ * 字段值变更经 BaseField 的 field-value-change 事件回传，由 FormItem 暴露的 onFieldChange 触发校验；
+ * autoLink 为 false 时保持用户自行校验的语义
+ */
+const onFieldValueChange = (item: any) => {
+  if (item.formItemProps?.autoLink === false) return;
+  const instance = formItemInstanceMap.get(toRaw(item.rawField));
+  instance?.onFieldChange?.();
+};
+
 const setFormItemRef = (field: any, el: any, formItemProps?: any) => {
   if (!field || typeof field !== 'object') return;
   const raw = toRaw(field);
@@ -206,6 +216,7 @@ const groupedFields = useGroupFieldAttrs(validFields);
                 :ref="el => setComponentRef(item.rawField, el)"
                 v-bind="item.componentProps"
                 :path="item.path"
+                @field-value-change="onFieldValueChange(item)"
               />
             </template>
           </FormItem>
