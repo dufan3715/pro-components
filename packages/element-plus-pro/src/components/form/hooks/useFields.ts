@@ -5,6 +5,7 @@ import {
 } from '../../../shared/core';
 import type { Data } from '../../../shared/core';
 import type { Field, Fields } from '../types';
+import { ELEMENT_FIELD_IDENTITY_KEYS } from '../constants';
 import type { ComponentName } from '../constants';
 
 /**
@@ -58,7 +59,9 @@ export function useFields<D extends Data = Data>(
   initFields?: Fields<D>
 ): UseFieldsReturn<D, Field<ComponentName, D>, FormItemInstance>;
 export function useFields(initFields?: any) {
-  return coreUseFields(initFields);
+  return coreUseFields(initFields, {
+    fieldIdentityKeys: ELEMENT_FIELD_IDENTITY_KEYS,
+  });
 }
 
 /** useFields 返回值类型

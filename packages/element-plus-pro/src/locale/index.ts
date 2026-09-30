@@ -20,7 +20,8 @@ import enUS from './en-US';
 
 export { zhCN, zhTW, enUS };
 
-export type ProLocale = typeof zhCN;
+/** 内置文案类型：键集合与 zh-CN 对齐，取值允许任意文案覆盖 */
+export type ProLocale = Record<keyof typeof zhCN, string>;
 
 /** ProComponentProvider 通过该 key 注入局部覆盖文案 */
 export const LOCALE_INJECT_KEY: InjectionKey<

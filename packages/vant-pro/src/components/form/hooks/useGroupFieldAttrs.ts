@@ -1,5 +1,5 @@
-import { computed, toValue, type ComputedRef } from 'vue';
-import { isPlainObject } from '../../../shared/core';
+import { computed, type ComputedRef } from 'vue';
+import { isPlainObject, resolveFieldIdentity } from '../../../shared/core';
 import type { Field } from '../types';
 
 export interface GroupedField {
@@ -20,15 +20,14 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
 
       if (isPlainObject(field)) {
         // prettier-ignore
-        const { path, name, fieldContainer: fc, fields, hidden, extraProps, ...rest } = field as any;
+        const { path: _path, name: _name, fieldContainer: fc, fields, hidden, extraProps, ...rest } = field as any;
         componentProps = rest;
         fieldContainer = fc;
       }
 
-      const raw = (toValue((field as any)?.name) ??
-        toValue((field as any)?.path)) as string | number[] | undefined;
+      const raw = resolveFieldIdentity(field);
       return {
-        path: Array.isArray(raw) ? raw.join('.') : (raw as string) || '',
+        path: raw,
         componentProps,
         fieldContainer,
         rawField: field,

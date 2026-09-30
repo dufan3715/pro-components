@@ -15,7 +15,7 @@
  * @internal 本模块为底层基建，上层组件库（如 antdv-next-pro）会对其进行泛型绑定和二次导出。
  */
 import { getCurrentInstance, inject } from 'vue';
-import useFields from './useFields';
+import useFields, { type UseFieldsOptions } from './useFields';
 import useFormData from './useFormData';
 import useFormRef from './useFormRef';
 import { InjectionFormKey } from './constants';
@@ -109,7 +109,8 @@ export interface Form<
 function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   initFormData?: ExtendWithAny<DeepPartial<D>>,
   initFields?: F[],
-  root?: boolean
+  root?: boolean,
+  options?: UseFieldsOptions
 ): Form<D, F>;
 
 /**
@@ -130,7 +131,8 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   // 运行时按入参形态分派两种重载：单参 boolean 仅为 root 标记，否则为 数据+字段+root
   let initFormData = {} as any,
     initFields = [],
-    root = true;
+    root = true,
+    options: UseFieldsOptions | undefined;
   if (args.length === 1) {
     if (typeof args[0] === 'boolean') {
       root = args[0];
@@ -142,6 +144,7 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
     initFormData = args[0] ?? {};
     initFields = args[1];
     root = (args[2] as boolean) ?? true;
+    options = args[3] as UseFieldsOptions | undefined;
   }
   // root=false：优先复用注入的父表单实例（子表单与父完全同体）；不可得时告警并回退为独立根表单
   if (!root) {
@@ -155,7 +158,7 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
   }
   return {
     ...useFormData<D>(initFormData),
-    ...useFields<D, F>(initFields),
+    ...useFields<D, F>(initFields, options),
     ...useFormRef(),
   };
 }

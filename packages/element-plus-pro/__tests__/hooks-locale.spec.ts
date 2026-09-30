@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { computed, defineComponent, h, ref } from 'vue';
+import { computed, defineComponent, h, provide, ref } from 'vue';
 import { mount } from '@vue/test-utils';
-import { useLocale } from '../src/locale';
+import { LOCALE_INJECT_KEY, useLocale, type ProLocale } from '../src/locale';
 import { useGroupFieldAttrs } from '../src/components/form/hooks/useGroupFieldAttrs';
 import { useProviderDisabled, useInjectDisabled } from '../src/shared/ui';
 import { flushPromises } from './helpers/mount';
@@ -126,6 +126,38 @@ describe('Hooks 与 Locale 基础能力测试', () => {
 
     const totalText = t('pagination.total', { total: 100 });
     expect(totalText).toBe('共 100 条');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // LC-03 [判别]: locale 可覆盖任意文案（取值不受内置字面量约束）
+  // ----------------------------------------------------
+  it('LC-03 [判别]: locale 覆盖任意文案生效，取值类型不受内置文案字面量约束', () => {
+    // 编译期契约：若 ProLocale 退回字面量类型，本行赋值将无法通过 vue-tsc
+    const override: Partial<ProLocale> = { 'table.query': '搜索一下' };
+
+    // 覆盖经注入通道生效：Provider 组件 provide，子组件 inject
+    const Child = defineComponent({
+      setup() {
+        const { t } = useLocale();
+        return { t };
+      },
+      template: '<div></div>',
+    });
+    const Parent = defineComponent({
+      setup() {
+        provide(LOCALE_INJECT_KEY, ref(override));
+        return () => h(Child);
+      },
+    });
+
+    const wrapper = mount(Parent);
+    const { t } = (wrapper.findComponent(Child).vm as any) ?? {};
+
+    expect(t('table.query')).toBe('搜索一下');
+    // 未覆盖的键仍回退内置文案
+    expect(t('table.reset')).toBe('重置');
 
     wrapper.unmount();
   });

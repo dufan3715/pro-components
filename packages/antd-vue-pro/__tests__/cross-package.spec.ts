@@ -280,4 +280,31 @@ describe('跨包一致性 · antd-vue-pro', () => {
     w1.unmount();
     w2.unmount();
   });
+
+  // ----------------------------------------------------
+  // [判别] 宿主标识键优先于 path：name 覆盖 path 作为字段标识
+  // ----------------------------------------------------
+  it('[判别] 宿主标识键优先于 path：name 覆盖 path，值绑定与字段查找共用同一标识', async () => {
+    const form = useForm({ a: '', b: '' }, [
+      { name: 'a', path: 'b', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    await wrapper.find('input').setValue('x');
+    await flushPromises();
+
+    // 渲染与取值按 name 解析出的标识
+    expect(form.getFormData('a')).toBe('x');
+    expect(form.getFormData('b')).toBe('');
+    // 字段查找 API 与渲染标识一致
+    expect(!!form.getField('a')).toBe(true);
+    expect(!!form.getField('b')).toBe(false);
+
+    wrapper.unmount();
+  });
 });

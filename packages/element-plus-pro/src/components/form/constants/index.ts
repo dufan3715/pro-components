@@ -106,5 +106,11 @@ export const componentMap: BaseComponentMap = {
   'transfer': Transfer,
 }
 
+/*
+ * 字段标识键序：el-form-item 的 prop 优先，path 兜底；
+ * 与字段读写绑定、表单域标识、字段查找 API 共用同一解析入口
+ */
+export const ELEMENT_FIELD_IDENTITY_KEYS = ['prop', 'path'] as const;
+
 // inject keys
 export { InjectionFormKey, InjectionFormSlotsKey } from '../../../shared/core';

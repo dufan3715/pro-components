@@ -4,6 +4,7 @@ import {
 } from '../../../shared/core';
 import type { Data, ExtendWithAny, DeepPartial } from '../../../shared/core';
 import type { Field } from '../types';
+import { ELEMENT_FIELD_IDENTITY_KEYS } from '../constants';
 import type { ComponentName } from '../constants';
 import type { FormInstance } from '../../../shared/ui';
 
@@ -107,5 +108,11 @@ export function useForm<D extends Data = Data>(
   root?: boolean
 ): Form<D, Field<ComponentName, D>>;
 export function useForm(...args: any[]) {
-  return coreUseForm(...(args as any));
+  // root 单参重载不承载字段配置，标识键无适用对象
+  if (args.length === 1 && typeof args[0] === 'boolean') {
+    return coreUseForm(args[0]);
+  }
+  return coreUseForm(args[0], args[1], args[2], {
+    fieldIdentityKeys: ELEMENT_FIELD_IDENTITY_KEYS,
+  });
 }

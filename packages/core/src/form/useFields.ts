@@ -1,4 +1,4 @@
-import { isRef, Ref, ref, toRaw } from 'vue';
+import { isRef, Ref, ref, toRaw, toValue } from 'vue';
 import { Data, Path } from '../shared/types';
 import { get, normalizePathKey } from '../shared/path';
 import { applyByGroupDesc, GroupMatch } from '../shared/internals';
@@ -16,6 +16,39 @@ type UpdateFieldOptions = {
 type MapPathValue = Array<number | 'fields'>;
 
 export type FR<F, FormInstance> = Readonly<F & AM<FormInstance>>;
+
+/** 字段标识键序：按顺序取第一个非空值 */
+export type FieldIdentityKeys = readonly string[];
+
+/** 默认标识键序：宿主表单域标识键（name）优先，path 兜底 */
+export const DEFAULT_FIELD_IDENTITY_KEYS: FieldIdentityKeys = ['name', 'path'];
+
+/**
+ * 解析字段标识
+ *
+ * @description 按 `keys` 顺序取字段配置上第一个非空值，并归一化为路径键；
+ * 字段配置的读写绑定、表单域标识与字段查找 API 共用本解析结果。
+ *
+ * @param field - 字段配置对象
+ * @param keys - 标识键序，默认 `['name', 'path']`
+ * @returns 归一化后的字段标识，无可用键时返回空串
+ */
+export const resolveFieldIdentity = (
+  field: any,
+  keys: FieldIdentityKeys = DEFAULT_FIELD_IDENTITY_KEYS
+): string => {
+  for (const key of keys) {
+    const value = toValue(field?.[key]);
+    if (value !== undefined && value !== null) return normalizePathKey(value);
+  }
+  return '';
+};
+
+/** useFields 选项 */
+export interface UseFieldsOptions {
+  /** 字段标识键序，默认 `['name', 'path']` */
+  fieldIdentityKeys?: FieldIdentityKeys;
+}
 
 export interface UseFieldsReturn<
   D extends Data = Data,
@@ -265,11 +298,15 @@ const useFields = <
   F extends BaseField<D> = BaseField<D>,
   FormInstance = any,
 >(
-  initFields?: F[]
+  initFields?: F[],
+  options?: UseFieldsOptions
 ): UseFieldsReturn<D, F, FormInstance> => {
   const fields = ref<F[]>([]) as Ref<F[]>;
 
   fields.value = initFields || [];
+
+  const identityKeys =
+    options?.fieldIdentityKeys ?? DEFAULT_FIELD_IDENTITY_KEYS;
 
   const _map = new Map<string, MapPathValue>();
 
@@ -289,7 +326,7 @@ const useFields = <
       ? ({ fields: fields.value } as any as F)
       : (get(fields.value, fieldPath.slice(0, -2)) as F);
     const field = parentField?.fields?.[fieldIndex] as F;
-    const _path = field ? normalizePathKey(field.name ?? field.path) : '';
+    const _path = field ? resolveFieldIdentity(field, identityKeys) : '';
     if (_path && _path === pathStr) {
       updater({ field, fieldIndex, parentField: parentField as F });
       return true;
@@ -323,7 +360,7 @@ const useFields = <
     while (cursor < queue.length) {
       const { field, fieldPath, parentField } = queue[cursor++];
       let matched = false;
-      const _path = normalizePathKey(field.name ?? field.path);
+      const _path = resolveFieldIdentity(field, identityKeys);
       if (_path && !_map.has(_path)) {
         _map.set(_path, fieldPath);
       }

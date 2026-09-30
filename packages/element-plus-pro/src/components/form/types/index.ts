@@ -98,7 +98,7 @@ export type FormItemSlots = ComponentSlots<typeof FormItem>;
 
 type BaseCommon<D extends Data = Data> = {
   /**
-   * @description 字段标识namePath, 同prop
+   * @description 字段标识namePath, 同prop；与 prop 同时配置时以 prop 为准，name 作为控件自身属性向下透传
    * @example 'name' | 'age' | 'sex' | ...
    */
   path?: Path<D>;

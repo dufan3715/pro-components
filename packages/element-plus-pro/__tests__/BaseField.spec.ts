@@ -378,4 +378,56 @@ describe('BaseField 组件测试', () => {
     expect(form.getFormData('count')).toBe(7);
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BF-08 [判别]: path 为字段标识，name 作为控件自身属性透传
+  // ----------------------------------------------------
+  it('BF-08 [判别]: 同时配置 path 与 name 时按 path 绑定，name 透传给控件', async () => {
+    const form = useForm({ a: '', b: '' }, [
+      { path: 'a', component: 'input', name: 'native-name' },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const input = wrapper.find('input');
+    expect(input.attributes('name')).toBe('native-name');
+
+    await input.setValue('x');
+    await flushPromises();
+    expect(form.getFormData('a')).toBe('x');
+    // name 不再作为路径别名：未被错绑到 b
+    expect(form.getFormData('b')).toBe('');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-09 [判别]: 字段标识 prop 优先于 path（对应 el-form-item 的 prop）
+  // ----------------------------------------------------
+  it('BF-09 [判别]: prop 优先于 path 作为字段标识，值与校验均落在 prop 上', async () => {
+    const form = useForm({ a: '', b: '' }, [
+      { prop: 'a', path: 'b', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 表单域标识取 prop
+    const formItem = wrapper.findComponent({ name: 'ElFormItem' });
+    expect(formItem.props('prop')).toBe('a');
+
+    await wrapper.find('input').setValue('x');
+    await flushPromises();
+    expect(form.getFormData('a')).toBe('x');
+    expect(form.getFormData('b')).toBe('');
+
+    wrapper.unmount();
+  });
 });

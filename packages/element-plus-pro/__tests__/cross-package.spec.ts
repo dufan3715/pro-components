@@ -5,7 +5,7 @@ import { describe, expect, it, vi, afterEach } from 'vitest';
 import { h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import { flushPromises, mountProTable } from './helpers/mount';
-import { useForm } from '../src/components/form';
+import { useForm, useFields } from '../src/components/form';
 import { useTable } from '../src/components/table/useTable';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import ProTable from '../src/components/table/components/ProTable.vue';
@@ -140,6 +140,36 @@ describe('跨包一致性 · element-plus-pro', () => {
     resolvers[1]();
     await flushPromises();
     expect((wrapper.findComponent(ProTable) as any).vm.loading).toBe(false);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // [判别] 宿主标识键优先于 path：prop 覆盖 path，值绑定与字段查找共用同一标识
+  // ----------------------------------------------------
+  it('[判别] 宿主标识键优先于 path：prop 覆盖 path，值绑定与字段查找共用同一标识', async () => {
+    const form = useForm({ a: '', b: '' }, [
+      { prop: 'a', path: 'b', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    await wrapper.find('input').setValue('x');
+    await flushPromises();
+
+    expect(form.getFormData('a')).toBe('x');
+    expect(form.getFormData('b')).toBe('');
+    expect(!!form.getField('a')).toBe(true);
+    expect(!!form.getField('b')).toBe(false);
+
+    // 直接调用 useFields 时同样按宿主标识键解析
+    const fields = useFields([{ prop: 'a', path: 'b' } as any]);
+    expect(!!fields.getField('a')).toBe(true);
+    expect(!!fields.getField('b')).toBe(false);
+
     wrapper.unmount();
   });
 });

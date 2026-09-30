@@ -5,9 +5,9 @@ import {
   type FormItemProps,
   type GridItemProps,
 } from '../../../shared/ui';
-import { isPlainObject } from '../../../shared/core';
+import { isPlainObject, resolveFieldIdentity } from '../../../shared/core';
 import { INJECT_CONFIG } from '../../component-provider/constants';
-import { FORM_ITEM_SLOT_KEYS } from '../constants';
+import { ELEMENT_FIELD_IDENTITY_KEYS, FORM_ITEM_SLOT_KEYS } from '../constants';
 import type { Base, Field } from '../types';
 
 const formItemPropKeys = Object.keys(formItemProps()).filter(
@@ -46,7 +46,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
 
       if (isPlainObject(field)) {
         // prettier-ignore
-        const { path, name, fields, formItemClass, formItemStyle, formItemContainer, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, extraProps, ...rest } =
+        const { path: _path, prop: _prop, fields, formItemClass, formItemStyle, formItemContainer, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, extraProps, ...rest } =
           field as any;
 
         // prettier-ignore
@@ -89,10 +89,8 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           }
         });
 
-        const raw = (toValue(name) ?? toValue(path)) as
-          | string
-          | number[]
-          | undefined;
+        // 字段标识经统一解析（prop 优先，path 兜底）；name 作为控件自身属性经 rest 透传
+        const raw = resolveFieldIdentity(field, ELEMENT_FIELD_IDENTITY_KEYS);
         return {
           path: Array.isArray(raw) ? raw.join('.') : (raw as string) || '',
           gridItemProps: gridItemProps as GridItemProps,
@@ -104,8 +102,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         };
       }
 
-      const raw =
-        toValue((field as any)?.name) ?? toValue((field as any)?.path);
+      const raw = resolveFieldIdentity(field, ELEMENT_FIELD_IDENTITY_KEYS);
       return {
         path: Array.isArray(raw) ? raw.join('.') : (raw as string) || '',
         gridItemProps: gridItemProps as GridItemProps,

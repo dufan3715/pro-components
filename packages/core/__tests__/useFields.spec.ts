@@ -439,4 +439,23 @@ describe('useFields', () => {
       expect(getField('child')?.label).toBe('C');
     });
   });
+
+  // ----------------------------------------------------
+  // FF-42 [判别]: fieldIdentityKeys 决定标识解析键序，默认 name 优先于 path
+  // ----------------------------------------------------
+  it('FF-42 [判别]: fieldIdentityKeys 决定字段标识解析键序，默认 name 优先于 path', () => {
+    const defaultKeys = useFields([{ name: 'a', path: 'b' } as any]);
+    expect(!!defaultKeys.getField('a')).toBe(true);
+    expect(!!defaultKeys.getField('b')).toBe(false);
+
+    const propKeys = useFields([{ prop: 'a', path: 'b' } as any], {
+      fieldIdentityKeys: ['prop', 'path'],
+    });
+    expect(!!propKeys.getField('a')).toBe(true);
+    expect(!!propKeys.getField('b')).toBe(false);
+
+    // 未配置 prop 键时，prop 不参与标识解析
+    const untouched = useFields([{ prop: 'a' } as any]);
+    expect(!!untouched.getField('a')).toBe(false);
+  });
 });

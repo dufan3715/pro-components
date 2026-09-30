@@ -7,6 +7,8 @@ export {
   createFormProxy,
   useTable,
   useFields,
+  resolveFieldIdentity,
+  DEFAULT_FIELD_IDENTITY_KEYS,
   useFormData,
   useFormRef,
   // injection keys

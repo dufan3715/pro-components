@@ -5,7 +5,7 @@ import {
   type FormItemProps,
   type GridItemProps,
 } from '../../../shared/ui';
-import { isPlainObject } from '../../../shared/core';
+import { isPlainObject, resolveFieldIdentity } from '../../../shared/core';
 import { INJECT_CONFIG } from '../../component-provider/constants';
 import { FORM_ITEM_SLOT_KEYS } from '../constants';
 import type { Base, Field } from '../types';
@@ -50,7 +50,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
 
       if (isPlainObject(field)) {
         // prettier-ignore
-        const { path, name, fields, formItemClass, formItemStyle, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, extraProps, formItemContainer, ...rest } =
+        const { path: _path, name: _name, fields, formItemClass, formItemStyle, hidden, span, getFormItemRef, getComponentRef, getFormItemComputedProps, getComponentComputedProps, slots = {}, formItemDataAttrs = {}, componentDataAttrs = {}, extraProps, formItemContainer, ...rest } =
           field as any;
 
         // prettier-ignore
@@ -94,12 +94,9 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           }
         });
 
-        const raw = (toValue(name) ?? toValue(path)) as
-          | string
-          | number[]
-          | undefined;
+        const raw = resolveFieldIdentity(field);
         return {
-          path: Array.isArray(raw) ? raw.join('.') : (raw as string) || '',
+          path: raw,
           gridItemProps: gridItemProps as GridItemProps,
           formItemProps: formItemProps as any,
           formItemSlots,
@@ -109,10 +106,9 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         };
       }
 
-      const raw =
-        toValue((field as any)?.name) ?? toValue((field as any)?.path);
+      const raw = resolveFieldIdentity(field);
       return {
-        path: Array.isArray(raw) ? raw.join('.') : (raw as string) || '',
+        path: raw,
         gridItemProps: gridItemProps as GridItemProps,
         formItemProps: formItemProps as any,
         formItemSlots,
