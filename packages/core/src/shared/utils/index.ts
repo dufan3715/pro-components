@@ -1,4 +1,4 @@
-import { camelize } from 'vue';
+import { camelize, isProxy, toRaw } from 'vue';
 
 /**
  * 深拷贝：structuredClone + JSON 降级
@@ -11,13 +11,17 @@ import { camelize } from 'vue';
  *   · Date → ISO 字符串、Map/Set/RegExp/Error → {}、NaN/Infinity → null
  *   · 顶层入参本身不可序列化（函数/undefined/Symbol）→ 返回原引用（快照隔离失效）
  * - 最后兜底（环境无 structuredClone 且数据含循环引用导致 JSON 亦失败）：告警并返回原引用（快照隔离失效，需感知）
+ * - 响应式安全：入口为 Vue 响应式代理时先解包原始对象再克隆；仅解包入口一层，
+ *   原始对象内部持有响应式代理时仍走 JSON 降级路径
  */
 let warnedJsonFallback = false;
 
 export function cloneDeep<T>(value: T): T {
+  // 响应式代理无法结构化克隆，先解包原始对象
+  const source = isProxy(value) ? toRaw(value) : value;
   if (typeof structuredClone === 'function') {
     try {
-      return structuredClone(value);
+      return structuredClone(source);
     } catch {
       // DataCloneError：函数等不可结构化类型 → 走 JSON 降级
     }
@@ -29,13 +33,13 @@ export function cloneDeep<T>(value: T): T {
     );
   }
   try {
-    const json = JSON.stringify(value);
-    return json === undefined ? value : JSON.parse(json);
+    const json = JSON.stringify(source);
+    return json === undefined ? (source as T) : JSON.parse(json);
   } catch {
     console.warn(
       '[pro-components] cloneDeep 降级失败：数据含循环引用且环境不支持 structuredClone，已返回原引用，快照隔离失效。'
     );
-    return value;
+    return source as T;
   }
 }
 

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import { isProxy, reactive, ref } from 'vue';
 import {
   getObject,
   camelizeProperties,
@@ -104,6 +105,43 @@ describe('utils', () => {
   });
 
   describe('cloneDeep 规格测试与对拍', () => {
+    it('CR-008 [判别]: 响应式代理入参按原始对象克隆，Date/Map 类型不降级且无降级告警', () => {
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const date = new Date('2020-01-01T00:00:00Z');
+      const map = new Map<string, number>([['k', 1]]);
+      const source = reactive({
+        d: date,
+        m: map,
+        info: { n: 1 },
+        list: [{ id: 1 }],
+      });
+
+      const copy = cloneDeep(source);
+
+      // 类型不降级：JSON 降级会把 Date 变字符串、Map 变 {}
+      expect(copy.d).toBeInstanceOf(Date);
+      expect(copy.d.getTime()).toBe(date.getTime());
+      expect(copy.m).toBeInstanceOf(Map);
+      expect(copy.m.get('k')).toBe(1);
+      // 拷贝结果为普通对象且与源快照隔离
+      expect(isProxy(copy)).toBe(false);
+      expect(copy).not.toBe(source);
+      expect(copy.info).not.toBe(source.info);
+      copy.info.n = 2;
+      copy.list[0].id = 2;
+      expect(source.info.n).toBe(1);
+      expect(source.list[0].id).toBe(1);
+      // 可克隆数据不应产生 JSON 降级告警
+      expect(
+        spy.mock.calls.filter(c => String(c[0]).includes('cloneDeep'))
+      ).toHaveLength(0);
+
+      // ref.value 同为 Proxy 形态
+      const fromRef = cloneDeep(ref({ d: date }).value);
+      expect(fromRef.d).toBeInstanceOf(Date);
+      spy.mockRestore();
+    });
+
     it('JSON 型数据深拷贝与快照隔离', () => {
       const source = {
         name: 'test',
