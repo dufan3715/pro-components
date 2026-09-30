@@ -4,6 +4,7 @@ import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import { useTable } from '../src/components/table/hooks/useTable';
+import type { ComponentVars } from '../src/components/component-provider';
 import { flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
 import { Pagination } from 'ant-design-vue';
@@ -542,5 +543,57 @@ describe('ProTable 组件测试', () => {
     await flushPromises();
     expect(offWrapper.text()).not.toContain('序号');
     offWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A14 [判别]: Provider 注入的 size 生效，显式绑定优先；loading 不可经 componentVars 注入
+  // ----------------------------------------------------
+  it('PT-A14 [判别]: Provider 注入 size 生效且显式绑定优先，loading 不可注入', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [],
+    });
+
+    const injectedWrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': { size: 'small', loading: true },
+        } as any,
+      },
+      slots: { default: () => h(ProTable, { table }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    const injectedTable = injectedWrapper.findComponent({ name: 'ATable' });
+    expect(injectedTable.props('size')).toBe('small');
+    // loading 由组件自身状态驱动：Provider 注入值不生效
+    expect(injectedTable.props('loading')).toBeFalsy();
+    injectedWrapper.unmount();
+
+    const localSize = ref<any>('large');
+    const localWrapper = mount(ProComponentProvider, {
+      props: { componentVars: { 'pro-table': { size: 'small' } } },
+      slots: {
+        default: () =>
+          h(ProTable, {
+            table,
+            size: localSize.value,
+            'onUpdate:size': (val: any) => {
+              localSize.value = val;
+            },
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(localWrapper.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'large'
+    );
+    localWrapper.unmount();
+
+    // 编译期契约：loading 不在 componentVars.pro-table 的可配置面内
+    // @ts-expect-error loading 已从 componentVars.pro-table 契约中移除
+    const invalidVars: ComponentVars = { 'pro-table': { loading: true } };
+    expect(invalidVars).toBeTruthy();
   });
 });

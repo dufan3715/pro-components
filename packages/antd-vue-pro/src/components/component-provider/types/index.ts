@@ -42,7 +42,7 @@ type FP<T extends Record<string, any>> = Partial<
 export type RequiredComponentVars = {
   /** ProTable 全局默认属性 */
   'pro-table': PP<
-    TableProps &
+    Omit<TableProps, 'loading'> &
       Pick<
         ProTableProps,
         | 'control'

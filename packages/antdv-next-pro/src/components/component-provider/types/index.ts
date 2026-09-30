@@ -27,7 +27,7 @@ type FP<T extends Record<string, any>> = Partial<
 
 export type RequiredComponentVars = {
   'pro-table': PP<
-    TableComponentProps &
+    Omit<TableComponentProps, 'loading'> &
       Pick<
         ProTableProps,
         | 'control'

@@ -41,6 +41,7 @@ import {
 } from '../../../shared/ui';
 import {
   computed,
+  getCurrentInstance,
   nextTick,
   useAttrs,
   onMounted,
@@ -235,13 +236,29 @@ const searchPage1st = () => {
   _search();
 };
 
+const instance = getCurrentInstance();
+
+/** 调用方是否显式绑定该 prop（含 v-model 写法） */
+const isBoundProp = (name: string) => {
+  const vnodeProps = instance?.vnode.props || {};
+  return name in vnodeProps || `onUpdate:${name}` in vnodeProps;
+};
+
 const computedTableProps = computed<TableProps>(() => {
-  return {
+  const merged = {
     ...injectAttrs.value,
     ...tableAttrs.value,
+    // loading 由组件自身状态驱动，不从注入与散落 attrs 取值
+    loading: undefined,
     pagination: undefined,
     onChange: undefined,
-  };
+  } as TableProps;
+  // 始终读取本地模型以建立依赖；本地显式绑定或已由 SizeControl 写入时覆盖注入值
+  const localSize = size.value;
+  if (isBoundProp('size') || localSize !== undefined) {
+    merged.size = localSize;
+  }
+  return merged;
 });
 
 const computedTableContainer = computed(() => {
@@ -419,7 +436,6 @@ defineExpose({
         <ATable
           class="pro-table_content"
           v-bind="computedTableProps"
-          :size="size"
           :loading="loading"
           :columns="visibleComputedColumns"
           :data-source="computedDataSource"
