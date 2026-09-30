@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { defineComponent } from 'vue';
+import { defineComponent, h } from 'vue';
 import BaseField from '../src/components/form/components/BaseField/index.vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
@@ -537,6 +537,71 @@ describe('BaseField 组件测试 (vant-pro)', () => {
     const switchComp = wrapper.findComponent({ name: 'VanSwitch' });
     await switchComp.trigger('click');
     expect(clickCount).toBe(1);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-06 [判别]: componentClass / componentStyle 落到内层组件且不作为 attrs 泄漏
+  // ----------------------------------------------------
+  it('BF-06 [判别]: componentClass / componentStyle 作用于内层组件且不透传为 DOM 属性', async () => {
+    const CustomComponent = defineComponent({
+      name: 'CustomStyledComp',
+      props: { modelValue: { type: String, default: '' } },
+      emits: ['update:modelValue'],
+      setup() {
+        return () => h('div', { class: 'styled-root' }, 'styled');
+      },
+    });
+    const form = useForm({ testKey: '' });
+
+    const wrapper = mount(BaseField, {
+      props: {
+        path: 'testKey',
+        component: CustomComponent,
+        componentClass: 'custom-cls',
+        componentStyle: { color: 'red' },
+      },
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+
+    await flushPromises();
+    const root = wrapper.find('.styled-root');
+    expect(root.exists()).toBe(true);
+    expect(root.classes()).toContain('custom-cls');
+    expect(root.attributes('style')).toContain('color: red');
+    expect(root.attributes()).not.toHaveProperty('componentclass');
+    expect(root.attributes()).not.toHaveProperty('componentstyle');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-07 [判别]: component 为 field 时 fieldClass / fieldStyle 作用于 van-field 根节点
+  // ----------------------------------------------------
+  it('BF-07 [判别]: component 为 field 时 fieldClass / fieldStyle 生效，与 VanField 分支一致', async () => {
+    const form = useForm({ testKey: '' });
+
+    const wrapper = mount(BaseField, {
+      props: {
+        path: 'testKey',
+        component: 'field',
+        fieldClass: 'field-cls',
+        fieldStyle: { color: 'blue' },
+      },
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+
+    await flushPromises();
+    const fieldEl = wrapper.findComponent(VanField).element as HTMLElement;
+    expect(fieldEl.classList.contains('field-cls')).toBe(true);
+    expect(fieldEl.getAttribute('style')).toContain('color: blue');
+
     wrapper.unmount();
   });
 });

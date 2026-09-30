@@ -168,11 +168,12 @@ const groupedAttrs = computed(() => {
     initProps,
     attrs,
     { disabled: effectiveDisabled },
+    { class: attrs.componentClass, style: attrs.componentStyle },
     { modelProp: modelPropName }
   ) as Required<FieldType>;
 
   // prettier-ignore
-  const { valueFormatter, displayFormatter, modelProp, slots, fieldClass, fieldStyle, componentContainer, popup, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: onUpdateValue, ...bindAttrs } = mergedProps as Record<string, any>;
+  const { valueFormatter, displayFormatter, modelProp, slots, fieldClass, fieldStyle, componentClass, componentStyle, componentContainer, popup, [modelPropName]: _modelVal, [`onUpdate:${modelPropName}`]: onUpdateValue, ...bindAttrs } = mergedProps as Record<string, any>;
   /*
    * 弹层提交语义：confirm 事件把 popupFieldValue 经 value setter 写入 formData 后关闭弹层
    * cancel 直接关闭不写值；confirm/cancel 事件名按组件映射并合并字段/attrs 上的同名监听器
@@ -350,6 +351,8 @@ defineExpose({
         v-bind="groupedAttrs.attrs"
         ref="componentRef"
         v-model:[`${groupedAttrs.modelProp}`]="value"
+        :class="groupedAttrs.fieldAttrs.class"
+        :style="groupedAttrs.fieldAttrs.style"
         :name="props.path"
       >
         <template
