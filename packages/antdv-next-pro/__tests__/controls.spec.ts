@@ -9,7 +9,7 @@ import { useTable } from '../src/components/table/useTable';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
-import { Input, Menu } from '../src/shared/ui';
+import { Dropdown, Input } from '../src/shared/ui';
 
 describe('控制组件与全局 Provider 测试', () => {
   // ----------------------------------------------------
@@ -51,12 +51,24 @@ describe('控制组件与全局 Provider 测试', () => {
 
     await flushPromises();
 
-    // 触发内部 onSizeChange
-    const menu = wrapper.findComponent(Menu);
-    if (menu.exists()) {
-      await menu.vm.$emit('click', { key: 'small' });
-      expect(currentSize).toBe('small');
-    }
+    // 触发内部 onSizeChange：弹层经 Teleport 渲染到 body，先展开再从真实 DOM 点击菜单项
+    const dropdown = wrapper.findComponent(Dropdown);
+    expect(dropdown.exists()).toBe(true);
+    // 展开弹层：默认 trigger 为 hover，模拟指针进入并等待弹出延迟
+    await wrapper.find('.pro-table_size-control_button').trigger('mouseenter');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+
+    const menuItems = Array.from(
+      document.querySelectorAll<HTMLElement>('.ant-dropdown-menu-item')
+    );
+    const smallItem =
+      menuItems.find(item => item.dataset.menuId?.endsWith('-small')) ??
+      menuItems[menuItems.length - 1];
+    expect(smallItem).toBeTruthy();
+    smallItem.click();
+    await flushPromises();
+    expect(currentSize).toBe('small');
 
     wrapper.unmount();
   });

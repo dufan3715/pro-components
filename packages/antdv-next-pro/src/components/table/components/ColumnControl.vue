@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Button, Dropdown, Checkbox } from '../../../shared/ui';
-import { computed, h, ref, watch } from 'vue';
+import { computed, h, ref, toValue, watch } from 'vue';
 import type { Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
@@ -55,7 +55,7 @@ const checkedColumnsOptions = computed<
     return {
       label,
       value: key,
-      checked: !item.hidden || disabled,
+      checked: !toValue(item.hidden) || disabled,
       disabled,
     };
   })

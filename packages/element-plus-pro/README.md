@@ -250,7 +250,7 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 | `search`           | 触发表格查询的回调函数，需返回 Promise 或直接返回查询数据 | `(params: any) => Promise<any> \| any` | -       |
 | `size`             | 表格尺寸（v-model）                                       | `string`                               | -       |
 | `loading`          | 表格加载状态（v-model）                                   | `boolean`                              | -       |
-| `addIndexColumn`   | 是否自动在表格首列插入序号列                              | `boolean`                              | `false` |
+| `addIndexColumn`   | 是否自动在表格首列插入序号列                              | `boolean`                              | `true`  |
 | `immediateSearch`  | 表格挂载时（onMounted）是否立即触发一次 `search` 查询     | `boolean`                              | `false` |
 | `control`          | 是否在表格右上角工具栏中展示尺寸调节和列动态显示控制按钮  | `boolean`                              | `true`  |
 | `searchFormConfig` | 查询表单的布局配置参数                                    | `SearchFormConfig`                     | -       |

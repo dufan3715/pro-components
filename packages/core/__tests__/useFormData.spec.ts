@@ -237,4 +237,25 @@ describe('useFormData', () => {
     expect(store.formData.label).toBe('计数');
     expect((store.formData as any).extra).toBe(999);
   });
+
+  // ----------------------------------------------------
+  // FD-A9 [判别]: 批量 setFormData 过滤原型污染危险键
+  // ----------------------------------------------------
+  it('FD-A9 [判别]: 批量 setFormData 丢弃 __proto__/constructor/prototype 且不替换原型', () => {
+    const { formData, setFormData, getFormData } = useFormData({} as any);
+
+    setFormData(
+      JSON.parse(
+        '{"__proto__":{"polluted":1},"constructor":{"evil":1},"prototype":1,"name":"ok"}'
+      )
+    );
+
+    expect(Object.getPrototypeOf(formData)).toBe(Object.prototype);
+    expect((formData as any).polluted).toBeUndefined();
+    expect(getFormData('polluted')).toBeUndefined();
+    // constructor / prototype 不得落地为自有键（filter 生效时保持原型链成员语义）
+    expect((formData as any).constructor).toBe(Object);
+    expect((formData as any).prototype).toBeUndefined();
+    expect(getFormData('name')).toBe('ok');
+  });
 });

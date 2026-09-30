@@ -53,10 +53,9 @@ describe('控制组件与全局 Provider 测试', () => {
 
     // 触发内部 dropdown command
     const dropdown = wrapper.findComponent(ElDropdown);
-    if (dropdown.exists()) {
-      await dropdown.vm.$emit('command', 'small');
-      expect(currentSize).toBe('small');
-    }
+    expect(dropdown.exists()).toBe(true);
+    await dropdown.vm.$emit('command', 'small');
+    expect(currentSize).toBe('small');
 
     wrapper.unmount();
   });

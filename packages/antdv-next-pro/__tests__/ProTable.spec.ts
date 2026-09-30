@@ -186,6 +186,7 @@ describe('ProTable 组件测试', () => {
     const table = useTable({
       columns: createBasicColumns(),
       dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
     });
 
     const loadingModel = ref(false);
@@ -204,11 +205,10 @@ describe('ProTable 组件测试', () => {
 
     // 点击搜索按钮触发异步查询
     const searchBtn = wrapper.find('.pro-table_search-form_search-button');
-    if (searchBtn.exists()) {
-      await searchBtn.trigger('click');
-      await flushPromises();
-      expect(loadingModel.value).toBe(true);
-    }
+    expect(searchBtn.exists()).toBe(true);
+    await searchBtn.trigger('click');
+    await flushPromises();
+    expect(loadingModel.value).toBe(true);
 
     resolveSearch?.();
     await flushPromises();
@@ -226,6 +226,7 @@ describe('ProTable 组件测试', () => {
     const table = useTable({
       columns: createBasicColumns(),
       dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
     });
 
     const loadingModel = ref(false);
@@ -242,12 +243,11 @@ describe('ProTable 组件测试', () => {
 
     await flushPromises();
     const searchBtn = wrapper.find('.pro-table_search-form_search-button');
-    if (searchBtn.exists()) {
-      await searchBtn.trigger('click');
-      await flushPromises();
-      expect(called).toBe(true);
-      expect(loadingModel.value).toBe(false);
-    }
+    expect(searchBtn.exists()).toBe(true);
+    await searchBtn.trigger('click');
+    await flushPromises();
+    expect(called).toBe(true);
+    expect(loadingModel.value).toBe(false);
     wrapper.unmount();
   });
 
@@ -265,6 +265,7 @@ describe('ProTable 组件测试', () => {
     const table = useTable({
       columns: createBasicColumns(),
       dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
     });
 
     const loadingModel = ref(false);
@@ -283,24 +284,23 @@ describe('ProTable 组件测试', () => {
     const searchBtn = wrapper.find('.pro-table_search-form_search-button');
 
     // 第一步：触发异步查询，loading 置位
-    if (searchBtn.exists()) {
-      await searchBtn.trigger('click');
-      await flushPromises();
-      expect(loadingModel.value).toBe(true);
+    expect(searchBtn.exists()).toBe(true);
+    await searchBtn.trigger('click');
+    await flushPromises();
+    expect(loadingModel.value).toBe(true);
 
-      // 第二步：异步在途时替换为同步查询并触发——同步查询不推进竞态序号
-      await wrapper.setProps({ search: syncSearch });
-      await searchBtn.trigger('click');
-      await flushPromises();
-      expect(syncCalled).toBe(true);
-      // 判别点：同步查询不清除也不冻结在途异步请求的 loading
-      expect(loadingModel.value).toBe(true);
+    // 第二步：异步在途时替换为同步查询并触发——同步查询不推进竞态序号
+    await wrapper.setProps({ search: syncSearch });
+    await searchBtn.trigger('click');
+    await flushPromises();
+    expect(syncCalled).toBe(true);
+    // 判别点：同步查询不清除也不冻结在途异步请求的 loading
+    expect(loadingModel.value).toBe(true);
 
-      // 第三步：最初的异步请求 resolve，loading 正常复位（不悬挂）
-      resolveSearch?.();
-      await flushPromises();
-      expect(loadingModel.value).toBe(false);
-    }
+    // 第三步：最初的异步请求 resolve，loading 正常复位（不悬挂）
+    resolveSearch?.();
+    await flushPromises();
+    expect(loadingModel.value).toBe(false);
     wrapper.unmount();
   });
 
@@ -384,6 +384,7 @@ describe('ProTable 组件测试', () => {
     const table = useTable({
       columns: createBasicColumns(),
       dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
     });
 
     const { wrapper } = mountProTable({
@@ -392,14 +393,11 @@ describe('ProTable 组件测试', () => {
     });
 
     await flushPromises();
-    const searchBtn = wrapper.find(
-      '.pro-table_search-form button[type="submit"], .pro-table_search-form button'
-    );
-    if (searchBtn.exists()) {
-      await searchBtn.trigger('click');
-      await flushPromises();
-      expect(callCount).toBeGreaterThanOrEqual(1);
-    }
+    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+    expect(searchBtn.exists()).toBe(true);
+    await searchBtn.trigger('click');
+    await flushPromises();
+    expect(callCount).toBeGreaterThanOrEqual(1);
     wrapper.unmount();
   });
 
@@ -546,5 +544,28 @@ describe('ProTable 组件测试', () => {
     // 判别：运行时从不向 search 传参，携带 params 形参的实现永远收到 undefined
     expect(callArgs.every(args => args.length === 0)).toBe(true);
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-02c [判别]: addIndexColumn 默认渲染序号列，显式 false 关闭
+  // ----------------------------------------------------
+  it('PT-02c [判别]: addIndexColumn 缺省时按默认 true 渲染序号列，显式 false 时不渲染', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '王五' }],
+    });
+
+    const defaultWrapper = mountProTable({ table }).wrapper;
+    await flushPromises();
+    expect(defaultWrapper.text()).toContain('序号');
+    defaultWrapper.unmount();
+
+    const offWrapper = mountProTable({
+      table,
+      props: { addIndexColumn: false },
+    }).wrapper;
+    await flushPromises();
+    expect(offWrapper.text()).not.toContain('序号');
+    offWrapper.unmount();
   });
 });

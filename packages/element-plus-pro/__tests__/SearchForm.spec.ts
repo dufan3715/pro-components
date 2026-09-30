@@ -10,7 +10,7 @@ describe('SearchForm 组件测试', () => {
   // ----------------------------------------------------
   // SF-A4 [判别]: 手动展开状态保留，ResizeObserver 重新测量不覆盖
   // ----------------------------------------------------
-  it('SF-A4 [判别]: 手动点击展开/收起后，触发 ResizeObserver 重新测量不覆盖用户手动状态', async () => {
+  it('SF-A4 [判别]: 手动点击展开后，重新测量越过死区仍保持用户手动状态', async () => {
     const scrollHeightSpy = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
       .mockReturnValue(120);
@@ -32,7 +32,9 @@ describe('SearchForm 组件测试', () => {
 
     await flushPromises();
 
-    const formEl = wrapper.element as HTMLElement;
+    // 以 Hook 实际观察的表单根元素为 resize 目标
+    const formEl = (form.formRef.value as any)?.$el as HTMLElement;
+    expect(formEl).toBeTruthy();
 
     // 触发 ResizeObserver 测量
     triggerResize(formEl);
@@ -41,20 +43,22 @@ describe('SearchForm 组件测试', () => {
     const expandBtn = wrapper.find(
       '.pro-table_search-form_expand-toggle-button'
     );
-    if (expandBtn.exists()) {
-      // 用户手动点击展开
-      await expandBtn.trigger('click');
-      await flushPromises();
+    expect(expandBtn.exists()).toBe(true);
 
-      // 再次触发 ResizeObserver 重新测量
-      triggerResize(formEl);
-      await flushPromises();
+    // 用户手动点击展开
+    await expandBtn.trigger('click');
+    await flushPromises();
+    expect(
+      wrapper.find('.pro-table_search-form_expand-toggle-button').text()
+    ).toContain('收起');
 
-      // 关键判别点：手动展开后，再次 resize 依然保持展开文案「收起」，绝不回退覆盖为折叠
-      expect(
-        wrapper.find('.pro-table_search-form_expand-toggle-button').text()
-      ).toContain('收起');
-    }
+    // 测量读数变化并越过 2px 死区，触发自动测量重跑；手动锁定必须拦截自动覆盖
+    scrollHeightSpy.mockReturnValue(400);
+    triggerResize(formEl);
+    await flushPromises();
+    expect(
+      wrapper.find('.pro-table_search-form_expand-toggle-button').text()
+    ).toContain('收起');
 
     scrollHeightSpy.mockRestore();
     wrapper.unmount();
@@ -83,32 +87,33 @@ describe('SearchForm 组件测试', () => {
 
     await flushPromises();
 
-    const formEl = wrapper.element as HTMLElement;
+    // 以 Hook 实际观察的表单根元素为 resize 目标
+    const formEl = (form.formRef.value as any)?.$el as HTMLElement;
+    expect(formEl).toBeTruthy();
 
     // 触发 Resize 激活 observer
     triggerResize(formEl);
     await flushPromises();
 
     const hiddenItem = wrapper.find('[path="hiddenField"]');
-    if (hiddenItem.exists()) {
-      // 模拟 IntersectionObserver 报告 hiddenField 不在可视区域 (intersectionRatio === 0)
-      triggerIntersect([
-        {
-          target: hiddenItem.element,
-          intersectionRatio: 0,
-          isIntersecting: false,
-        } as any,
-      ]);
-      await flushPromises();
+    expect(hiddenItem.exists()).toBe(true);
 
-      // 含有值所以自动展开为「收起」
-      const expandBtn = wrapper.find(
-        '.pro-table_search-form_expand-toggle-button'
-      );
-      if (expandBtn.exists()) {
-        expect(expandBtn.text()).toContain('收起');
-      }
-    }
+    // 模拟 IntersectionObserver 报告 hiddenField 不在可视区域 (intersectionRatio === 0)
+    triggerIntersect([
+      {
+        target: hiddenItem.element,
+        intersectionRatio: 0,
+        isIntersecting: false,
+      } as any,
+    ]);
+    await flushPromises();
+
+    // 含有值所以自动展开为「收起」
+    const expandBtn = wrapper.find(
+      '.pro-table_search-form_expand-toggle-button'
+    );
+    expect(expandBtn.exists()).toBe(true);
+    expect(expandBtn.text()).toContain('收起');
 
     scrollHeightSpy.mockRestore();
     wrapper.unmount();
@@ -210,6 +215,7 @@ describe('SearchForm 组件测试', () => {
 
     const wrapper = mount(SearchForm, {
       props: { form },
+      attachTo: document.body,
       global: { stubs: { transition: false } },
     });
 
@@ -218,12 +224,15 @@ describe('SearchForm 组件测试', () => {
     await wrapper.find('.pro-table_search-form_reset-button').trigger('click');
     expect(wrapper.emitted('reset')).toHaveLength(1);
 
-    await wrapper.find('.pro-table_search-form_search-button').trigger('click');
-    // submit 按钮点击引发原生 form submit
-    await wrapper.find('form').trigger('submit');
+    // 查询按钮为 native-type=submit：点击必须经原生表单提交触发 search（不手工补 submit）
+    const searchButton = wrapper.find('.pro-table_search-form_search-button');
+    expect(searchButton.attributes('type')).toBe('submit');
+    await searchButton.trigger('click');
+    await flushPromises();
     expect(wrapper.emitted('search')).toHaveLength(1);
 
     wrapper.unmount();
+    document.body.innerHTML = '';
   });
 
   // ----------------------------------------------------

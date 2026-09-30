@@ -173,8 +173,8 @@ export interface UseFieldsReturn<
    *
    * @example
    * ```ts
-   * // 假设字段结构：address -> { fields: [{ path: 'city' }, { path: 'street' }] }
-   * getParentField('city')
+   * // 假设字段结构：address -> { fields: [{ path: 'address.city' }, { path: 'address.street' }] }
+   * getParentField('address.city')
    * // 返回 { path: 'address', label: '地址', fields: [...] }
    *
    * // 一级字段的 parent
@@ -237,14 +237,14 @@ export interface UseFieldsReturn<
  *     path: 'address',
  *     label: '地址',
  *     fields: [
- *       { path: 'city', label: '城市' },
+ *       { path: 'address.city', label: '城市' },
  *     ],
  *   },
  * ])
  *
- * // 通过路径获取字段
+ * // 通过路径获取字段（嵌套字段以完整点分路径声明与检索）
  * getField('name') // { path: 'name', label: '姓名', ... }
- * getField('address.city') // { path: 'city', label: '城市', ... }
+ * getField('address.city') // { path: 'address.city', label: '城市', ... }
  *
  * // 通过查找函数获取字段
  * getField(f => f.label === '姓名')

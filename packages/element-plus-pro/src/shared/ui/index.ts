@@ -95,11 +95,13 @@ const DisabledContextKey = Symbol.for('pro-form-disabled-context');
 
 export const useDisabledContext = () => {
   const formDisabled = useFormDisabled();
-  const customDisabled = inject<any>(DisabledContextKey, undefined);
+  const customDisabled = inject<MaybeRefOrGetter<boolean | undefined>>(
+    DisabledContextKey,
+    undefined
+  );
   return computed(() => {
-    if (customDisabled !== undefined && toValue(customDisabled) !== undefined) {
-      return Boolean(toValue(customDisabled));
-    }
+    const custom = toValue(customDisabled);
+    if (custom !== undefined) return Boolean(custom);
     return Boolean(formDisabled.value);
   });
 };
@@ -107,9 +109,11 @@ export const useDisabledContext = () => {
 export const useDisabledContextProvider = (
   disabled: MaybeRefOrGetter<boolean | undefined>
 ) => {
+  // 与父级禁用上下文合并：未声明时保持继承，声明时（含 false）覆盖
+  const parentDisabled = useDisabledContext();
   provide(
     DisabledContextKey,
-    computed(() => !!toValue(disabled))
+    computed(() => toValue(disabled) ?? parentDisabled.value)
   );
 };
 

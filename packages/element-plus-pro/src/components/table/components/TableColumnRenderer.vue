@@ -7,7 +7,7 @@ import { get, normalizePathKey } from '../../../shared/core';
 import { TableColumn } from '../../../shared/ui';
 import SlotComponent from '../../form/components/SlotComponent/index.vue';
 import type { Column, Columns } from '../types';
-import { computed, toRaw } from 'vue';
+import { computed, toRaw, toValue } from 'vue';
 
 defineOptions({ name: 'TableColumnRenderer' });
 
@@ -48,7 +48,7 @@ const getCellValue = (row: Record<string, any>, column: Column<D>) => {
 };
 
 const normalizedColumns = computed(() => {
-  return props.columns.filter(column => !column.hidden);
+  return props.columns.filter(column => !toValue(column.hidden));
 });
 
 const getColumnProps = (column: Column<D>) => {

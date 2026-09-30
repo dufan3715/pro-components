@@ -283,7 +283,9 @@ const computedColumns = computed<Columns<RecordType>>(() => {
 });
 
 const visibleComputedColumns = computed(() => {
-  return computedColumns.value.filter(item => !(item as Column).hidden);
+  return computedColumns.value.filter(
+    item => !toValue((item as Column).hidden)
+  );
 });
 
 const computedDataSource = computed<RecordType[]>(() => {

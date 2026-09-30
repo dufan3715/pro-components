@@ -17,8 +17,8 @@ import { Data, Path } from '../shared/types';
  *   path: 'address',
  *   label: '地址',
  *   fields: [
- *     { path: 'city', label: '城市' },
- *     { path: 'street', label: '街道' },
+ *     { path: 'address.city', label: '城市' },
+ *     { path: 'address.street', label: '街道' },
  *   ],
  * }
  * ```

@@ -117,7 +117,8 @@ const isObjectLike = (v: unknown): v is object =>
   v !== null && (typeof v === 'object' || typeof v === 'function');
 const isIndexKey = (v: string | number) =>
   typeof v === 'number' || /^(?:0|[1-9]\d*)$/.test(v);
-const isDangerousKey = (v: string | number) =>
+/** 原型污染危险键判定（`__proto__` / `constructor` / `prototype`） */
+export const isDangerousKey = (v: string | number) =>
   typeof v === 'string' &&
   (v === '__proto__' || v === 'constructor' || v === 'prototype');
 const sameValueZero = (a: unknown, b: unknown) =>

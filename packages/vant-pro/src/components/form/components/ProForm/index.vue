@@ -66,13 +66,12 @@ const attrs = useAttrs();
 
 /**
  * 依赖注入中心：
- * 未传 form 实例（含运行期置空）时惰性初始化内部表单实例；
+ * 未传 form 实例（含运行期置空）时回退内部表单实例；
  * 将 Form 实例注入到 Vue Context 中，供深层子组件跨层级直接访问数据和方法。
  */
-let fallbackForm: F | undefined;
-const currentForm = computed(
-  () => props.form ?? (fallbackForm ??= useForm() as unknown as F)
-);
+// 兜底表单实例：setup 同步期创建，未传 :form（含运行期置空）时经 currentForm 生效
+const fallbackForm = useForm() as unknown as F;
+const currentForm = computed(() => props.form ?? fallbackForm);
 
 /**
  * 表单实例代理：操作全部转发至 currentForm 当前实例；

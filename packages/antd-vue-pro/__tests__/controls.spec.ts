@@ -51,12 +51,15 @@ describe('控制组件与全局 Provider 测试', () => {
 
     await flushPromises();
 
-    // 触发内部 onSizeChange
+    // 触发内部 onSizeChange：弹层经 hover 触发渲染后点击菜单项
+    await wrapper.find('.pro-table_size-control_button').trigger('mouseenter');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+
     const menu = wrapper.findComponent(Menu);
-    if (menu.exists()) {
-      await menu.vm.$emit('click', { key: 'small' });
-      expect(currentSize).toBe('small');
-    }
+    expect(menu.exists()).toBe(true);
+    await menu.vm.$emit('click', { key: 'small' });
+    expect(currentSize).toBe('small');
 
     wrapper.unmount();
   });

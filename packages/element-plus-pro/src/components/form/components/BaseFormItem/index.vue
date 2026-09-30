@@ -28,6 +28,7 @@ import {
   Grid as ElGrid,
   GridItem as ElGridItem,
   GridProps,
+  useProviderDisabled,
 } from '../../../../shared/ui';
 import { computed, inject, toRaw, toValue } from 'vue';
 import type { Fields, Grid } from '../../types';
@@ -58,11 +59,16 @@ defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 type Props = {
   grid?: Grid;
   fields?: Fields;
+  disabled?: boolean;
 };
 const props = withDefaults(defineProps<Props>(), {
   grid: undefined,
   fields: () => [],
+  disabled: undefined,
 });
+
+// 分组字段的禁用状态向下注入，供 BaseField 经禁用上下文消费
+useProviderDisabled(computed(() => props.disabled));
 
 const validFields = computed(() =>
   // hidden 支持 Ref/ComputedRef/getter 等响应式形态（统一使用 toValue 取值）
@@ -189,6 +195,7 @@ const groupedFields = useGroupFieldAttrs(validFields);
               <BaseFormItem
                 :grid="(item.rawField as any).grid ?? props.grid"
                 :fields="item.rawField.fields"
+                :disabled="toValue(item.rawField.disabled)"
               />
             </template>
             <template v-else>

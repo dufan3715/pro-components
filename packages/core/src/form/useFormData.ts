@@ -1,7 +1,7 @@
 import { getCurrentInstance, inject, provide, reactive } from 'vue';
 import { Path, Data, ExtendWithAny, DeepPartial } from '../shared/types';
 import { isPlainObject } from '../shared/utils';
-import { get, set } from '../shared/path';
+import { get, isDangerousKey, set } from '../shared/path';
 
 const InjectionFormDataKey = Symbol('form-data');
 
@@ -165,14 +165,19 @@ const useFormData = <D extends Data = Data>(
         value = value(preValue);
       }
       if (!isPlainObject(value)) return;
+      // 危险键在批量入口即被丢弃，不参与后续合并
+      const safeValue: Record<string, any> = {};
+      Object.entries(value).forEach(([key, val]) => {
+        if (!isDangerousKey(key)) safeValue[key] = val;
+      });
       // 批量覆盖：先删除新对象不含的自有 key 再合并——全量替换语义（非 merge），formData 引用保持不变
-      const newKeys = new Set(Object.keys(value));
+      const newKeys = new Set(Object.keys(safeValue));
       Object.keys(formData).forEach(key => {
         if (!newKeys.has(key)) {
           delete (formData as any)[key];
         }
       });
-      Object.assign(formData, value);
+      Object.assign(formData, safeValue);
     }
   }
 

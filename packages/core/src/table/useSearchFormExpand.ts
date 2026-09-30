@@ -13,6 +13,7 @@
 import {
   ref,
   computed,
+  toValue,
   watch,
   watchEffect,
   onBeforeUnmount,
@@ -212,6 +213,7 @@ export function useSearchFormExpand(
   };
 
   const updateHeights = () => {
+    console.log('[DBG] updateHeights');
     if (!props.expand || !props.form?.formRef?.value) return;
     const proFormEl = (props.form.formRef.value as any)?.$el;
     if (!proFormEl) return;
@@ -365,7 +367,9 @@ export function useSearchFormExpand(
    */
   watch(
     [
-      () => props.form?.fields?.value?.filter((f: any) => !f.hidden)?.length,
+      () =>
+        props.form?.fields?.value?.filter((f: any) => !toValue(f.hidden))
+          ?.length,
       () => props.form?.formRef?.value,
       () => props.expand,
     ],

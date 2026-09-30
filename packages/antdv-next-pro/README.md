@@ -409,7 +409,7 @@ const table = useTable<Row>({
 | :----------------- | :----------------------------------------------------------------------------- | :------ | :------------------------------------------------------------------------------------ |
 | `table`            | `Table<D>`                                                                     | -       | 由 `useTable` 返回的表格实例引用                                                      |
 | `search`           | `() => Promise<void>`                                                          | -       | 触发表格数据查询的异步回调函数                                                        |
-| `addIndexColumn`   | `boolean`                                                                      | `false` | 是否自动在表格首列插入序号列                                                          |
+| `addIndexColumn`   | `boolean`                                                                      | `true`  | 是否自动在表格首列插入序号列                                                          |
 | `immediateSearch`  | `boolean`                                                                      | `false` | 表格挂载完毕（onMounted）是否立即触发一次查询回调                                     |
 | `control`          | `boolean \| { sizeControl, columnControl }`                                    | `true`  | 是否展示表格右上角尺寸调节和列显示控制条                                              |
 | `searchFormConfig` | `SearchFormConfig`                                                             | -       | 搜索栏表单的排版布局及展开/收起配置参数                                               |

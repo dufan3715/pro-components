@@ -45,10 +45,12 @@ defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
 type Props = {
   fields?: Fields;
+  disabled?: boolean;
 };
 
 const props = withDefaults(defineProps<Props>(), {
   fields: () => [],
+  disabled: undefined,
 });
 
 const validFields = computed(() => {
@@ -125,13 +127,17 @@ defineExpose({
         :path="item.path"
         v-bind="item.componentProps"
       >
-        <BaseFormItem :fields="item.rawField.fields" />
+        <BaseFormItem
+          :fields="item.rawField.fields"
+          :disabled="toValue(item.rawField.disabled) ?? props.disabled"
+        />
       </ContainerFragment>
     </template>
     <template v-else>
       <BaseField
         :ref="(el: any) => setComponentRef(item.rawField, el)"
         v-bind="item.componentProps"
+        :disabled="item.componentProps.disabled ?? props.disabled"
         :path="item.path"
       />
     </template>
