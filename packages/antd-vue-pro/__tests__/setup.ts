@@ -21,18 +21,19 @@ Object.defineProperty(window, 'matchMedia', {
 // M2: ResizeObserver 可控 mock (SearchForm 高度重测)
 // ----------------------------------------------------
 type ResizeCallback = (entries: any[], observer: any) => void;
-export const activeResizeObservers = new Set<{
+export type ResizeObserverEntry = {
   callback: ResizeCallback;
   elements: Set<Element>;
-}>();
+};
+export const activeResizeObservers = new Set<ResizeObserverEntry>();
 
 class MockResizeObserver {
   private elements = new Set<Element>();
-  private callback: ResizeCallback;
+  private entry: ResizeObserverEntry;
 
   constructor(callback: ResizeCallback) {
-    this.callback = callback;
-    activeResizeObservers.add({ callback, elements: this.elements });
+    this.entry = { callback, elements: this.elements };
+    activeResizeObservers.add(this.entry);
   }
 
   observe(element: Element) {
@@ -45,10 +46,7 @@ class MockResizeObserver {
 
   disconnect() {
     this.elements.clear();
-    activeResizeObservers.delete({
-      callback: this.callback,
-      elements: this.elements,
-    });
+    activeResizeObservers.delete(this.entry);
   }
 }
 
@@ -67,18 +65,20 @@ globalThis.ResizeObserver = MockResizeObserver as any;
 // M3: IntersectionObserver 可控 mock (SearchForm 隐藏字段检测)
 // ----------------------------------------------------
 type IntersectCallback = (entries: any[], observer: any) => void;
-export const activeIntersectionObservers = new Set<{
+export type IntersectionObserverEntry_ = {
   callback: IntersectCallback;
   elements: Set<Element>;
-}>();
+};
+export const activeIntersectionObservers =
+  new Set<IntersectionObserverEntry_>();
 
 class MockIntersectionObserver {
   private elements = new Set<Element>();
-  private callback: IntersectCallback;
+  private entry: IntersectionObserverEntry_;
 
   constructor(callback: IntersectCallback) {
-    this.callback = callback;
-    activeIntersectionObservers.add({ callback, elements: this.elements });
+    this.entry = { callback, elements: this.elements };
+    activeIntersectionObservers.add(this.entry);
   }
 
   observe(element: Element) {
@@ -91,10 +91,7 @@ class MockIntersectionObserver {
 
   disconnect() {
     this.elements.clear();
-    activeIntersectionObservers.delete({
-      callback: this.callback,
-      elements: this.elements,
-    });
+    activeIntersectionObservers.delete(this.entry);
   }
 }
 

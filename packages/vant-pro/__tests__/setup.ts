@@ -21,18 +21,19 @@ Object.defineProperty(window, 'matchMedia', {
 // M2: ResizeObserver 可控 mock
 // ----------------------------------------------------
 type ResizeCallback = (entries: any[], observer: any) => void;
-export const activeResizeObservers = new Set<{
+export type ResizeObserverEntry = {
   callback: ResizeCallback;
   elements: Set<Element>;
-}>();
+};
+export const activeResizeObservers = new Set<ResizeObserverEntry>();
 
 class MockResizeObserver {
   private elements = new Set<Element>();
-  private callback: ResizeCallback;
+  private entry: ResizeObserverEntry;
 
   constructor(callback: ResizeCallback) {
-    this.callback = callback;
-    activeResizeObservers.add({ callback, elements: this.elements });
+    this.entry = { callback, elements: this.elements };
+    activeResizeObservers.add(this.entry);
   }
 
   observe(element: Element) {
@@ -45,10 +46,7 @@ class MockResizeObserver {
 
   disconnect() {
     this.elements.clear();
-    activeResizeObservers.delete({
-      callback: this.callback,
-      elements: this.elements,
-    });
+    activeResizeObservers.delete(this.entry);
   }
 }
 
