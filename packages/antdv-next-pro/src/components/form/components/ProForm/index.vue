@@ -31,6 +31,7 @@
 import {
   Form as AForm,
   FormProps as AFormProps,
+  useDisabledContext,
   useDisabledContextProvider,
 } from '../../../../shared/ui';
 import {
@@ -67,12 +68,14 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const attrs: any = useAttrs();
-// 将 attrs.disabled（含 '' / 'true' 字符串形态）归一为 boolean 后下发禁用上下文
+// 显式 attrs.disabled（含 '' / 'true' 字符串形态）归一为 boolean 后下发禁用上下文；未显式指定时下发上层上下文的值
+const parentDisabled = useDisabledContext();
 useDisabledContextProvider(
   computed(() => {
     const d = attrs.disabled;
+    if (d === undefined) return parentDisabled.value;
     return d === '' || d === true || d === 'true';
-  })
+  }) as any
 );
 
 /**

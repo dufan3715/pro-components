@@ -341,4 +341,48 @@ describe('ProForm 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PF-D2 [判别]: 未显式指定 disabled 时继承上层禁用上下文（宿主 ConfigProvider / 外层）
+  // ----------------------------------------------------
+  it('PF-D2 [判别]: disabled 未显式指定时继承宿主 ConfigProvider 的 componentDisabled', async () => {
+    const { ConfigProvider } = await import('antdv-next');
+    const form = useForm({ a: '' }, [
+      { path: 'a', label: 'A', component: 'input' },
+    ] as any);
+
+    // 宿主全局禁用 + ProForm 未指定 disabled → 继承为禁用
+    const hostDisabled = mount(ConfigProvider as any, {
+      props: { componentDisabled: true },
+      slots: {
+        default: () => h(ProForm as any, { form }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(hostDisabled.find('input').attributes('disabled')).toBeDefined();
+    hostDisabled.unmount();
+
+    // 显式 :disabled="false" 覆盖上层禁用
+    const explicitFalse = mount(ConfigProvider as any, {
+      props: { componentDisabled: true },
+      slots: {
+        default: () => h(ProForm as any, { form, disabled: false } as any),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(explicitFalse.find('input').attributes('disabled')).toBeUndefined();
+    explicitFalse.unmount();
+
+    // 裸 disabled 属性（'' 形态）仍生效
+    const bareAttr = mount(ProForm as any, {
+      props: { form },
+      attrs: { disabled: '' },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(bareAttr.find('input').attributes('disabled')).toBeDefined();
+    bareAttr.unmount();
+  });
 });
