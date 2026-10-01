@@ -319,6 +319,46 @@ describe('useTable', () => {
   });
 
   describe('直接变异 (DC 组)', () => {
+    it('TT-27 [判别] columns 元素级变异后读取即补齐唯一 key，且不覆盖显式 key', () => {
+      const rawColumns = [{ dataIndex: 'a', title: 'A' }] as any[];
+      const { columns } = useTable({ columns: rawColumns });
+
+      // 元素级 push 与索引赋值均不经过整体重赋值
+      columns.value.push({ dataIndex: 'b', title: 'B' } as any);
+      columns.value[0] = { dataIndex: 'c', title: 'C' } as any;
+
+      const keys = columns.value.map(col => col.key);
+      expect(keys).toEqual(['c', 'b']);
+      expect(new Set(keys).size).toBe(2);
+
+      // 显式 key 不被覆盖；读取返回同一数组与同一元素引用
+      columns.value.push({ key: 'keep', title: 'K' } as any);
+      expect(columns.value[2].key).toBe('keep');
+      expect(columns.value).toBe(columns.value);
+      expect(columns.value[0]).toBe(columns.value[0]);
+
+      // 初始数组仍为状态本体（原引用透传契约）
+      expect(toRaw(columns.value)).toBe(rawColumns);
+    });
+
+    it('TT-28 [判别] 元素级插入的分组列在读取时递归补齐 children 的 key', () => {
+      const { columns } = useTable({
+        columns: [{ dataIndex: 'a', title: 'A' }] as any,
+      });
+
+      columns.value.push({
+        title: '分组',
+        children: [{ dataIndex: 'b', title: 'B' }, { title: 'C' }],
+      } as any);
+
+      const group = columns.value[1] as any;
+      // 显式可推导 key 保留（dataIndex 回退），无来源项走自增兜底且互不重复
+      expect(group.children[0].key).toBe('b');
+      expect(typeof group.children[1].key).toBe('string');
+      expect(group.children[1].key.length).toBeGreaterThan(0);
+      expect(group.children[1].key).not.toBe(group.children[0].key);
+    });
+
     it('DC-01 直接变异 columns.value 后 setColumn / deleteColumn 正常操作', () => {
       const { columns, setColumn, deleteColumn } = useTable<any>({
         columns: [{ key: 'a', title: 'A' }],

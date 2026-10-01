@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { defineComponent, h, ref } from 'vue';
+import { defineComponent, h, ref, toRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
@@ -595,5 +595,47 @@ describe('ProTable 组件测试', () => {
     // @ts-expect-error loading 已从 componentVars.pro-table 契约中移除
     const invalidVars: ComponentVars = { 'pro-table': { loading: true } };
     expect(invalidVars).toBeTruthy();
+  });
+
+  // ----------------------------------------------------
+  // PT-A15 [判别]: resizeColumn 式就地变异列对象，在 columns 读时规范化下保持引用与渲染更新
+  // ----------------------------------------------------
+  it('PT-A15 [判别]: resizeColumn 式就地变异列对象后引用不变且渲染宽度更新', async () => {
+    const rawColumns = [
+      { dataIndex: 'name', title: '姓名', width: 100 },
+    ] as any[];
+    const table = useTable({
+      columns: rawColumns,
+      dataSource: [{ name: '甲' }],
+    });
+
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        onResizeColumn: (w: number, col: any) => {
+          col.width = w;
+        },
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const aTable = wrapper.findComponent({ name: 'ATable' });
+    expect(aTable.exists()).toBe(true);
+
+    // 模拟 antd 表头拖拽结束透出的列对象（与本包 columns 元素同一引用）
+    const col = table.columns.value[0];
+    aTable.vm.$emit('resizeColumn', 240, col);
+    await flushPromises();
+
+    // 写入可见、元素与数组引用恒等、初始数组仍是状态本体
+    expect(table.columns.value[0].width).toBe(240);
+    expect(table.columns.value[0]).toBe(col);
+    expect(toRaw(table.columns.value)).toBe(rawColumns);
+    expect(toRaw(table.columns.value)[0]).toBe(rawColumns[0]);
+    // 渲染层随就地变异更新
+    expect(wrapper.html()).toContain('240px');
+
+    wrapper.unmount();
   });
 });

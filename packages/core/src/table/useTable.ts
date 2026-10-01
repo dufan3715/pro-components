@@ -15,7 +15,7 @@
  *
  * @internal 本模块为底层基建，外部业务通常调用上层 UI 封装包二次导出的 typed useTable。
  */
-import { Reactive, reactive, Ref, ref, toValue, watch } from 'vue';
+import { Reactive, customRef, reactive, Ref, ref, toValue } from 'vue';
 import { applyByGroupDesc, GroupMatch } from '../shared/internals';
 import {
   BaseColumn,
@@ -314,18 +314,47 @@ const useTable = <
   let columnKeySeed = 0;
   const allocateColumnKey = () => `__col_${++columnKeySeed}`;
 
-  const columns = ref<Columns<T, C>>(
+  const columnState = ref<Columns<T, C>>(
     normalizeColumns(initColumns, allocateColumnKey)
   ) as Ref<Columns<T, C>>;
 
-  // 整体重赋值 columns.value 时，同步对新数组执行与初始化一致的规范化（就地补 key）
-  watch(
-    columns,
-    cols => {
-      normalizeColumns(cols, allocateColumnKey);
+  /*
+   * 就地补齐缺失的 key（含 children 递归）：仅缺失时写入、命中即跳过，
+   * 不改写已有 key、不重建 children 数组，返回值表示是否发生写入
+   */
+  const ensureColumnKeys = (list: Columns<T, C>, allocateKey: () => string) => {
+    let changed = false;
+    for (let i = 0; i < list.length; i++) {
+      const col = list[i] as C;
+      if (!col || typeof col !== 'object') continue;
+      if (col.key === undefined || col.key === null) {
+        list[i] = normalizeColumn(col, allocateKey);
+        changed = true;
+      } else if (Array.isArray(col.children) && col.children.length > 0) {
+        if (ensureColumnKeys(col.children as Columns<T, C>, allocateKey)) {
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  };
+
+  /*
+   * columns 以 customRef 暴露：读取时就地补齐缺失 key（幂等，仅缺失时写入），
+   * 整体重赋值先规范化再收编；内部经 ref 转发以保持数组与元素的深层响应式与原引用
+   */
+  const columns = customRef<Columns<T, C>>((track, trigger) => ({
+    get() {
+      track();
+      ensureColumnKeys(columnState.value, allocateColumnKey);
+      return columnState.value;
     },
-    { flush: 'sync' }
-  );
+    set(next) {
+      normalizeColumns(next, allocateColumnKey);
+      columnState.value = next;
+      trigger();
+    },
+  }));
 
   const dataSource = ref<T[]>(initDataSource) as Ref<T[]>;
 
