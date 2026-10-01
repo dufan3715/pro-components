@@ -649,4 +649,27 @@ describe('ProTable 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PT-A17 [判别]: columns 含 null / 原始值项时不抛错，仅渲染合法列
+  // ----------------------------------------------------
+  it('PT-A17 [判别]: columns 含 null/原始值项时不抛错，仅渲染合法列', async () => {
+    const table = useTable({
+      columns: [null, 'not-a-column', { dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '甲' }],
+    } as any);
+
+    const wrapper = mount(ProTable, {
+      props: { table, addIndexColumn: false },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const headerCells = wrapper.findAll('thead th');
+    expect(headerCells).toHaveLength(1);
+    expect(headerCells[0].text()).toContain('姓名');
+    expect(wrapper.find('tbody').text()).toContain('甲');
+
+    wrapper.unmount();
+  });
 });

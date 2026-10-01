@@ -298,7 +298,7 @@ const computedColumns = computed<Columns<RecordType>>(() => {
 
 const visibleComputedColumns = computed(() => {
   return computedColumns.value.filter(
-    item => !toValue((item as Column).hidden)
+    item => isObjectItem(item) && !toValue((item as Column).hidden)
   );
 });
 

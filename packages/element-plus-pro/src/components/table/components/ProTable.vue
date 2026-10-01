@@ -289,9 +289,9 @@ const getIndex = (i: number) => {
 };
 
 const normalizedRawColumns = computed(() => {
-  const source = (props.columns ??
-    toValue(props.table?.columns) ??
-    []) as any[];
+  const source = (
+    (props.columns ?? toValue(props.table?.columns) ?? []) as any[]
+  ).filter(isObjectItem);
   if (props.addIndexColumn ?? injectProps.value.addIndexColumn) {
     return [
       {

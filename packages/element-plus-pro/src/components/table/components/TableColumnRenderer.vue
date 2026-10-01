@@ -8,7 +8,7 @@
  * @internal
  */
 import { defineComponent, h, toRaw, toValue, type PropType } from 'vue';
-import { get, normalizePathKey } from '../../../shared/core';
+import { get, isObjectItem, normalizePathKey } from '../../../shared/core';
 import { TableColumn } from '../../../shared/ui';
 import SlotComponent from '../../form/components/SlotComponent/index.vue';
 import type { Column, Columns } from '../types';
@@ -96,7 +96,7 @@ export default defineComponent({
   setup(props) {
     return () =>
       props.columns
-        .filter(column => !toValue(column.hidden))
+        .filter(column => isObjectItem(column) && !toValue(column.hidden))
         .map(column => renderColumn(column));
   },
 });

@@ -8,6 +8,7 @@ import {
   Checkbox,
 } from '../../../shared/ui';
 import { computed, ref, toValue, watch } from 'vue';
+import { isObjectItem } from '../../../shared/core';
 import type { Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../hooks/useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
@@ -38,7 +39,7 @@ const checkedColumnsOptions = computed<
     disabled: boolean;
   }>
 >(() =>
-  props.columns.flatMap(item => {
+  props.columns.filter(isObjectItem).flatMap(item => {
     const rawKey =
       item.key ??
       (Array.isArray(item.dataIndex)

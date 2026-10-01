@@ -11,7 +11,7 @@ import type { Column, Columns, ColumnControlConfig } from '../types';
 import { type Table } from '../useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
 import { useLocale } from '../../../locale';
-import { normalizePathKey } from '../../../shared/core';
+import { isObjectItem, normalizePathKey } from '../../../shared/core';
 
 type Props = {
   columns: Columns;
@@ -44,7 +44,7 @@ const checkedColumnsOptions = computed<
     column: Column;
   }>
 >(() =>
-  props.columns.flatMap(item => {
+  props.columns.filter(isObjectItem).flatMap(item => {
     const key = getColumnKey(item);
     // 无 key/prop 列不进入列控面板
     if (key === undefined) return [];
