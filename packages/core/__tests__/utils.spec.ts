@@ -318,4 +318,28 @@ describe('utils', () => {
       expect(isPromise(new Date())).toBe(false);
     });
   });
+
+  it('SU-04 [判别]: camelizeProperties 转换 kebab-case，data-*/aria-* 属性名按原样保留', () => {
+    const out = camelizeProperties({
+      'user-name': '张三',
+      'is-active': true,
+      'data-testid': 'form-x',
+      'aria-label': '表单',
+      'aria-hidden': 'true',
+      'ARIA-live': 'polite',
+      'on-row-click': 1,
+    });
+
+    // kebab-case → camelCase 语义不变
+    expect(out.userName).toBe('张三');
+    expect(out.isActive).toBe(true);
+    expect(out.onRowClick).toBe(1);
+    // data-* / aria-* 保名（大小写前缀均识别）
+    expect(out['data-testid']).toBe('form-x');
+    expect(out['aria-label']).toBe('表单');
+    expect(out['aria-hidden']).toBe('true');
+    expect(out['ARIA-live']).toBe('polite');
+    expect(out.dataTestid).toBeUndefined();
+    expect(out.ariaLabel).toBeUndefined();
+  });
 });

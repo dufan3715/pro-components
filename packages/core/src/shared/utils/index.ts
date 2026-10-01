@@ -112,7 +112,7 @@ export function getObject(val: any): Record<string, any> {
  *
  * @description 遍历对象的所有属性，将 key 从 kebab-case 转换为 camelCase。
  * 底层使用 Vue 的 `camelize` 工具函数（匹配 `-\w` 正则）。
- * 常用于处理 kebab-case 风格的属性名转为 JS 惯用的 camelCase。
+ * `data-*` 与 `aria-*` 属性名按原样保留，不参与驼峰转换。
  *
  * @param obj - 源对象
  * @returns 属性名已转为驼峰格式的新对象
@@ -123,11 +123,16 @@ export function getObject(val: any): Record<string, any> {
  * // { userName: '张三', isActive: true }
  * ```
  */
+const verbatimAttrRE = /^(data|aria)-/i;
+
 export function camelizeProperties(
   obj: Record<string, any>
 ): Record<string, any> {
   return Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [camelize(key), value])
+    Object.entries(obj).map(([key, value]) => [
+      verbatimAttrRE.test(key) ? key : camelize(key),
+      value,
+    ])
   );
 }
 

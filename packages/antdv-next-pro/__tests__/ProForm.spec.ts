@@ -316,4 +316,29 @@ describe('ProForm 组件测试', () => {
     expect(wrapper.find('.kw-slot-on').exists()).toBe(true);
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PF-D1 [判别]: data-* / aria-* 属性名保持原样下发宿主 Form
+  // ----------------------------------------------------
+  it('PF-D1 [判别]: data-*/aria-* 属性名保持原样下发宿主 Form', async () => {
+    const form = useForm({ a: '' }, [
+      { path: 'a', label: 'A', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      attrs: { 'data-testid': 'form-x', 'aria-label': '表单' },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const formEl = wrapper.find('form');
+    expect(formEl.exists()).toBe(true);
+    expect(formEl.attributes('data-testid')).toBe('form-x');
+    expect(formEl.attributes('aria-label')).toBe('表单');
+    expect(formEl.attributes('datatestid')).toBeUndefined();
+    expect(formEl.attributes('arialabel')).toBeUndefined();
+
+    wrapper.unmount();
+  });
 });
