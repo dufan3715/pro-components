@@ -58,12 +58,13 @@ import { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../useTable';
 import { useLocale } from '../../../locale';
 import {
+  Path,
+  camelizeProperties,
   getObject,
+  isObjectItem,
   isPlainObject,
   isPromise,
   pick,
-  camelizeProperties,
-  Path,
 } from '../../../shared/core';
 import DefaultSearchFormContainer from './DefaultSearchFormContainer.vue';
 import DefaultTableContainer from './DefaultTableContainer.vue';
@@ -351,7 +352,8 @@ const searchFormVisible = computed(() => {
   return !!(
     computedSearchFormConfig.value?.hidden !== true &&
     props.table?.searchForm &&
-    fieldList.filter(item => !toValue(item.hidden)).length > 0
+    fieldList.filter(item => isObjectItem(item) && !toValue(item.hidden))
+      .length > 0
   );
 });
 

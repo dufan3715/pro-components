@@ -24,7 +24,7 @@
  * @internal
  */
 
-import { getObject, toPath } from '../../../../shared/core';
+import { getObject, isObjectItem, toPath } from '../../../../shared/core';
 import {
   FormItem,
   Grid as AGrid,
@@ -47,8 +47,11 @@ import { INJECT_CONFIG } from '../../../component-provider/constants';
  */
 let fieldKeySeed = 0;
 const fieldKeyMap = new WeakMap<object, number>();
-const getFieldKey = (field: unknown): number => {
-  const raw = toRaw(field as object);
+const getFieldKey = (field: unknown): string | number => {
+  // 非对象项无对象身份，按字面量生成稳定 key
+  if (field === null || typeof field !== 'object')
+    return `raw_${String(field)}`;
+  const raw = toRaw(field);
   let key = fieldKeyMap.get(raw);
   if (key === undefined) {
     key = ++fieldKeySeed;
@@ -72,7 +75,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 // 过滤掉 hidden 字段；hidden 支持 Ref/ComputedRef/getter 等响应式形态（统一使用 toValue 取值）
 const validFields = computed(() =>
-  (props.fields ?? []).filter(field => !toValue(field.hidden))
+  (props.fields ?? []).filter(
+    field => isObjectItem(field) && !toValue((field as any).hidden)
+  )
 );
 
 // 向子组件提供 disabled 上下文（优先使用自身的 props.disabled，无显式指定时继承父级上下文）

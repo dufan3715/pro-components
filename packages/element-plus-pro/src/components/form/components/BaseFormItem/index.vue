@@ -22,7 +22,11 @@
  *
  * @internal
  */
-import { getObject, normalizePathKey } from '../../../../shared/core';
+import {
+  getObject,
+  isObjectItem,
+  normalizePathKey,
+} from '../../../../shared/core';
 import {
   FormItem,
   Grid as ElGrid,
@@ -44,8 +48,11 @@ import { INJECT_CONFIG } from '../../../component-provider/constants';
  */
 let fieldKeySeed = 0;
 const fieldKeyMap = new WeakMap<object, number>();
-const getFieldKey = (field: unknown): number => {
-  const raw = toRaw(field as object);
+const getFieldKey = (field: unknown): string | number => {
+  // 非对象项无对象身份，按字面量生成稳定 key
+  if (field === null || typeof field !== 'object')
+    return `raw_${String(field)}`;
+  const raw = toRaw(field);
   let key = fieldKeyMap.get(raw);
   if (key === undefined) {
     key = ++fieldKeySeed;
@@ -72,7 +79,9 @@ useProviderDisabled(computed(() => props.disabled));
 
 const validFields = computed(() =>
   // hidden 支持 Ref/ComputedRef/getter 等响应式形态（统一使用 toValue 取值）
-  (props.fields ?? []).filter(field => !toValue(field.hidden))
+  (props.fields ?? []).filter(
+    field => isObjectItem(field) && !toValue((field as any).hidden)
+  )
 );
 
 const config = INJECT_CONFIG['pro-form'];

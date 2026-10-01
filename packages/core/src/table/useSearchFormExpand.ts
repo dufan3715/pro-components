@@ -20,6 +20,7 @@ import {
   type ComputedRef,
   type Ref,
 } from 'vue';
+import { isObjectItem } from '../shared/utils';
 
 // 测量写入死区（px）：与上次写入值的差异小于该值时不更新状态
 const MEASURE_DEAD_ZONE_PX = 2;
@@ -368,8 +369,9 @@ export function useSearchFormExpand(
   watch(
     [
       () =>
-        props.form?.fields?.value?.filter((f: any) => !toValue(f.hidden))
-          ?.length,
+        props.form?.fields?.value?.filter(
+          (f: any) => isObjectItem(f) && !toValue(f.hidden)
+        )?.length,
       () => props.form?.formRef?.value,
       () => props.expand,
     ],

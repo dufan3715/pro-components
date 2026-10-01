@@ -20,6 +20,7 @@
  * @internal
  */
 import { computed, toRaw, toValue } from 'vue';
+import { isObjectItem } from '../../../../shared/core';
 import type { Fields } from '../../types';
 import BaseField from '../BaseField/index.vue';
 import ContainerFragment from '../ContainerFragment/index.vue';
@@ -31,8 +32,11 @@ import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
  */
 let fieldKeySeed = 0;
 const fieldKeyMap = new WeakMap<object, number>();
-const getFieldKey = (field: unknown): number => {
-  const raw = toRaw(field as object);
+const getFieldKey = (field: unknown): string | number => {
+  // 非对象项无对象身份，按字面量生成稳定 key
+  if (field === null || typeof field !== 'object')
+    return `raw_${String(field)}`;
+  const raw = toRaw(field);
   let key = fieldKeyMap.get(raw);
   if (key === undefined) {
     key = ++fieldKeySeed;
@@ -56,7 +60,9 @@ const props = withDefaults(defineProps<Props>(), {
 const validFields = computed(() => {
   const f = toValue(props.fields);
   if (!Array.isArray(f)) return [];
-  return f.filter(field => !toValue(field.hidden));
+  return f.filter(
+    field => isObjectItem(field) && !toValue((field as any).hidden)
+  );
 });
 
 const groupedFields = useGroupFieldAttrs(validFields);
@@ -92,7 +98,8 @@ const defineFieldAccessors = (
  * 随字段回收自动释放
  */
 const componentRefMap = new WeakMap<object, any>();
-const setComponentRef = (field: object, el: any) => {
+const setComponentRef = (field: any, el: any) => {
+  if (!field || typeof field !== 'object') return;
   const raw = toRaw(field);
   if (el) {
     componentRefMap.set(raw, el);

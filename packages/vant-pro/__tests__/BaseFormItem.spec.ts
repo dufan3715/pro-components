@@ -130,4 +130,60 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
     expect(bField.element.querySelector('input')).toBe(bInputBefore);
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A15 [判别]: fields 中的 null / undefined 项被忽略（不抛错、不影响合法字段）
+  // ----------------------------------------------------
+  it('BI-A15 [判别]: fields 含 null/undefined 项时不抛错，合法字段照常渲染', async () => {
+    const form = useForm({ a: '' }, [
+      null,
+      undefined,
+      { path: 'a', label: 'A', component: 'field' },
+    ] as any);
+
+    const wrapper = mount(BaseFormItem, {
+      props: { fields: form.fields.value } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    expect(wrapper.findAll('input')).toHaveLength(1);
+    await wrapper.find('input').setValue('x');
+    await flushPromises();
+    expect(form.getFormData('a')).toBe('x');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A15b [判别]: 原始值项仍走兜底分支，渲染 key 不抛 WeakMap 错误
+  // ----------------------------------------------------
+  it('BI-A15b [判别]: fields 含原始值项时渲染不抛错（key 走非对象回退）', async () => {
+    const form = useForm({ a: '' }, [
+      'not-a-field',
+      { path: 'a', label: 'A', component: 'field' },
+    ] as any);
+
+    const wrapper = mount(BaseFormItem, {
+      props: { fields: form.fields.value } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    // 原始值项被忽略：仅 1 个字段容器、1 个输入框，且合法字段可用
+    expect(wrapper.findAll('.van-field')).toHaveLength(1);
+    const inputs = wrapper.findAll('input');
+    expect(inputs).toHaveLength(1);
+    await inputs[0].setValue('y');
+    await flushPromises();
+    expect(form.getFormData('a')).toBe('y');
+
+    wrapper.unmount();
+  });
 });

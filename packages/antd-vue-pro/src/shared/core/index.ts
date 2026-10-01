@@ -25,6 +25,7 @@ export {
   cloneDeep,
   pick,
   isPlainObject,
+  isObjectItem,
   isPromise,
   // locale
   zhCN,

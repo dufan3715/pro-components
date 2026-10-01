@@ -43,6 +43,17 @@ export function cloneDeep<T>(value: T): T {
   }
 }
 
+/**
+ * 判断是否为可用配置项（字段 / 列）
+ *
+ * @description 仅非 null 的对象视为有效项；null / undefined / 原始值（字符串、数字、布尔等）不作为配置项参与渲染与筛选
+ *
+ * @param value - 待判断的值
+ * @returns 是对象时为 true
+ */
+export const isObjectItem = (value: unknown): boolean =>
+  value !== null && typeof value === 'object';
+
 const toString = Object.prototype.toString;
 const getProto = Object.getPrototypeOf;
 const hasOwn = (o: object, k: PropertyKey) =>

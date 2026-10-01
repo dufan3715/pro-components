@@ -315,4 +315,55 @@ describe('BaseFormItem 组件测试', () => {
     expect(wrapper.find('.el-col-offset-4').exists()).toBe(true);
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A15 [判别]: fields 中的 null / undefined 项被忽略（不抛错、不影响合法字段）
+  // ----------------------------------------------------
+  it('BI-A15 [判别]: fields 含 null/undefined 项时不抛错，合法字段照常渲染', async () => {
+    const form = useForm({ a: '' }, [
+      null,
+      undefined,
+      { path: 'a', label: 'A', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 仅合法字段被渲染
+    expect(wrapper.findAll('input')).toHaveLength(1);
+    await wrapper.find('input').setValue('x');
+    await flushPromises();
+    expect(form.getFormData('a')).toBe('x');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A15b [判别]: 原始值项仍走兜底分支，渲染 key 不抛 WeakMap 错误
+  // ----------------------------------------------------
+  it('BI-A15b [判别]: fields 含原始值项时渲染不抛错（key 走非对象回退）', async () => {
+    const form = useForm({ a: '' }, [
+      'not-a-field',
+      { path: 'a', label: 'A', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 原始值项被忽略：仅 1 个表单项、1 个输入框，且合法字段可用
+    expect(wrapper.findAll('.el-form-item')).toHaveLength(1);
+    const inputs = wrapper.findAll('input');
+    expect(inputs).toHaveLength(1);
+    await inputs[0].setValue('y');
+    await flushPromises();
+    expect(form.getFormData('a')).toBe('y');
+
+    wrapper.unmount();
+  });
 });

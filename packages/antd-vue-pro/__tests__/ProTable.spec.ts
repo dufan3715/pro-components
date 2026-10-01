@@ -638,4 +638,32 @@ describe('ProTable 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PT-A16 [判别]: searchFields 含 null / 原始值项时不抛错，搜索区按合法字段渲染
+  // ----------------------------------------------------
+  it('PT-A16 [判别]: searchFields 含 null/原始值项时不抛错，搜索区正常渲染', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [],
+      searchFields: [
+        null,
+        'not-a-field',
+        { path: 'kw', label: '关键词', component: 'input' },
+      ],
+    } as any);
+
+    const wrapper = mount(ProTable, {
+      props: { table },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('.pro-table_search-form').exists()).toBe(true);
+    expect(
+      wrapper.findAll('.pro-table_search-form input').length
+    ).toBeGreaterThanOrEqual(1);
+
+    wrapper.unmount();
+  });
 });
