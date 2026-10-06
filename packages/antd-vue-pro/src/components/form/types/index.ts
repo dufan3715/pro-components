@@ -20,6 +20,8 @@ import {
 } from 'vue';
 import { ComponentName, GetComponentType } from '../constants';
 import type { Data, Path } from '../../../shared/core';
+import type { AdditionalMethods } from '../../../shared/core';
+import type { FormItemInstance } from '../../../shared/ui';
 
 export type { FormInstance };
 
@@ -295,7 +297,7 @@ type WithComponent<T, D extends Data = Data> = Omit<
 export type Field<
   C extends ComponentName = ComponentName,
   D extends Data = Data,
-> = FieldTypeMap<D>[C] | WithFields<D>;
+> = (FieldTypeMap<D>[C] | WithFields<D>) & AdditionalMethods<FormItemInstance>;
 
 /**
  * @description 字段数组类型

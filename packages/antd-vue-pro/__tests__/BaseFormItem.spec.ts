@@ -366,4 +366,30 @@ describe('BaseFormItem 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A16 [判别]: 字段实例访问器经公开类型可直接访问（无需 as any）
+  // ----------------------------------------------------
+  it('BI-A16 [判别]: 字段实例访问器在公开类型面可直接访问且运行时可用', async () => {
+    const form = useForm({ a: '' }, [
+      { path: 'a', label: 'A', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 类型层：字段公开类型已声明访问器，以下访问无需断言
+    const field: Field = form.fields.value[0] as Field;
+    expect(typeof field.getFormItemRef).toBe('function');
+    expect(typeof field.getComponentRef).toBe('function');
+    // 运行时：实例已挂载
+    expect(field.getFormItemRef?.()).toBeTruthy();
+    expect(field.getComponentRef?.()).toBeTruthy();
+    expect(field.getComponentComputedProps?.()).toBeDefined();
+
+    wrapper.unmount();
+  });
 });

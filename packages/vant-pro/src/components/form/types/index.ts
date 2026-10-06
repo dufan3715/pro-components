@@ -21,6 +21,7 @@ import {
 import { ComponentName, GetComponentType } from '../constants';
 import type { Data, Path } from '../../../shared/core';
 import { PopupProps } from '../hooks/useFormPopup';
+import type { AdditionalMethods } from '../../../shared/core';
 
 export type { FormInstance };
 
@@ -236,6 +237,7 @@ type WithComponent<T, D extends Data = Data> = Omit<
 export type Field<
   C extends ComponentName = ComponentName,
   D extends Data = Data,
-> = FieldTypeMap<D>[C] | WithFields<D>;
+> = (FieldTypeMap<D>[C] | WithFields<D>) &
+  Pick<AdditionalMethods<any>, 'getComponentRef' | 'getComponentComputedProps'>;
 
 export type Fields<D extends Data = Data> = Array<Field<ComponentName, D>>;

@@ -186,4 +186,31 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A16 [判别]: 字段实例访问器经公开类型可直接访问（无需 as any）
+  // ----------------------------------------------------
+  it('BI-A16 [判别]: 字段实例访问器在公开类型面可直接访问且运行时可用', async () => {
+    const form = useForm({ a: '' }, [
+      { path: 'a', label: 'A', component: 'field' },
+    ] as any);
+
+    const wrapper = mount(BaseFormItem as any, {
+      props: { fields: form.fields.value } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    // 类型层：字段公开类型已声明访问器，以下访问无需断言
+    const field: Field = form.fields.value[0] as Field;
+    expect(typeof field.getComponentRef).toBe('function');
+    // 运行时：控件实例已挂载（vant 不挂载表单项级访问器）
+    expect(field.getComponentRef?.()).toBeTruthy();
+    expect(field.getComponentComputedProps?.()).toBeDefined();
+
+    wrapper.unmount();
+  });
 });

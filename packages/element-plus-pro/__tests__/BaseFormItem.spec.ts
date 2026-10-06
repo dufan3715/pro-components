@@ -26,9 +26,9 @@ describe('BaseFormItem 组件测试', () => {
     await flushPromises();
 
     // 挂载后各字段获得 getFormItemRef
-    const f1Ref = (f1 as any).getFormItemRef?.();
-    const f2Ref = (f2 as any).getFormItemRef?.();
-    const f3Ref = (f3 as any).getFormItemRef?.();
+    const f1Ref = f1.getFormItemRef?.();
+    const f2Ref = f2.getFormItemRef?.();
+    const f3Ref = f3.getFormItemRef?.();
 
     expect(f1Ref).toBeDefined();
     expect(f2Ref).toBeDefined();
@@ -363,6 +363,32 @@ describe('BaseFormItem 组件测试', () => {
     await inputs[0].setValue('y');
     await flushPromises();
     expect(form.getFormData('a')).toBe('y');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A16 [判别]: 字段实例访问器经公开类型可直接访问（无需 as any）
+  // ----------------------------------------------------
+  it('BI-A16 [判别]: 字段实例访问器在公开类型面可直接访问且运行时可用', async () => {
+    const form = useForm({ a: '' }, [
+      { path: 'a', label: 'A', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 类型层：字段公开类型已声明访问器，以下访问无需断言
+    const field: Field = form.fields.value[0] as Field;
+    expect(typeof field.getFormItemRef).toBe('function');
+    expect(typeof field.getComponentRef).toBe('function');
+    // 运行时：实例已挂载
+    expect(field.getFormItemRef?.()).toBeTruthy();
+    expect(field.getComponentRef?.()).toBeTruthy();
+    expect(field.getComponentComputedProps?.()).toBeDefined();
 
     wrapper.unmount();
   });

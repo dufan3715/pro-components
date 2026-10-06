@@ -2,6 +2,8 @@
  * 统一 re-export @qin-ui/pro-components-core，包内所有文件通过此文件引入 core 内容。
  */
 export {
+  // types
+  type AdditionalMethods,
   // hooks
   useForm,
   createFormProxy,
