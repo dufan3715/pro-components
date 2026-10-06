@@ -268,6 +268,11 @@ describe('SearchForm 组件测试', () => {
   // SF-04: expand 对象形态 minExpandRows
   // ----------------------------------------------------
   it('SF-04: expand 支持对象配置 minExpandRows', async () => {
+    // 折叠高度 = minExpandRows × 行高(默认 32) + (minExpandRows - 1) × rowGap(默认 16)
+    const scrollHeightSpy = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(400);
+
     const form = useForm({}, [{ path: 'name', component: 'input' }]);
 
     const wrapper = mount(SearchForm, {
@@ -279,7 +284,26 @@ describe('SearchForm 组件测试', () => {
     });
 
     await flushPromises();
-    expect(wrapper.exists()).toBe(true);
+
+    // 判别点：minExpandRows: 3 对应可观测折叠高度 3×32 + 2×16 = 128px
+    const heightOf = (w: typeof wrapper) =>
+      (w.find('.pro-table_search-form').element as HTMLElement).style.height;
+    expect(heightOf(wrapper)).toBe('128px');
+
+    // 同构对照：minExpandRows: 1 时折叠高度为 1×32 = 32px，锁定配置项真实参与计算
+    const singleRowForm = useForm({}, [{ path: 'name', component: 'input' }]);
+    const singleRowWrapper = mount(SearchForm, {
+      props: {
+        form: singleRowForm,
+        expand: { minExpandRows: 1, expandStatus: false },
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(heightOf(singleRowWrapper)).toBe('32px');
+
+    scrollHeightSpy.mockRestore();
     wrapper.unmount();
+    singleRowWrapper.unmount();
   });
 });

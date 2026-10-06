@@ -65,14 +65,23 @@ describe('批量插入不跨位点共享对象引用', () => {
 
     const xs = ut.columns.value.filter((c: any) => c.title === 'X');
     expect(xs.length).toBe(2);
-    ut.setColumn('x' as any, { title: 'X1' } as any);
-    const after = ut.columns.value.filter((c: any) => c.title === 'X');
-    expect(after[1].title).toBe('X');
+    // 两个位点为独立对象（不共享同一插入对象引用）
+    expect(xs[0]).not.toBe(xs[1]);
 
     // 无 key 列在两个位点应获得不同的自动生成 key
     const keys = xs.map((c: any) => c.key);
-    expect(keys[0]).toBeTruthy();
+    expect(keys[0]).toMatch(/^__col_\d+$/);
+    expect(keys[1]).toMatch(/^__col_\d+$/);
     expect(keys[0]).not.toBe(keys[1]);
+
+    // 判别点：按第二个位点补齐的 key 定位，仅该位点被改写，第一位点保持原值
+    ut.setColumn(keys[1] as any, { title: 'X1' } as any);
+    expect(ut.columns.value.find((c: any) => c.key === keys[1])?.title).toBe(
+      'X1'
+    );
+    expect(ut.columns.value.find((c: any) => c.key === keys[0])?.title).toBe(
+      'X'
+    );
   });
 });
 

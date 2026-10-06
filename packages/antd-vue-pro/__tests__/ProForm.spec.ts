@@ -258,8 +258,11 @@ describe('ProForm 组件测试', () => {
   // ----------------------------------------------------
   it('PF-05: 支持透传 AForm 属性与触发事件', async () => {
     const onFinish = vi.fn();
+    const form = useForm({ title: 'PF-05-标题' }, [
+      { path: 'title', label: '标题', component: 'input' },
+    ]);
     const { wrapper } = mountProForm({
-      fields: [{ path: 'title', label: '标题', component: 'input' }],
+      form,
       props: {
         layout: 'inline',
         onFinish,
@@ -269,6 +272,12 @@ describe('ProForm 组件测试', () => {
     await flushPromises();
     const formComp = wrapper.find('.pro-form');
     expect(formComp.classes()).toContain('ant-form-inline');
+
+    // 判别点：真实提交经 AForm 校验后把 finish 事件与表单值回放给调用方监听器
+    await formComp.trigger('submit');
+    await flushPromises();
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(onFinish.mock.calls[0][0]).toMatchObject({ title: 'PF-05-标题' });
     wrapper.unmount();
   });
   // ----------------------------------------------------

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
+import BaseField from '../src/components/form/components/BaseField/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
 import { FormItem } from 'ant-design-vue';
@@ -194,7 +195,14 @@ describe('BaseFormItem 组件测试', () => {
     await flushPromises();
     const items = wrapper.findAllComponents(FormItem);
     expect(items.length).toBe(2);
-    expect(items.some(i => (i.props() as any).path === 'hidden1')).toBe(false);
+    // 判别点：渲染的字段项与可见字段一一对应，hidden1 不在其列（FormItem 未声明 path，改按其 name 路径断言）
+    expect(items.map(i => (i.props('name') as string[]).join('.'))).toEqual([
+      'visible1',
+      'visible2',
+    ]);
+    expect(
+      wrapper.findAllComponents(BaseField).map(f => f.props('path'))
+    ).toEqual(['visible1', 'visible2']);
     wrapper.unmount();
   });
 

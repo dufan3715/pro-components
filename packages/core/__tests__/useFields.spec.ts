@@ -360,11 +360,15 @@ describe('useFields', () => {
   });
 
   it('FF-40 匹配顺序顶层优先', () => {
+    /*
+     * 判别构型：首个顶层的后代先于第二个顶层声明，但层序更浅的第二个顶层应优先命中
+     * 深度优先会返回 p1.c，仅 BFS 层序返回 p2
+     */
     const { getField } = useFields<any>([
-      { path: 'a', label: 'X' },
-      { path: 'b', fields: [{ path: 'b1', label: 'X' }] },
+      { path: 'p1', label: 'P1', fields: [{ path: 'p1.c', label: 'TARGET' }] },
+      { path: 'p2', label: 'TARGET' },
     ]);
-    expect(getField((f: any) => f.label === 'X')?.path).toBe('a');
+    expect(getField((f: any) => f.label === 'TARGET')?.path).toBe('p2');
   });
 
   it('FF-41 缓存一致性（同 path 字段）', () => {
@@ -457,5 +461,27 @@ describe('useFields', () => {
     // 未配置 prop 键时，prop 不参与标识解析
     const untouched = useFields([{ prop: 'a' } as any]);
     expect(!!untouched.getField('a')).toBe(false);
+  });
+
+  // ----------------------------------------------------
+  // FF-43 [判别]: 数字路径 0 作为合法 key（不再被 falsy 守卫吞掉）
+  // ----------------------------------------------------
+  it('FF-43 [判别]: getField/setField/deleteField 支持数字路径 0', () => {
+    const { fields, getField, setField, deleteField } = useFields<any>([
+      { path: '0', label: '零' },
+      { path: 'a', label: 'A' },
+    ]);
+
+    // 读取命中（此前 !0 直接 return undefined）
+    expect(getField(0 as any)).toBeTruthy();
+    expect((getField(0 as any) as any).label).toBe('零');
+
+    // 更新命中
+    setField(0 as any, { label: '零改' });
+    expect((getField(0 as any) as any).label).toBe('零改');
+
+    // 删除命中
+    deleteField(0 as any);
+    expect(fields.value.map((f: any) => f.path)).toEqual(['a']);
   });
 });

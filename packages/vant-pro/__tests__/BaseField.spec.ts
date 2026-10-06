@@ -411,13 +411,18 @@ describe('BaseField 组件测试 (vant-pro)', () => {
   it('BF-B10 [判别]: 双参 formatter 旧值为原始类型（字符串/数字）时不触发 cloneDeep', async () => {
     // 大字符串：若仍走 cloneDeep（JSON 降级路径）则行为异常；原始值路径应为同引用传递
     const bigStr = 'x'.repeat(100000);
-    let receivedOld: any;
-    const form = useForm({ note: bigStr, count: 3 }, [
+    const objOld = { deep: { n: 1 } };
+    // 以 structuredClone 调用记录判定「是否发生深拷贝」，原始值不应出现在调用参数中
+    const cloneSpy = vi.spyOn(globalThis, 'structuredClone');
+    const noteOlds: any[] = [];
+    const countCalls: Array<{ val: any; oldVal: any }> = [];
+    const objOlds: any[] = [];
+    const form = useForm({ note: bigStr, count: 3, obj: objOld }, [
       {
         path: 'note',
         component: 'field',
         valueFormatter: (val: any, oldVal: any) => {
-          if (receivedOld === undefined) receivedOld = oldVal;
+          noteOlds.push(oldVal);
           return val;
         },
       },
@@ -425,10 +430,24 @@ describe('BaseField 组件测试 (vant-pro)', () => {
         path: 'count',
         component: 'field',
         valueFormatter: (val: any, oldVal: any) => {
-          return Number(val) + (typeof oldVal === 'number' ? 0 : 0);
+          countCalls.push({ val, oldVal });
+          // 原样写回，避免换算结果回写触发的额外更新
+          return val;
+        },
+      },
+      {
+        path: 'obj',
+        component: 'field',
+        valueFormatter: (val: any, oldVal: any) => {
+          objOlds.push(oldVal);
+          // 原样写回入参，避免克隆结果回写触发的额外更新
+          return val;
         },
       },
     ]);
+
+    // 挂载期宿主控件可能把对象回写为字符串，故先取挂载前的对象代理引用作为「原引用」基线
+    const objRaw = form.getFormData('obj');
 
     const wrapper = mount(ProForm, {
       props: { form },
@@ -440,14 +459,28 @@ describe('BaseField 组件测试 (vant-pro)', () => {
     await inputs[0].setValue('typed');
     await flushPromises();
 
-    // 判别点：原始类型旧值直接引用（零拷贝），值与写入前一致
-    expect(receivedOld).toBe(bigStr);
-
-    // 数字旧值同样零拷贝路径，行为正确
+    // 判别点：首次写入拿到的旧值是原始大字符串本身，且未经 structuredClone 拷贝
+    expect(noteOlds[0]).toBe(bigStr);
+    expect(cloneSpy.mock.calls.some(call => Object.is(call[0], bigStr))).toBe(
+      false
+    );
+    // 数字旧值同样零拷贝路径，且真实注入写入前的 formData 值
     const numericInput = inputs[1];
     await numericInput.setValue('7');
     await flushPromises();
-    expect(form.getFormData('count')).toBe(7);
+    // 判别点：输入 '7' 的这次写入拿到写入前的旧值 3（旧的 `? 0 : 0` 死表达式无判别力）
+    const typedCall = countCalls.find(call => String(call.val) === '7');
+    expect({
+      val: String(typedCall?.val),
+      oldVal: Number(typedCall?.oldVal),
+    }).toEqual({ val: '7', oldVal: 3 });
+
+    // 判别点：引用类型旧值仍走深拷贝快照（反方向约束，防「一律不拷贝」的过度放松）
+    await inputs[2].setValue('obj-typed');
+    await flushPromises();
+    expect(objOlds[0]).toEqual({ deep: { n: 1 } });
+    expect(objOlds[0]).not.toBe(objRaw);
+    expect(objOlds[0].deep).not.toBe((objRaw as any).deep);
     wrapper.unmount();
   });
   // ----------------------------------------------------

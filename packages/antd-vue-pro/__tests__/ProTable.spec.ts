@@ -414,15 +414,16 @@ describe('ProTable 组件测试', () => {
       dataSource: [{ id: 1, name: 'Alice', age: 20 }],
     });
 
-    let renderedCount = 0;
+    // 记录插槽收到的列 key（去重），不依赖渲染次数
+    const seenKeys = new Set<string>();
     const { wrapper } = mountProTable({
       table,
       slots: {
         bodyCell: ({ column, record }: any) => {
-          renderedCount++;
           // 直接访问 column 属性
           const key = column.key;
           const dataIndex = column.dataIndex;
+          seenKeys.add(String(key || dataIndex));
           return h(
             'span',
             { class: 'custom-body-cell' },
@@ -434,8 +435,26 @@ describe('ProTable 组件测试', () => {
 
     await flushPromises();
     const cells = wrapper.findAll('.custom-body-cell');
-    expect(cells.length).toBeGreaterThan(0);
-    expect(renderedCount).toBeGreaterThan(0);
+    // 判别点：序号列 + 3 数据列 × 1 行，单元格内容与插槽收到的列精确可数
+    expect(cells.map(c => c.text())).toEqual([
+      '__INDEX__-Alice',
+      'id-Alice',
+      'name-Alice',
+      'status-Alice',
+    ]);
+    expect([...seenKeys].sort()).toEqual(['__INDEX__', 'id', 'name', 'status']);
+
+    // 判别点：隐藏列后 bodyCell 仅对可见列调用（列过滤真实作用于插槽渲染）
+    seenKeys.clear();
+    table.setColumn('name', { hidden: true });
+    await flushPromises();
+    const visibleCells = wrapper.findAll('.custom-body-cell');
+    expect(visibleCells.map(c => c.text())).toEqual([
+      '__INDEX__-Alice',
+      'id-Alice',
+      'status-Alice',
+    ]);
+    expect([...seenKeys].sort()).toEqual(['__INDEX__', 'id', 'status']);
     wrapper.unmount();
   });
 

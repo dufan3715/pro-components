@@ -12,6 +12,31 @@ import { createBasicColumns } from './helpers/fixtures';
 import { Input, Menu } from 'ant-design-vue';
 
 describe('控制组件与全局 Provider 测试', () => {
+  /*
+   * 列控面板经 Dropdown 叠加层惰性渲染（浮层挂载在 body 上），
+   * 故以 data-menu-id（即列 key）定位真实面板项并派发原生点击；
+   * 各用例挂载前先清理前序用例遗留的浮层，保证面板项集合唯一
+   */
+  const clearColumnPanelOverlays = () =>
+    document.querySelectorAll('.ant-dropdown').forEach(el => el.remove());
+  const openColumnControlPanel = async (wrapper: any) => {
+    await wrapper
+      .find('.pro-table_column-control_button')
+      .trigger('mouseenter');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+  };
+  const columnPanelItems = () =>
+    Array.from(document.querySelectorAll('[data-menu-id]'));
+  const clickColumnPanelItem = async (wrapper: any, key: string) => {
+    await openColumnControlPanel(wrapper);
+    const target = columnPanelItems().find(
+      el => el.getAttribute('data-menu-id') === key
+    );
+    target?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    return target;
+  };
+
   // ----------------------------------------------------
   // SC-A13 [判别]: SizeControl 挂载时不静默回写父级 v-model
   // ----------------------------------------------------
@@ -68,6 +93,7 @@ describe('控制组件与全局 Provider 测试', () => {
   // CC-01: ColumnControl 列勾选/取消勾选联动 table.setColumn
   // ----------------------------------------------------
   it('CC-01: ColumnControl 勾选与取消联动 table.setColumn 变更列 hidden 状态', async () => {
+    clearColumnPanelOverlays();
     const table = useTable({
       columns: createBasicColumns(),
       dataSource: [],
@@ -86,20 +112,32 @@ describe('控制组件与全局 Provider 测试', () => {
     // 验证初始列未隐藏
     expect(table.columns.value.find(c => c.key === 'name')?.hidden).toBeFalsy();
 
-    // 操作 table 隐藏列
-    table.setColumn('name', { hidden: true });
+    // 打开列控面板，点击「姓名」项取消勾选：经真实交互驱动，而非直接调 table.setColumn
+    const nameItem = await clickColumnPanelItem(wrapper, 'name');
+    expect(nameItem).toBeTruthy();
     await flushPromises();
+
+    // 判别点：交互结果落到 table 列配置上，且不影响其余列
     expect(table.columns.value.find(c => c.key === 'name')?.hidden).toBe(true);
+    expect(table.columns.value.find(c => c.key === 'id')?.hidden).toBeFalsy();
+
+    // 再次点击恢复勾选
+    await clickColumnPanelItem(wrapper, 'name');
+    await flushPromises();
+    expect(table.columns.value.find(c => c.key === 'name')?.hidden).toBe(false);
 
     wrapper.unmount();
+    clearColumnPanelOverlays();
   });
 
   // ----------------------------------------------------
   // CC-02: ColumnControl excludedKeys 排除列
   // ----------------------------------------------------
   it('CC-02: excludedKeys 中指定的列不在控制列表项中生成', async () => {
+    clearColumnPanelOverlays();
     const table = useTable({
       columns: [
+        { key: '__INDEX__', title: '序号' },
         { key: 'id', title: 'ID' },
         { key: 'name', title: '姓名' },
         { key: 'secret', title: '机密列' },
@@ -120,19 +158,23 @@ describe('控制组件与全局 Provider 测试', () => {
 
     await flushPromises();
 
-    // 验证 checkedColumnsOptions 已经排除了 secret 列，且默认排除 __INDEX__ 序号列
-    const vm = wrapper.vm as any;
-    expect(
-      vm.checkedColumnsOptions.some((opt: any) => opt.value === 'secret')
-    ).toBe(false);
-    expect(
-      vm.checkedColumnsOptions.some((opt: any) => opt.value === '__INDEX__')
-    ).toBe(false);
-    expect(
-      vm.checkedColumnsOptions.some((opt: any) => opt.value === 'name')
-    ).toBe(true);
+    // 打开列控面板后按渲染出的真实面板项断言
+    await openColumnControlPanel(wrapper);
+    const items = columnPanelItems();
+    // 判别点：面板项与有效列一一对应，序号列（内部列）与 excludedKeys 指定的列均不生成
+    expect(items.map(el => el.getAttribute('data-menu-id'))).toEqual([
+      '0',
+      'id',
+      'name',
+    ]);
+    expect(items.map(el => el.textContent?.trim())).toEqual([
+      '全选',
+      'ID',
+      '姓名',
+    ]);
 
     wrapper.unmount();
+    clearColumnPanelOverlays();
   });
 
   // ----------------------------------------------------

@@ -363,13 +363,41 @@ describe('useTable', () => {
       const { columns, setColumn, deleteColumn } = useTable<any>({
         columns: [{ key: 'a', title: 'A' }],
       });
-      columns.value.push({ key: 'b', title: 'B' });
-      setColumn('b', { title: 'B-New' });
-      expect(columns.value.find((c: any) => c.key === 'b')?.title).toBe(
-        'B-New'
-      );
+      // 元素级推入的无 key 列：读取时经补齐路径获得自增 key（仅带 key 的列覆盖不到该路径）
+      columns.value.push({ title: 'B' });
+      const autoKey = columns.value[1].key as string;
+      expect(autoKey).toMatch(/^__col_\d+$/);
+
+      // 判别点：按补齐后的 key 定位，setColumn 精确命中该列
+      setColumn(autoKey, { title: 'B-New' });
+      expect(columns.value[1].title).toBe('B-New');
+
+      // 判别点：deleteColumn 按同一补齐 key 命中，仅删除该列
+      deleteColumn(autoKey);
+      expect(columns.value.map((c: any) => c.key)).toEqual(['a']);
+
       deleteColumn('a');
-      expect(columns.value.map((c: any) => c.key)).toEqual(['b']);
+      expect(columns.value).toEqual([]);
     });
+  });
+
+  // ----------------------------------------------------
+  // TT-29 [判别]: 数字 key 0 作为合法列标识（不再被 falsy 守卫吞掉）
+  // ----------------------------------------------------
+  it('TT-29 [判别]: setColumn/deleteColumn 支持数字 key 0', () => {
+    const { columns, setColumn, deleteColumn } = useTable<any>({
+      columns: [
+        { key: '0', title: '零' },
+        { key: 'a', title: 'A' },
+      ],
+    });
+
+    // 更新命中（此前 !0 直接 return）
+    setColumn(0 as any, { title: '零改' });
+    expect((columns.value[0] as any).title).toBe('零改');
+
+    // 删除命中
+    deleteColumn(0 as any);
+    expect(columns.value.map((c: any) => c.key)).toEqual(['a']);
   });
 });
