@@ -23,7 +23,7 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      // lodash-es 不作为 external，直接打包进产物，避免消费者需额外安装
+      // 仅 vue 作为 external，其余依赖打包进产物
       external: ['vue'],
       output: {
         format: 'es',

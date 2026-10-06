@@ -9,10 +9,11 @@ import type { Field } from '../../src/components/form/types';
 import type { Column } from '../../src/components/table/types';
 
 /**
- * 等待所有异步 Promise 与 Vue DOM 更新完成
+ * 等待挂起的微任务与宏任务（含 Vue DOM 更新）完成
  */
 export const flushPromises = async () => {
-  await new Promise(resolve => setTimeout(resolve, 20));
+  await nextTick();
+  await new Promise(resolve => setTimeout(resolve, 0));
   await nextTick();
 };
 

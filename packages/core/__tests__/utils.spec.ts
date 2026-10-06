@@ -225,11 +225,17 @@ describe('utils', () => {
         fn: () => 'hello',
         nested: { b: 2, fn2: function () {} },
       };
+      // 含函数属性进入 JSON 降级路径：静音并断言一次性告警（避免跨用例输出泄漏）
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const copy = cloneDeep(obj);
       expect(copy.a).toBe(1);
       expect((copy as any).fn).toBeUndefined();
       expect(copy.nested.b).toBe(2);
       expect((copy as any).nested.fn2).toBeUndefined();
+      expect(
+        warnSpy.mock.calls.filter(c => String(c[0]).includes('cloneDeep'))
+      ).toHaveLength(1);
+      warnSpy.mockRestore();
     });
 
     it('环境降级：无 structuredClone 时 JSON 降级正常工作', () => {

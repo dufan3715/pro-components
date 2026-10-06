@@ -58,7 +58,6 @@
     "vitest": "^4.1.11"
   },
   "sideEffects": [
-    "**/*.css",
     "./es/index.js"
   ],
   "publishConfig": {

@@ -34,8 +34,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Lint
-        run: pnpm lint
+      - name: Lint（校验模式，不写文件）
+        run: pnpm lint:check
 
       - name: Test all packages
         run: pnpm -r test

@@ -15,6 +15,8 @@ export default defineConfig({
     ],
   },
   test: {
+    // 每个用例后自动还原 vi.spyOn 创建的替身，避免跨用例泄漏
+    restoreMocks: true,
     environment: 'happy-dom',
     setupFiles: ['__tests__/setup.ts'],
     include: ['__tests__/**/*.spec.ts'],
