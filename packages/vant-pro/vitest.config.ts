@@ -1,8 +1,19 @@
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath, URL } from 'node:url';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   plugins: [vue()],
+  resolve: {
+    alias: [
+      {
+        find: /^@qin-ui\/pro-components-core$/,
+        replacement: fileURLToPath(
+          new URL('../core/src/index.ts', import.meta.url)
+        ),
+      },
+    ],
+  },
   test: {
     environment: 'happy-dom',
     setupFiles: ['__tests__/setup.ts'],
