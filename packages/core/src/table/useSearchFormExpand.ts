@@ -30,7 +30,6 @@ export interface UseSearchFormExpandProps {
   expand?: boolean | { minExpandRows?: number; expandStatus?: boolean };
   layout?: 'grid' | 'inline';
   rowGap?: number;
-  columnGap?: number;
 }
 
 export interface UseSearchFormExpandReturn {

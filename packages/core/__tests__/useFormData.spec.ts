@@ -258,4 +258,24 @@ describe('useFormData', () => {
     expect((formData as any).prototype).toBeUndefined();
     expect(getFormData('name')).toBe('ok');
   });
+
+  // ----------------------------------------------------
+  // FD-24 [判别]: 0 与 '' 作为合法 key（不再被 falsy 守卫吞掉）
+  // ----------------------------------------------------
+  it("FD-24 [判别]: getFormData/setFormData 支持 0 与 '' 作为 key", () => {
+    const form = useFormData({ '0': 'zero', '': 'empty' } as any);
+
+    // 读取：0 / '' 命中真实键位
+    expect(form.getFormData(0 as any)).toBe('zero');
+    expect(form.getFormData('' as any)).toBe('empty');
+
+    // 写入：0 / '' 正常落位
+    form.setFormData(0 as any, 'zero2');
+    form.setFormData('' as any, 'empty2');
+    expect((form.formData as any)['0']).toBe('zero2');
+    expect((form.formData as any)['']).toBe('empty2');
+
+    // 未传路径（undefined）仍走批量分支/返回 undefined
+    expect(form.getFormData(undefined as any)).toBeUndefined();
+  });
 });

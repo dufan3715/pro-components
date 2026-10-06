@@ -208,6 +208,11 @@ export function createFormProxy<F extends object = any>(
       }
       return true;
     },
+    // 转发属性删除到当前实例；实例缺失时静默丢弃
+    deleteProperty(_, prop) {
+      const current = getCurrentForm();
+      return current ? Reflect.deleteProperty(current, prop) : true;
+    },
     // 以下三个 trap 支撑 in / Object.keys / 展开 / JSON 序列化对当前实例的反射
     has(_, prop) {
       const current = getCurrentForm();

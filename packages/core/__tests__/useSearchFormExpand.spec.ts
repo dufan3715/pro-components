@@ -670,4 +670,18 @@ describe('useSearchFormExpand', () => {
     expect(visible.api.expandStatus.value).toBe(false);
     visible.wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // CR-027 [判别]: 未参与折叠高度计算的 columnGap 不再出现在 hook props 中
+  // ----------------------------------------------------
+  it('CR-027 [判别]: useSearchFormExpand props 不含未使用的 columnGap', () => {
+    // 编译期契约：若 columnGap 重新声明进 props，本行 @ts-expect-error 将因「未使用」而报错
+    const props: UseSearchFormExpandProps = {
+      form: {} as any,
+      expand: true,
+      // @ts-expect-error columnGap 未参与折叠高度计算，已从 props 移除（其余必填项齐备，唯一错误来源即此行）
+      columnGap: 16,
+    };
+    expect(props.expand).toBe(true);
+  });
 });

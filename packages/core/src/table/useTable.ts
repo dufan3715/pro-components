@@ -385,9 +385,12 @@ const useTable = <
     updater: ColumnUpdater<T, C>,
     options: UpdateColumnOptions = {}
   ) => {
-    if (!key) return;
+    if (key === undefined || key === null) return;
     // all 默认值按定位方式区分：函数定位默认处理全部命中，字符串路径默认只处理第一个
     const { all = typeof key === 'function' } = options;
+    // 数字/布尔 key 归一到字符串形态参与比对（循环外一次，不进入遍历热路径）
+    const keyStr =
+      typeof key === 'string' || typeof key === 'function' ? key : String(key);
 
     /*
      * DFS 递归匹配：字符串定位先比 key，列为空时退比 dataIndex（数组 join 点分后比对）
@@ -399,13 +402,16 @@ const useTable = <
         let matched = false;
         if (typeof key === 'function') {
           matched = (key as any)(columnItem);
-        } else if (columnItem.key) {
-          matched = columnItem.key === key;
-        } else if (columnItem.dataIndex) {
+        } else if (columnItem.key !== undefined && columnItem.key !== null) {
+          matched = columnItem.key === keyStr;
+        } else if (
+          columnItem.dataIndex !== undefined &&
+          columnItem.dataIndex !== null
+        ) {
           const dataIndexKey = Array.isArray(columnItem.dataIndex)
             ? columnItem.dataIndex.join('.')
-            : (columnItem.dataIndex as string);
-          matched = dataIndexKey === key;
+            : String(columnItem.dataIndex);
+          matched = dataIndexKey === keyStr;
         }
         if (matched) {
           updater({
@@ -450,7 +456,7 @@ const useTable = <
    * ```
    */
   const setColumn: SetColumn<T, C> = (key, column, options) => {
-    if (!key || !column) return;
+    if (key === undefined || key === null || !column) return;
     const { updateType = 'merge', ...rest } = options || {};
     updaterMatch(
       key,
@@ -506,7 +512,7 @@ const useTable = <
     path: Path<T> | ColumnFindBy<T, C>,
     options?: UpdateColumnOptions
   ) {
-    if (!path) return;
+    if (path === undefined || path === null) return;
     const matches: GroupMatch[] = [];
     updaterMatch(
       path,

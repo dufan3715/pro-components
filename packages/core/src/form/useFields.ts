@@ -340,7 +340,7 @@ const useFields = <
     updater: FieldUpdater<D, F>,
     options: UpdateFieldOptions = {}
   ) => {
-    if (!path) return;
+    if (path === undefined || path === null) return;
     const pathStr = typeof path === 'function' ? '' : normalizePathKey(path);
     const { all = typeof path === 'function' } = options;
     if (pathStr && _map.has(pathStr) && !all) {
@@ -396,7 +396,7 @@ const useFields = <
     path: Path<D> | FieldFindBy<D, F>,
     options?: { all?: boolean }
   ) {
-    if (!path) return undefined;
+    if (path === undefined || path === null) return undefined;
     const res: any[] = [];
     updaterMatch(
       path,
@@ -441,7 +441,7 @@ const useFields = <
       updateType?: 'rewrite' | 'merge';
     } & UpdateFieldOptions
   ) {
-    if (!path) return;
+    if (path === undefined || path === null) return;
     const { updateType = 'merge', ...rest } = options || {};
     updaterMatch(
       path,
@@ -495,7 +495,7 @@ const useFields = <
     path: Path<D> | FieldFindBy<D, F>,
     options?: UpdateFieldOptions
   ) {
-    if (!path) return;
+    if (path === undefined || path === null) return;
     /*
      * 两段式变更：先收集全部匹配的 { 父级数组, 索引 } 快照（不做任何变更）
      * 再经 applyByGroupDesc 按组降序 splice，多位点删除不产生索引错位
@@ -583,7 +583,7 @@ const useFields = <
     path: Path<D> | FieldFindBy<D, F>,
     options?: { all?: boolean }
   ) {
-    if (!path) return undefined;
+    if (path === undefined || path === null) return undefined;
     const res: F[] = [];
     updaterMatch(
       path,

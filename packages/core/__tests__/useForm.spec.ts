@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, provide } from 'vue';
+import { defineComponent, h, inject, provide, isRef, shallowRef } from 'vue';
 import { mount } from '@vue/test-utils';
 import useForm, { createFormProxy } from '../src/form/useForm';
 import useFormData from '../src/form/useFormData';
-import { InjectionFormKey } from '../src/form/constants';
+import { InjectionFormKey, InjectionFormSlotsKey } from '../src/form/constants';
 
 describe('useForm', () => {
   it('UF-01 三参初始化', () => {
@@ -181,5 +181,54 @@ describe('useForm', () => {
       expect(proxy.getFormData()).toBe('B');
       expect(formB.getFormData).toHaveBeenCalledTimes(1);
     });
+  });
+
+  // ----------------------------------------------------
+  // UF-XX [判别]: 代理 delete 转发到当前实例（不再静默吞掉）
+  // ----------------------------------------------------
+  it('代理 delete 转发当前实例：删除生效且 in 判定同步', () => {
+    const form = useForm({ a: 1 } as any) as any;
+    form.customKey = 'x';
+    const proxy = createFormProxy(() => form) as any;
+
+    // 初始可读、in 判定为真
+    expect(proxy.customKey).toBe('x');
+    expect('customKey' in proxy).toBe(true);
+
+    // 删除转发到当前实例
+    expect(delete proxy.customKey).toBe(true);
+    expect('customKey' in proxy).toBe(false);
+    expect('customKey' in form).toBe(false);
+    expect(proxy.customKey).toBeUndefined();
+
+    // 实例缺失时不抛错
+    const orphan = createFormProxy(() => undefined as any) as any;
+    expect(delete orphan.anything).toBe(true);
+  });
+
+  // ----------------------------------------------------
+  // CR-028 [判别]: 插槽注入 key 的类型与实际注入形态（ShallowRef）一致
+  // ----------------------------------------------------
+  it('CR-028 [判别]: InjectionFormSlotsKey 的注入形态为 ShallowRef', async () => {
+    // 形态契约：provide 的必须是 Ref（含 value），子组件经注入读取到同一引用
+    const Child = defineComponent({
+      setup() {
+        const injected = inject(InjectionFormSlotsKey, undefined);
+        return () => h('div', { 'data-has-value': String(isRef(injected)) });
+      },
+    });
+    const slotsRef = shallowRef<Record<string, any>>({ default: () => null });
+    const Host = defineComponent({
+      setup() {
+        provide(InjectionFormSlotsKey, slotsRef);
+        return () => h(Child);
+      },
+    });
+    const wrapper = mount(Host);
+    expect(wrapper.find('[data-has-value]').attributes('data-has-value')).toBe(
+      'true'
+    );
+    expect(isRef(slotsRef)).toBe(true);
+    wrapper.unmount();
   });
 });
