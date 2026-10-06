@@ -1,4 +1,5 @@
 import { computed, inject, mergeProps, toValue, type ComputedRef } from 'vue';
+import { getFieldKey } from '../utils/fieldKey';
 import {
   formItemProps,
   gridItemProps,
@@ -27,6 +28,7 @@ export interface GroupedField {
   componentProps: Record<string, any>;
   formItemContainer?: Base['formItemContainer'];
   rawField: Field;
+  renderKey: string | number;
 }
 
 /**
@@ -107,6 +109,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           componentProps,
           formItemContainer: container,
           rawField: field,
+          renderKey: getFieldKey(field),
         };
       }
 
@@ -118,6 +121,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         formItemSlots,
         componentProps,
         rawField: field,
+        renderKey: getFieldKey(field),
       };
     });
   });

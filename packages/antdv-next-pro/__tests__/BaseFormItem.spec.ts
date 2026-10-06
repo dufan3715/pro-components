@@ -392,4 +392,42 @@ describe('BaseFormItem 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A17 [判别]: 同 path 兄弟字段渲染 key 唯一（交换后节点随 key 迁移）
+  // ----------------------------------------------------
+  it('BI-A17 [判别]: 同 path 兄弟字段渲染 key 唯一，交换后节点随 key 迁移', async () => {
+    const form = useForm({ date: '' }, [
+      { path: 'date', label: 'A', component: 'input' },
+      { path: 'date', label: 'B', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const before = wrapper.findAll('.ant-form-item');
+    expect(before).toHaveLength(2);
+    const elA = before[0].element as HTMLElement;
+    const elB = before[1].element as HTMLElement;
+    expect(before[0].text()).toContain('A');
+    expect(before[1].text()).toContain('B');
+
+    // 交换两个同 path 字段
+    const arr = form.fields.value as any[];
+    [arr[0], arr[1]] = [arr[1], arr[0]];
+    await flushPromises();
+
+    const after = wrapper.findAll('.ant-form-item');
+    expect(after).toHaveLength(2);
+    // key 唯一时 Vue 迁移既有节点：显示 B / A 的仍是各自的元素
+    expect(after[0].element).toBe(elB);
+    expect(after[1].element).toBe(elA);
+    expect(after[0].text()).toContain('B');
+    expect(after[1].text()).toContain('A');
+
+    wrapper.unmount();
+  });
 });

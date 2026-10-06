@@ -42,25 +42,6 @@ import ContainerFragment from '../ContainerFragment/index.vue';
 import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
 
-/*
- * 无 path 字段的稳定渲染 key：以字段原始对象为 key 分配自增 id，
- * 字段插删/重排/过滤时保持 key 与对象绑定，不随数组位置漂移
- */
-let fieldKeySeed = 0;
-const fieldKeyMap = new WeakMap<object, number>();
-const getFieldKey = (field: unknown): string | number => {
-  // 非对象项无对象身份，按字面量生成稳定 key
-  if (field === null || typeof field !== 'object')
-    return `raw_${String(field)}`;
-  const raw = toRaw(field);
-  let key = fieldKeyMap.get(raw);
-  if (key === undefined) {
-    key = ++fieldKeySeed;
-    fieldKeyMap.set(raw, key);
-  }
-  return key;
-};
-
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
 type Props = {
@@ -174,10 +155,7 @@ const groupedFields = useGroupFieldAttrs(validFields);
     v-bind="computedGridProps"
     style="width: 100%"
   >
-    <template
-      v-for="item of groupedFields"
-      :key="item.path || getFieldKey(item.rawField)"
-    >
+    <template v-for="item of groupedFields" :key="item.renderKey">
       <ContainerFragment
         :component="enableGrid ? ElGridItem : undefined"
         v-bind="item.gridItemProps"

@@ -213,4 +213,43 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A17 [判别]: 同 path 兄弟字段渲染 key 唯一（交换后节点随 key 迁移）
+  // ----------------------------------------------------
+  it('BI-A17 [判别]: 同 path 兄弟字段渲染 key 唯一，交换后节点随 key 迁移', async () => {
+    const form = useForm({ date: '' }, [
+      { path: 'date', label: 'A', component: 'field' },
+      { path: 'date', label: 'B', component: 'field' },
+    ] as any);
+
+    const wrapper = mount(BaseFormItem as any, {
+      props: { fields: form.fields.value } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    const before = wrapper.findAll('.van-field');
+    expect(before).toHaveLength(2);
+    const elA = before[0].element as HTMLElement;
+    const elB = before[1].element as HTMLElement;
+    expect(before[0].text()).toContain('A');
+    expect(before[1].text()).toContain('B');
+
+    const arr = form.fields.value as any[];
+    [arr[0], arr[1]] = [arr[1], arr[0]];
+    await flushPromises();
+
+    const after = wrapper.findAll('.van-field');
+    expect(after).toHaveLength(2);
+    expect(after[0].element).toBe(elB);
+    expect(after[1].element).toBe(elA);
+    expect(after[0].text()).toContain('B');
+    expect(after[1].text()).toContain('A');
+
+    wrapper.unmount();
+  });
 });

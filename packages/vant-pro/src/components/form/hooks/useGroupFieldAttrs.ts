@@ -1,4 +1,5 @@
 import { computed, type ComputedRef } from 'vue';
+import { getFieldKey } from '../utils/fieldKey';
 import { isPlainObject, resolveFieldIdentity } from '../../../shared/core';
 import type { Field } from '../types';
 
@@ -7,6 +8,7 @@ export interface GroupedField {
   componentProps: Record<string, any>;
   fieldContainer?: any;
   rawField: Field;
+  renderKey: string | number;
 }
 
 /**
@@ -31,6 +33,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         componentProps,
         fieldContainer,
         rawField: field,
+        renderKey: getFieldKey(field),
       };
     });
   });
