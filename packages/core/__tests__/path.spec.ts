@@ -153,6 +153,87 @@ describe('shared/path', () => {
     });
   });
 
+  describe('缓存契约与非字符串入参', () => {
+    // ----------------------------------------------------
+    // [判别]: 与 lodash 对齐的部分（数组 / 整数 / 布尔）
+    // ----------------------------------------------------
+    it('非字符串入参的 lodash 对齐部分：数组、整数、布尔逐项对拍', () => {
+      for (const input of [
+        123,
+        0,
+        true,
+        false,
+        ['a', 'b'],
+        [0, 'x'],
+      ] as any[]) {
+        expect(toPath(input)).toEqual(lodashToPath(input));
+      }
+      expect(toPath(123)).toEqual(['123']);
+      expect(toPath(true)).toEqual(['true']);
+      expect(toPath(['a', 'b'])).toEqual(['a', 'b']);
+    });
+
+    // ----------------------------------------------------
+    // [判别]: 与 normalizePathKey 的口径一致性（非字符串全域）
+    // ----------------------------------------------------
+    it('toPath 与 normalizePathKey 口径一致：join 结果恒等', () => {
+      const matrix: any[] = [
+        'a.b',
+        'a[0].b',
+        '',
+        123,
+        1.5,
+        true,
+        false,
+        null,
+        undefined,
+        { a: 1 },
+        ['a', 'b'],
+        ['a', 0],
+      ];
+      for (const input of matrix) {
+        expect(toPath(input).join('.')).toBe(normalizePathKey(input));
+      }
+    });
+
+    // ----------------------------------------------------
+    // 分歧 4：对象 / symbol 返回空数组（lodash 产出垃圾段）
+    // ----------------------------------------------------
+    it('分歧 4：toPath 对对象/symbol 返回空数组，不产出 lodash 的垃圾段', () => {
+      expect(toPath({ a: 1 })).toEqual([]);
+      expect(lodashToPath({ a: 1 })).toEqual(['object Object']);
+      const symbol = Symbol('s');
+      expect(toPath(symbol as any)).toEqual([]);
+      // lodash 原样保留 symbol 段（不可用作路径 key），本实现返回空数组
+      const lodashSymbol = lodashToPath(symbol as any);
+      expect(lodashSymbol).toHaveLength(1);
+      expect(typeof lodashSymbol[0]).toBe('symbol');
+    });
+
+    // ----------------------------------------------------
+    // 分歧 5：小数数字取单段（lodash 按点分拆为 ['1','5']）
+    // ----------------------------------------------------
+    it('分歧 5：toPath 对小数数字取单段', () => {
+      expect(toPath(1.5)).toEqual(['1.5']);
+      expect(lodashToPath(1.5)).toEqual(['1', '5']);
+    });
+
+    // ----------------------------------------------------
+    // [判别]: 返回值为缓存实例且已冻结，就地修改抛错且缓存不被污染
+    // ----------------------------------------------------
+    it('toPath 返回值冻结：就地修改抛错，后续同路径解析不受影响', () => {
+      const first = toPath('user.address.city');
+      expect(first).toEqual(['user', 'address', 'city']);
+      expect(Object.isFrozen(first)).toBe(true);
+      // 缓存共享：同路径返回同一实例
+      expect(toPath('user.address.city')).toBe(first);
+      // 就地修改抛错（严格模式），缓存不被污染
+      expect(() => (first as string[]).push('x')).toThrow(TypeError);
+      expect(() => ((first as string[])[0] = 'hacked')).toThrow(TypeError);
+      expect(toPath('user.address.city')).toEqual(['user', 'address', 'city']);
+    });
+  });
+
   describe('Vue 响应式与性能边界', () => {
     it('set 中间层对象自动创建并保持响应式代理', () => {
       const state = reactive<{ user?: { profile?: { city?: string } } }>({});

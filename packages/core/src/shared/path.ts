@@ -104,7 +104,7 @@ function parsePath(p: string): string[] {
 function cachedParse(p: string): string[] {
   let s = pathCache.get(p);
   if (s === undefined) {
-    s = parsePath(p);
+    s = Object.freeze(parsePath(p)) as string[];
     if (pathCache.size >= PATH_CACHE_LIMIT) {
       evictOldestBatch(pathCache, PATH_CACHE_LIMIT);
     }
@@ -236,8 +236,15 @@ export function normalizePathKey(path: unknown): string {
  * 与 `normalizePathKey` 互补：本函数返回段数组形式，供需要嵌套路径数组的绑定场景
  * （如 ant-design-vue FormItem 的 `name` 数组语义：`['user','address','city']`）。
  * 非法语法（空段、未闭合括号、引号段）输出告警并给出确定性兜底；空字符串返回 `[]`。
+ * 非字符串入参：数组按段取字符串、数字与布尔取单段、其余类型返回 `[]`；
+ * 与 `normalizePathKey` 满足 `toPath(v).join('.') === normalizePathKey(v)`。
+ * 返回值为模块级缓存中的同一数组实例且已冻结，调用方按只读使用。
  */
-export function toPath(path: string): string[] {
+export function toPath(path: unknown): string[] {
+  if (Array.isArray(path)) return path.map(String);
+  if (typeof path === 'number' || typeof path === 'boolean')
+    return [String(path)];
+  if (typeof path !== 'string') return [];
   if (!path) return [];
   return cachedParse(path);
 }
