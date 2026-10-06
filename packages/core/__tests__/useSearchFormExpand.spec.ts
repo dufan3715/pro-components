@@ -557,4 +557,117 @@ describe('useSearchFormExpand', () => {
     expect(api.heightStyle.value).toBe('146px');
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // SE-11 [判别]: 折叠状态下隐藏字段有初值则自动展开，无值保持折叠
+  // ----------------------------------------------------
+  it('SE-11 [判别]: 隐藏字段有初值自动展开、无值保持折叠，判定后断开观察', async () => {
+    type IoInstance = {
+      callback: (entries: any[]) => void;
+      elements: Set<any>;
+      disconnected: boolean;
+    };
+    const ioInstances: IoInstance[] = [];
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        callback: (entries: any[]) => void;
+        elements = new Set<any>();
+        disconnected = false;
+        constructor(cb: (entries: any[]) => void) {
+          this.callback = cb;
+          ioInstances.push(this as unknown as IoInstance);
+        }
+        observe(el: any) {
+          this.elements.add(el);
+        }
+        unobserve(el: any) {
+          this.elements.delete(el);
+        }
+        disconnect() {
+          this.elements.clear();
+          this.disconnected = true;
+        }
+      }
+    );
+
+    // 带 path 属性的行元素：可见字段 a（有值）、隐藏字段 b
+    const makeItem = (path: string, top: number) => ({
+      className: 'ant-form-item',
+      getAttribute: (name: string) => (name === 'path' ? path : null),
+      get offsetTop() {
+        return top;
+      },
+      get offsetHeight() {
+        return 32;
+      },
+      offsetParent: null,
+      getBoundingClientRect: () => ({ height: 32 }),
+    });
+    const items = [makeItem('a', 0), makeItem('b', 48)];
+    const buildForm = (values: Record<string, any>) => ({
+      formRef: ref<any>({
+        $el: {
+          get scrollHeight() {
+            return 200;
+          },
+          getBoundingClientRect: () => ({ height: 200 }),
+          offsetTop: 0,
+          offsetParent: null,
+          querySelectorAll: (selector: string) =>
+            selector.includes('[path]') ? items : [],
+        },
+      }),
+      getFormData: (path: string) => values[path],
+    });
+
+    // 场景一：隐藏字段有值 → 自动展开
+    const withValue = mountHook({
+      form: buildForm({ a: 'x', b: 'y' }) as any,
+      expand: true,
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+    expect(withValue.api.showExpandToggle.value).toBe(true);
+    expect(withValue.api.expandStatus.value).toBe(false);
+
+    const io = ioInstances[ioInstances.length - 1]!;
+    // 观察到全部带 path 的行元素
+    expect(io.elements.size).toBe(2);
+    // 隐藏项（intersectionRatio 0）且有值 → 展开
+    io.callback([{ target: items[1], intersectionRatio: 0 }]);
+    expect(withValue.api.expandStatus.value).toBe(true);
+    // 判定后断开观察
+    expect(io.disconnected).toBe(true);
+    withValue.wrapper.unmount();
+
+    // 场景二：隐藏字段无值 → 保持折叠
+    ioInstances.length = 0;
+    const empty = mountHook({
+      form: buildForm({ a: 'x', b: '' }) as any,
+      expand: true,
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+    const io2 = ioInstances[ioInstances.length - 1]!;
+    io2.callback([{ target: items[1], intersectionRatio: 0 }]);
+    expect(empty.api.expandStatus.value).toBe(false);
+    empty.wrapper.unmount();
+
+    // 场景三：仅可见项（intersectionRatio > 0）→ 回退配置状态（保持折叠）
+    ioInstances.length = 0;
+    const visible = mountHook({
+      form: buildForm({ a: 'x', b: 'y' }) as any,
+      expand: true,
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+    const io3 = ioInstances[ioInstances.length - 1]!;
+    io3.callback([{ target: items[0], intersectionRatio: 1 }]);
+    expect(visible.api.expandStatus.value).toBe(false);
+    visible.wrapper.unmount();
+  });
 });
