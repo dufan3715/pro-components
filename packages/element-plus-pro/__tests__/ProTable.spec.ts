@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
@@ -776,6 +776,41 @@ describe('ProTable 组件测试', () => {
     expect(headerCells[0].text()).toContain('姓名');
     expect(wrapper.find('tbody').text()).toContain('甲');
 
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A20 [判别]: 用户 default 插槽不覆盖列渲染器，列照常渲染
+  // ----------------------------------------------------
+  it('PT-A20 [判别]: 传入 default 插槽时列渲染器不被顶掉，列与数据照常渲染', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const table = useTable({
+      columns: [{ prop: 'name', label: '姓名' }],
+      data: [{ name: '甲' }],
+    } as any);
+
+    const wrapper = mount(ProTable, {
+      props: { table, addIndexColumn: false },
+      slots: {
+        default: () => h('div', { class: 'user-default-slot' }, '用户内容'),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 列与数据仍由 TableColumnRenderer 渲染
+    const headerCells = wrapper.findAll('.el-table__header th');
+    expect(headerCells).toHaveLength(1);
+    expect(headerCells[0].text()).toContain('姓名');
+    expect(wrapper.find('tbody').text()).toContain('甲');
+    // 用户 default 内容不透传宿主表格（否则会顶掉列渲染器）
+    expect(wrapper.find('.user-default-slot').exists()).toBe(false);
+    // 一次性提示，便于定位
+    expect(
+      warnSpy.mock.calls.some(c => String(c[0]).includes('default 插槽保留'))
+    ).toBe(true);
+
+    warnSpy.mockRestore();
     wrapper.unmount();
   });
 });

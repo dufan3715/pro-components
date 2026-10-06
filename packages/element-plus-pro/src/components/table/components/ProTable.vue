@@ -251,8 +251,23 @@ type CustomSlots = Readonly<
 type Slots = CustomSlots & Readonly<Record<string, Slot>>;
 
 const slots = useSlots() as Slots;
-const forwardedSlotNames = () =>
-  Object.keys(slots).filter(name => !customSlotNames.includes(name as any));
+// default 插槽保留给列渲染器，同名用户插槽不透传宿主表格
+let warnedDefaultSlot = false;
+const forwardedSlotNames = () => {
+  const names = Object.keys(slots).filter(
+    name => name !== 'default' && !customSlotNames.includes(name as any)
+  );
+  if (
+    !warnedDefaultSlot &&
+    Object.prototype.hasOwnProperty.call(slots, 'default')
+  ) {
+    warnedDefaultSlot = true;
+    console.warn(
+      '[pro-components] ProTable 的 default 插槽保留用于列渲染，已忽略传入的 default 插槽内容；自定义区域请使用 search-form / button-bar / toolbar / table 具名插槽。'
+    );
+  }
+  return names;
+};
 
 const searchPage1st = () => {
   props.table?.setPageParam?.({ current: 1 });
