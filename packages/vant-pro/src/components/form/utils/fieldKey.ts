@@ -6,8 +6,9 @@ let fieldKeySeed = 0;
 /**
  * 字段渲染 key
  *
- * @description 以 `toRaw(field)` 为键在模块级 WeakMap 中缓存自增编号，同一字段对象恒得同一 key，
- * 与字段 `path` 无关（同 path 的兄弟字段仍各得其唯一 key）；非对象项无对象身份，按字面量生成稳定 key
+ * @description 以 `toRaw(field)` 为键在模块级 WeakMap 中缓存自增编号，同一字段对象恒得同一 key：
+ * key 与字段在数组中的位置解耦，字段插入 / 删除 / 重排 / 过滤后仍与对象绑定；同 `path` 的兄弟字段各得其唯一 key。
+ * 非对象项无对象身份，按字面量生成稳定 key
  *
  * @param field - 字段配置项
  * @returns 字段渲染 key
