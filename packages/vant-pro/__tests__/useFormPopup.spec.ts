@@ -8,9 +8,9 @@ import { Field as VanField } from '../src/shared/ui';
 
 describe('useFormPopup Hook & Popup 交互测试 (vant-pro)', () => {
   // ----------------------------------------------------
-  // VP-V7 [判别]: open(path, initialValue) 统一签名
+  // VP-V15 [判别]: open(path, initialValue) 统一签名
   // ----------------------------------------------------
-  it('VP-V7 [判别]: useFormPopup 的 open(path, initialValue) 统一签名可正确设置当前字段与初始值', () => {
+  it('VP-V15 [判别]: useFormPopup 的 open(path, initialValue) 统一签名可正确设置当前字段与初始值', () => {
     const popup = useFormPopup(true);
     expect(popup.visible.value).toBe(false);
 
@@ -83,9 +83,9 @@ describe('useFormPopup Hook & Popup 交互测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
-  // VP-V8 [判别]: 跨字段打开弹层时，自动重置回默认属性，杜绝跨字段属性泄漏
+  // VP-V16 [判别]: 跨字段打开弹层时，自动重置回默认属性，杜绝跨字段属性泄漏
   // ----------------------------------------------------
-  it('VP-V8 [判别]: 跨字段打开弹层时，自动重置回默认属性，杜绝跨字段属性泄漏', () => {
+  it('VP-V16 [判别]: 跨字段打开弹层时，自动重置回默认属性，杜绝跨字段属性泄漏', () => {
     const popup = useFormPopup(true);
     expect(popup.props.position).toBe('bottom');
     expect(popup.props.round).toBe(true);
@@ -202,7 +202,7 @@ describe('useFormPopup Hook & Popup 交互测试 (vant-pro)', () => {
     expect(form.formPopup.popupFieldPath.value).toBe('address');
   });
 
-  it('M10 [判别]: useFormPopup(false) 在无注入上下文时发出告警并安全回退创建独立弹层', () => {
+  it('M11 [判别]: useFormPopup(false) 在无注入上下文时发出告警并安全回退创建独立弹层', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const popup = useFormPopup(false);
     expect(popup).toBeDefined();

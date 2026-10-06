@@ -386,9 +386,9 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PT-06: control 对象形态默认值对齐
+  // PT-09: control 对象形态默认值对齐
   // ----------------------------------------------------
-  it('PT-06: control 传入对象形态时未声明项默认关闭', async () => {
+  it('PT-09: control 传入对象形态时未声明项默认关闭', async () => {
     const table = useTable({
       columns: createBasicColumns(),
       data: [],
