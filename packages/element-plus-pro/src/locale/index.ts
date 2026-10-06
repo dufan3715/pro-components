@@ -51,7 +51,8 @@ export const useLocale = () => {
   const override = inject(LOCALE_INJECT_KEY, undefined);
 
   const lang = computed<ProLocaleName>(() => {
-    if (!elLocaleContext) return 'zh-CN';
+    // 注入上下文为 computed/ref 包装，按取值本体判定宿主是否提供语言
+    if (toValue(elLocaleContext) == null) return 'zh-CN';
     return resolveLocaleName(elLang.value);
   });
   const pack = computed<Record<string, string>>(() =>

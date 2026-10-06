@@ -5,6 +5,7 @@ import { LOCALE_INJECT_KEY, useLocale, type ProLocale } from '../src/locale';
 import { useGroupFieldAttrs } from '../src/components/form/hooks/useGroupFieldAttrs';
 import { useProviderDisabled, useInjectDisabled } from '../src/shared/ui';
 import { flushPromises } from './helpers/mount';
+import { ElConfigProvider } from 'element-plus';
 
 describe('Hooks 与 Locale 基础能力测试', () => {
   // ----------------------------------------------------
@@ -160,5 +161,48 @@ describe('Hooks 与 Locale 基础能力测试', () => {
     expect(t('table.reset')).toBe('重置');
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // LC-04 [判别]: 是否包 ElConfigProvider 不影响语言判定（未传 locale 均回退 zh-CN）
+  // ----------------------------------------------------
+  it('LC-04 [判别]: 仅包 ElConfigProvider 未传 locale 时语言回退 zh-CN', async () => {
+    let lang: string | undefined;
+    const Child = defineComponent({
+      setup() {
+        const api = useLocale();
+        return () => {
+          lang = api.lang.value;
+          return h('div');
+        };
+      },
+    });
+
+    // 包 provider 但未传 locale
+    const wrapped = mount(ElConfigProvider as any, {
+      slots: { default: () => h(Child) },
+    });
+    await flushPromises();
+    expect(lang).toBe('zh-CN');
+    wrapped.unmount();
+
+    // 不包 provider：一致
+    lang = undefined;
+    const bare = mount(Child);
+    await flushPromises();
+    expect(lang).toBe('zh-CN');
+    bare.unmount();
+
+    // 显式传入英文 locale：仍按宿主语言判定
+    lang = undefined;
+    const english = mount(ElConfigProvider as any, {
+      props: {
+        locale: (await import('element-plus/es/locale/lang/en')).default,
+      },
+      slots: { default: () => h(Child) },
+    });
+    await flushPromises();
+    expect(lang).toBe('en-US');
+    english.unmount();
   });
 });
