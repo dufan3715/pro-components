@@ -24,7 +24,9 @@ export * from './locale';
  *   <ProForm :form="form" />
  * </template>
  * ```
- *
+ */
+export { ProForm };
+/**
  * 组件提供者，用于全局配置 ProForm 的默认行为
  *
  * @description 通过 `ProComponentProvider` 包裹应用根组件，
@@ -39,7 +41,7 @@ export * from './locale';
  * </template>
  * ```
  */
-export { ProForm, ProComponentProvider };
+export { ProComponentProvider };
 
 export default {
   /**

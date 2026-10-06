@@ -40,6 +40,9 @@ export type Column<D extends Data = Data> = Omit<
    * @description 是否隐藏该列
    * @default false
    */
+  /**
+   * @description 列是否隐藏；仅接受布尔值，列侧不按 `toValue` 解包响应式形态。
+   */
   hidden?: boolean;
 };
 

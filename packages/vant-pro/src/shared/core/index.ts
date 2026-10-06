@@ -4,6 +4,9 @@
 export {
   // types
   type AdditionalMethods,
+  localePacks,
+  normalizeColumn,
+  normalizeColumns,
   // hooks
   useForm,
   createFormProxy,

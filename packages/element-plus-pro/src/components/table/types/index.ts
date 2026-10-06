@@ -57,6 +57,9 @@ export type Column<D extends Data = Data> = Partial<
    */
   prop?: Path<D>;
   /** 是否隐藏该列 */
+  /**
+   * @description 列是否隐藏；仅接受布尔值，列侧不按 `toValue` 解包响应式形态。
+   */
   hidden?: boolean;
   /** 自定义渲染函数 */
   render?: BivariantRender<D>;

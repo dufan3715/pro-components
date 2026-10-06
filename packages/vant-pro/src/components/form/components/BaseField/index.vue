@@ -227,9 +227,7 @@ const groupedAttrs = computed(() => {
 });
 
 // 从 ProForm 插槽注入的 slots 集合（优先级最高；shallowRef 形态，computed 内经 .value 读取建立依赖）
-const injectedFormSlots = inject(InjectionFormSlotsKey, undefined) as
-  | { value: Record<string, any> | undefined }
-  | undefined;
+const injectedFormSlots = inject(InjectionFormSlotsKey, undefined);
 
 // 从 ProComponentProvider 注入的自定义组件映射
 const customComponents = inject(INJECT_COMPONENTS, {});

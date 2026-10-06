@@ -26,7 +26,9 @@ export * from './locale';
  *   <ProForm :form="form" />
  * </template>
  * ```
- *
+ */
+export { ProForm };
+/**
  * Schema 驱动的表格组件，基于 antdv-next Table 封装
  *
  * @description 通过声明式列配置即可生成功能完整的表格，
@@ -42,7 +44,9 @@ export * from './locale';
  *   <ProTable :table="table" />
  * </template>
  * ```
- *
+ */
+export { ProTable };
+/**
  * 组件提供者，用于全局配置 ProForm 和 ProTable 的默认行为
  *
  * @description 通过 `ProComponentProvider` 包裹应用根组件，
@@ -57,7 +61,7 @@ export * from './locale';
  * </template>
  * ```
  */
-export { ProForm, ProTable, ProComponentProvider };
+export { ProComponentProvider };
 
 export default {
   /**
@@ -77,6 +81,9 @@ export default {
   install(app: App) {
     app.component(ProForm.name, ProForm);
     app.component(ProTable.name, ProTable);
-    app.component(ProComponentProvider.name!, ProComponentProvider);
+    app.component(
+      ProComponentProvider.name ?? 'ProComponentProvider',
+      ProComponentProvider
+    );
   },
 };
