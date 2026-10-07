@@ -3,6 +3,10 @@ import { computed, defineComponent, h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import { useLocale } from '../src/locale';
 import { useGroupFieldAttrs } from '../src/components/form/hooks/useGroupFieldAttrs';
+import { useFields } from '../src/components/form/hooks/useFields';
+import { useFormRef } from '../src/components/form/hooks/useFormRef';
+import { useForm } from '../src/components/form/hooks/useForm';
+import ProForm from '../src/components/form/components/ProForm/index.vue';
 import {
   useDisabledContextProvider,
   useDisabledContext,
@@ -129,6 +133,95 @@ describe('Hooks 与 Locale 基础能力测试', () => {
 
     const totalText = t('pagination.total', { total: 100 });
     expect(totalText).toBe('共 100 条');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-A3 [判别]: 适配层 useFields 的增删改查
+  // ----------------------------------------------------
+  it('PF-A3 [判别]: 经适配层 useFields 返回的字段配置可增删改查并保留初始字段', () => {
+    const { fields, getField, setField, appendField, deleteField } = useFields([
+      { path: 'name', label: '姓名', component: 'input' },
+      { name: 'age', label: '年龄', component: 'input-number' },
+    ] as any);
+
+    // 初始字段经适配层透传
+    expect(fields.value).toHaveLength(2);
+
+    // 查：默认标识键序 ['name', 'path'] 下 path 与 name 均可检索
+    expect(getField('name')?.label).toBe('姓名');
+    expect((getField('age') as any)?.name).toBe('age');
+
+    // 改：合并更新保留未声明的属性
+    setField('name', { label: '用户名' } as any);
+    expect(getField('name')?.label).toBe('用户名');
+    expect((getField('name') as any)?.component).toBe('input');
+
+    // 增
+    appendField('age', {
+      path: 'email',
+      label: '邮箱',
+      component: 'input',
+    } as any);
+    expect(
+      fields.value.map(field => (field as any).path ?? (field as any).name)
+    ).toEqual(['name', 'age', 'email']);
+
+    // 删
+    deleteField('age');
+    expect(getField('age')).toBeUndefined();
+    expect(
+      fields.value.map(field => (field as any).path ?? (field as any).name)
+    ).toEqual(['name', 'email']);
+  });
+
+  // ----------------------------------------------------
+  // PF-A4 [判别]: 适配层 useFormRef 转发宿主表单方法
+  // ----------------------------------------------------
+  it('PF-A4 [判别]: 适配层 useFormRef 绑定宿主 Form 实例并经 formRef 调用其校验/重置方法', async () => {
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'input',
+        rules: [{ required: true, message: '请输入姓名' }],
+      },
+    ]);
+
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const hostForm = form.formRef.value as any;
+    expect(hostForm).toBeTruthy();
+    expect(typeof hostForm.validate).toBe('function');
+
+    const { formRef, setFormRef } = useFormRef();
+    expect(formRef.value).toBeUndefined();
+
+    // setFormRef 转发宿主实例
+    setFormRef(hostForm);
+    expect(formRef.value).toBe(hostForm);
+
+    // 经适配层 formRef 调用宿主 validate：校验失败并经宿主表单项回显错误文案
+    await expect(formRef.value!.validate()).rejects.toBeDefined();
+    await flushPromises();
+    expect(wrapper.text()).toContain('请输入姓名');
+
+    // 经适配层 formRef 读取宿主表单值
+    await wrapper.find('input').setValue('abc');
+    await flushPromises();
+    expect(formRef.value!.getFieldsValue()).toMatchObject({ name: 'abc' });
+
+    // 经适配层 formRef 调用宿主 resetFields：宿主表单值、绑定数据与输入框一并复位
+    await formRef.value!.resetFields();
+    await flushPromises();
+    expect(formRef.value!.getFieldsValue()).toMatchObject({ name: '' });
+    expect(form.getFormData('name')).toBe('');
+    expect((wrapper.find('input').element as HTMLInputElement).value).toBe('');
 
     wrapper.unmount();
   });
