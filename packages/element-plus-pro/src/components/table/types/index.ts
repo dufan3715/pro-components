@@ -58,7 +58,8 @@ export type Column<D extends Data = Data> = Partial<
   prop?: Path<D>;
   /** 是否隐藏该列 */
   /**
-   * @description 列是否隐藏；仅接受布尔值，列侧不按 `toValue` 解包响应式形态。
+   * @description 列是否隐藏；支持布尔、Ref 与 getter 形式，渲染期按 `toValue` 取值。
+   * 分组列的子列 `hidden` 不参与过滤（仅顶层列参与）。
    */
   hidden?: boolean;
   /** 自定义渲染函数 */
