@@ -19,6 +19,7 @@
  *
  * @param {Fields<D>} [fields] - 字段配置数组
  * @param {boolean | GridProps} [grid] - 是否启用网格布局
+ * @param {boolean} [disabled] - 是否禁用所有子字段
  *
  * @internal
  */

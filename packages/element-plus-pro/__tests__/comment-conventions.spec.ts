@@ -20,17 +20,43 @@ const sources = {
   ),
   baseField: read('../src/components/form/components/BaseField/index.vue'),
   proForm: read('../src/components/form/components/ProForm/index.vue'),
+  componentProvider: read(
+    '../src/components/component-provider/components/index.vue'
+  ),
   searchForm: read('../src/components/table/components/SearchForm.vue'),
   proTable: read('../src/components/table/components/ProTable.vue'),
 };
 
 const antd = {
+  useGroupFieldAttrs: read(
+    '../../antd-vue-pro/src/components/form/hooks/useGroupFieldAttrs.ts'
+  ),
+  baseFormItem: read(
+    '../../antd-vue-pro/src/components/form/components/BaseFormItem/index.vue'
+  ),
+  proForm: read(
+    '../../antd-vue-pro/src/components/form/components/ProForm/index.vue'
+  ),
+  componentProvider: read(
+    '../../antd-vue-pro/src/components/component-provider/components/index.vue'
+  ),
   searchForm: read(
     '../../antd-vue-pro/src/components/table/components/SearchForm.vue'
   ),
   proTable: read(
     '../../antd-vue-pro/src/components/table/components/ProTable.vue'
   ),
+};
+
+/** 组件 JSDoc 块内的标签序列（按出现顺序），用于跨包比对结构 */
+const jsdocTagSequence = (source: string, component: string) => {
+  const start = source.indexOf(`@component ${component}`);
+  const block = source.slice(start, source.indexOf('*/', start));
+  return block
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => /^\*\s*@/.test(line))
+    .map(line => line.replace(/^\*\s*/, '').split(/\s+/)[0]);
 };
 
 describe('注释规范契约 · element-plus-pro', () => {
@@ -115,6 +141,60 @@ describe('注释规范契约 · element-plus-pro', () => {
         sources.searchForm,
         `element SearchForm 缺同构行：${line}`
       ).toContain(line);
+    }
+  });
+
+  // ----------------------------------------------------
+  // DOC-03 [判别]: ProForm / ProComponentProvider 公开 JSDoc 标签序列与 antd 包一致
+  // ----------------------------------------------------
+  it('DOC-03 [判别]: ProForm 与 ProComponentProvider 的 JSDoc 标签序列、@public 位置与 antd 包一致', () => {
+    // 标签顺序锁定 @public 位置以及 @param / @slot / @example 的完整清单
+    expect(jsdocTagSequence(sources.proForm, 'ProForm')).toEqual(
+      jsdocTagSequence(antd.proForm, 'ProForm')
+    );
+    expect(
+      jsdocTagSequence(sources.componentProvider, 'ProComponentProvider')
+    ).toEqual(jsdocTagSequence(antd.componentProvider, 'ProComponentProvider'));
+
+    // @public 紧随 @description，其后才是功能清单
+    expect(sources.proForm).toContain(
+      ' * @description @qin-ui/element-plus-pro 配置驱动表单组件\n *\n * 架构设计说明'
+    );
+    expect(sources.proForm).toContain(' * @public\n *\n * 通过配置驱动的方式');
+    expect(sources.componentProvider).toContain(
+      ' * @description @qin-ui/element-plus-pro 全局配置提供者组件\n * @public'
+    );
+
+    // 宿主组件属性与完整示例按同一结构落地
+    expect(sources.proForm).toContain(
+      ' * @param {...FormProps} ...attrs - Element Plus Form 组件的其他属性'
+    );
+    expect(antd.proForm).toContain(' * @param {...FormProps} ...attrs - ');
+    expect(sources.proForm).toContain(' * @example');
+    expect(sources.componentProvider).toContain(' * @example');
+
+    // 同构 Hook 的 @description 清单与 antd 包同句
+    const descriptionLines = [
+      ' * 1. 响应式集成 ProComponentProvider 的 `pro-form-item` 全局变量配置；',
+      ' * 2. 剥离 `extraProps`（用户自定义字段标识袋）：保留在字段原始对象上供业务层存取，渲染层经解构剥离，不落入 componentProps 透传。',
+    ];
+    for (const line of descriptionLines) {
+      expect(antd.useGroupFieldAttrs, `antd 缺同构行：${line}`).toContain(line);
+      expect(sources.useGroupFieldAttrs, `element 缺同构行：${line}`).toContain(
+        line
+      );
+    }
+
+    // BaseFormItem 的 @param 清单与 @internal 位置同构
+    const baseFormItemLines = [
+      ' * @param {Fields<D>} [fields] - 字段配置数组',
+      ' * @param {boolean | GridProps} [grid] - 是否启用网格布局',
+      ' * @param {boolean} [disabled] - 是否禁用所有子字段',
+      ' * @internal',
+    ];
+    for (const line of baseFormItemLines) {
+      expect(antd.baseFormItem, `antd 缺同构行：${line}`).toContain(line);
+      expect(sources.baseFormItem, `element 缺同构行：${line}`).toContain(line);
     }
   });
 });

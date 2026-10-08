@@ -430,4 +430,51 @@ describe('BaseField 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BF-C1 [判别]: modelProp 适配自有模型属性的组件，双向绑定生效
+  // ----------------------------------------------------
+  it('BF-C1 [判别]: modelProp 指向组件自有模型属性时双向绑定生效，不额外下发 modelValue', async () => {
+    const CheckedWidget = defineComponent({
+      name: 'CheckedWidget',
+      props: ['checked'],
+      emits: ['update:checked'],
+      setup(widgetProps, { emit }) {
+        return () =>
+          h(
+            'button',
+            {
+              class: 'checked-widget',
+              'data-checked': String(widgetProps.checked),
+              onClick: () => emit('update:checked', !widgetProps.checked),
+            },
+            'toggle'
+          );
+      },
+    });
+
+    const form = useForm({ agree: false }, [
+      { path: 'agree', component: 'checked-widget', modelProp: 'checked' },
+    ] as any);
+
+    const wrapper = mount(ProComponentProvider, {
+      props: { componentMap: { 'checked-widget': CheckedWidget } as any },
+      slots: { default: () => h(ProForm, { form }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const widget = wrapper.findComponent(CheckedWidget);
+    // 初始值经 modelProp 指定的属性下发
+    expect(widget.props('checked')).toBe(false);
+
+    // 组件经 update:checked 回写，绑定落在同一路径
+    await widget.trigger('click');
+    await flushPromises();
+    expect(form.getFormData('agree')).toBe(true);
+    expect(widget.props('checked')).toBe(true);
+    expect(widget.attributes('data-checked')).toBe('true');
+
+    wrapper.unmount();
+  });
 });

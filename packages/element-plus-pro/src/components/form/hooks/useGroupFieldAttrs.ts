@@ -11,11 +11,8 @@ import { INJECT_CONFIG } from '../../component-provider/constants';
 import { ELEMENT_FIELD_IDENTITY_KEYS, FORM_ITEM_SLOT_KEYS } from '../constants';
 import type { Base, Field } from '../types';
 
-const formItemPropKeys = Object.keys(formItemProps()).filter(
-  k => k !== 'disabled'
-);
+const formItemPropKeys = Object.keys(formItemProps());
 const gridItemPropKeys = Object.keys(gridItemProps());
-// 模块级 Set：字段循环内 O(1) 命中，替代数组 includes 线性扫描
 const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
 const formItemPropKeySet = new Set<string>(formItemPropKeys);
 const formItemSlotKeySet = new Set<string>(FORM_ITEM_SLOT_KEYS);
@@ -33,6 +30,10 @@ export interface GroupedField {
 
 /**
  * 将 fields 配置数组逐个拆分为 grid / formItem / component / slots 分组。
+ *
+ * @description
+ * 1. 响应式集成 ProComponentProvider 的 `pro-form-item` 全局变量配置；
+ * 2. 剥离 `extraProps`（用户自定义字段标识袋）：保留在字段原始对象上供业务层存取，渲染层经解构剥离，不落入 componentProps 透传。
  */
 export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
   const config = INJECT_CONFIG['pro-form-item'];

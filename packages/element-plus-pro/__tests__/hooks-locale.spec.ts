@@ -92,6 +92,32 @@ describe('Hooks 与 Locale 基础能力测试', () => {
   });
 
   // ----------------------------------------------------
+  // HK-04 [判别]: 字段 disabled 归入 componentProps，不进入 formItemProps
+  // ----------------------------------------------------
+  it('HK-04 [判别]: 字段 disabled 归入 componentProps，不进入 formItemProps', () => {
+    const fields = computed(() => [
+      { path: 'name', label: '姓名', component: 'input', disabled: true },
+    ]);
+
+    const Parent = defineComponent({
+      setup() {
+        const grouped = useGroupFieldAttrs(fields as any);
+        return { grouped };
+      },
+      template: '<div></div>',
+    });
+
+    const wrapper = mount(Parent);
+    const item = (wrapper.vm as any).grouped[0];
+
+    // 宿主 ElFormItem 无 disabled prop：该键属控件属性，由 BaseField 消费
+    expect(item.componentProps.disabled).toBe(true);
+    expect(item.formItemProps.disabled).toBeUndefined();
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // LC-01: useLocale 默认回退
   // ----------------------------------------------------
   it('LC-01: useLocale 默认回退为简体中文 zh-CN', () => {

@@ -6,7 +6,9 @@ import ProComponentProvider from '../src/components/component-provider/component
 import { useTable } from '../src/components/table/hooks/useTable';
 import { flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
-import { ElPagination } from 'element-plus';
+import { ElPagination, ElTable } from 'element-plus';
+import SearchForm from '../src/components/table/components/SearchForm.vue';
+import SizeControl from '../src/components/table/components/SizeControl.vue';
 
 describe('ProTable 组件测试', () => {
   // ----------------------------------------------------
@@ -50,10 +52,10 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PT-A7 [判别]: 分页优先级链 (tableAttrs.pagination === false 优先关闭 > provider pagination: false > 表级对象合并)
+  // PT-A7 [判别]: 分页来源链 (props.pagination === false 优先关闭 > provider pagination: false > 默认合成)
   // ----------------------------------------------------
-  it('PT-A7 [判别]: 分页优先级链：tableAttrs.pagination===false 优先关闭，provider 配置正确覆盖', async () => {
-    // 1. tableAttrs.pagination === false 优先关闭分页
+  it('PT-A7 [判别]: 分页来源链：props.pagination===false 优先关闭，provider 配置正确覆盖', async () => {
+    // 1. props.pagination === false 优先关闭分页
     const table1 = useTable({
       columns: [{ prop: 'id', label: 'ID' }],
       data: [{ id: 1 }],
@@ -811,6 +813,233 @@ describe('ProTable 组件测试', () => {
     ).toBe(true);
 
     warnSpy.mockRestore();
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A28 [判别]: 分页 / 数据 / 列 / 尺寸仅从对应 prop 派生，同名键不进入 attrs 面
+  // ----------------------------------------------------
+  it('PT-A28 [判别]: 分页与数据源仅取自 prop，同名键不进入 attrs 面', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [{ id: 1, name: 'table-data', status: 'normal' }],
+    });
+    const rowData = [{ id: 99, name: 'prop-data', status: 'normal' }];
+
+    const Probe = defineComponent({
+      setup() {
+        return () =>
+          h(ProTable as any, {
+            table,
+            data: rowData,
+            columns: createBasicColumns(),
+            pagination: { layout: 'prev, next' },
+            size: 'large',
+            tableContainer: false,
+          });
+      },
+    });
+
+    const wrapper = mount(Probe, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    // 这些键均为组件自身声明的 prop，编译后不可能进入 attrs
+    const ownedKeys = [
+      'pagination',
+      'data',
+      'columns',
+      'size',
+      'tableContainer',
+    ];
+    const proTablePropKeys = Object.keys((ProTable as any).props ?? {});
+    const attrs = wrapper.findComponent(ProTable as any).vm.$attrs;
+    for (const key of ownedKeys) {
+      expect(proTablePropKeys).toContain(key);
+      expect(Object.keys(attrs)).not.toContain(key);
+    }
+
+    // prop 为唯一来源：分页、数据、尺寸均按 prop 生效
+    expect(wrapper.findComponent(ElPagination).props('layout')).toBe(
+      'prev, next'
+    );
+    const elTable = wrapper.findComponent({ name: 'ElTable' });
+    expect(elTable.props('data')).toEqual(rowData);
+    expect(elTable.props('size')).toBe('large');
+    expect(wrapper.text()).toContain('prop-data');
+    expect(wrapper.text()).not.toContain('table-data');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A28b [判别]: provider 注入的宿主表格属性仍透传，props 键不落表格 DOM
+  // ----------------------------------------------------
+  it('PT-A28b [判别]: provider 注入的宿主表格属性仍透传，props 键经 provider 注入不落表格 DOM', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [{ id: 1, name: 'a', status: 'normal' }],
+    });
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': {
+            size: 'small',
+            stripe: true,
+            columns: [{ prop: 'injected' }],
+          },
+        } as any,
+      },
+      slots: { default: () => h(ProTable as any, { table }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const elTable = wrapper.findComponent({ name: 'ElTable' });
+    expect(elTable.props('size')).toBe('small');
+    expect(elTable.props('stripe')).toBe(true);
+    // columns 非宿主表格 prop，不得落为原生属性
+    expect((elTable.element as HTMLElement).getAttribute('columns')).toBeNull();
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A29 [判别]: searchFormConfig.container 由 ProTable 消费，不下发 SearchForm 与原生 form
+  // ----------------------------------------------------
+  it('PT-A29 [判别]: searchFormConfig.container 由 ProTable 消费，不下发 SearchForm 与原生的 form', async () => {
+    const CustomContainer = defineComponent({
+      name: 'PTA29Container',
+      setup(_, { slots }) {
+        return () =>
+          h('section', { class: 'pta29-container' }, slots.default?.());
+      },
+    });
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [],
+      searchFields: [{ path: 'name', label: '姓名', component: 'input' }],
+    });
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        searchFormConfig: { container: CustomContainer as any, hidden: false },
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 自定义容器确实参与渲染
+    expect(wrapper.find('.pta29-container').exists()).toBe(true);
+
+    // 容器与显隐键不下发 SearchForm
+    const searchForm = wrapper.findComponent(SearchForm);
+    const searchFormAttrs = Object.keys(searchForm.vm.$attrs);
+    expect(searchFormAttrs).not.toContain('container');
+    expect(searchFormAttrs).not.toContain('hidden');
+
+    // 原生 form 上无 container / hidden 非法属性
+    const form = wrapper.find('form');
+    expect(form.exists()).toBe(true);
+    expect(form.attributes('container')).toBeUndefined();
+    expect(form.attributes('hidden')).toBeUndefined();
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A30 [判别]: 两类搜索告警按原因独立去重，未配置 search 时不告警
+  // ----------------------------------------------------
+  it('PT-A30 [判别]: 两类搜索告警分别出现且同原因不重复，未配置 search 时零告警', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // 同时命中两类原因：冲突提示与「未返回 Promise」提示都要出现
+    const both = mount(ProTable, {
+      props: {
+        table: useTable({ columns: createBasicColumns(), data: [] }),
+        search: () => 'not-promise',
+      } as any,
+      attrs: { onSearch: () => {} },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    await (both.vm as any).search();
+    await (both.vm as any).search();
+
+    const messages = warnSpy.mock.calls.map(call => String(call[0]));
+    expect(messages.filter(msg => msg.includes('请仅保留其一'))).toHaveLength(
+      1
+    );
+    expect(messages.filter(msg => msg.includes('未返回 Promise'))).toHaveLength(
+      1
+    );
+    both.unmount();
+    warnSpy.mockClear();
+
+    // prop 与 @search 均缺省：不产生任何告警
+    const none = mount(ProTable, {
+      props: { table: useTable({ columns: createBasicColumns(), data: [] }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    await (none.vm as any).search();
+    expect(warnSpy).not.toHaveBeenCalled();
+    none.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A31 [判别]: 宿主表格事件不入运行时 emits 且经 attrs 可用，模型事件照常触发
+  // ----------------------------------------------------
+  it('PT-A31 [判别]: 宿主表格事件不入运行时 emits 且经 attrs 透传可用，模型事件照常触发', async () => {
+    const hostEmits = ((ElTable as any).emits ?? []) as
+      | string[]
+      | Record<string, any>;
+    const hostEmitNames = Array.isArray(hostEmits)
+      ? hostEmits
+      : Object.keys(hostEmits);
+    const ownEmitNames = (((ProTable as any).emits ?? []) as string[]).slice();
+
+    // 宿主事件名进入运行时 emits 会把同名 onXxx 从 attrs 中剔除，监听入口因此消失
+    expect(hostEmitNames.length).toBeGreaterThan(0);
+    expect(ownEmitNames.sort()).toEqual(['update:loading', 'update:size']);
+    for (const name of hostEmitNames) {
+      expect(ownEmitNames).not.toContain(name);
+    }
+
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [{ id: 1, name: 'a', status: 'normal' }],
+    });
+    const onRowClick = vi.fn();
+    const onChange = vi.fn();
+    const onUpdateSize = vi.fn();
+
+    const wrapper = mount(ProTable, {
+      props: { table, control: true, 'onUpdate:size': onUpdateSize } as any,
+      attrs: { onRowClick, onChange },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 表格事件经 attrs 到达 ElTable
+    wrapper
+      .findComponent({ name: 'ElTable' })
+      .vm.$emit('row-click', { id: 1 }, null);
+    await flushPromises();
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+
+    // 分页 change 事件经 attrs 消费
+    wrapper.findComponent(ElPagination).vm.$emit('change', 2, 20);
+    await flushPromises();
+    expect(onChange).toHaveBeenCalledWith(2, 20);
+
+    // update:size 模型事件仍工作并驱动表格尺寸
+    wrapper.findComponent(SizeControl).vm.$emit('update:size', 'small');
+    await flushPromises();
+    expect(onUpdateSize).toHaveBeenCalledWith('small');
+    expect(wrapper.findComponent({ name: 'ElTable' }).props('size')).toBe(
+      'small'
+    );
+
     wrapper.unmount();
   });
 });

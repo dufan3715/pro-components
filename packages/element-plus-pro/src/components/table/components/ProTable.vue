@@ -135,6 +135,9 @@ type Props = {
   pagination?: false | Partial<PaginationProps>;
 } & /* @vue-ignore */ Omit<TableProps, 'data'>;
 
+/*
+ * 组件自身仅触发模型事件；宿主表格事件不入运行时 emits，监听入口保留在 attrs 中透传至 ElTable
+ */
 type Emits = {} & /* @vue-ignore */ TableEmits<RecordType>;
 
 defineEmits<Emits>();
@@ -160,32 +163,21 @@ const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
 const attrs = useAttrs() as Record<string, any>;
 
-const PRO_TABLE_EXCLUDED_ATTR_KEYS = new Set([
+// 组件自身消费的 attrs 键：class / style 绑定根节点，onSearch / onChange 由搜索与分页流程消费
+const PRO_TABLE_CONSUMED_ATTR_KEYS = new Set([
   'class',
   'style',
   'onSearch',
   'onChange',
-  'onUpdate:size',
-  'onUpdate:loading',
-  'data',
-  'columns',
-  'size',
-  'pagination',
 ]);
 
-const PRO_TABLE_PROVIDER_KEYS = new Set([
-  'pagination',
-  'searchFormConfig',
-  'control',
-  'immediateSearch',
-  'addIndexColumn',
-  'tableContainer',
-]);
+// 组件自身消费的 props 键：对应值按 prop / provider 单一来源派生，provider 注入不再透传这些键
+const PRO_TABLE_PROP_KEYS = new Set(Object.keys(props));
 
 const injectTableAttrs = computed(() => {
   const tableConfig: Record<string, any> = {};
   for (const [key, value] of Object.entries(injectProps.value)) {
-    if (!PRO_TABLE_PROVIDER_KEYS.has(key)) {
+    if (!PRO_TABLE_PROP_KEYS.has(key)) {
       tableConfig[key] = value;
     }
   }
@@ -202,7 +194,7 @@ const attrsTableProps = computed(() => {
 const restTableAttrs = computed(() => {
   const rest: Record<string, any> = {};
   for (const [key, value] of Object.entries(attrs)) {
-    if (!PRO_TABLE_EXCLUDED_ATTR_KEYS.has(key)) {
+    if (!PRO_TABLE_CONSUMED_ATTR_KEYS.has(key)) {
       rest[key] = value;
     }
   }
@@ -214,23 +206,28 @@ const loading = defineModel<boolean>('loading', { default: false });
 
 // 递增序号做请求竞态守卫，仅最新一次请求可变更 loading
 let searchSequence = 0;
-let warnedSearchConfig = false;
-const warnSearchConfig = (reason: string) => {
-  if (warnedSearchConfig) return;
-  warnedSearchConfig = true;
-  console.warn(`[ProTable] ${reason}`);
+/** 告警文案按原因分键，各原因独立去重 */
+const SEARCH_WARN_MESSAGES = {
+  duplicate:
+    '同时配置了 :search prop 与 @search 监听，@search 监听不会被执行，请仅保留其一。',
+  'not-promise':
+    'search 未返回 Promise，本次查询不参与 loading 竞态管理（在途请求的 loading 状态保持不变）。',
+} as const;
+const warnedSearchReasons = new Set<keyof typeof SEARCH_WARN_MESSAGES>();
+const warnSearchConfig = (reason: keyof typeof SEARCH_WARN_MESSAGES) => {
+  if (warnedSearchReasons.has(reason)) return;
+  warnedSearchReasons.add(reason);
+  console.warn(`[ProTable] ${SEARCH_WARN_MESSAGES[reason]}`);
 };
 const _search = async () => {
+  const search = props.search || attrs.onSearch;
   if (props.search && attrs.onSearch) {
-    warnSearchConfig(
-      '同时配置了 :search prop 与 @search 监听，@search 监听不会被执行，请仅保留其一。'
-    );
+    warnSearchConfig('duplicate');
   }
-  const searchPromise = (props.search || attrs.onSearch)?.();
+  if (!search) return;
+  const searchPromise = search();
   if (!isPromise(searchPromise)) {
-    warnSearchConfig(
-      'search 未返回 Promise，本次查询不参与 loading 竞态管理（在途请求的 loading 状态保持不变）。'
-    );
+    warnSearchConfig('not-promise');
     return;
   }
   const seq = ++searchSequence;
@@ -300,6 +297,16 @@ const computedSearchFormConfig = computed(() => {
   };
 });
 
+/** SearchForm 属性面：容器与显隐由 ProTable 自身消费，不下发 SearchForm */
+const searchFormProps = computed(() => {
+  const {
+    container: _container,
+    hidden: _hidden,
+    ...rest
+  } = computedSearchFormConfig.value;
+  return rest;
+});
+
 const computedTableContainer = computed(() => {
   const container =
     props.tableContainer ??
@@ -337,35 +344,22 @@ const normalizedRawColumns = computed(() => {
 });
 
 const computedDataSource = computed<any[]>(() => {
-  const attrsData = attrsTableProps.value.data as any[] | undefined;
-  return props.data ?? attrsData ?? toValue(props.table?.data) ?? [];
+  return props.data ?? toValue(props.table?.data) ?? [];
 });
 
 const computedTableProps = computed<TableProps>(() => {
-  const merged = {
+  return {
     ...injectTableAttrs.value,
     ...restTableAttrs.value,
     ...attrsTableProps.value,
   } as TableProps;
-  delete (merged as any).data;
-  delete (merged as any).columns;
-  delete (merged as any).size;
-  delete (merged as any).pagination;
-  return merged;
 });
 
-// 分页优先级：tableAttrs 显式配置 > provider 全局配置 > 默认合成
+// 分页来源：props.pagination 显式配置 > provider 全局配置 > 默认合成
 const computedPagination = computed<false | Partial<PaginationProps>>(() => {
-  const attrsPagination = (attrsTableProps.value as any).pagination;
-  if (props.pagination === false || attrsPagination === false) {
-    return false;
-  }
-  const hasUserPagination =
-    isPlainObject(props.pagination) || isPlainObject(attrsPagination);
-  if (hasUserPagination) {
-    const pageConfig = (props.pagination ??
-      attrsPagination ??
-      {}) as Partial<PaginationProps>;
+  if (props.pagination === false) return false;
+  if (isPlainObject(props.pagination)) {
+    const pageConfig = props.pagination as Partial<PaginationProps>;
     const globalPagination =
       (injectProps.value.pagination as any) === false
         ? {}
@@ -440,12 +434,9 @@ const columnControlConfig = computed(() => {
   return typeof cc === 'object' ? cc : undefined;
 });
 
+// 尺寸来源：size 模型 > provider 全局配置
 const resolvedSize = computed(() => {
-  return (
-    size.value ??
-    (attrsTableProps.value.size as any) ??
-    injectTableAttrs.value.size
-  );
+  return size.value ?? injectProps.value.size;
 });
 
 onMounted(() => {
@@ -470,7 +461,7 @@ defineExpose({
         <SearchForm
           v-if="props.table?.searchForm"
           :form="props.table.searchForm"
-          v-bind="computedSearchFormConfig"
+          v-bind="searchFormProps"
           @search="searchPage1st"
           @reset="reset"
         />

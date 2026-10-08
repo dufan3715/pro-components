@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
-import { ElFormItem } from 'element-plus';
+import { ElFormItem, ElInput } from 'element-plus';
 import type { Field } from '../src/components/form/types';
 
 describe('BaseFormItem 组件测试', () => {
@@ -427,6 +427,40 @@ describe('BaseFormItem 组件测试', () => {
     expect(after[1].element).toBe(elA);
     expect(after[0].text()).toContain('B');
     expect(after[1].text()).toContain('A');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A18 [判别]: 分组字段 disabled 经禁用上下文传播至子字段控件
+  // ----------------------------------------------------
+  it('BI-A18 [判别]: 分组字段 disabled 传播至子字段控件，分组外字段不受影响', async () => {
+    const form = useForm({ a: '', b: '', c: '' }, [
+      {
+        path: 'group',
+        label: '分组',
+        disabled: true,
+        fields: [
+          { path: 'a', label: 'A', component: 'input' },
+          { path: 'b', label: 'B', component: 'input' },
+        ],
+      },
+      { path: 'c', label: 'C', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const inputs = wrapper.findAllComponents(ElInput);
+    expect(inputs).toHaveLength(3);
+    // 分组内字段继承分组禁用状态
+    expect(inputs[0].props('disabled')).toBe(true);
+    expect(inputs[1].props('disabled')).toBe(true);
+    // 分组外字段不受分组配置影响
+    expect(inputs[2].props('disabled')).toBe(false);
 
     wrapper.unmount();
   });
