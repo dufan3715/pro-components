@@ -6,7 +6,7 @@ import { defineComponent, h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import { flushPromises, mountProTable } from './helpers/mount';
 import { useForm } from '../src/components/form';
-import { useTable } from '../src/components/table/useTable';
+import { useTable } from '../src/components/table/hooks/useTable';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';

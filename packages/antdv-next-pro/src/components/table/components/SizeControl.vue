@@ -4,7 +4,7 @@ import {
   Menu,
   Button,
   type TableProps,
-  useConfig,
+  useHostConfig,
 } from '../../../shared/ui';
 import ColumnHeightOutlined from './icons/ColumnHeightOutlined.vue';
 import { computed } from 'vue';
@@ -14,12 +14,12 @@ type Size = TableProps['size'];
 
 const { t } = useLocale();
 
-const config = useConfig();
+const hostConfig = useHostConfig();
 
 const size = defineModel<Size>('size');
 
 const currentSize = computed(
-  () => size.value ?? config.componentSize?.value ?? 'large'
+  () => size.value ?? hostConfig.componentSize?.value ?? 'large'
 );
 
 const items = computed(() => [

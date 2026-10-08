@@ -1,9 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h, ref, toRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
-import { useTable } from '../src/components/table/useTable';
+import SizeControl from '../src/components/table/components/SizeControl.vue';
+import { useTable } from '../src/components/table/hooks/useTable';
+import { tableProps } from '../src/shared/ui';
 import type { ComponentVars } from '../src/components/component-provider';
 import { flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
@@ -907,5 +909,339 @@ describe('ProTable 组件测试', () => {
       blank.wrapper.find('.pro-table_header_column-control').exists()
     ).toBe(false);
     blank.wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A23 [判别]: 序号偏移取有效分页（attrs.pagination.pageSize 优先于 table.pageParam）
+  // ----------------------------------------------------
+  it('PT-A23 [判别]: attrs 传入 pageSize 时序号按有效分页偏移', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: Array.from({ length: 12 }, (_, i) => ({
+        id: `row-${i + 1}`,
+      })),
+    });
+
+    const { wrapper } = mountProTable({
+      table,
+      props: {
+        addIndexColumn: true,
+        pagination: { current: 2, pageSize: 5 },
+      },
+    });
+    await flushPromises();
+
+    // 有效分页 current=2 / pageSize=5 → 首行序号 (2-1)*5+1 = 6
+    const indexCells = wrapper
+      .findAll('tbody tr')
+      .map(row => row.findAll('td')[0]?.text());
+    expect(indexCells).toEqual(['6', '7', '8', '9', '10']);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A24 [判别]: search 告警按原因分键去重，且未配置 search 时不误报
+  // ----------------------------------------------------
+  it('PT-A24 [判别]: 两类 search 告警按原因分别输出，未配置 search 时不告警', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const proTableWarns = () =>
+      warnSpy.mock.calls
+        .map(args => String(args[0]))
+        .filter(msg => msg.startsWith('[ProTable]'));
+
+    // ① 同时配置 :search 与 @search，且 search 返回非 Promise → 两条告警互不静音
+    const table1 = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+    const wrapper1 = mount(ProTable, {
+      props: {
+        table: table1,
+        search: () => 'sync-result',
+        onSearch: () => {},
+      } as any,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    const searchBtn1 = wrapper1.find('.pro-table_search-form_search-button');
+    expect(searchBtn1.exists()).toBe(true);
+    await searchBtn1.trigger('click');
+    await flushPromises();
+
+    expect(proTableWarns()).toHaveLength(2);
+    expect(
+      proTableWarns().some(msg =>
+        msg.includes('同时配置了 :search prop 与 @search 监听')
+      )
+    ).toBe(true);
+    expect(
+      proTableWarns().some(msg => msg.includes('search 未返回 Promise'))
+    ).toBe(true);
+
+    // 同一原因重复触发不重复告警
+    await searchBtn1.trigger('click');
+    await flushPromises();
+    expect(proTableWarns()).toHaveLength(2);
+    wrapper1.unmount();
+
+    // ② 未配置 search 与 @search 时不产生「未返回 Promise」误报
+    const table2 = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+    const wrapper2 = mount(ProTable, {
+      props: { table: table2 },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    await wrapper2
+      .find('.pro-table_search-form_search-button')
+      .trigger('click');
+    await flushPromises();
+    expect(proTableWarns()).toHaveLength(2);
+    wrapper2.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A25 [判别]: emit 型 attrs（@scroll / v-model:expanded-row-keys）透传至宿主表格
+  // ----------------------------------------------------
+  it('PT-A25 [判别]: @scroll 与 v-model:expanded-row-keys 真正到达宿主表格', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+    });
+    const expandedKeys = ref<any[]>([]);
+    const scrollEvents: any[] = [];
+    const Parent = defineComponent({
+      components: { ProTable },
+      setup() {
+        return {
+          table,
+          expandedKeys,
+          onScroll: (event: any) => scrollEvents.push(event),
+        };
+      },
+      template: `
+        <ProTable
+          :table="table"
+          v-model:expanded-row-keys="expandedKeys"
+          @scroll="onScroll"
+        />
+      `,
+    });
+
+    const wrapper = mount(Parent, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    const hostTable = wrapper.findComponent({ name: 'ATable' });
+    expect(hostTable.exists()).toBe(true);
+    expect(hostTable.props('expandedRowKeys')).toEqual([]);
+
+    hostTable.vm.$emit('update:expandedRowKeys', ['1']);
+    hostTable.vm.$emit('scroll', { type: 'scroll' });
+    await flushPromises();
+
+    expect(expandedKeys.value).toEqual(['1']);
+    expect(scrollEvents).toEqual([{ type: 'scroll' }]);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A26 [判别]: 宿主 Table 静态 props 缺失时回退内置透传清单并仅告警一次
+  // ----------------------------------------------------
+  it('PT-A26 [判别]: 宿主 Table 静态 props 缺失时回退内置清单并仅告警一次', async () => {
+    const { Table } = await import('antdv-next');
+    const hostTable = Table as any;
+    const snapshot = hostTable.props;
+    const hostKeys = Object.keys(snapshot || {});
+    expect(hostKeys).toContain('dataSource');
+    expect(hostKeys).toContain('columns');
+    expect(hostKeys).toContain('pagination');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      // ① 快照整体缺失：回退清单仍覆盖宿主全部运行时 props 与 emit 型键
+      hostTable.props = undefined;
+      const fallbackKeys = Object.keys(tableProps());
+      expect(hostKeys.every(key => fallbackKeys.includes(key))).toBe(true);
+      expect(fallbackKeys).toContain('dataSource');
+      expect(fallbackKeys).toContain('rowKey');
+      expect(fallbackKeys).toContain('onScroll');
+      expect(fallbackKeys).toContain('onUpdate:expandedRowKeys');
+
+      // ② 快照缺少关键键：同样回退并补齐缺失键
+      hostTable.props = { size: { type: String } };
+      const mergedKeys = Object.keys(tableProps());
+      expect(mergedKeys).toContain('size');
+      expect(mergedKeys).toContain('dataSource');
+      expect(mergedKeys).toContain('columns');
+
+      // 两次回退只告警一次
+      const warns = warnSpy.mock.calls
+        .map(args => String(args[0]))
+        .filter(msg => msg.includes('宿主 Table'));
+      expect(warns).toHaveLength(1);
+    } finally {
+      hostTable.props = snapshot;
+    }
+  });
+
+  // ----------------------------------------------------
+  // PT-A27 [判别]: v-model:size 双向绑定回写父级并同步宿主表格
+  // ----------------------------------------------------
+  it('PT-A27 [判别]: v-model:size 双向绑定回写父级并同步宿主表格', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [],
+    });
+    const sizeModel = ref<any>('large');
+    const Parent = defineComponent({
+      components: { ProTable },
+      setup() {
+        return { table, sizeModel };
+      },
+      template: `
+        <ProTable
+          :table="table"
+          v-model:size="sizeModel"
+          :control="{ sizeControl: true }"
+        />
+      `,
+    });
+
+    const wrapper = mount(Parent, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    const hostTable = wrapper.findComponent({ name: 'ATable' });
+    expect(hostTable.props('size')).toBe('large');
+
+    const sizeControl = wrapper.findComponent(SizeControl);
+    expect(sizeControl.exists()).toBe(true);
+    sizeControl.vm.$emit('update:size', 'small');
+    await flushPromises();
+
+    expect(sizeModel.value).toBe('small');
+    expect(hostTable.props('size')).toBe('small');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A28 [判别]: filterDropdown / filterIcon 插槽经宿主表格渲染并随列可见性收敛
+  // ----------------------------------------------------
+  it('PT-A28 [判别]: filterDropdown/filterIcon 插槽转发至宿主表格并随列可见性收敛', async () => {
+    const hidden = ref(false);
+    const table = useTable({
+      columns: [
+        {
+          dataIndex: 'name',
+          title: '姓名',
+          filters: [{ text: '甲', value: '甲' }],
+          hidden,
+        },
+      ],
+      dataSource: [{ name: '甲' }],
+    } as any);
+
+    const scopedColumns: any[] = [];
+    const wrapper = mount(ProTable, {
+      props: { table, addIndexColumn: false },
+      slots: {
+        filterIcon: (scoped: any) => {
+          scopedColumns.push(scoped?.column);
+          return h('span', { class: 'custom-filter-icon' }, 'F');
+        },
+        filterDropdown: (scoped: any) => {
+          scopedColumns.push(scoped?.column);
+          return h('div', { class: 'custom-filter-dropdown' }, 'FD');
+        },
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // ① filterIcon 经宿主表格渲染
+    expect(wrapper.find('.custom-filter-icon').exists()).toBe(true);
+    // ② 展开筛选弹层后 filterDropdown 渲染（弹层 Teleport 到 body）
+    await wrapper.find('.ant-table-filter-trigger').trigger('click');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+    expect(document.querySelectorAll('.custom-filter-dropdown')).toHaveLength(
+      1
+    );
+    // ③ 插槽作用域始终携带有效 column
+    expect(scopedColumns.some(column => column?.dataIndex === 'name')).toBe(
+      true
+    );
+    expect(scopedColumns.every(column => Boolean(column))).toBe(true);
+
+    // ④ 列隐藏后两个插槽均不再渲染
+    hidden.value = true;
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+    expect(wrapper.find('.custom-filter-icon').exists()).toBe(false);
+    expect(document.querySelectorAll('.custom-filter-dropdown')).toHaveLength(
+      0
+    );
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A29 [判别]: 列依赖插槽守卫阻断 column 缺失或全部列隐藏时的调用
+  // ----------------------------------------------------
+  it('PT-A29 [判别]: 列依赖插槽守卫阻断 column 缺失或全部列隐藏时的调用', async () => {
+    const hidden = ref(false);
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名', hidden }],
+      dataSource: [{ name: '甲' }],
+    } as any);
+
+    const captured: Record<string, any> = {};
+    const ATableStub = defineComponent({
+      name: 'ATable',
+      setup(_, { slots }) {
+        captured.slots = slots;
+        return () => h('div', { class: 'a-table-stub' });
+      },
+    });
+
+    const calls: any[] = [];
+    const wrapper = mount(ProTable, {
+      props: { table, addIndexColumn: false },
+      slots: {
+        filterDropdown: (scoped: any) => {
+          calls.push(scoped?.column);
+          return h('div', 'FD');
+        },
+        filterIcon: (scoped: any) => {
+          calls.push(scoped?.column);
+          return h('span', 'F');
+        },
+      },
+      global: { stubs: { ATable: ATableStub, transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.a-table-stub').exists()).toBe(true);
+    expect(calls).toHaveLength(0);
+
+    // ① 作用域携带有效 column 时透传
+    captured.slots.filterDropdown({ column: { dataIndex: 'name' } });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ dataIndex: 'name' });
+
+    // ② column 缺失时守卫阻断
+    captured.slots.filterDropdown({ column: undefined });
+    captured.slots.filterIcon({ column: undefined });
+    expect(calls).toHaveLength(1);
+
+    // ③ 全部列隐藏时守卫阻断（作用域仍携带 column）
+    hidden.value = true;
+    await flushPromises();
+    captured.slots.filterDropdown({ column: { dataIndex: 'name' } });
+    expect(calls).toHaveLength(1);
+
+    wrapper.unmount();
   });
 });

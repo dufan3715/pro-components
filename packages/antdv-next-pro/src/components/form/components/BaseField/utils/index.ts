@@ -33,7 +33,7 @@ export const getInitProps = (
   t: LocaleT
 ): Record<string, any> => {
   const { component } = field as any;
-  const picker = component === 'date-picker' ? '' : (field as any).picker;
+  const picker = (field as any).picker;
   if (typeof component === 'string') {
     const k = [component, picker].filter(Boolean).join('.');
     return { ...injectProps, ...getPlaceholderProps(k, injectProps, t) };

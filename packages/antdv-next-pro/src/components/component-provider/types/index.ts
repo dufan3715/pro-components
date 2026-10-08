@@ -60,4 +60,9 @@ export type RequiredComponentVars = {
   >;
 };
 
+/**
+ * 组件全局配置
+ * @description RequiredComponentVars 的 Partial 版本，用于 ProComponentProvider 的 props
+ * @public
+ */
 export type ComponentVars = Partial<RequiredComponentVars>;

@@ -3,7 +3,7 @@ import { Button, Dropdown, Checkbox } from '../../../shared/ui';
 import { computed, h, ref, toValue, watch } from 'vue';
 import { isObjectItem } from '../../../shared/core';
 import type { Columns, ColumnControlConfig } from '../types';
-import { type Table } from '../useTable';
+import { type Table } from '../hooks/useTable';
 import FilterOutlined from './icons/FilterOutlined.vue';
 import { useLocale } from '../../../locale';
 

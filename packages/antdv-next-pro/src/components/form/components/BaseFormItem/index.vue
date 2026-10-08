@@ -17,7 +17,7 @@
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
  * 4. 通过 ref 回调收集 FormItem 和 Component 实例，注入到 field 对象上
  *
- * @param {Fields} [fields] - 字段配置数组
+ * @param {Fields<D>} [fields] - 字段配置数组
  * @param {boolean | GridProps} [grid] - 是否启用网格布局
  * @param {boolean} [disabled] - 是否禁用所有子字段
  *

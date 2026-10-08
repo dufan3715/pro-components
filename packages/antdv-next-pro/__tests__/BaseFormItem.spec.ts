@@ -430,4 +430,59 @@ describe('BaseFormItem 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A18 [判别]: fields 中四类 falsy 项全部跳过，合法字段照常渲染与读写
+  // ----------------------------------------------------
+  it('BI-A18 [判别]: fields 含 null/undefined/0/空串时不抛错且全部跳过', async () => {
+    const form = useForm({ a: '' }, [
+      null,
+      undefined,
+      0,
+      '',
+      { path: 'a', label: 'A', component: 'input' },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(wrapper.findAll('.ant-form-item')).toHaveLength(1);
+    const inputs = wrapper.findAll('input');
+    expect(inputs).toHaveLength(1);
+    await inputs[0].setValue('v');
+    await flushPromises();
+    expect(form.getFormData('a')).toBe('v');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A19 [判别]: label 同时来自字段属性与字段 slots 时，slot 通道胜出
+  // ----------------------------------------------------
+  it('BI-A19 [判别]: label 同时来自字段属性与 slots 时 slot 胜出', async () => {
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '属性标签',
+        component: 'input',
+        slots: { label: () => h('span', { class: 'slot-label' }, '插槽标签') },
+      },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('.slot-label').text()).toBe('插槽标签');
+    expect(wrapper.find('.ant-form-item-label').text()).not.toContain(
+      '属性标签'
+    );
+
+    wrapper.unmount();
+  });
 });

@@ -15,6 +15,38 @@ import { flushPromises } from './helpers/mount';
 
 describe('Hooks 与 Locale 基础能力测试', () => {
   // ----------------------------------------------------
+  // HK-04 [判别]: shared/ui 以 useHostConfig 暴露宿主禁用/尺寸上下文
+  // ----------------------------------------------------
+  it('HK-04 [判别]: shared/ui 仅导出 useHostConfig 读取宿主组件上下文，不导出同名 useConfig', async () => {
+    const ui: any = await import('../src/shared/ui');
+    expect(typeof ui.useHostConfig).toBe('function');
+    // 与 locale 模块读取 ConfigProvider locale 的宿主配置读取函数不再同名
+    expect(ui.useConfig).toBeUndefined();
+
+    // useHostConfig 读取宿主 ConfigProvider 的 componentSize 上下文
+    const { ConfigProvider } = await import('antdv-next');
+    const Probe = defineComponent({
+      setup() {
+        const hostConfig = ui.useHostConfig();
+        return () =>
+          h(
+            'span',
+            { class: 'host-size-probe' },
+            hostConfig.componentSize.value
+          );
+      },
+    });
+    const wrapper = mount(ConfigProvider as any, {
+      props: { componentSize: 'small' },
+      slots: { default: () => h(Probe) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.host-size-probe').text()).toBe('small');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // HK-02: useDisabledContextProvider 与 useDisabledContext 跨层级穿透
   // ----------------------------------------------------
   it('HK-02: useDisabledContextProvider 与 useDisabledContext 支持跨层级响应式穿透', async () => {

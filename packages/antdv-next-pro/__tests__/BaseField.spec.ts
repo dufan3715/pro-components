@@ -5,7 +5,7 @@ import ProForm from '../src/components/form/components/ProForm/index.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
-import { Input, Switch } from '../src/shared/ui';
+import { DatePicker, Input, Switch } from '../src/shared/ui';
 
 describe('BaseField 组件测试', () => {
   // ----------------------------------------------------
@@ -377,5 +377,46 @@ describe('BaseField 组件测试', () => {
     await flushPromises();
     expect(form.getFormData('count')).toBe(7);
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-A15 [判别]: 占位符按组件与 picker 解析，date-picker 不产生兜底占位符
+  // ----------------------------------------------------
+  it('BF-A15 [判别]: date-picker 字段的 picker 参与注入键解析但不产生兜底占位符', async () => {
+    const form = useForm({}, [
+      { path: 'keyword', label: '关键词', component: 'input' },
+      { path: 'day', label: '日期', component: 'date-picker', picker: 'date' },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // input 仍按组件名命中 locale 兜底占位符
+    expect(wrapper.findComponent(Input).props('placeholder')).toBe('请输入');
+    // date-picker.date 无 locale 兜底条目，保持未设置
+    expect(
+      wrapper.findComponent(DatePicker).props('placeholder')
+    ).toBeUndefined();
+    wrapper.unmount();
+
+    // 注入级显式 placeholder 生效，不被兜底逻辑改写
+    const injectedForm = useForm({}, [
+      { path: 'day', label: '日期', component: 'date-picker', picker: 'date' },
+    ] as any);
+    const injectedWrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: { 'date-picker.date': { placeholder: '选择日期' } },
+      } as any,
+      slots: { default: () => h(ProForm, { form: injectedForm }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(injectedWrapper.findComponent(DatePicker).props('placeholder')).toBe(
+      '选择日期'
+    );
+    injectedWrapper.unmount();
   });
 });

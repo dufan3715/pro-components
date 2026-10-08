@@ -12,21 +12,35 @@
  * 2. 上下文透传：通过 `provide` 将核心状态下发给子组件。
  * 3. 递归渲染：网格布局和具体字段的解析交由 `<BaseFormItem>` 递归完成。
  *
+ * @public
+ *
  * 通过配置驱动的方式快速构建表单，支持：
  * - 字段联动（通过 setField、watch 等实现）
  * - 嵌套字段（通过 fields 递归配置）
  * - 自定义组件（通过 component 属性和 custom 类型）
  * - 网格布局（通过 grid 属性）
  * - 动态插槽（以字段 path 命名的插槽）
+ * - 全局配置注入（通过 ProComponentProvider）
  *
  * @template F - 表单实例类型
+ *
  * @param {F} [form] - useForm 返回的表单实例
  * @param {boolean | GridProps} [grid=false] - 是否启用网格布局
+ * @param {...FormProps} ...attrs - antdv-next Form 组件的其他属性
  *
- * @slot default - 默认插槽
- * @slot [path] - 以字段 path 命名的动态插槽，用于自定义字段渲染组件
+ * @slot default - 默认插槽，可用于添加额外内容
+ * @slot [path] - 以字段 path 命名的动态插槽，可用于自定义字段渲染
  *
- * @public
+ * @example
+ * ```vue
+ * <template>
+ *   <ProForm :form="form" @submit="handleSubmit">
+ *     <template #name="{ value, disabled }">
+ *       <a-input :value="value" :disabled="disabled" />
+ *     </template>
+ *   </ProForm>
+ * </template>
+ * ```
  */
 import {
   Form as AForm,
