@@ -769,4 +769,180 @@ describe('ProTable 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PT-A20 [判别]: tableContainer 默认容器 / false 关闭 / 自定义容器
+  // ----------------------------------------------------
+  it('PT-A20 [判别]: tableContainer 默认包裹、false 关闭包裹、自定义组件包裹表格', async () => {
+    const buildTable = () =>
+      useTable({
+        columns: [{ dataIndex: 'name', title: '姓名' }],
+        dataSource: [{ name: '甲' }],
+      });
+    const CustomContainer = defineComponent({
+      name: 'CustomTableContainer',
+      setup(_, { slots }) {
+        return () =>
+          h('div', { class: 'custom-table-container' }, slots.default?.());
+      },
+    });
+
+    // ① 默认：使用 DefaultTableContainer 包裹
+    const def = mountProTable({ table: buildTable() });
+    await flushPromises();
+    const defContainer = def.wrapper.find('.pro-table_table-container');
+    expect(defContainer.exists()).toBe(true);
+    expect(defContainer.find('.pro-table_content').exists()).toBe(true);
+    def.wrapper.unmount();
+
+    // ② false：不包裹容器，表格内容仍渲染
+    const none = mountProTable({
+      table: buildTable(),
+      props: { tableContainer: false },
+    });
+    await flushPromises();
+    expect(none.wrapper.find('.pro-table_table-container').exists()).toBe(
+      false
+    );
+    expect(none.wrapper.find('.pro-table_content').exists()).toBe(true);
+    none.wrapper.unmount();
+
+    // ③ 自定义容器：包裹表格内容
+    const custom = mountProTable({
+      table: buildTable(),
+      props: { tableContainer: CustomContainer },
+    });
+    await flushPromises();
+    const box = custom.wrapper.find('.custom-table-container');
+    expect(box.exists()).toBe(true);
+    expect(box.find('.pro-table_content').exists()).toBe(true);
+    custom.wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A21 [判别]: searchFormConfig.container 默认容器 / false 关闭 / 自定义容器
+  // ----------------------------------------------------
+  it('PT-A21 [判别]: searchFormConfig.container 默认包裹、false 关闭包裹、自定义组件包裹搜索表单', async () => {
+    const buildTable = () =>
+      useTable({
+        columns: [{ dataIndex: 'name', title: '姓名' }],
+        dataSource: [{ name: '甲' }],
+        searchParam: {},
+        searchFields: [{ path: 'name', label: '姓名', component: 'input' }],
+      });
+    const CustomContainer = defineComponent({
+      name: 'CustomSearchFormContainer',
+      setup(_, { slots }) {
+        return () =>
+          h('div', { class: 'custom-search-container' }, slots.default?.());
+      },
+    });
+
+    // ① 默认：使用 DefaultSearchFormContainer 包裹搜索表单
+    const def = mountProTable({ table: buildTable() });
+    await flushPromises();
+    const defContainer = def.wrapper.find('.pro-table_search-form-container');
+    expect(defContainer.exists()).toBe(true);
+    expect(defContainer.find('.pro-table_search-form').exists()).toBe(true);
+    def.wrapper.unmount();
+
+    // ② container: false：不包裹容器，搜索表单仍渲染
+    const none = mountProTable({
+      table: buildTable(),
+      props: { searchFormConfig: { container: false } },
+    });
+    await flushPromises();
+    expect(none.wrapper.find('.pro-table_search-form-container').exists()).toBe(
+      false
+    );
+    expect(none.wrapper.find('.pro-table_search-form').exists()).toBe(true);
+    none.wrapper.unmount();
+
+    // ③ 自定义容器：包裹搜索表单
+    const custom = mountProTable({
+      table: buildTable(),
+      props: { searchFormConfig: { container: CustomContainer } },
+    });
+    await flushPromises();
+    const box = custom.wrapper.find('.custom-search-container');
+    expect(box.exists()).toBe(true);
+    expect(box.find('.pro-table_search-form').exists()).toBe(true);
+    custom.wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A22 [判别]: control 的 false / true / 对象三种形态
+  // ----------------------------------------------------
+  it('PT-A22 [判别]: control 三形态分别控制尺寸与列控制，对象形态的 disabledKeys 生效', async () => {
+    const buildTable = () =>
+      useTable({
+        columns: [
+          { dataIndex: 'name', title: '姓名', hidden: true },
+          { dataIndex: 'age', title: '年龄' },
+        ],
+        dataSource: [{ name: '甲', age: 18 }],
+      });
+
+    // ① control: false → 尺寸控制与列控制都不渲染
+    const off = mountProTable({
+      table: buildTable(),
+      props: { control: false },
+    });
+    await flushPromises();
+    expect(off.wrapper.find('.pro-table_header_size-control').exists()).toBe(
+      false
+    );
+    expect(off.wrapper.find('.pro-table_header_column-control').exists()).toBe(
+      false
+    );
+    off.wrapper.unmount();
+
+    // ② control: true → 两者都渲染
+    const on = mountProTable({ table: buildTable(), props: { control: true } });
+    await flushPromises();
+    expect(on.wrapper.find('.pro-table_header_size-control').exists()).toBe(
+      true
+    );
+    expect(on.wrapper.find('.pro-table_header_column-control').exists()).toBe(
+      true
+    );
+    on.wrapper.unmount();
+
+    // ③ 对象形态：仅开启 sizeControl，列控制禁用 name（disabledKeys 同时强制该列展示）
+    const table = buildTable();
+    const partial = mountProTable({
+      table,
+      props: {
+        control: {
+          sizeControl: true,
+          columnControl: { disabledKeys: ['name'] },
+        },
+      },
+    });
+    await flushPromises();
+    expect(
+      partial.wrapper.find('.pro-table_header_size-control').exists()
+    ).toBe(true);
+    expect(
+      partial.wrapper.find('.pro-table_header_column-control').exists()
+    ).toBe(true);
+    // disabledKeys 的即时 watch 把该列强制置为展示
+    const hiddenValues = table.columns.value.map((c: any) => c.hidden);
+    expect(hiddenValues).toEqual([false, undefined]);
+    partial.wrapper.unmount();
+
+    // ④ 对象形态未声明的开关默认关闭
+    const blank = mountProTable({
+      table: buildTable(),
+      props: { control: {} },
+    });
+    await flushPromises();
+    expect(blank.wrapper.find('.pro-table_header_size-control').exists()).toBe(
+      false
+    );
+    expect(
+      blank.wrapper.find('.pro-table_header_column-control').exists()
+    ).toBe(false);
+    blank.wrapper.unmount();
+  });
 });
