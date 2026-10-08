@@ -57,6 +57,9 @@ export const mountProForm = (
 
 /**
  * 挂载 ProTable 辅助函数
+ *
+ * @description `attachToBody` 为 true 时挂载至 document.body：点击表单内 submit 按钮
+ * 依赖元素已连接文档，用例结束须调用返回的 `cleanup` 清空挂载点
  */
 export const mountProTable = (
   options: {
@@ -64,9 +67,10 @@ export const mountProTable = (
     columns?: Column[];
     dataSource?: any[];
     searchFields?: Field[];
-    search?: () => any;
+    search?: () => Promise<unknown>;
     props?: Record<string, any>;
     slots?: Record<string, any>;
+    attachToBody?: boolean;
   } = {}
 ) => {
   const table =
@@ -84,6 +88,7 @@ export const mountProTable = (
       ...(options.props ?? {}),
     },
     slots: options.slots,
+    ...(options.attachToBody ? { attachTo: document.body } : {}),
     global: {
       stubs: {
         transition: false,
@@ -95,7 +100,30 @@ export const mountProTable = (
   return {
     wrapper,
     table,
+    cleanup: () => {
+      if (options.attachToBody) document.body.innerHTML = '';
+    },
   };
+};
+
+/**
+ * 等待下一帧渲染回调执行（ResizeObserver 经 rAF 合帧后重测）
+ */
+export const waitForRaf = () =>
+  new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+/**
+ * 断言 console.warn 产生匹配警告
+ */
+export const expectWarn = (spy: any, matcher: string | RegExp) => {
+  expect(spy).toHaveBeenCalled();
+  const calls = spy.mock.calls.flat();
+  const matched = calls.some((msg: any) =>
+    typeof matcher === 'string'
+      ? String(msg).includes(matcher)
+      : matcher.test(String(msg))
+  );
+  expect(matched).toBe(true);
 };
 
 /**

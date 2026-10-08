@@ -1,23 +1,80 @@
 import { describe, it, expect } from 'vitest';
 import * as AntdvNextPro from '../src/index';
+import * as FormBarrel from '../src/components/form';
+import * as TableBarrel from '../src/components/table';
+import * as ProviderBarrel from '../src/components/component-provider';
+import * as LocaleBarrel from '../src/locale';
 
 describe('Public API Export Smoke Test (SX-01)', () => {
-  it('SX-01: 完整导出核心组件、Hooks 与工具函数，反向断言已下沉 Core 的私有工具不得重新导出', () => {
-    // 1. 核心组件
-    expect(AntdvNextPro.ProForm).toBeDefined();
-    expect(AntdvNextPro.ProTable).toBeDefined();
-    expect(AntdvNextPro.ProComponentProvider).toBeDefined();
+  it('SX-01 [判别]: 导出键集合与 src/index.ts 声明一致，barrel 再导出恒等且 default.install 注册三组件', () => {
+    // 1. 导出键集合 = 三个组件 barrel + locale barrel 的全部再导出 + 三个显式组件 + default
+    const barrelKeys = [
+      ...Object.keys(FormBarrel),
+      ...Object.keys(TableBarrel),
+      ...Object.keys(ProviderBarrel),
+      ...Object.keys(LocaleBarrel),
+      'ProForm',
+      'ProTable',
+      'ProComponentProvider',
+      'default',
+    ];
+    const expectedKeys = [...new Set(barrelKeys)].sort();
+    expect(Object.keys(AntdvNextPro).sort()).toEqual(expectedKeys);
 
-    // 2. 表单与表格 Hooks
-    expect(AntdvNextPro.useForm).toBeDefined();
-    expect(AntdvNextPro.useTable).toBeDefined();
-    expect(AntdvNextPro.useFields).toBeDefined();
-    expect(AntdvNextPro.useLocale).toBeDefined();
+    // 2. 名单锁定：任一导出被移除或新增即失败
+    expect(expectedKeys).toEqual(
+      [
+        'ContainerFragment',
+        'LOCALE_INJECT_KEY',
+        'ProComponentProvider',
+        'ProForm',
+        'ProTable',
+        'SlotComponent',
+        'default',
+        'enUS',
+        'useFields',
+        'useForm',
+        'useFormData',
+        'useFormRef',
+        'useLocale',
+        'useTable',
+        'zhCN',
+        'zhTW',
+      ].sort()
+    );
 
-    // 3. 国际化与 Provider 常量
-    expect(AntdvNextPro.LOCALE_INJECT_KEY).toBeDefined();
+    // 3. barrel 再导出恒等：三个组件与 Hooks 均非复制体
+    expect(AntdvNextPro.ProForm).toBe(FormBarrel.default);
+    expect(AntdvNextPro.ProTable).toBe(TableBarrel.default);
+    expect(AntdvNextPro.ProComponentProvider).toBe(ProviderBarrel.default);
+    expect(AntdvNextPro.useForm).toBe(FormBarrel.useForm);
+    expect(AntdvNextPro.useFields).toBe(FormBarrel.useFields);
+    expect(AntdvNextPro.useFormData).toBe(FormBarrel.useFormData);
+    expect(AntdvNextPro.useFormRef).toBe(FormBarrel.useFormRef);
+    expect(AntdvNextPro.useTable).toBe(TableBarrel.useTable);
+    expect(AntdvNextPro.useLocale).toBe(LocaleBarrel.useLocale);
+    expect(AntdvNextPro.LOCALE_INJECT_KEY).toBe(LocaleBarrel.LOCALE_INJECT_KEY);
 
-    // 4. 反向断言：已下沉 core 或私有内部常量绝对不能由 antdv-next-pro 重新导出
+    // 4. default.install 按组件名注册三个组件
+    const registered: Record<string, any> = {};
+    const fakeApp = {
+      component: (name: string, component: any) => {
+        registered[name] = component;
+      },
+    };
+    AntdvNextPro.default.install(fakeApp as any);
+    expect(Object.keys(registered).sort()).toEqual([
+      'ProComponentProvider',
+      'ProForm',
+      'ProTable',
+    ]);
+    expect(registered.ProForm).toBe(AntdvNextPro.ProForm);
+    expect(registered.ProTable).toBe(AntdvNextPro.ProTable);
+    expect(registered.ProComponentProvider).toBe(
+      AntdvNextPro.ProComponentProvider
+    );
+
+    // 5. 反向断言：已下沉 core 或私有内部常量绝对不能由 antdv-next-pro 重新导出
     expect((AntdvNextPro as any).INJECT_CONFIG).toBeUndefined();
     expect((AntdvNextPro as any).get).toBeUndefined();
     expect((AntdvNextPro as any).set).toBeUndefined();

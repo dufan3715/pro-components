@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, markRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
@@ -33,7 +33,10 @@ describe('BaseFormItem 组件测试', () => {
     expect(f1Ref).toBeDefined();
     expect(f2Ref).toBeDefined();
     expect(f3Ref).toBeDefined();
-    expect(f1Ref).not.toBe(f2Ref);
+    // 实例身份以内部实例 uid 比对：直接比较组件代理会触发 Vue 的实例键枚举告警
+    const instanceUid = (ref: any) => ref?.$?.uid;
+    expect(instanceUid(f1Ref)).not.toBe(instanceUid(f2Ref));
+    expect(instanceUid(f2Ref)).not.toBe(instanceUid(f3Ref));
 
     // 直接变异 fields: 删除头部 f1
     form.fields.value.splice(0, 1);
@@ -249,23 +252,45 @@ describe('BaseFormItem 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // BI-04: 自定义 componentContainer
+  // BI-04 [判别]: formItemContainer 包裹整个 FormItem，componentContainer 仅包裹字段组件
   // ----------------------------------------------------
-  it('BI-04: 支持自定义 componentContainer 包裹 FormItem', async () => {
-    const CustomBox = defineComponent({
-      props: ['path'],
-      setup(props, { slots }) {
-        return () =>
-          h('div', { class: `custom-box-${props.path}` }, slots.default?.());
-      },
-    });
+  it('BI-04 [判别]: formItemContainer 包裹 FormItem，componentContainer 仅包裹内部字段组件', async () => {
+    const FormItemBox = markRaw(
+      defineComponent({
+        name: 'FormItemBox',
+        props: ['path'],
+        setup(props, { slots }) {
+          return () =>
+            h(
+              'div',
+              { class: `form-item-box-${props.path}` },
+              slots.default?.()
+            );
+        },
+      })
+    );
+    const ComponentBox = markRaw(
+      defineComponent({
+        name: 'ComponentBox',
+        props: ['path'],
+        setup(props, { slots }) {
+          return () =>
+            h(
+              'div',
+              { class: `component-box-${props.path}` },
+              slots.default?.()
+            );
+        },
+      })
+    );
 
     const form = useForm({}, [
       {
         path: 'userPhone',
         label: '手机号',
         component: 'input',
-        formItemContainer: CustomBox,
+        formItemContainer: FormItemBox,
+        componentContainer: ComponentBox,
       },
     ]);
 
@@ -275,8 +300,20 @@ describe('BaseFormItem 组件测试', () => {
     });
 
     await flushPromises();
-    const customContainer = wrapper.find('.custom-box-userPhone');
-    expect(customContainer.exists()).toBe(true);
+
+    // ① formItemContainer 包裹整个表单项：标签与控制区都在其内部
+    const itemBox = wrapper.find('.form-item-box-userPhone');
+    expect(itemBox.exists()).toBe(true);
+    expect(itemBox.find('.ant-form-item-label').exists()).toBe(true);
+    expect(itemBox.find('.ant-form-item-control').exists()).toBe(true);
+
+    // ② componentContainer 只包裹字段组件：输入框在内、标签在外，且嵌套于 formItemContainer 内
+    const compBox = wrapper.find('.component-box-userPhone');
+    expect(compBox.exists()).toBe(true);
+    expect(compBox.find('input').exists()).toBe(true);
+    expect(compBox.find('.ant-form-item-label').exists()).toBe(false);
+    expect(itemBox.find('.component-box-userPhone').exists()).toBe(true);
+
     wrapper.unmount();
   });
   // ----------------------------------------------------
@@ -502,7 +539,7 @@ describe('BaseFormItem 组件测试', () => {
         path: 'email',
         label: '邮箱',
         component: 'input',
-        slots: { extra: CustomExtra as any },
+        slots: { extra: markRaw(CustomExtra) as any },
       },
       {
         path: 'phone',

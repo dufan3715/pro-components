@@ -116,24 +116,50 @@ Element.prototype.scrollIntoView = vi.fn();
 // ----------------------------------------------------
 const originalWarn = console.warn.bind(console);
 const originalError = console.error.bind(console);
-const IGNORED_WARN_PREFIXES = [
+/*
+ * 本包运行期预期告警（按下发来源与文案片段精确匹配）；
+ * 未命中条目的告警计入 unexpectedWarnings，由 afterEach 判定该用例失败
+ */
+const EXPECTED_WARNINGS = [
+  // 用例经 :component / componentMap 传入 SFC 对象，宿主要求 markRaw 处理
   '[Vue warn]: Vue received a Component that was made a reactive object',
-  '[Vue warn]: Invalid prop: type check failed for prop',
-  '[@vue/compiler-sfc] `defineSlots` is a compiler macro',
+  // BF-B4 / BF-B10 的 formatter 旧值场景向宿主 input 传入对象
+  '[Vue warn]: Invalid prop: type check failed for prop "value". Expected String | Number | Symbol, got Object',
+  // PF-02 递归字段中无 name path 的子项由宿主 FormItem 提示
   'please transfer a valid name path to form item!',
+  // SF-A16 断言 form 为必填 prop，缺省挂载即触发宿主缺参提示
+  '[Vue warn]: Missing required prop: "form"',
+  // 校验失败路径用例触发的真实校验告警
+  'async-validator:',
+  // PT-A10 / PT-A10b / IT-02 / IT-03 显式覆盖非 Promise 查询契约
+  '[ProTable] search 未返回 Promise',
+  // 「运行期替换 componentMap」用例在替换生效前的首帧降级渲染
+  '[pro-components] 未识别的组件类型',
 ];
 
-console.warn = (...args: any[]) => {
+const unexpectedWarnings: string[] = [];
+
+// 命中预期条目时静默，未命中条目透传原控制台并登记待判定
+const isExpectedWarning = (args: any[]) => {
   const msg = typeof args[0] === 'string' ? args[0] : '';
-  if (IGNORED_WARN_PREFIXES.some(prefix => msg.includes(prefix))) {
+  if (msg && EXPECTED_WARNINGS.some(prefix => msg.includes(prefix))) {
+    return true;
+  }
+  if (msg) {
+    unexpectedWarnings.push(msg);
+  }
+  return false;
+};
+
+console.warn = (...args: any[]) => {
+  if (isExpectedWarning(args)) {
     return;
   }
   originalWarn(...args);
 };
 
 console.error = (...args: any[]) => {
-  const msg = typeof args[0] === 'string' ? args[0] : '';
-  if (IGNORED_WARN_PREFIXES.some(prefix => msg.includes(prefix))) {
+  if (isExpectedWarning(args)) {
     return;
   }
   originalError(...args);
@@ -145,4 +171,12 @@ console.error = (...args: any[]) => {
 afterEach(() => {
   activeResizeObservers.clear();
   activeIntersectionObservers.clear();
+  const pending = unexpectedWarnings.splice(0);
+  if (pending.length > 0) {
+    throw new Error(
+      `存在 ${pending.length} 条未放行的运行期告警：\n${pending
+        .map(msg => `  - ${msg}`)
+        .join('\n')}`
+    );
+  }
 });

@@ -120,6 +120,34 @@ describe('useForm', () => {
     expect(childFormDataStore.formData).toBe(parentForm.formData);
   });
 
+  it('UF-11 [mount] useForm() 无参归一为空对象，不继承父级数据 store', () => {
+    let parentForm: any;
+    let childForm: any;
+    const Child = defineComponent({
+      setup() {
+        childForm = useForm();
+        return () => h('div');
+      },
+    });
+    const Parent = defineComponent({
+      setup() {
+        parentForm = useForm({ name: 'x' } as any, [] as any, true);
+        return () => h(Child);
+      },
+    });
+    mount(Parent);
+
+    // 判别点：无参调用不进入父 store 复用分支，得到独立空 store
+    expect(childForm).not.toBe(parentForm);
+    expect(childForm.formData).not.toBe(parentForm.formData);
+    expect(JSON.stringify(childForm.formData)).toBe('{}');
+    expect(childForm.getFormData('name')).toBeUndefined();
+
+    childForm.setFormData('a', 1);
+    expect(childForm.getFormData('a')).toBe(1);
+    expect(parentForm.getFormData('a')).toBeUndefined();
+  });
+
   describe('createFormProxy (T29 / S2 / 5.8)', () => {
     it('代理属性读写与反射 API 完整性', () => {
       const current = {

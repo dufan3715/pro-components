@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import { useTable } from '../src/components/table/hooks/useTable';
-import { flushPromises, mountProTable } from './helpers/mount';
+import { expectWarn, flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
 import { ElPagination, ElTable } from 'element-plus';
 import SearchForm from '../src/components/table/components/SearchForm.vue';
@@ -141,24 +141,36 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PT-03: 翻页触发查询与 pageParam 更新
+  // PT-03: 翻页（ElPagination current-change）驱动 pageParam 更新与查询
   // ----------------------------------------------------
-  it('PT-03: 表格翻页触发 pageParam 更新', async () => {
+  it('PT-03: 分页 current-change 驱动 pageParam 更新并按次触发查询', async () => {
     const table = useTable({
       columns: createBasicColumns(),
-      data: new Array(20)
-        .fill(0)
-        .map((_, i) => ({ id: i + 1, name: `用户${i + 1}` })),
+      data: [],
+      pageParam: { current: 1, pageSize: 10, total: 40 },
     });
+    const searchSpy = vi.fn().mockResolvedValue(undefined);
 
-    const { wrapper } = mountProTable({ table });
-    await flushPromises();
+    const { wrapper } = mountProTable({ table, search: searchSpy as any });
 
-    table.setPageParam({ current: 2, pageSize: 10 });
-    await flushPromises();
+    try {
+      await flushPromises();
+      const pagination = wrapper.findComponent(ElPagination);
+      expect(pagination.exists()).toBe(true);
+      expect(pagination.props('currentPage')).toBe(1);
+      expect(pagination.props('total')).toBe(40);
+      expect(searchSpy).not.toHaveBeenCalled();
 
-    expect(table.pageParam.current).toBe(2);
-    wrapper.unmount();
+      // 真实事件链：ElPagination 派发 current-change → setPageParam + 查询
+      pagination.vm.$emit('current-change', 3);
+      await flushPromises();
+      expect(table.pageParam.current).toBe(3);
+      expect(searchSpy).toHaveBeenCalledTimes(1);
+      // 分页 props 由 pageParam 派生，随页码更新
+      expect(wrapper.findComponent(ElPagination).props('currentPage')).toBe(3);
+    } finally {
+      wrapper.unmount();
+    }
   });
 
   // ----------------------------------------------------
@@ -196,9 +208,11 @@ describe('ProTable 组件测试', () => {
     });
 
     const loadingModel = ref(false);
+    const searchSpy = vi.fn(asyncSearch);
     const { wrapper } = mountProTable({
       table,
-      search: asyncSearch,
+      search: searchSpy as any,
+      attachTo: document.body,
       props: {
         loading: loadingModel.value,
         'onUpdate:loading': (val: boolean) => {
@@ -207,24 +221,30 @@ describe('ProTable 组件测试', () => {
       },
     });
 
-    await flushPromises();
+    try {
+      await flushPromises();
 
-    // 点击搜索按钮触发异步查询
-    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
-    expect(searchBtn.exists()).toBe(true);
-    await searchBtn.trigger('click');
-    // submit 按钮点击会引发原生 form submit（模拟浏览器完整行为）
-    await wrapper.find('form').trigger('submit');
-    await flushPromises();
-    expect(loadingModel.value).toBe(true);
+      // 真实点击路径：查询按钮为 native-type=submit，点击经原生提交触发 1 次查询
+      const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+      expect(searchBtn.exists()).toBe(true);
+      expect(searchBtn.attributes('type')).toBe('submit');
+      expect(searchSpy).not.toHaveBeenCalled();
+      await searchBtn.trigger('click');
+      await flushPromises();
+      expect(searchSpy).toHaveBeenCalledTimes(1);
+      expect(loadingModel.value).toBe(true);
 
-    resolveSearch?.();
-    await flushPromises();
-    expect(loadingModel.value).toBe(false);
-    wrapper.unmount();
+      resolveSearch?.();
+      await flushPromises();
+      expect(loadingModel.value).toBe(false);
+    } finally {
+      wrapper.unmount();
+      document.body.innerHTML = '';
+    }
   });
 
   it('PT-A10: search 返回非 Promise 时不触发 loading 接管', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     let called = false;
     const syncSearch = () => {
       called = true;
@@ -238,9 +258,11 @@ describe('ProTable 组件测试', () => {
     });
 
     const loadingModel = ref(false);
+    const searchSpy = vi.fn(syncSearch);
     const { wrapper } = mountProTable({
       table,
-      search: syncSearch,
+      search: searchSpy as any,
+      attachTo: document.body,
       props: {
         loading: loadingModel.value,
         'onUpdate:loading': (val: boolean) => {
@@ -249,19 +271,26 @@ describe('ProTable 组件测试', () => {
       },
     });
 
-    await flushPromises();
-    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
-    expect(searchBtn.exists()).toBe(true);
-    await searchBtn.trigger('click');
-    // submit 按钮点击会引发原生 form submit（模拟浏览器完整行为）
-    await wrapper.find('form').trigger('submit');
-    await flushPromises();
-    expect(called).toBe(true);
-    expect(loadingModel.value).toBe(false);
-    wrapper.unmount();
+    try {
+      await flushPromises();
+      const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+      expect(searchBtn.exists()).toBe(true);
+      await searchBtn.trigger('click');
+      await flushPromises();
+      expect(searchSpy).toHaveBeenCalledTimes(1);
+      expect(called).toBe(true);
+      expect(loadingModel.value).toBe(false);
+      // 判别点：非 Promise 查询输出一次「未参与 loading 竞态」提示
+      expectWarn(warnSpy, 'search 未返回 Promise');
+    } finally {
+      warnSpy.mockRestore();
+      wrapper.unmount();
+      document.body.innerHTML = '';
+    }
   });
 
   it('PT-A10b [判别]: 异步查询在途时发起同步查询，loading 不悬挂（异步完成后正常复位）', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     let resolveSearch: any;
     const asyncSearch = () =>
       new Promise(resolve => {
@@ -279,9 +308,12 @@ describe('ProTable 组件测试', () => {
     });
 
     const loadingModel = ref(false);
+    const asyncSpy = vi.fn(asyncSearch);
+    const syncSpy = vi.fn(syncSearch);
     const { wrapper } = mountProTable({
       table,
-      search: asyncSearch,
+      search: asyncSpy as any,
+      attachTo: document.body,
       props: {
         loading: loadingModel.value,
         'onUpdate:loading': (val: boolean) => {
@@ -290,32 +322,41 @@ describe('ProTable 组件测试', () => {
       },
     });
 
-    await flushPromises();
-    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+    try {
+      await flushPromises();
+      const searchBtn = wrapper.find('.pro-table_search-form_search-button');
 
-    // 第一步：触发异步查询，loading 置位
-    expect(searchBtn.exists()).toBe(true);
-    await searchBtn.trigger('click');
-    // submit 按钮点击会引发原生 form submit（模拟浏览器完整行为）
-    await wrapper.find('form').trigger('submit');
-    await flushPromises();
-    expect(loadingModel.value).toBe(true);
+      // 第一步：点击触发异步查询，loading 置位
+      expect(searchBtn.exists()).toBe(true);
+      await searchBtn.trigger('click');
+      await flushPromises();
+      expect(asyncSpy).toHaveBeenCalledTimes(1);
+      expect(loadingModel.value).toBe(true);
 
-    // 第二步：异步在途时替换为同步查询并触发——同步查询不推进竞态序号
-    await wrapper.setProps({ search: syncSearch });
-    await searchBtn.trigger('click');
-    // submit 按钮点击会引发原生 form submit（模拟浏览器完整行为）
-    await wrapper.find('form').trigger('submit');
-    await flushPromises();
-    expect(syncCalled).toBe(true);
-    // 判别点：同步查询不清除也不冻结在途异步请求的 loading
-    expect(loadingModel.value).toBe(true);
+      // 第二步：异步在途时替换为同步查询并点击——同步查询不推进竞态序号
+      await wrapper.setProps({ search: syncSpy });
+      await searchBtn.trigger('click');
+      await flushPromises();
+      expect(syncSpy).toHaveBeenCalledTimes(1);
+      expect(syncCalled).toBe(true);
+      // 判别点：同步查询不清除也不冻结在途异步请求的 loading
+      expect(loadingModel.value).toBe(true);
+      // 同一实例内「未返回 Promise」提示只输出一次
+      expect(
+        warnSpy.mock.calls.filter(call =>
+          String(call[0]).includes('search 未返回 Promise')
+        )
+      ).toHaveLength(1);
 
-    // 第三步：最初的异步请求 resolve，loading 正常复位（不悬挂）
-    resolveSearch?.();
-    await flushPromises();
-    expect(loadingModel.value).toBe(false);
-    wrapper.unmount();
+      // 第三步：最初的异步请求 resolve，loading 正常复位（不悬挂）
+      resolveSearch?.();
+      await flushPromises();
+      expect(loadingModel.value).toBe(false);
+    } finally {
+      warnSpy.mockRestore();
+      wrapper.unmount();
+      document.body.innerHTML = '';
+    }
   });
 
   // ----------------------------------------------------
@@ -341,27 +382,69 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PT-07: 控制区 (SizeControl & ColumnControl)
+  // PT-07 [判别]: Provider 关闭 control 默认后 prop 传 true 仍生效
   // ----------------------------------------------------
-  it('PT-07: 控制栏支持尺寸与列控制', async () => {
+  it('PT-07 [判别]: Provider 关闭 control 默认时，prop 传 true 仍渲染控制栏', async () => {
     const table = useTable({
       columns: createBasicColumns(),
       data: [],
     });
 
-    const { wrapper } = mountProTable({
-      table,
+    const wrapper = mount(ProComponentProvider, {
       props: {
-        control: true,
+        componentVars: {
+          'pro-table': {
+            control: false,
+          },
+        },
       },
+      slots: {
+        default: () => h(ProTable as any, { table, control: true }),
+      },
+      global: { stubs: { transition: false } },
     });
 
     await flushPromises();
+    // prop 通道优先于 Provider 默认值
     expect(wrapper.find('.pro-table_header_size-control').exists()).toBe(true);
     expect(wrapper.find('.pro-table_header_column-control').exists()).toBe(
       true
     );
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-07b [判别]: control 缺省按内置默认 true 渲染，显式 false 关闭
+  // ----------------------------------------------------
+  it('PT-07b [判别]: control 缺省时按内置默认 true 渲染控制栏，显式 false 时不渲染', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [],
+    });
+
+    const defaultWrapper = mountProTable({ table }).wrapper;
+    await flushPromises();
+    expect(defaultWrapper.find('.pro-table_header_size-control').exists()).toBe(
+      true
+    );
+    expect(
+      defaultWrapper.find('.pro-table_header_column-control').exists()
+    ).toBe(true);
+    defaultWrapper.unmount();
+
+    // 反向分支：显式 false 覆盖内置默认 true
+    const offWrapper = mountProTable({
+      table,
+      props: { control: false },
+    }).wrapper;
+    await flushPromises();
+    expect(offWrapper.find('.pro-table_header_size-control').exists()).toBe(
+      false
+    );
+    expect(offWrapper.find('.pro-table_header_column-control').exists()).toBe(
+      false
+    );
+    offWrapper.unmount();
   });
 
   // ----------------------------------------------------
@@ -410,166 +493,87 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PT-E1 [判别]: ProTable 透传 @row-click 事件并在点击行时正确触发
+  // PT-E1..E4 [判别]: 宿主表格事件经 attrs 透传至 ElTable 并回传原始负载
   // ----------------------------------------------------
-  it('PT-E1 [判别]: ProTable 透传 @row-click 事件并在点击行时正确触发', async () => {
-    let clickedRow: any = null;
-    let clickedColumn: any = null;
-    const onRowClick = (row: any, column: any) => {
-      clickedRow = row;
-      clickedColumn = column;
-    };
-
-    const table = useTable({
-      columns: [
-        { prop: 'id', label: 'ID' },
-        { prop: 'name', label: '姓名' },
-      ],
-      data: [
+  /* 事件透传参数表：[编号, 宿主事件名, 监听 prop 名, 额外 props, 列, 数据, 事件负载] */
+  const tableEventCases: Array<
+    [string, string, string, Record<string, any>, any[], any[], any[]]
+  > = [
+    [
+      'PT-E1',
+      'row-click',
+      'onRowClick',
+      {},
+      [{ prop: 'id', label: 'ID' }],
+      [
         { id: 1, name: '张三' },
         { id: 2, name: '李四' },
       ],
-    });
-
-    const wrapper = mount(ProTable, {
-      props: {
-        table,
-        onRowClick,
-      },
-      global: { stubs: { transition: false } },
-    });
-
-    await flushPromises();
-
-    // 找到 ElTable 并触发 row-click 事件
-    const elTable = wrapper.findComponent({ name: 'ElTable' });
-    expect(elTable.exists()).toBe(true);
-
-    const mockRow = { id: 1, name: '张三' };
-    const mockCol = { property: 'name' };
-    elTable.vm.$emit('row-click', mockRow, mockCol);
-    await flushPromises();
-
-    expect(clickedRow).toEqual(mockRow);
-    expect(clickedColumn).toEqual(mockCol);
-
-    wrapper.unmount();
-  });
-
-  // ----------------------------------------------------
-  // PT-E2 [判别]: ProTable 透传 @selection-change 事件并在勾选变化时正确触发
-  // ----------------------------------------------------
-  it('PT-E2 [判别]: ProTable 透传 @selection-change 事件并在勾选变化时正确触发', async () => {
-    let selectionResult: any[] = [];
-    const onSelectionChange = (selection: any[]) => {
-      selectionResult = selection;
-    };
-
-    const table = useTable({
-      columns: [
+      [{ id: 1, name: '张三' }, { property: 'name' }],
+    ],
+    [
+      'PT-E2',
+      'selection-change',
+      'onSelectionChange',
+      {},
+      [
         { type: 'selection', width: 55 },
         { prop: 'name', label: '姓名' },
       ],
-      data: [
+      [
         { id: 1, name: '张三' },
         { id: 2, name: '李四' },
       ],
-    });
+      [[{ id: 1, name: '张三' }]],
+    ],
+    [
+      'PT-E3',
+      'sort-change',
+      'onSortChange',
+      {},
+      [{ prop: 'age', label: '年龄', sortable: true }],
+      [{ age: 18 }, { age: 25 }],
+      [{ column: {}, prop: 'age', order: 'descending' }],
+    ],
+    [
+      'PT-E4',
+      'current-change',
+      'onCurrentChange',
+      { highlightCurrentRow: true },
+      [{ prop: 'name', label: '姓名' }],
+      [{ name: '王五' }],
+      [{ name: '王五' }, null],
+    ],
+  ];
 
-    const wrapper = mount(ProTable, {
-      props: {
-        table,
-        onSelectionChange,
-      },
-      global: { stubs: { transition: false } },
-    });
+  it.each(tableEventCases)(
+    '%s [判别]: ProTable 透传 @%s 事件并回传宿主原始负载',
+    async (_id, eventName, listener, extraProps, columns, data, payload) => {
+      const handler = vi.fn();
 
-    await flushPromises();
+      const table = useTable({ columns: columns as any, data: data as any });
+      const wrapper = mount(ProTable as any, {
+        props: { table, [listener]: handler, ...extraProps } as any,
+        global: { stubs: { transition: false } },
+      });
 
-    const elTable = wrapper.findComponent({ name: 'ElTable' });
-    expect(elTable.exists()).toBe(true);
+      try {
+        await flushPromises();
 
-    const selectedRows = [{ id: 1, name: '张三' }];
-    elTable.vm.$emit('selection-change', selectedRows);
-    await flushPromises();
+        const elTable = wrapper.findComponent({ name: 'ElTable' });
+        expect(elTable.exists()).toBe(true);
 
-    expect(selectionResult).toEqual(selectedRows);
+        elTable.vm.$emit(eventName, ...payload);
+        await flushPromises();
 
-    wrapper.unmount();
-  });
-
-  // ----------------------------------------------------
-  // PT-E3 [判别]: ProTable 透传 @sort-change 事件并在排序变更时正确触发
-  // ----------------------------------------------------
-  it('PT-E3 [判别]: ProTable 透传 @sort-change 事件并在排序变更时正确触发', async () => {
-    let sortPayload: any = null;
-    const onSortChange = (payload: any) => {
-      sortPayload = payload;
-    };
-
-    const table = useTable({
-      columns: [{ prop: 'age', label: '年龄', sortable: true }],
-      data: [{ age: 18 }, { age: 25 }],
-    });
-
-    const wrapper = mount(ProTable, {
-      props: {
-        table,
-        onSortChange,
-      },
-      global: { stubs: { transition: false } },
-    });
-
-    await flushPromises();
-
-    const elTable = wrapper.findComponent({ name: 'ElTable' });
-    expect(elTable.exists()).toBe(true);
-
-    const mockSort = { column: {}, prop: 'age', order: 'descending' };
-    elTable.vm.$emit('sort-change', mockSort);
-    await flushPromises();
-
-    expect(sortPayload).toEqual(mockSort);
-
-    wrapper.unmount();
-  });
-
-  // ----------------------------------------------------
-  // PT-E4 [判别]: ProTable 透传 @current-change 事件并在高亮行切换时正确触发
-  // ----------------------------------------------------
-  it('PT-E4 [判别]: ProTable 透传 @current-change 事件并在高亮行切换时正确触发', async () => {
-    let currentRowResult: any = null;
-    const onCurrentChange = (currentRow: any) => {
-      currentRowResult = currentRow;
-    };
-
-    const table = useTable({
-      columns: [{ prop: 'name', label: '姓名' }],
-      data: [{ name: '王五' }],
-    });
-
-    const wrapper = mount(ProTable, {
-      props: {
-        table,
-        highlightCurrentRow: true,
-        onCurrentChange,
-      },
-      global: { stubs: { transition: false } },
-    });
-
-    await flushPromises();
-
-    const elTable = wrapper.findComponent({ name: 'ElTable' });
-    expect(elTable.exists()).toBe(true);
-
-    const mockCurrent = { name: '王五' };
-    elTable.vm.$emit('current-change', mockCurrent, null);
-    await flushPromises();
-
-    expect(currentRowResult).toEqual(mockCurrent);
-
-    wrapper.unmount();
-  });
+        // 判别点：宿主事件恰好触发一次且原样回传全部负载
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(handler).toHaveBeenCalledWith(...payload);
+      } finally {
+        wrapper.unmount();
+      }
+    }
+  );
 
   // ----------------------------------------------------
   // PT-E5 [判别]: ProComponentProvider 全局注入的表格事件正确透传与生效
@@ -688,6 +692,24 @@ describe('ProTable 组件测试', () => {
     await flushPromises();
     expect(offWrapper.text()).not.toContain('序号');
     offWrapper.unmount();
+
+    // Provider 关闭默认后 prop 传 true：prop 通道生效，序号列仍渲染
+    const providedWrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': {
+            addIndexColumn: false,
+          },
+        },
+      },
+      slots: {
+        default: () => h(ProTable as any, { table, addIndexColumn: true }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(providedWrapper.text()).toContain('序号');
+    providedWrapper.unmount();
   });
 
   // ----------------------------------------------------
@@ -786,34 +808,41 @@ describe('ProTable 组件测试', () => {
   // ----------------------------------------------------
   it('PT-A20 [判别]: 传入 default 插槽时列渲染器不被顶掉，列与数据照常渲染', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const table = useTable({
-      columns: [{ prop: 'name', label: '姓名' }],
-      data: [{ name: '甲' }],
-    } as any);
+    try {
+      const table = useTable({
+        columns: [{ prop: 'name', label: '姓名' }],
+        data: [{ name: '甲' }],
+      } as any);
 
-    const wrapper = mount(ProTable, {
-      props: { table, addIndexColumn: false },
-      slots: {
-        default: () => h('div', { class: 'user-default-slot' }, '用户内容'),
-      },
-      global: { stubs: { transition: false } },
-    });
-    await flushPromises();
+      const wrapper = mount(ProTable, {
+        props: { table, addIndexColumn: false },
+        slots: {
+          default: () => h('div', { class: 'user-default-slot' }, '用户内容'),
+        },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
 
-    // 列与数据仍由 TableColumnRenderer 渲染
-    const headerCells = wrapper.findAll('.el-table__header th');
-    expect(headerCells).toHaveLength(1);
-    expect(headerCells[0].text()).toContain('姓名');
-    expect(wrapper.find('tbody').text()).toContain('甲');
-    // 用户 default 内容不透传宿主表格（否则会顶掉列渲染器）
-    expect(wrapper.find('.user-default-slot').exists()).toBe(false);
-    // 一次性提示，便于定位
-    expect(
-      warnSpy.mock.calls.some(c => String(c[0]).includes('default 插槽保留'))
-    ).toBe(true);
-
-    warnSpy.mockRestore();
-    wrapper.unmount();
+      try {
+        // 列与数据仍由 TableColumnRenderer 渲染
+        const headerCells = wrapper.findAll('.el-table__header th');
+        expect(headerCells).toHaveLength(1);
+        expect(headerCells[0].text()).toContain('姓名');
+        expect(wrapper.find('tbody').text()).toContain('甲');
+        // 用户 default 内容不透传宿主表格（否则会顶掉列渲染器）
+        expect(wrapper.find('.user-default-slot').exists()).toBe(false);
+        // 一次性提示，便于定位
+        expect(
+          warnSpy.mock.calls.some(c =>
+            String(c[0]).includes('default 插槽保留')
+          )
+        ).toBe(true);
+      } finally {
+        wrapper.unmount();
+      }
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 
   // ----------------------------------------------------
@@ -952,38 +981,42 @@ describe('ProTable 组件测试', () => {
   it('PT-A30 [判别]: 两类搜索告警分别出现且同原因不重复，未配置 search 时零告警', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // 同时命中两类原因：冲突提示与「未返回 Promise」提示都要出现
-    const both = mount(ProTable, {
-      props: {
-        table: useTable({ columns: createBasicColumns(), data: [] }),
-        search: () => 'not-promise',
-      } as any,
-      attrs: { onSearch: () => {} },
-      global: { stubs: { transition: false } },
-    });
-    await flushPromises();
-    await (both.vm as any).search();
-    await (both.vm as any).search();
+    try {
+      // 同时命中两类原因：冲突提示与「未返回 Promise」提示都要出现
+      const both = mount(ProTable, {
+        props: {
+          table: useTable({ columns: createBasicColumns(), data: [] }),
+          search: () => 'not-promise',
+        } as any,
+        attrs: { onSearch: () => {} },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      await (both.vm as any).search();
+      await (both.vm as any).search();
 
-    const messages = warnSpy.mock.calls.map(call => String(call[0]));
-    expect(messages.filter(msg => msg.includes('请仅保留其一'))).toHaveLength(
-      1
-    );
-    expect(messages.filter(msg => msg.includes('未返回 Promise'))).toHaveLength(
-      1
-    );
-    both.unmount();
-    warnSpy.mockClear();
+      const messages = warnSpy.mock.calls.map(call => String(call[0]));
+      expect(messages.filter(msg => msg.includes('请仅保留其一'))).toHaveLength(
+        1
+      );
+      expect(
+        messages.filter(msg => msg.includes('未返回 Promise'))
+      ).toHaveLength(1);
+      both.unmount();
+      warnSpy.mockClear();
 
-    // prop 与 @search 均缺省：不产生任何告警
-    const none = mount(ProTable, {
-      props: { table: useTable({ columns: createBasicColumns(), data: [] }) },
-      global: { stubs: { transition: false } },
-    });
-    await flushPromises();
-    await (none.vm as any).search();
-    expect(warnSpy).not.toHaveBeenCalled();
-    none.unmount();
+      // prop 与 @search 均缺省：不产生任何告警
+      const none = mount(ProTable, {
+        props: { table: useTable({ columns: createBasicColumns(), data: [] }) },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      await (none.vm as any).search();
+      expect(warnSpy).not.toHaveBeenCalled();
+      none.unmount();
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 
   // ----------------------------------------------------
@@ -1041,5 +1074,209 @@ describe('ProTable 组件测试', () => {
     );
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A32 [判别]: size-change 重置回第 1 页并按次查询，change 透传宿主回调
+  // ----------------------------------------------------
+  it('PT-A32 [判别]: size-change 重置回第 1 页并按次查询，change 与搜索提交各自独立计数', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [],
+      pageParam: { current: 3, pageSize: 10, total: 40 },
+      searchFields: [{ path: 'name', label: '姓名', component: 'input' }],
+    });
+    const searchSpy = vi.fn().mockResolvedValue(undefined);
+    const onChange = vi.fn();
+
+    const { wrapper } = mountProTable({
+      table,
+      search: searchSpy as any,
+      props: { onChange },
+    });
+
+    try {
+      await flushPromises();
+      const pagination = wrapper.findComponent(ElPagination);
+      expect(pagination.props('currentPage')).toBe(3);
+      expect(pagination.props('pageSize')).toBe(10);
+      expect(searchSpy).not.toHaveBeenCalled();
+
+      // size-change：pageSize 更新且 current 重置回 1，查询 +1
+      pagination.vm.$emit('size-change', 20);
+      await flushPromises();
+      expect(table.pageParam.pageSize).toBe(20);
+      expect(table.pageParam.current).toBe(1);
+      expect(searchSpy).toHaveBeenCalledTimes(1);
+      expect(wrapper.findComponent(ElPagination).props('pageSize')).toBe(20);
+      // 宿主依据新 props 自行派发 change(1, 20)，经 onPaginationChange 透传重置后的页码
+      expect(onChange).toHaveBeenLastCalledWith(1, 20);
+
+      // change：显式派发仅透传宿主回调，不产生额外查询
+      onChange.mockClear();
+      pagination.vm.$emit('change', 2, 20);
+      await flushPromises();
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(2, 20);
+      expect(searchSpy).toHaveBeenCalledTimes(1);
+
+      // 搜索提交：同样重置回第 1 页并查询（与 size-change 同一重置语义）
+      table.setPageParam({ current: 4 });
+      await flushPromises();
+      wrapper.findComponent(SearchForm).vm.$emit('search');
+      await flushPromises();
+      expect(table.pageParam.current).toBe(1);
+      expect(searchSpy).toHaveBeenCalledTimes(2);
+    } finally {
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
+  // PT-A33 [判别]: 表级 pagination 对象 × Provider × pageParam 合并优先级与兜底
+  // ----------------------------------------------------
+  it('PT-A33 [判别]: pagination 合并优先级与 pageParam 兜底在分页 props 上逐项生效', async () => {
+    const wrappers: any[] = [];
+    const mountCase = (options: any) => {
+      const wrapper = mount(options.component, options.mountOptions);
+      wrappers.push(wrapper);
+      return wrapper;
+    };
+
+    try {
+      // 场景一：表级对象覆盖 Provider 同名键，未声明键由 Provider 合并；
+      // total/currentPage/pageSize 由 pageParam 兜底覆盖表级对象
+      const table1 = useTable({
+        columns: createBasicColumns(),
+        data: [],
+        pageParam: { current: 2, pageSize: 20, total: 55 },
+      });
+      const merged = mountCase({
+        component: ProComponentProvider as any,
+        mountOptions: {
+          props: {
+            componentVars: {
+              'pro-table': {
+                pagination: {
+                  layout: 'prev, pager, next',
+                  pageSizes: [5, 15],
+                  background: true,
+                  hideOnSinglePage: true,
+                },
+              },
+            },
+          },
+          slots: {
+            default: () =>
+              h(ProTable as any, {
+                table: table1,
+                pagination: {
+                  layout: 'total, prev, pager, next',
+                },
+              }),
+          },
+          global: { stubs: { transition: false } },
+        },
+      });
+      await flushPromises();
+      const mergedPagination = merged.findComponent(ElPagination);
+      expect(mergedPagination.props('layout')).toBe('total, prev, pager, next');
+      // 未在表级声明的键由 Provider 合并下发
+      expect(mergedPagination.props('pageSizes')).toEqual([5, 15]);
+      expect(mergedPagination.props('background')).toBe(true);
+      expect(mergedPagination.props('hideOnSinglePage')).toBe(true);
+      expect(mergedPagination.props('total')).toBe(55);
+      expect(mergedPagination.props('currentPage')).toBe(2);
+      expect(mergedPagination.props('pageSize')).toBe(20);
+
+      // 场景二：无表级对象时 Provider 对象整体生效，pageParam 覆盖分页三元组
+      const table2 = useTable({
+        columns: createBasicColumns(),
+        data: [],
+        pageParam: { current: 3, pageSize: 30, total: 80 },
+      });
+      const providerOnly = mountCase({
+        component: ProComponentProvider as any,
+        mountOptions: {
+          props: {
+            componentVars: {
+              'pro-table': {
+                pagination: {
+                  layout: 'prev, pager, next',
+                  pageSizes: [5, 15],
+                  background: true,
+                },
+              },
+            },
+          },
+          slots: { default: () => h(ProTable as any, { table: table2 }) },
+          global: { stubs: { transition: false } },
+        },
+      });
+      await flushPromises();
+      const providerPagination = providerOnly.findComponent(ElPagination);
+      expect(providerPagination.props('layout')).toBe('prev, pager, next');
+      expect(providerPagination.props('pageSizes')).toEqual([5, 15]);
+      expect(providerPagination.props('total')).toBe(80);
+      expect(providerPagination.props('currentPage')).toBe(3);
+      expect(providerPagination.props('pageSize')).toBe(30);
+
+      // 场景三：无 table 时表级对象的 currentPage/pageSize/total 兜底生效
+      const noTable = mountCase({
+        component: ProTable as any,
+        mountOptions: {
+          props: {
+            pagination: { currentPage: 5, pageSize: 30, total: 60 },
+          },
+          global: { stubs: { transition: false } },
+        },
+      });
+      await flushPromises();
+      const fallbackPagination = noTable.findComponent(ElPagination);
+      expect(fallbackPagination.props('currentPage')).toBe(5);
+      expect(fallbackPagination.props('pageSize')).toBe(30);
+      expect(fallbackPagination.props('total')).toBe(60);
+
+      // 场景四：Provider pagination=false 时表级对象仍生效，Provider 键不下发
+      const table4 = useTable({
+        columns: createBasicColumns(),
+        data: [],
+        pageParam: { current: 1, pageSize: 10, total: 12 },
+      });
+      const providerOff = mountCase({
+        component: ProComponentProvider as any,
+        mountOptions: {
+          props: {
+            componentVars: {
+              'pro-table': {
+                pagination: false,
+              },
+            },
+          },
+          slots: {
+            default: () =>
+              h(ProTable as any, {
+                table: table4,
+                pagination: {
+                  layout: 'total, prev, pager, next',
+                  background: true,
+                },
+              }),
+          },
+          global: { stubs: { transition: false } },
+        },
+      });
+      await flushPromises();
+      const offPagination = providerOff.findComponent(ElPagination);
+      expect(offPagination.exists()).toBe(true);
+      expect(offPagination.props('layout')).toBe('total, prev, pager, next');
+      expect(offPagination.props('background')).toBe(true);
+      // Provider 的 pageSizes 未下发，回退宿主默认
+      expect(offPagination.props('pageSizes')).toEqual([
+        10, 20, 30, 40, 50, 100,
+      ]);
+    } finally {
+      wrappers.forEach(wrapper => wrapper.unmount());
+    }
   });
 });

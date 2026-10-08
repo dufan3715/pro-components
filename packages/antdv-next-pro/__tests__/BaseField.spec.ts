@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, markRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
-import { flushPromises } from './helpers/mount';
+import { expectWarn, flushPromises } from './helpers/mount';
 import { DatePicker, Input, Switch } from '../src/shared/ui';
 
 describe('BaseField 组件测试', () => {
@@ -97,29 +97,30 @@ describe('BaseField 组件测试', () => {
   // ----------------------------------------------------
   it('BF-A14 [判别]: 未识别组件名时输出 console.warn 提示并渲染为原生元素', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    let wrapper: ReturnType<typeof mount> | undefined;
 
-    const form = useForm({}, [
-      { path: 'unknownField', component: 'unknown-custom-widget' as any },
-    ]);
+    try {
+      const form = useForm({}, [
+        { path: 'unknownField', component: 'unknown-custom-widget' as any },
+      ]);
 
-    const wrapper = mount(ProForm, {
-      props: { form },
-      global: { stubs: { transition: false } },
-    });
+      wrapper = mount(ProForm, {
+        props: { form },
+        global: { stubs: { transition: false } },
+      });
 
-    await flushPromises();
+      await flushPromises();
 
-    // 关键判别点：捕获到了未识别组件警告
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('未识别的组件类型 "unknown-custom-widget"')
-    );
+      // 关键判别点：捕获到了未识别组件警告
+      expectWarn(warnSpy, '未识别的组件类型 "unknown-custom-widget"');
 
-    // 并且降级渲染了原生元素 <unknown-custom-widget>
-    const fallbackEl = wrapper.find('unknown-custom-widget');
-    expect(fallbackEl.exists()).toBe(true);
-
-    warnSpy.mockRestore();
-    wrapper.unmount();
+      // 并且降级渲染了原生元素 <unknown-custom-widget>
+      const fallbackEl = wrapper.find('unknown-custom-widget');
+      expect(fallbackEl.exists()).toBe(true);
+    } finally {
+      warnSpy.mockRestore();
+      wrapper?.unmount();
+    }
   });
 
   // ----------------------------------------------------
@@ -139,7 +140,7 @@ describe('BaseField 组件测试', () => {
 
     const wrapper = mount(ProComponentProvider, {
       props: {
-        componentMap: { 'custom-alias': CustomComponent } as any,
+        componentMap: { 'custom-alias': markRaw(CustomComponent) } as any,
       },
       slots: {
         default: () =>

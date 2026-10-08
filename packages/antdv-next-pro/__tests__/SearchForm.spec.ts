@@ -1,67 +1,73 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, markRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import SearchForm from '../src/components/table/components/SearchForm.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
-import { flushPromises } from './helpers/mount';
+import { expectWarn, flushPromises, waitForRaf } from './helpers/mount';
 import { triggerResize, triggerIntersect } from './setup';
 
 describe('SearchForm 组件测试', () => {
   // ----------------------------------------------------
   // SF-A4 [判别]: 手动展开状态保留，ResizeObserver 重新测量不覆盖
   // ----------------------------------------------------
-  it('SF-A4 [判别]: 手动点击展开后，重新测量越过死区仍保持用户手动状态', async () => {
+  it('SF-A4 [判别]: 手动点击展开后，越过死区的重测写入新高度但不覆盖手动状态', async () => {
     const scrollHeightSpy = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
       .mockReturnValue(120);
+    let wrapper: ReturnType<typeof mount> | undefined;
 
-    const form = useForm({}, [
-      { path: 'f1', label: '字段1', component: 'input' },
-      { path: 'f2', label: '字段2', component: 'input' },
-      { path: 'f3', label: '字段3', component: 'input' },
-      { path: 'f4', label: '字段4', component: 'input' },
-    ]);
+    try {
+      const form = useForm({}, [
+        { path: 'f1', label: '字段1', component: 'input' },
+        { path: 'f2', label: '字段2', component: 'input' },
+        { path: 'f3', label: '字段3', component: 'input' },
+        { path: 'f4', label: '字段4', component: 'input' },
+      ]);
 
-    const wrapper = mount(SearchForm, {
-      props: {
-        form,
-        expand: { minExpandRows: 1, expandStatus: false },
-      },
-      global: { stubs: { transition: false } },
-    });
+      wrapper = mount(SearchForm, {
+        props: {
+          form,
+          expand: { minExpandRows: 1, expandStatus: false },
+        },
+        global: { stubs: { transition: false } },
+      });
 
-    await flushPromises();
+      await flushPromises();
 
-    // 以 Hook 实际观察的表单根元素为 resize 目标
-    const formEl = (form.formRef.value as any)?.$el as HTMLElement;
-    expect(formEl).toBeTruthy();
+      // 以 Hook 实际观察的表单根元素为 resize 目标
+      const formEl = (form.formRef.value as any)?.$el as HTMLElement;
+      expect(formEl).toBeTruthy();
+      const toggleText = () =>
+        wrapper!.find('.pro-table_search-form_expand-toggle-button').text();
 
-    // 触发 ResizeObserver 测量
-    triggerResize(formEl);
-    await flushPromises();
+      // 挂载期测量：读数 120 超过折叠高度 32，未展开时施加折叠高度，展开按钮出现
+      expect(wrapper.attributes('style')).toContain('height: 32px');
+      expect(toggleText()).toContain('展开');
 
-    const expandBtn = wrapper.find(
-      '.pro-table_search-form_expand-toggle-button'
-    );
-    expect(expandBtn.exists()).toBe(true);
+      // 用户手动点击展开：高度切到自然高度
+      await wrapper
+        .find('.pro-table_search-form_expand-toggle-button')
+        .trigger('click');
+      await flushPromises();
+      expect(toggleText()).toContain('收起');
+      expect(wrapper.attributes('style')).toContain('height: 120px');
 
-    // 用户手动点击展开
-    await expandBtn.trigger('click');
-    await flushPromises();
-    expect(
-      wrapper.find('.pro-table_search-form_expand-toggle-button').text()
-    ).toContain('收起');
+      // 测量读数变化并越过 2px 死区，经 RO → rAF 重测；手动锁定必须拦截自动覆盖
+      scrollHeightSpy.mockReturnValue(400);
+      // RO 回调经 rAF 合帧后写入：同步读取仍是旧读数
+      triggerResize(formEl);
+      expect(wrapper.attributes('style')).toContain('height: 120px');
+      await waitForRaf();
+      await flushPromises();
 
-    // 测量读数变化并越过 2px 死区，触发自动测量重跑；手动锁定必须拦截自动覆盖
-    scrollHeightSpy.mockReturnValue(400);
-    triggerResize(formEl);
-    await flushPromises();
-    expect(
-      wrapper.find('.pro-table_search-form_expand-toggle-button').text()
-    ).toContain('收起');
-
-    scrollHeightSpy.mockRestore();
-    wrapper.unmount();
+      // 重测确实执行并写入新读数
+      expect(wrapper.attributes('style')).toContain('height: 400px');
+      // 手动状态未被自动测量覆盖
+      expect(toggleText()).toContain('收起');
+    } finally {
+      scrollHeightSpy.mockRestore();
+      wrapper?.unmount();
+    }
   });
 
   // ----------------------------------------------------
@@ -71,51 +77,54 @@ describe('SearchForm 组件测试', () => {
     const scrollHeightSpy = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
       .mockReturnValue(100);
+    let wrapper: ReturnType<typeof mount> | undefined;
 
-    const form = useForm({ hiddenField: '关键词' }, [
-      { path: 'visibleField', label: '第一行', component: 'input' },
-      { path: 'hiddenField', label: '隐藏行', component: 'input' },
-    ]);
+    try {
+      const form = useForm({ hiddenField: '关键词' }, [
+        { path: 'visibleField', label: '第一行', component: 'input' },
+        { path: 'hiddenField', label: '隐藏行', component: 'input' },
+      ]);
 
-    const wrapper = mount(SearchForm, {
-      props: {
-        form,
-        expand: { minExpandRows: 1, expandStatus: false },
-      },
-      global: { stubs: { transition: false } },
-    });
+      wrapper = mount(SearchForm, {
+        props: {
+          form,
+          expand: { minExpandRows: 1, expandStatus: false },
+        },
+        global: { stubs: { transition: false } },
+      });
 
-    await flushPromises();
+      await flushPromises();
 
-    // 以 Hook 实际观察的表单根元素为 resize 目标
-    const formEl = (form.formRef.value as any)?.$el as HTMLElement;
-    expect(formEl).toBeTruthy();
+      // 以 Hook 实际观察的表单根元素为 resize 目标
+      const formEl = (form.formRef.value as any)?.$el as HTMLElement;
+      expect(formEl).toBeTruthy();
 
-    // 触发 Resize 激活 observer
-    triggerResize(formEl);
-    await flushPromises();
+      // 触发 Resize 激活 observer
+      triggerResize(formEl);
+      await flushPromises();
 
-    const hiddenItem = wrapper.find('[path="hiddenField"]');
-    expect(hiddenItem.exists()).toBe(true);
-    // 模拟 IntersectionObserver 报告 hiddenField 不在可视区域 (intersectionRatio === 0)
-    triggerIntersect([
-      {
-        target: hiddenItem.element,
-        intersectionRatio: 0,
-        isIntersecting: false,
-      } as any,
-    ]);
-    await flushPromises();
+      const hiddenItem = wrapper.find('[path="hiddenField"]');
+      expect(hiddenItem.exists()).toBe(true);
+      // 模拟 IntersectionObserver 报告 hiddenField 不在可视区域 (intersectionRatio === 0)
+      triggerIntersect([
+        {
+          target: hiddenItem.element,
+          intersectionRatio: 0,
+          isIntersecting: false,
+        } as any,
+      ]);
+      await flushPromises();
 
-    // 含有值所以自动展开为「收起」
-    const expandBtn = wrapper.find(
-      '.pro-table_search-form_expand-toggle-button'
-    );
-    expect(expandBtn.exists()).toBe(true);
-    expect(expandBtn.text()).toContain('收起');
-
-    scrollHeightSpy.mockRestore();
-    wrapper.unmount();
+      // 含有值所以自动展开为「收起」
+      const expandBtn = wrapper.find(
+        '.pro-table_search-form_expand-toggle-button'
+      );
+      expect(expandBtn.exists()).toBe(true);
+      expect(expandBtn.text()).toContain('收起');
+    } finally {
+      scrollHeightSpy.mockRestore();
+      wrapper?.unmount();
+    }
   });
 
   // ----------------------------------------------------
@@ -164,12 +173,14 @@ describe('SearchForm 组件测试', () => {
     expect(typeof capturedOnSearch).toBe('function');
     expect(typeof capturedExpandStatus).toBe('boolean');
 
-    // 点击自定义按钮能正常触发父级 emit
+    // 点击自定义按钮能正常触发父级 emit，且各恰好一次
     await wrapper.find('.custom-reset-btn').trigger('click');
-    expect(wrapper.emitted('reset')).toBeTruthy();
+    await flushPromises();
+    expect(wrapper.emitted('reset')).toHaveLength(1);
 
     await wrapper.find('.custom-search-btn').trigger('click');
-    expect(wrapper.emitted('search')).toBeTruthy();
+    await flushPromises();
+    expect(wrapper.emitted('search')).toHaveLength(1);
 
     wrapper.unmount();
   });
@@ -192,28 +203,43 @@ describe('SearchForm 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // SF-01: layout="inline" 与 layout="grid" 布局形态
+  // SF-01 [判别]: layout="inline" 与 layout="grid" 布局形态
   // ----------------------------------------------------
-  it('SF-01: layout 属性支持 inline 与 grid 切换', async () => {
+  it('SF-01 [判别]: layout 属性支持 inline 与 grid 切换', async () => {
     const form = useForm({}, [{ path: 'name', component: 'input' }]);
 
+    // grid（默认）：栅格容器 + 折叠高度约束
+    const wrapperGrid = mount(SearchForm, {
+      props: { form, layout: 'grid' },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapperGrid.find('.ant-form-inline').exists()).toBe(false);
+    expect(wrapperGrid.find('.ant-row').exists()).toBe(true);
+    expect(wrapperGrid.attributes('style')).toContain('display: flex');
+    expect(wrapperGrid.attributes('style')).toContain('overflow: hidden');
+    wrapperGrid.unmount();
+
+    // inline：行内布局 + 无折叠高度约束
     const wrapperInline = mount(SearchForm, {
       props: { form, layout: 'inline' },
       global: { stubs: { transition: false } },
     });
     await flushPromises();
     expect(wrapperInline.find('.ant-form-inline').exists()).toBe(true);
+    expect(wrapperInline.attributes('style')).not.toContain('overflow: hidden');
     wrapperInline.unmount();
   });
 
   // ----------------------------------------------------
-  // SF-02: 默认 search / reset 按钮点击事件
+  // SF-02 [判别]: 默认按钮交互（查询按钮经表单 submit 触发 search）
   // ----------------------------------------------------
-  it('SF-02: 点击默认搜索与重置按钮触发 search 与 reset 事件', async () => {
+  it('SF-02 [判别]: 点击默认搜索与重置按钮触发 search 与 reset 事件', async () => {
     const form = useForm({}, [{ path: 'name', component: 'input' }]);
 
     const wrapper = mount(SearchForm, {
       props: { form },
+      attachTo: document.body,
       global: { stubs: { transition: false } },
     });
 
@@ -222,10 +248,42 @@ describe('SearchForm 组件测试', () => {
     await wrapper.find('.pro-table_search-form_reset-button').trigger('click');
     expect(wrapper.emitted('reset')).toHaveLength(1);
 
-    await wrapper.find('.pro-table_search-form_search-button').trigger('click');
+    // 查询按钮为 html-type=submit：点击必须经原生表单提交触发 search（不手工补 submit）
+    const searchButton = wrapper.find('.pro-table_search-form_search-button');
+    expect(searchButton.attributes('type')).toBe('submit');
+    await searchButton.trigger('click');
+    await flushPromises();
     expect(wrapper.emitted('search')).toHaveLength(1);
 
     wrapper.unmount();
+    document.body.innerHTML = '';
+  });
+
+  // ----------------------------------------------------
+  // SF-05 [判别]: 回车（表单 submit）触发查询，点击与回车各只触发一次
+  // ----------------------------------------------------
+  it('SF-05 [判别]: 搜索框内回车触发一次 search，与点击合计不重复触发', async () => {
+    const form = useForm({}, [{ path: 'name', component: 'input' }]);
+
+    const wrapper = mount(SearchForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 回车由宿主表单的 submit 事件送达（浏览器隐式提交路径）
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+    expect(wrapper.emitted('search')).toHaveLength(1);
+
+    // 点击走同一 submit 路径：合计恰好两次，不存在 @click 与 @submit 双触发
+    await wrapper.find('.pro-table_search-form_search-button').trigger('click');
+    await flushPromises();
+    expect(wrapper.emitted('search')).toHaveLength(2);
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
   });
 
   // ----------------------------------------------------
@@ -249,7 +307,7 @@ describe('SearchForm 组件测试', () => {
     const wrapper = mount(SearchForm, {
       props: {
         form,
-        searchButton: CustomBtn as any,
+        searchButton: markRaw(CustomBtn) as any,
         resetButton: false, // 禁用重置按钮
       },
       global: { stubs: { transition: false } },
@@ -287,13 +345,21 @@ describe('SearchForm 组件测试', () => {
   // SF-A16 [判别]: form 为必填 prop，无默认值兜底
   // ----------------------------------------------------
   it('SF-A16 [判别]: form 声明为必填且不带默认值', () => {
-    // @ts-expect-error form 为必填 prop，省略时不通过类型检查
-    const wrapper = mount(SearchForm, { props: {} });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    let wrapper: ReturnType<typeof mount> | undefined;
 
-    const formProp = (SearchForm as any).props.form;
-    expect(formProp.required).toBe(true);
-    expect('default' in formProp).toBe(false);
+    try {
+      // @ts-expect-error form 为必填 prop，省略时不通过类型检查
+      wrapper = mount(SearchForm, { props: {} });
 
-    wrapper.unmount();
+      const formProp = (SearchForm as any).props.form;
+      expect(formProp.required).toBe(true);
+      expect('default' in formProp).toBe(false);
+      // 运行期缺参由宿主 Vue 校验兜底：输出缺失必填 prop 告警
+      expectWarn(warnSpy, 'Missing required prop: "form"');
+    } finally {
+      warnSpy.mockRestore();
+      wrapper?.unmount();
+    }
   });
 });

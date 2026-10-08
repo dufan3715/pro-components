@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { computed, defineComponent, h, provide, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import { LOCALE_INJECT_KEY, useLocale, type ProLocale } from '../src/locale';
@@ -281,6 +281,7 @@ describe('Hooks 与 Locale 基础能力测试', () => {
   // PF-A4 [判别]: 适配层 useFormRef 转发宿主表单方法
   // ----------------------------------------------------
   it('PF-A4 [判别]: 适配层 useFormRef 绑定宿主 ElForm 实例并经 formRef 调用其校验/重置方法', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const form = useForm({ name: '' }, [
       {
         path: 'name',
@@ -296,33 +297,40 @@ describe('Hooks 与 Locale 基础能力测试', () => {
     });
     await flushPromises();
 
-    const hostForm = form.formRef.value as any;
-    expect(hostForm).toBeTruthy();
-    expect(typeof hostForm.validate).toBe('function');
+    try {
+      const hostForm = form.formRef.value as any;
+      expect(hostForm).toBeTruthy();
+      expect(typeof hostForm.validate).toBe('function');
 
-    const { formRef, setFormRef } = useFormRef();
-    expect(formRef.value).toBeUndefined();
+      const { formRef, setFormRef } = useFormRef();
+      expect(formRef.value).toBeUndefined();
 
-    // setFormRef 转发宿主实例
-    setFormRef(hostForm);
-    expect(formRef.value).toBe(hostForm);
+      // setFormRef 转发宿主实例
+      setFormRef(hostForm);
+      expect(formRef.value).toBe(hostForm);
 
-    // 经适配层 formRef 调用宿主 validate：校验失败并置位宿主表单项错误态
-    await expect(formRef.value!.validate()).rejects.toBeDefined();
-    await flushPromises();
-    expect(wrapper.find('.el-form-item').classes()).toContain('is-error');
-    expect(form.getFormData('name')).toBe('');
+      // 经适配层 formRef 调用宿主 validate：校验失败并置位宿主表单项错误态
+      await expect(formRef.value!.validate()).rejects.toBeDefined();
+      await flushPromises();
+      expect(wrapper.find('.el-form-item').classes()).toContain('is-error');
+      expect(form.getFormData('name')).toBe('');
+      // 校验失败恰好产生一条 async-validator 告警，无其他噪声
+      expect(warnSpy.mock.calls.map(call => String(call[0]))).toEqual([
+        'async-validator:',
+      ]);
 
-    await wrapper.find('input').setValue('abc');
-    await flushPromises();
-    expect(form.getFormData('name')).toBe('abc');
+      await wrapper.find('input').setValue('abc');
+      await flushPromises();
+      expect(form.getFormData('name')).toBe('abc');
 
-    // 经适配层 formRef 调用宿主 resetFields：错误态与字段值一并复位
-    await formRef.value!.resetFields();
-    await flushPromises();
-    expect(wrapper.find('.el-form-item').classes()).not.toContain('is-error');
-    expect(form.getFormData('name')).toBe('');
-
-    wrapper.unmount();
+      // 经适配层 formRef 调用宿主 resetFields：错误态与字段值一并复位
+      await formRef.value!.resetFields();
+      await flushPromises();
+      expect(wrapper.find('.el-form-item').classes()).not.toContain('is-error');
+      expect(form.getFormData('name')).toBe('');
+    } finally {
+      warnSpy.mockRestore();
+      wrapper.unmount();
+    }
   });
 });

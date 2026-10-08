@@ -112,37 +112,64 @@ globalThis.IntersectionObserver = MockIntersectionObserver as any;
 Element.prototype.scrollIntoView = vi.fn();
 
 // ----------------------------------------------------
-// M6: console.warn 白名单过滤策略（过滤预期的开发期测试噪声）
+// M6: console.warn / console.error 白名单与未放行输出失败策略
 // ----------------------------------------------------
 const originalWarn = console.warn.bind(console);
 const originalError = console.error.bind(console);
+/* 本包运行期实际出现的预期噪声：reactive 组件配置触发的 Vue 性能提示 */
 const IGNORED_WARN_PREFIXES = [
   '[Vue warn]: Vue received a Component that was made a reactive object',
-  '[Vue warn]: Invalid prop: type check failed for prop',
-  '[@vue/compiler-sfc] `defineSlots` is a compiler macro',
-  'please transfer a valid name path to form item!',
 ];
 
+/** 当前用例未放行的 warn/error 文本，afterEach 断言为空 */
+let unexpectedMessages: string[] = [];
+
+const formatArgs = (args: any[]) =>
+  args
+    .map(arg => (typeof arg === 'string' ? arg : String(arg)))
+    .join(' ')
+    .trim();
+
+const isIgnored = (msg: string) =>
+  IGNORED_WARN_PREFIXES.some(prefix => msg.includes(prefix));
+
+const isIgnoredCall = (args: any[]) =>
+  isIgnored(typeof args[0] === 'string' ? args[0] : '');
+
+const collect = (args: any[]) => {
+  const msg = formatArgs(args);
+  if (!isIgnored(msg)) {
+    unexpectedMessages.push(msg);
+  }
+};
+
 console.warn = (...args: any[]) => {
-  const msg = typeof args[0] === 'string' ? args[0] : '';
-  if (IGNORED_WARN_PREFIXES.some(prefix => msg.includes(prefix))) {
+  collect(args);
+  if (isIgnoredCall(args)) {
     return;
   }
   originalWarn(...args);
 };
 
 console.error = (...args: any[]) => {
-  const msg = typeof args[0] === 'string' ? args[0] : '';
-  if (IGNORED_WARN_PREFIXES.some(prefix => msg.includes(prefix))) {
+  collect(args);
+  if (isIgnoredCall(args)) {
     return;
   }
   originalError(...args);
 };
 
 // ----------------------------------------------------
-// M5: 清理钩子
+// M5: 清理钩子与未放行告警判定
 // ----------------------------------------------------
 afterEach(() => {
   activeResizeObservers.clear();
   activeIntersectionObservers.clear();
+  const pending = unexpectedMessages;
+  unexpectedMessages = [];
+  if (pending.length > 0) {
+    throw new Error(
+      `存在 ${pending.length} 条未放行的 warn/error 输出，请在用例内精确断言或补充 M6 白名单：\n${pending.join('\n')}`
+    );
+  }
 });

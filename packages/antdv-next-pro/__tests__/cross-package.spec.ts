@@ -2,14 +2,21 @@
  * 跨包行为一致性回归用例 —— antdv-next-pro 子集
  */
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { defineComponent, h, ref } from 'vue';
+import { defineComponent, h, markRaw, ref } from 'vue';
 import { mount } from '@vue/test-utils';
-import { flushPromises, mountProTable } from './helpers/mount';
+import {
+  expectWarn,
+  flushPromises,
+  mountProTable,
+  waitForRaf,
+} from './helpers/mount';
 import { useForm } from '../src/components/form';
 import { useTable } from '../src/components/table/hooks/useTable';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import ProTable from '../src/components/table/components/ProTable.vue';
+import SearchForm from '../src/components/table/components/SearchForm.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
+import { activeIntersectionObservers, triggerResize } from './setup';
 
 import { INJECT_CONFIG } from '../src/components/component-provider/constants';
 
@@ -171,6 +178,231 @@ describe('跨包一致性 · antdv-next-pro', () => {
     await flushPromises();
     expect((wrapper.findComponent(ProTable) as any).vm.loading).toBe(false);
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PC-A5 [判别]: 字段 componentStyle 覆盖 Provider 注入的预设 style
+  // ----------------------------------------------------
+  it('PC-A5 [判别]: 字段 componentStyle 覆盖 Provider 注入的预设样式', async () => {
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'input',
+        componentStyle: { width: '80%' },
+      } as any,
+    ]);
+    const Host = defineComponent({
+      setup(_, { slots }) {
+        return () =>
+          h(
+            ProComponentProvider,
+            { componentVars: { input: { style: { width: '100%' } } } },
+            slots
+          );
+      },
+    });
+    const wrapper = mount(Host, {
+      slots: { default: () => h(ProForm, { form }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 字段级 componentStyle 生效，注入预设不覆盖
+    expect(wrapper.html()).toContain('width: 80%');
+    expect(wrapper.html()).not.toContain('width: 100%');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PC-A6 [判别]: 运行期替换 Provider 的 componentMap 后解析结果即时切换
+  // ----------------------------------------------------
+  it('PC-A6 [判别]: 运行期替换 componentMap 后自定义组件即时生效', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const CustomComp = markRaw(
+      defineComponent({
+        name: 'CustomCompForReplace',
+        setup: () => () => h('div', { class: 'component-map-replaced' }),
+      })
+    );
+    const compMap = ref<Record<string, any>>({});
+    const form = useForm({}, [
+      { path: 'name', label: '姓名', component: 'comp-for-replace' },
+    ] as any);
+    const Host = defineComponent({
+      setup(_, { slots }) {
+        return () =>
+          h(ProComponentProvider, { componentMap: compMap.value }, slots);
+      },
+    });
+    const wrapper = mount(Host, {
+      slots: { default: () => h(ProForm, { form }) },
+      global: { stubs: { transition: false } },
+    });
+    try {
+      await flushPromises();
+
+      // 未注册时降级渲染原生元素并告警一次
+      expect(wrapper.find('.component-map-replaced').exists()).toBe(false);
+      expectWarn(warnSpy, '未识别的组件类型 "comp-for-replace"');
+      const warnCountBefore = warnSpy.mock.calls.length;
+
+      // 运行期替换 componentMap：命中新映射并渲染自定义组件，不再产生未识别告警
+      compMap.value = { 'comp-for-replace': CustomComp };
+      await flushPromises();
+      expect(wrapper.find('.component-map-replaced').exists()).toBe(true);
+      expect(warnSpy.mock.calls.length).toBe(warnCountBefore);
+    } finally {
+      warnSpy.mockRestore();
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
+  // PT-A30 [判别]: 条件插槽运行期出现与消失
+  // ----------------------------------------------------
+  it('PT-A30 [判别]: toolbar 条件插槽运行期出现与消失', async () => {
+    const showToolbar = ref(false);
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [],
+    });
+    const Host = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProTable,
+            { table },
+            {
+              ...(showToolbar.value
+                ? {
+                    toolbar: () =>
+                      h('div', { class: 'dyn-toolbar' }, 'TOOLBAR'),
+                  }
+                : {}),
+            }
+          );
+      },
+    });
+    const wrapper = mount(Host, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.dyn-toolbar').exists()).toBe(false);
+
+    // 运行期出现：ProForm 的插槽映射经 onUpdated 通知下游
+    showToolbar.value = true;
+    await flushPromises();
+    expect(wrapper.find('.dyn-toolbar').exists()).toBe(true);
+
+    // 运行期消失
+    showToolbar.value = false;
+    await flushPromises();
+    expect(wrapper.find('.dyn-toolbar').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SF-A17 [判别]: labelCol 经 SearchForm → ProForm 透传链路到达宿主 Form
+  // ----------------------------------------------------
+  it('SF-A17 [判别]: labelCol 经透传链路到达宿主 Form', async () => {
+    const form = useForm({ keyword: '' }, [
+      { path: 'keyword', label: '关键词', component: 'input' },
+    ]);
+    const wrapper = mount(SearchForm, {
+      props: { form, labelCol: { span: 9 } } as any,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.html()).toContain('ant-col-9');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SF-A18 [判别]: 展开检测选择器在真实 DOM 中命中全部字段元素
+  // ----------------------------------------------------
+  it('SF-A18 [判别]: 展开检测选择器在真实 DOM 中命中字段元素', async () => {
+    const scrollHeightSpy = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(100);
+    let wrapper: ReturnType<typeof mount> | undefined;
+
+    try {
+      const form = useForm({}, [
+        { path: 'visibleField', label: '第一行', component: 'input' },
+        { path: 'hiddenField', label: '隐藏行', component: 'input' },
+      ]);
+      wrapper = mount(SearchForm, {
+        props: {
+          form,
+          expand: { minExpandRows: 1, expandStatus: false },
+        },
+        attachTo: document.body,
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+
+      const formEl = (form.formRef.value as any)?.$el as HTMLElement;
+      expect(formEl).toBeTruthy();
+      triggerResize(formEl);
+      await waitForRaf();
+      await flushPromises();
+
+      // 展开按钮出现后注册观察器：展开检测选择器必须命中真实 DOM 中的字段元素
+      expect(
+        wrapper.find('.pro-table_search-form_expand-toggle-button').exists()
+      ).toBe(true);
+      const observedPaths = [
+        ...new Set(
+          [...activeIntersectionObservers].flatMap(entry =>
+            [...entry.elements].map(el => el.getAttribute('path'))
+          )
+        ),
+      ];
+      expect(observedPaths.sort()).toEqual(['hiddenField', 'visibleField']);
+    } finally {
+      scrollHeightSpy.mockRestore();
+      wrapper?.unmount();
+      document.body.innerHTML = '';
+    }
+  });
+
+  // ----------------------------------------------------
+  // BF-A16 [判别]: 未知组件名告警按名称去重，全生命周期仅一次
+  // ----------------------------------------------------
+  it('BF-A16 [判别]: 未识别组件名告警按名称去重且不同名称各自告警一次', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const makeForm = (component: string) =>
+        useForm({ v: '' }, [{ path: 'v', label: '字段', component }] as any);
+      const w1 = mount(ProForm, {
+        props: { form: makeForm('no-such-comp-a16') },
+        global: { stubs: { transition: false } },
+      });
+      const w2 = mount(ProForm, {
+        props: { form: makeForm('no-such-comp-a16') },
+        global: { stubs: { transition: false } },
+      });
+      const w3 = mount(ProForm, {
+        props: { form: makeForm('no-such-comp-b16') },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+
+      const hits = (name: string) =>
+        warnSpy.mock.calls
+          .flat()
+          .map(String)
+          .filter(msg => msg.includes(name));
+      // 同一名称挂载两次仅告警一次；不同名称独立告警
+      expect(hits('no-such-comp-a16')).toHaveLength(1);
+      expect(hits('no-such-comp-b16')).toHaveLength(1);
+      w1.unmount();
+      w2.unmount();
+      w3.unmount();
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 
   // ----------------------------------------------------

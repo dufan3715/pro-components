@@ -57,15 +57,18 @@ export const mountProForm = (
 
 /**
  * 挂载 ProTable 辅助函数
+ *
+ * @param options.attachTo - 挂载目标；查询按钮经原生表单提交触发，须挂载到真实文档树
  */
 export const mountProTable = (
   options: {
     table?: any;
     columns?: Column[];
     dataSource?: any[];
-    search?: () => Promise<any> | any;
+    search?: () => Promise<unknown>;
     props?: Record<string, any>;
     slots?: Record<string, any>;
+    attachTo?: Element;
   } = {}
 ) => {
   const table =
@@ -82,6 +85,7 @@ export const mountProTable = (
       ...(options.props ?? {}),
     },
     slots: options.slots,
+    attachTo: options.attachTo,
     global: {
       stubs: {
         transition: false,

@@ -124,6 +124,7 @@ const onReset = () => {
   emit('reset');
 };
 
+// 查询按钮为 html-type=submit：点击与回车统一经表单 submit 事件触发
 const onSearch = () => {
   emit('search');
 };
@@ -134,6 +135,7 @@ const onSearch = () => {
     v-bind="layoutProps"
     :form="props.form"
     class="pro-table_search-form transition"
+    @submit.prevent="onSearch"
   >
     <Space align="start" class="pro-table_search-form_button-group">
       <slot name="reset-button" :on-reset="onReset">
@@ -163,7 +165,6 @@ const onSearch = () => {
             class="pro-table_search-form_search-button"
             type="primary"
             html-type="submit"
-            @click="onSearch"
           >
             {{ t('table.query') }}
           </Button>

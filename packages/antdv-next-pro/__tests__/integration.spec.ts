@@ -6,14 +6,15 @@ import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { useTable } from '../src/components/table/hooks/useTable';
-import { flushPromises } from './helpers/mount';
+import { FormItem } from '../src/shared/ui';
+import { expectInputValue, flushPromises } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
 
 describe('全链路集成与端到端协同测试', () => {
   // ----------------------------------------------------
-  // IT-01: 完整表单填写与双向数据流闭环
+  // IT-01 [判别]: 完整表单填写、formatter 转换与提交校验流程（含校验失败路径）
   // ----------------------------------------------------
-  it('IT-01: 完整表单数据填写、formatter 转换与提交校验流程', async () => {
+  it('IT-01 [判别]: 完整表单数据填写、formatter 转换与提交校验流程', async () => {
     const form = useForm({ username: '', age: 18 }, [
       {
         path: 'username',
@@ -36,16 +37,85 @@ describe('全链路集成与端到端协同测试', () => {
 
     await flushPromises();
 
-    // 1. 用户输入用户名
+    // 1. 用户输入用户名：输入框回显与 formData 同步
     const nameInput = wrapper.find('input');
     await nameInput.setValue('admin');
     await flushPromises();
-
+    expectInputValue(wrapper, 'input', 'admin');
     expect(form.getFormData('username')).toBe('admin');
 
-    // 2. 校验表单通过
-    const validateRes = await form.formRef.value?.validate();
-    expect(validateRes).toBeDefined();
+    // 2. 清空必填项：validate() 拒绝并在对应 FormItem 内渲染错误文案
+    await nameInput.setValue('');
+    await flushPromises();
+    const usernameItem = wrapper
+      .findAllComponents(FormItem)
+      .find(item => item.props('name')?.[0] === 'username');
+    expect(usernameItem).toBeTruthy();
+    await expect(form.formRef.value!.validate()).rejects.toMatchObject({
+      errorFields: [
+        expect.objectContaining({
+          name: ['username'],
+          errors: ['请输入用户名'],
+        }),
+      ],
+    });
+    await flushPromises();
+    expect(usernameItem!.find('.ant-form-item-explain-error').text()).toBe(
+      '请输入用户名'
+    );
+
+    // 3. 补齐后校验通过，返回值携带归一化后的表单数据
+    await nameInput.setValue('admin');
+    await flushPromises();
+    const validateRes = await form.formRef.value!.validate();
+    expect(validateRes).toMatchObject({ username: 'admin', age: 18 });
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // IT-06 [判别]: 点分 path 经 toPath 转为 FormItem name，失败校验按 name 定位
+  // ----------------------------------------------------
+  it('IT-06 [判别]: 点分 path 转为 FormItem name 数组并驱动校验与错误定位', async () => {
+    const form = useForm({ user: { name: '' } } as any, [
+      {
+        path: 'user.name',
+        label: '用户名',
+        component: 'input',
+        rules: [{ required: true, message: '请输入用户名' }],
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 点分 path 下发宿主 FormItem 时已转换为 name 路径数组
+    const formItem = wrapper.findComponent(FormItem);
+    expect(formItem.props('name')).toEqual(['user', 'name']);
+
+    // 校验失败按 name 数组定位失败字段，错误提示渲染在该 FormItem 内
+    await expect(form.formRef.value!.validate()).rejects.toMatchObject({
+      errorFields: [
+        expect.objectContaining({
+          name: ['user', 'name'],
+          errors: ['请输入用户名'],
+        }),
+      ],
+    });
+    await flushPromises();
+    expect(formItem.find('.ant-form-item-explain-error').text()).toBe(
+      '请输入用户名'
+    );
+
+    // 写入深层路径后校验通过
+    form.setFormData('user.name', '张三');
+    await flushPromises();
+    await expect(form.formRef.value!.validate()).resolves.toMatchObject({
+      user: { name: '张三' },
+    });
 
     wrapper.unmount();
   });
@@ -55,7 +125,7 @@ describe('全链路集成与端到端协同测试', () => {
   // ----------------------------------------------------
   it('IT-02: 搜索表单输入条件并点击查询，分页自动重置为 1 且携带搜索参数', async () => {
     let capturedParams: any = null;
-    const handleSearch = () => {
+    const handleSearch = async () => {
       capturedParams = {
         ...table.searchForm?.formData,
         ...table.pageParam,
@@ -74,8 +144,9 @@ describe('全链路集成与端到端协同测试', () => {
     const wrapper = mount(ProTable, {
       props: {
         table,
-        search: handleSearch as any,
+        search: handleSearch,
       },
+      attachTo: document.body,
       global: { stubs: { transition: false } },
     });
 
@@ -86,7 +157,7 @@ describe('全链路集成与端到端协同测试', () => {
     await searchInput.setValue('核心用户');
     await flushPromises();
 
-    // 2. 点击查询按钮
+    // 2. 点击查询按钮（submit 类型按钮的隐式提交依赖元素已连接文档）
     const queryBtn = wrapper.find('.pro-table_search-form_search-button');
     await queryBtn.trigger('click');
     await flushPromises();
@@ -97,6 +168,7 @@ describe('全链路集成与端到端协同测试', () => {
     expect(capturedParams.current).toBe(1);
 
     wrapper.unmount();
+    document.body.innerHTML = '';
   });
 
   // ----------------------------------------------------
@@ -104,7 +176,7 @@ describe('全链路集成与端到端协同测试', () => {
   // ----------------------------------------------------
   it('IT-03: 点击重置按钮，表单参数清空、分页重置为 1 并触发查询', async () => {
     let searchCount = 0;
-    const handleSearch = () => {
+    const handleSearch = async () => {
       searchCount++;
     };
 
@@ -120,7 +192,7 @@ describe('全链路集成与端到端协同测试', () => {
     const wrapper = mount(ProTable, {
       props: {
         table,
-        search: handleSearch as any,
+        search: handleSearch,
       },
       global: { stubs: { transition: false } },
     });
@@ -135,7 +207,8 @@ describe('全链路集成与端到端协同测试', () => {
 
     expect(table.searchForm.getFormData('keyword')).toBeUndefined();
     expect(table.pageParam.current).toBe(1);
-    expect(searchCount).toBeGreaterThanOrEqual(1);
+    // 判别点：重置恰好触发一次查询，不重复触发
+    expect(searchCount).toBe(1);
 
     wrapper.unmount();
   });

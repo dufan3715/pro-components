@@ -3,6 +3,7 @@ import { defineComponent, h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
+import { useFormData } from '../src';
 import { flushPromises, mountProForm } from './helpers/mount';
 import { createBasicFields, createNestedFields } from './helpers/fixtures';
 import { ElFormItem, ElInput } from 'element-plus';
@@ -338,5 +339,131 @@ describe('ProForm 组件测试', () => {
     expect(formEl.attributes('arialabel')).toBeUndefined();
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-E1 [判别]: 嵌套 ProForm 内层不传 :form 时创建独立表单实例
+  // ----------------------------------------------------
+  it('PF-E1 [判别]: 嵌套 ProForm 内层不传 :form 时创建独立实例，数据不与父表单互串', async () => {
+    const outerForm = useForm({ outer: 'O' }, [
+      { path: 'outer', label: '外层', component: 'input' },
+    ] as any);
+
+    let innerForm: any;
+    const InnerProbe = defineComponent({
+      setup() {
+        // 取最近一层 ProForm 注入的表单实例（即内层兜底实例）
+        innerForm = useForm(false);
+        return () => h('div', { class: 'pf-e1-probe' });
+      },
+    });
+
+    const wrapper = mount(ProForm as any, {
+      props: { form: outerForm },
+      slots: {
+        default: () =>
+          h(ProForm as any, null, { default: () => h(InnerProbe) }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    try {
+      // 两层 ProForm 均真实挂载
+      expect(wrapper.findAll('form.pro-form')).toHaveLength(2);
+      expect(wrapper.find('.pf-e1-probe').exists()).toBe(true);
+
+      // 判别点：内层实例与父实例非同体，数据 store 亦不共享（父子 store 复用分支未经由嵌套 ProForm 进入）
+      expect(innerForm).toBeTruthy();
+      expect(innerForm).not.toBe(outerForm);
+      expect(innerForm.formData).not.toBe(outerForm.formData);
+      expect(innerForm.getFormData('outer')).toBeUndefined();
+
+      innerForm.setFormData('inner', 'I');
+      expect(innerForm.getFormData('inner')).toBe('I');
+      expect(outerForm.getFormData('inner')).toBeUndefined();
+
+      outerForm.setFormData('outer', 'O2');
+      expect(outerForm.getFormData('outer')).toBe('O2');
+      expect(innerForm.getFormData('outer')).toBeUndefined();
+    } finally {
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
+  // PF-E2 [判别]: 子树内公开 useFormData() 无参调用复用最近一层表单的数据 store
+  // ----------------------------------------------------
+  it('PF-E2 [判别]: ProForm 子树内以公开 useFormData() 无参调用复用最近一层 useForm 的数据 store', async () => {
+    let injectedForm: any;
+    let childStore: any;
+    const StoreProbe = defineComponent({
+      setup() {
+        injectedForm = useForm(false);
+        childStore = useFormData();
+        return () => h('div', { class: 'pf-e2-probe' });
+      },
+    });
+
+    const wrapper = mount(ProForm as any, {
+      slots: { default: () => h(StoreProbe) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    try {
+      expect(wrapper.find('.pf-e2-probe').exists()).toBe(true);
+      // 判别点 1：无参调用命中父 store 复用分支，取到与注入实例同一份 formData
+      expect(childStore).toBeTruthy();
+      expect(childStore.formData).toBe(injectedForm.formData);
+
+      // 判别点 2：子侧写入即父侧数据，父侧写入子侧实时可见
+      childStore.setFormData('fromChild', 'C');
+      expect(injectedForm.getFormData('fromChild')).toBe('C');
+      injectedForm.setFormData('fromParent', 'P');
+      expect(childStore.getFormData('fromParent')).toBe('P');
+    } finally {
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
+  // PF-E3 [判别]: :form prop 与内部兜底实例的数据 store 分离
+  // ----------------------------------------------------
+  it('PF-E3 [判别]: 传入 :form 时注入代理指向 prop 实例，而 useFormData() 取内部兜底实例的 store', async () => {
+    const form = useForm({ outer: 'O' }, [
+      { path: 'outer', label: '外层', component: 'input' },
+    ] as any);
+
+    let injectedForm: any;
+    let childStore: any;
+    const StoreProbe = defineComponent({
+      setup() {
+        injectedForm = useForm(false);
+        childStore = useFormData();
+        return () => h('div', { class: 'pf-e3-probe' });
+      },
+    });
+
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      slots: { default: () => h(StoreProbe) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    try {
+      // 判别点 1：注入代理按 currentForm 路由到 :form prop 实例
+      expect(injectedForm.formData).toBe(form.formData);
+      expect(injectedForm.getFormData('outer')).toBe('O');
+
+      // 判别点 2：useFormData() 复用的是 ProForm 内部兜底实例的 store，与 prop 实例数据互不相通
+      expect(childStore.formData).not.toBe(form.formData);
+      expect(childStore.getFormData('outer')).toBeUndefined();
+      childStore.setFormData('fromFallbackStore', 'F');
+      expect(form.getFormData('fromFallbackStore')).toBeUndefined();
+    } finally {
+      wrapper.unmount();
+    }
   });
 });

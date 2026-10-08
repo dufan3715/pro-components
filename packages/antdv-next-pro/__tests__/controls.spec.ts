@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, ref } from 'vue';
+import { defineComponent, h, markRaw, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import SizeControl from '../src/components/table/components/SizeControl.vue';
 import ColumnControl from '../src/components/table/components/ColumnControl.vue';
@@ -34,9 +34,9 @@ describe('控制组件与全局 Provider 测试', () => {
   });
 
   // ----------------------------------------------------
-  // SC-01: SizeControl 尺寸切换菜单交互
+  // SC-01 [判别]: SizeControl 尺寸切换菜单交互
   // ----------------------------------------------------
-  it('SC-01: 点击尺寸菜单项触发 update:size 事件', async () => {
+  it('SC-01 [判别]: 展开尺寸菜单并点击「紧凑」项触发一次 update:size', async () => {
     let currentSize: any = 'large';
 
     const wrapper = mount(SizeControl, {
@@ -51,10 +51,9 @@ describe('控制组件与全局 Provider 测试', () => {
 
     await flushPromises();
 
-    // 触发内部 onSizeChange：弹层经 Teleport 渲染到 body，先展开再从真实 DOM 点击菜单项
+    // Menu 位于 Dropdown 惰性浮层内：先展开弹层，再从真实 DOM 点击菜单项
     const dropdown = wrapper.findComponent(Dropdown);
     expect(dropdown.exists()).toBe(true);
-    // 展开弹层：默认 trigger 为 hover，模拟指针进入并等待弹出延迟
     await wrapper.find('.pro-table_size-control_button').trigger('mouseenter');
     await new Promise(resolve => setTimeout(resolve, 300));
     await flushPromises();
@@ -62,21 +61,23 @@ describe('控制组件与全局 Provider 测试', () => {
     const menuItems = Array.from(
       document.querySelectorAll<HTMLElement>('.ant-dropdown-menu-item')
     );
-    const smallItem =
-      menuItems.find(item => item.dataset.menuId?.endsWith('-small')) ??
-      menuItems[menuItems.length - 1];
+    expect(menuItems).toHaveLength(3);
+    const smallItem = menuItems.find(item =>
+      item.dataset.menuId?.endsWith('-small')
+    );
     expect(smallItem).toBeTruthy();
-    smallItem.click();
+    smallItem!.click();
     await flushPromises();
     expect(currentSize).toBe('small');
 
     wrapper.unmount();
+    document.body.innerHTML = '';
   });
 
   // ----------------------------------------------------
-  // CC-01: ColumnControl 列勾选/取消勾选联动 table.setColumn
+  // CC-01 [判别]: 列控面板菜单项点击联动 table.setColumn
   // ----------------------------------------------------
-  it('CC-01: ColumnControl 勾选与取消联动 table.setColumn 变更列 hidden 状态', async () => {
+  it('CC-01 [判别]: 列控面板中点击列项复选框驱动 table.setColumn 变更列 hidden 状态', async () => {
     const table = useTable({
       columns: createBasicColumns(),
       dataSource: [],
@@ -86,21 +87,45 @@ describe('控制组件与全局 Provider 测试', () => {
       props: {
         columns: table.columns.value,
         table,
+        // 去掉「全选」项，使面板选项与列一一对应
+        columnControl: { disableCheckAll: true },
       },
+      attachTo: document.body,
       global: { stubs: { transition: false } },
     });
 
     await flushPromises();
-
-    // 验证初始列未隐藏
     expect(table.columns.value.find(c => c.key === 'name')?.hidden).toBeFalsy();
 
-    // 操作 table 隐藏列
-    table.setColumn('name', { hidden: true });
+    // 展开面板：默认 trigger 为 hover，等待弹出延迟后从真实 DOM 取菜单项
+    await wrapper
+      .find('.pro-table_column-control_button')
+      .trigger('mouseenter');
+    await new Promise(resolve => setTimeout(resolve, 300));
     await flushPromises();
+
+    const menuItems = Array.from(
+      document.querySelectorAll<HTMLElement>('.ant-dropdown-menu-item')
+    );
+    expect(menuItems.map(item => item.textContent)).toEqual([
+      'ID',
+      '姓名',
+      '状态',
+    ]);
+
+    // 取消勾选「姓名」列：仅该列 hidden 置位
+    const nameItem = menuItems.find(item => item.textContent?.includes('姓名'));
+    expect(nameItem).toBeTruthy();
+    nameItem!
+      .querySelector<HTMLInputElement>('input[type="checkbox"]')!
+      .click();
+    await flushPromises();
+
     expect(table.columns.value.find(c => c.key === 'name')?.hidden).toBe(true);
+    expect(table.columns.value.find(c => c.key === 'id')?.hidden).toBeFalsy();
 
     wrapper.unmount();
+    document.body.innerHTML = '';
   });
 
   // ----------------------------------------------------
@@ -145,15 +170,17 @@ describe('控制组件与全局 Provider 测试', () => {
   });
 
   // ----------------------------------------------------
-  // CC-A2 [判别]: 无 key 列不进入列控面板
   // ----------------------------------------------------
-  it('CC-A2 [判别]: 无 key 且无 title 的列不出现在列控面板选项中', async () => {
-    // 直接传入未经理化的原始列配置（经 core useTable 的列会自动补齐 key）
+  // CC-A2 [判别]: 无 key 或无 title 的列不进入列控面板
+  // ----------------------------------------------------
+  it('CC-A2 [判别]: 无 key 与无 title 的列均不出现在列控面板选项中', async () => {
+    // 直接传入未经理化的原始列配置（经 core useTable 的列会自动补齐 key 与 title）
     const wrapper = mount(ColumnControl, {
       props: {
         columns: [
           { key: 'id', title: 'ID' },
           { title: '无键列' },
+          { key: 'noTitle' },
           { key: '', title: '空串键列' },
         ] as any,
       },
@@ -164,13 +191,9 @@ describe('控制组件与全局 Provider 测试', () => {
 
     const options = (wrapper.vm as any).checkedColumnsOptions;
 
-    // 有 key 列正常出现
-    expect(options.some((opt: any) => opt.value === 'id')).toBe(true);
-    // 判别点：空串 key 与无 key 列均被过滤，面板项与有效列一一对应
-    expect(
-      options.some((opt: any) => String(opt.value).startsWith('__col_'))
-    ).toBe(false);
-    expect(options.length).toBe(1);
+    // 判别点：仅「既有 key 又有 title」的列进入面板，缺任一者均被过滤
+    expect(options.map((opt: any) => opt.value)).toEqual(['id']);
+    expect(options.map((opt: any) => opt.label)).toEqual(['ID']);
 
     wrapper.unmount();
   });
@@ -234,7 +257,7 @@ describe('控制组件与全局 Provider 测试', () => {
     const wrapper = mount(ProComponentProvider, {
       props: {
         componentMap: {
-          input: CustomInput,
+          input: markRaw(CustomInput),
         },
       },
       slots: {
@@ -291,7 +314,7 @@ describe('控制组件与全局 Provider 测试', () => {
     const wrapper = mount(ProComponentProvider, {
       props: {
         componentMap: {
-          'custom-tag-widget': CustomWidget,
+          'custom-tag-widget': markRaw(CustomWidget),
         } as any,
         componentVars: {
           'custom-tag-widget': { colorTag: 'cyan-blue' },

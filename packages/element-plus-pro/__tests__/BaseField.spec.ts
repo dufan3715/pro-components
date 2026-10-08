@@ -98,28 +98,31 @@ describe('BaseField 组件测试', () => {
   it('BF-A14 [判别]: 未识别组件名时输出 console.warn 提示并渲染为原生元素', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    const form = useForm({}, [
-      { path: 'unknownField', component: 'unknown-custom-widget' as any },
-    ]);
+    try {
+      const form = useForm({}, [
+        { path: 'unknownField', component: 'unknown-custom-widget' as any },
+      ]);
 
-    const wrapper = mount(ProForm, {
-      props: { form },
-      global: { stubs: { transition: false } },
-    });
+      const wrapper = mount(ProForm, {
+        props: { form },
+        global: { stubs: { transition: false } },
+      });
 
-    await flushPromises();
+      await flushPromises();
 
-    // 关键判别点：捕获到了未识别组件警告
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('未识别的组件类型 "unknown-custom-widget"')
-    );
+      // 关键判别点：捕获到了未识别组件警告
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('未识别的组件类型 "unknown-custom-widget"')
+      );
 
-    // 并且降级渲染了原生元素 <unknown-custom-widget>
-    const fallbackEl = wrapper.find('unknown-custom-widget');
-    expect(fallbackEl.exists()).toBe(true);
+      // 并且降级渲染了原生元素 <unknown-custom-widget>
+      const fallbackEl = wrapper.find('unknown-custom-widget');
+      expect(fallbackEl.exists()).toBe(true);
 
-    warnSpy.mockRestore();
-    wrapper.unmount();
+      wrapper.unmount();
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 
   // ----------------------------------------------------

@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { h } from 'vue';
 import { mount } from '@vue/test-utils';
+import { FormItem } from 'ant-design-vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { useTable } from '../src/components/table/hooks/useTable';
 import { flushPromises } from './helpers/mount';
-import { createBasicColumns } from './helpers/fixtures';
+import { createBasicColumns, createNestedFields } from './helpers/fixtures';
 
 describe('全链路集成与端到端协同测试', () => {
   // ----------------------------------------------------
@@ -43,9 +44,64 @@ describe('全链路集成与端到端协同测试', () => {
 
     expect(form.getFormData('username')).toBe('admin');
 
-    // 2. 校验表单通过
-    const validateRes = await form.formRef.value?.validate();
-    expect(validateRes).toBeDefined();
+    // 2. 校验通过路径：validate() resolve 出表单当前值（含未触碰的 age 初值）
+    await expect(form.formRef.value?.validate()).resolves.toEqual({
+      username: 'admin',
+      age: 18,
+    });
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // IT-01b [判别]: 点分 path → FormItem name 段数组驱动校验，required 未填时 reject 并渲染错误文案
+  // ----------------------------------------------------
+  it('IT-01b [判别]: 点分 path 映射为 FormItem name 段数组，required 失败时 validate() reject 且错误文案渲染', async () => {
+    const form = useForm(
+      { user: { name: '', address: { city: '' } } },
+      createNestedFields()
+    );
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    // 点分 path 不落在单个 name 上，而是拆为段数组交给宿主 FormItem
+    expect(
+      wrapper.findAllComponents(FormItem).map(item => item.props('name'))
+    ).toEqual([
+      ['user', 'name'],
+      ['user', 'address', 'city'],
+    ]);
+
+    // 失败路径：required 未填 → validate() reject
+    const validated = form.formRef.value?.validate();
+    await expect(validated).rejects.toBeTruthy();
+
+    // errorFields 按段数组归位且携带字段级文案（数量与顺序精确）
+    const rejection: any = await validated?.catch((error: any) => error);
+    expect(
+      rejection?.errorFields.map((field: any) => [field.name, field.errors])
+    ).toEqual([
+      [['user', 'name'], ['请输入用户名']],
+      [['user', 'address', 'city'], ['请输入城市']],
+    ]);
+    await flushPromises();
+    expect(
+      wrapper.findAll('.ant-form-item-explain-error').map(el => el.text())
+    ).toEqual(['请输入用户名', '请输入城市']);
+
+    // 补齐两个必填字段的值：同一表单校验通过，resolve 出嵌套结构表单值
+    const inputs = wrapper.findAll('input');
+    await inputs[0].setValue('张三');
+    await inputs[1].setValue('北京');
+    await flushPromises();
+    await expect(form.formRef.value?.validate()).resolves.toEqual({
+      user: { name: '张三', address: { city: '北京' } },
+    });
 
     wrapper.unmount();
   });
@@ -55,7 +111,7 @@ describe('全链路集成与端到端协同测试', () => {
   // ----------------------------------------------------
   it('IT-02: 搜索表单输入条件并点击查询，分页自动重置为 1 且携带搜索参数', async () => {
     let capturedParams: any = null;
-    const handleSearch = () => {
+    const handleSearch = async () => {
       capturedParams = {
         ...table.searchForm?.formData,
         ...table.pageParam,
@@ -74,8 +130,9 @@ describe('全链路集成与端到端协同测试', () => {
     const wrapper = mount(ProTable, {
       props: {
         table,
-        search: handleSearch as any,
+        search: handleSearch,
       },
+      attachTo: document.body,
       global: { stubs: { transition: false } },
     });
 
@@ -97,6 +154,7 @@ describe('全链路集成与端到端协同测试', () => {
     expect(capturedParams.current).toBe(1);
 
     wrapper.unmount();
+    document.body.innerHTML = '';
   });
 
   // ----------------------------------------------------
@@ -104,7 +162,7 @@ describe('全链路集成与端到端协同测试', () => {
   // ----------------------------------------------------
   it('IT-03: 点击重置按钮，表单参数清空、分页重置为 1 并触发查询', async () => {
     let searchCount = 0;
-    const handleSearch = () => {
+    const handleSearch = async () => {
       searchCount++;
     };
 
@@ -120,7 +178,7 @@ describe('全链路集成与端到端协同测试', () => {
     const wrapper = mount(ProTable, {
       props: {
         table,
-        search: handleSearch as any,
+        search: handleSearch,
       },
       global: { stubs: { transition: false } },
     });
@@ -135,7 +193,8 @@ describe('全链路集成与端到端协同测试', () => {
 
     expect(table.searchForm.getFormData('keyword')).toBeUndefined();
     expect(table.pageParam.current).toBe(1);
-    expect(searchCount).toBeGreaterThanOrEqual(1);
+    // 判别点：重置恰好触发一次查询
+    expect(searchCount).toBe(1);
 
     wrapper.unmount();
   });

@@ -66,6 +66,8 @@ export const mountProTable = (
     search?: () => Promise<any> | any;
     props?: Record<string, any>;
     slots?: Record<string, any>;
+    /** 挂载目标：真实点击（native submit）路径需要连接到 document */
+    attachTo?: Element | string;
   } = {}
 ) => {
   const table =
@@ -88,6 +90,9 @@ export const mountProTable = (
       },
     },
   };
+  if (options.attachTo) {
+    mountOptions.attachTo = options.attachTo;
+  }
 
   const wrapper = mount(ProTable as any, mountOptions as any);
   return {

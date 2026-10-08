@@ -57,6 +57,11 @@ describe('SearchForm 组件测试', () => {
     scrollHeightSpy.mockReturnValue(400);
     triggerResize(formEl);
     await flushPromises();
+    // 二次测量结果落入 DOM（展开高度随新读数更新），证明重测链路真实执行
+    expect(
+      (wrapper.find('.pro-table_search-form').element as HTMLElement).style
+        .height
+    ).toBe('400px');
     expect(
       wrapper.find('.pro-table_search-form_expand-toggle-button').text()
     ).toContain('收起');
@@ -215,6 +220,7 @@ describe('SearchForm 组件测试', () => {
 
     const wrapper = mount(SearchForm, {
       props: { form },
+      attachTo: document.body,
       global: { stubs: { transition: false } },
     });
 
@@ -223,10 +229,46 @@ describe('SearchForm 组件测试', () => {
     await wrapper.find('.pro-table_search-form_reset-button').trigger('click');
     expect(wrapper.emitted('reset')).toHaveLength(1);
 
-    await wrapper.find('.pro-table_search-form_search-button').trigger('click');
+    // 查询按钮为 html-type=submit：点击必须经原生表单提交触发 search（不手工补 submit）
+    const searchButton = wrapper.find('.pro-table_search-form_search-button');
+    expect(searchButton.attributes('type')).toBe('submit');
+    await searchButton.trigger('click');
+    await flushPromises();
     expect(wrapper.emitted('search')).toHaveLength(1);
 
     wrapper.unmount();
+    document.body.innerHTML = '';
+  });
+
+  // ----------------------------------------------------
+  // SF-A17 [判别]: 回车与点击统一经表单 submit 触发 search，且不重复触发
+  // ----------------------------------------------------
+  it('SF-A17 [判别]: 搜索框回车经表单 submit 触发 search，点击不叠加独立 click 处理器', async () => {
+    const form = useForm({}, [{ path: 'keyword', component: 'input' }]);
+
+    const wrapper = mount(SearchForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+
+    const searchButton = wrapper.find('.pro-table_search-form_search-button');
+    expect(searchButton.attributes('type')).toBe('submit');
+
+    // 回车路径：happy-dom 未实现输入框隐式提交，驱动浏览器回车同源的原生 submit 事件
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+    expect(wrapper.emitted('search')).toHaveLength(1);
+
+    // 点击路径：submit 按钮激活原生表单提交，与回车同源，不产生额外的 search
+    await searchButton.trigger('click');
+    await flushPromises();
+    expect(wrapper.emitted('search')).toHaveLength(2);
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
   });
 
   // ----------------------------------------------------

@@ -21,7 +21,7 @@ describe('跨包一致性 · element-plus-pro', () => {
     expect(config.max).toBe(10 ** 15 - 1);
     expect(config.min).toBe(-(10 ** 15 - 1));
   });
-  it('索引列序号随分页偏移（既有 getIndex 行为防回归）', async () => {
+  it('XP-01 [判别]: 挂载后 pageParam 变更驱动序号列动态重算', async () => {
     const data = Array.from({ length: 12 }, (_, i) => ({
       id: `row-${i + 1}`,
     }));
@@ -33,10 +33,30 @@ describe('跨包一致性 · element-plus-pro', () => {
       table,
       props: { addIndexColumn: true },
     });
-    table.setPageParam({ current: 2, pageSize: 10 });
-    await flushPromises();
-    expect(wrapper.text()).toContain('11');
-    wrapper.unmount();
+    try {
+      await flushPromises();
+      // 序号列位于首列，逐行取值即当前页偏移后的序号
+      const indexTexts = () =>
+        wrapper
+          .findAll('.el-table__body .el-table__row')
+          .map(row => row.find('td').text());
+
+      expect(indexTexts().slice(0, 2)).toEqual(['1', '2']);
+      expect(indexTexts().slice(-1)).toEqual(['12']);
+
+      // 判别点：挂载后翻页，首列序号按新页码重算
+      table.setPageParam({ current: 2, pageSize: 10 });
+      await flushPromises();
+      expect(indexTexts().slice(0, 2)).toEqual(['11', '12']);
+      expect(indexTexts().slice(-1)).toEqual(['22']);
+
+      // 恢复第 1 页后序号回落
+      table.setPageParam({ current: 1 });
+      await flushPromises();
+      expect(indexTexts().slice(0, 2)).toEqual(['1', '2']);
+    } finally {
+      wrapper.unmount();
+    }
   });
 
   it('render 返回字符串按文本渲染，不再解析为组件名', async () => {

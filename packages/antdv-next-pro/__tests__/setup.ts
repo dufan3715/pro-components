@@ -1,4 +1,4 @@
-import { vi, afterEach } from 'vitest';
+import { vi, afterEach, beforeEach } from 'vitest';
 
 // ----------------------------------------------------
 // M1: window.matchMedia polyfill (antdv-next Grid / useBreakpoint)
@@ -112,38 +112,45 @@ globalThis.IntersectionObserver = MockIntersectionObserver as any;
 Element.prototype.scrollIntoView = vi.fn();
 
 // ----------------------------------------------------
-// M6: console.warn 白名单过滤策略（过滤预期的开发期测试噪声）
+// M6: 未放行告警守卫（未被用例显式消音的 console 告警即判失败）
 // ----------------------------------------------------
+/**
+ * 放行的宿主机噪声：@v-c/trigger 校验触发元素与弹出层 shadow root 一致性时输出，
+ * happy-dom 不实现 shadow root 语义，弹出层经 Teleport 渲染时必然命中
+ */
+const HOST_NOISE_PATTERNS: RegExp[] = [
+  /^Warning: trigger element and popup element should in same shadow root\./,
+];
 const originalWarn = console.warn.bind(console);
 const originalError = console.error.bind(console);
-const IGNORED_WARN_PREFIXES = [
-  '[Vue warn]: Vue received a Component that was made a reactive object',
-  '[Vue warn]: Invalid prop: type check failed for prop',
-  '[@vue/compiler-sfc] `defineSlots` is a compiler macro',
-  'please transfer a valid name path to form item!',
-  '[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance',
-];
-
-console.warn = (...args: any[]) => {
-  const msg = typeof args[0] === 'string' ? args[0] : '';
-  if (IGNORED_WARN_PREFIXES.some(prefix => msg.includes(prefix))) {
-    return;
+const unexpectedLogs: string[] = [];
+const formatLog = (args: unknown[]) =>
+  args.map(arg => (typeof arg === 'string' ? arg : String(arg))).join(' ');
+const recordLog = (level: 'warn' | 'error', args: unknown[]) => {
+  const msg = formatLog(args);
+  if (!HOST_NOISE_PATTERNS.some(pattern => pattern.test(msg))) {
+    unexpectedLogs.push(`[console.${level}] ${msg}`);
   }
-  originalWarn(...args);
+  (level === 'warn' ? originalWarn : originalError)(...args);
 };
 
-console.error = (...args: any[]) => {
-  const msg = typeof args[0] === 'string' ? args[0] : '';
-  if (IGNORED_WARN_PREFIXES.some(prefix => msg.includes(prefix))) {
-    return;
-  }
-  originalError(...args);
-};
+console.warn = (...args: any[]) => recordLog('warn', args);
+console.error = (...args: any[]) => recordLog('error', args);
 
 // ----------------------------------------------------
 // M5: 清理钩子
 // ----------------------------------------------------
+beforeEach(() => {
+  unexpectedLogs.length = 0;
+});
+
 afterEach(() => {
   activeResizeObservers.clear();
   activeIntersectionObservers.clear();
+  const logs = unexpectedLogs.splice(0);
+  if (logs.length > 0) {
+    throw new Error(
+      `检测到未放行告警，如需放行请在用例内以 vi.spyOn(console, 'warn' | 'error') 显式断言：\n${logs.join('\n')}`
+    );
+  }
 });

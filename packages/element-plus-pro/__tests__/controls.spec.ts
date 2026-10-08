@@ -8,7 +8,6 @@ import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useTable } from '../src/components/table/hooks/useTable';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
-import { createBasicColumns } from './helpers/fixtures';
 import { ElInput, ElDropdown } from 'element-plus';
 
 describe('控制组件与全局 Provider 测试', () => {
@@ -61,11 +60,15 @@ describe('控制组件与全局 Provider 测试', () => {
   });
 
   // ----------------------------------------------------
-  // CC-01: ColumnControl 列勾选/取消勾选联动 table.setColumn
+  // CC-01 [判别]: disabledKeys 列强制展示且不可取消，清空勾选仅写翻转列
   // ----------------------------------------------------
-  it('CC-01: ColumnControl 勾选与取消联动 table.setColumn 变更列 hidden 状态', async () => {
+  it('CC-01 [判别]: disabledKeys 列强制展示且不可取消勾选，清空勾选仅写入状态翻转的列', async () => {
     const table = useTable({
-      columns: createBasicColumns(),
+      columns: [
+        { prop: 'a', label: 'A', hidden: true },
+        { prop: 'b', label: 'B' },
+        { prop: 'c', label: 'C' },
+      ] as any,
       data: [],
     });
 
@@ -73,25 +76,42 @@ describe('控制组件与全局 Provider 测试', () => {
       props: {
         columns: table.columns.value,
         table,
+        columnControl: { disabledKeys: ['a'] },
       },
       global: { stubs: { transition: false } },
     });
 
     await flushPromises();
 
-    // 验证初始列未隐藏
-    expect(
-      table.columns.value.find(c => (c.prop || c.key) === 'name')?.hidden
-    ).toBeFalsy();
+    try {
+      const vm = wrapper.vm as any;
 
-    // 操作 table 隐藏列
-    table.setColumn('name', { hidden: true });
-    await flushPromises();
-    expect(
-      table.columns.value.find(c => (c.prop || c.key) === 'name')?.hidden
-    ).toBe(true);
+      // 判别点 1：初始 hidden 的列被 disabledKeys 强制置为展示，且选项标记 disabled + checked
+      expect(table.columns.value.find(c => c.key === 'a')?.hidden).toBe(false);
+      expect(
+        vm.checkedColumnsOptions.find((opt: any) => opt.value === 'a')
+      ).toMatchObject({ checked: true, disabled: true });
+      expect(vm.checkedColumnKeys).toEqual(['a', 'b', 'c']);
 
-    wrapper.unmount();
+      // 判别点 2：清空勾选时仅写状态翻转的列，disabled 列被跳过
+      const setColumnCalls: string[] = [];
+      const rawSetColumn = table.setColumn.bind(table);
+      (table as any).setColumn = (key: any, column: any, opts?: any) => {
+        setColumnCalls.push(String(key));
+        return rawSetColumn(key, column, opts);
+      };
+      vm.checkedColumnKeys = [];
+      await flushPromises();
+      expect(setColumnCalls).toEqual(['b', 'c']);
+      expect(table.columns.value.find(c => c.key === 'a')?.hidden).toBe(false);
+      expect(table.columns.value.find(c => c.key === 'b')?.hidden).toBe(true);
+      expect(table.columns.value.find(c => c.key === 'c')?.hidden).toBe(true);
+      // 全选/半选状态随可勾选列同步更新
+      expect(vm.checkAll).toBe(false);
+      expect(vm.indeterminate).toBe(false);
+    } finally {
+      wrapper.unmount();
+    }
   });
 
   // ----------------------------------------------------
