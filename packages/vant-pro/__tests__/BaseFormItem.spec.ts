@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
+import { defineComponent, h } from 'vue';
 import BaseFormItem from '../src/components/form/components/BaseFormItem/index.vue';
 import { Field as VanField } from '../src/shared/ui';
 import { useForm } from '../src/components/form/hooks/useForm';
@@ -249,6 +250,54 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
     expect(after[1].element).toBe(elA);
     expect(after[0].text()).toContain('B');
     expect(after[1].text()).toContain('A');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A20 [判别]: slots 组件对象经 <component :is> 渲染，原始值仍走文本插值
+  // ----------------------------------------------------
+  it('BI-A20 [判别]: slots 传入组件对象时渲染组件本体，传入字符串时按文本渲染', async () => {
+    const CustomInput = defineComponent({
+      setup() {
+        return () =>
+          h('span', { class: 'slot-comp-input' }, 'INPUT-FROM-COMPONENT');
+      },
+    });
+
+    const form = useForm({ email: '', phone: '' });
+    const wrapper = mount(BaseFormItem as any, {
+      props: {
+        fields: [
+          {
+            path: 'email',
+            label: '邮箱',
+            component: 'field',
+            slots: { input: CustomInput as any },
+          },
+          {
+            path: 'phone',
+            label: '手机号',
+            component: 'field',
+            slots: { input: '纯文本提示' as any },
+          },
+        ],
+      } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    // 组件对象：渲染组件本体，而非组件对象的序列化文本
+    expect(wrapper.find('.slot-comp-input').exists()).toBe(true);
+    expect(wrapper.find('.slot-comp-input').text()).toBe(
+      'INPUT-FROM-COMPONENT'
+    );
+    expect(wrapper.text()).not.toContain('[object Object]');
+    // 原始值：保持文本插值
+    expect(wrapper.text()).toContain('纯文本提示');
 
     wrapper.unmount();
   });

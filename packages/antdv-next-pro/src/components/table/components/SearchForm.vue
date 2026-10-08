@@ -45,15 +45,27 @@ export type SearchFormProps = {
  *
  * 1. 内部渲染 ProForm，使用 table.searchForm 管理搜索条件
  * 2. 支持 grid（网格）和 inline（行内）两种布局
- * 3. 网格布局下支持展开/折叠（溢出检测与初值自动展开见下方机制说明）
+ * 3. 网格布局下支持展开/折叠
  * 4. 提供搜索、重置、展开/折叠按钮（支持自定义）
  *
- * ## 展开/折叠机制
+ * ## 展开/折叠行为
  *
- * 1. 首次渲染后，测量 ProForm 的实际高度
- * 2. 根据 minExpandRows 计算折叠高度（默认 2 行）
- * 3. 如果实际高度 > 折叠高度，显示展开/折叠按钮
- * 4. 使用 IntersectionObserver 检测隐藏字段是否有值，有值则自动展开
+ * 1. 内容高度超出折叠高度（由 minExpandRows 决定，默认 2 行）时显示展开/折叠按钮
+ * 2. 隐藏区域存在搜索值时自动展开
+ * 3. 用户手动切换后保持手动状态，不随重新测量回退
+ *
+ * @param {Form} form - 搜索表单实例，由 table.searchForm 提供
+ * @param {'grid' | 'inline'} [layout] - 布局形态，默认 'grid'
+ * @param {boolean | Expand} [expand] - 展开配置，默认 true
+ * @param {Component<ButtonProps> | DefineComponent<ButtonProps> | false} [searchButton] - 自定义搜索按钮，false 时不渲染
+ * @param {Component<ButtonProps> | DefineComponent<ButtonProps> | false} [resetButton] - 自定义重置按钮，false 时不渲染
+ * @param {Component<ExpandButtonProps> | DefineComponent<ExpandButtonProps> | false} [expandButton] - 自定义展开/折叠按钮，false 时不渲染
+ * @param {number} [rowGap] - 行间距，默认 16
+ * @param {number} [columnGap] - 列间距，默认 24
+ *
+ * @slot reset-button - 重置按钮插槽，作用域参数 onReset
+ * @slot search-button - 搜索按钮插槽，作用域参数 onSearch
+ * @slot expand-button - 展开/折叠按钮插槽，作用域参数 expandStatus / changeExpandStatus
  */
 import type { FormProps } from '../../../shared/ui';
 import { Space, Button } from '../../../shared/ui';

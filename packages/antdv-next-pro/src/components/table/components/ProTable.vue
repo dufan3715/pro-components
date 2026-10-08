@@ -25,12 +25,26 @@
  *         └── 转发所有 table 插槽
  * ```
  *
- * ## 搜索流程
+ * ## 搜索行为
  *
- * 1. 用户点击搜索 → SearchForm @search → searchPage1st()
- * 2. searchPage1st 重置分页到第一页，触发 _search()
- * 3. 分页变化 → onTableChange → setPageParam + _search()
- * 4. 重置 → reset() → resetQueryParams + _search()
+ * 1. 搜索：分页回到第一页后发起查询
+ * 2. 分页变化：分页参数同步后发起查询
+ * 3. 重置：查询参数恢复初始值后重新查询
+ *
+ * @template T - 表格实例类型（useTable 返回值）
+ *
+ * @param {T} [table] - 列表表格对象，来自 useTable
+ * @param {() => Promise<unknown>} [search] - 列表数据查询方法
+ * @param {boolean} [addIndexColumn] - 是否在首列插入序号列
+ * @param {boolean} [immediateSearch] - 挂载后是否立即触发一次查询
+ * @param {boolean | Partial<Control>} [control] - 是否展示尺寸与列控制按钮
+ * @param {SearchFormConfig} [searchFormConfig] - 搜索栏查询字段表单配置
+ * @param {ContainerComponent | false} [tableContainer] - 表格区域包裹容器
+ *
+ * @slot search-form - 搜索区域插槽，作用域参数 form / search / reset
+ * @slot button-bar - 表格头部按钮区插槽
+ * @slot toolbar - 工具栏插槽
+ * @slot table - 表格区域插槽，作用域参数 columns / dataSource / pagination / loading / size / onChange
  */
 
 import type {
@@ -77,6 +91,24 @@ defineOptions({ name: 'ProTable', inheritAttrs: false });
 
 const tableProperties = Object.keys(tableProps());
 
+/*
+ * 组件自身消费、不向宿主表格透传的 attrs 键：class / style 由根容器消费，
+ * onSearch 由内部搜索流程消费
+ */
+const consumedAttrKeys = ['class', 'style', 'onSearch'];
+
+/*
+ * 透传取值：宿主静态 props 可用时按宿主导出的键名筛选；不可用时除组件自身消费的键外
+ * 全部透传，宿主表格忽略无法识别的属性
+ */
+const pickTableProps = (source: Record<string, any>): Record<string, any> => {
+  if (tableProperties.length > 0) return pick(source, tableProperties);
+  const consumedKeys = new Set([...Object.keys(props), ...consumedAttrKeys]);
+  return Object.fromEntries(
+    Object.entries(source).filter(([key]) => !consumedKeys.has(key))
+  );
+};
+
 type Control = {
   sizeControl: boolean;
   columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
@@ -117,7 +149,7 @@ const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
 const injectAttrs = computed<TableComponentProps>(
-  () => pick(injectProps.value, tableProperties) as TableComponentProps
+  () => pickTableProps(injectProps.value) as TableComponentProps
 );
 
 const computedSearchFormConfig = computed(() => {
@@ -134,10 +166,7 @@ const computedSearchFormConfig = computed(() => {
 
 const attrs: Record<string, any> = useAttrs();
 const tableAttrs = computed<TableComponentProps>(() => {
-  return pick(
-    camelizeProperties(attrs),
-    tableProperties
-  ) as TableComponentProps;
+  return pickTableProps(camelizeProperties(attrs)) as TableComponentProps;
 });
 
 const size = defineModel<TableProps['size']>('size');

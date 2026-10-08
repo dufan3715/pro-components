@@ -8,7 +8,7 @@ import {
 } from '../../../shared/ui';
 import { toValue, computed, ref, watch } from 'vue';
 import type { Column, Columns, ColumnControlConfig } from '../types';
-import { type Table } from '../useTable';
+import { type Table } from '../hooks';
 import FilterOutlined from './icons/FilterOutlined.vue';
 import { useLocale } from '../../../locale';
 import { isObjectItem, normalizePathKey } from '../../../shared/core';

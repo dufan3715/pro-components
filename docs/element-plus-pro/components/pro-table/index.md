@@ -132,12 +132,12 @@ Object.entries(state).forEach(([key, { hidden }]) => {
 
 ### ProTable Slots
 
-| 插槽名      | 说明           |
-| ----------- | -------------- |
-| search-form | 自定义搜索表单 |
-| button-bar  | 自定义按钮组   |
-| toolbar     | 自定义工具栏   |
-| table       | 自定义表格     |
+| 插槽名      | 说明           | 作用域参数 |
+| ----------- | -------------- | ---------- |
+| search-form | 自定义搜索表单 | 无         |
+| button-bar  | 自定义按钮组   | 无         |
+| toolbar     | 自定义工具栏   | 无         |
+| table       | 自定义表格     | 无         |
 
 其余 el-table 列插槽（如 `el-table-column` 的 `default`、`header` 等）也会透传到内部 Table 组件。
 

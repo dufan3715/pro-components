@@ -56,7 +56,7 @@ const defineFieldAccessors = (
 ) => {
   try {
     for (const [key, getter] of Object.entries(accessors)) {
-      // 不可枚举：不进入 Object.keys / spread，不随字段配置透传
+      // 访问器仅用于字段对象读取，不参与属性遍历与字段配置透传
       Object.defineProperty(raw, key, {
         value: getter,
         enumerable: false,

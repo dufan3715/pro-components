@@ -85,7 +85,7 @@ const computedGridProps = computed<GridProps>(() => {
 
 /**
  * 以字段原始对象为 key 登记 FormItem / 控件实例，供 getFormItemRef / getComponentRef 读取；
- * WeakMap 不参与响应式追踪，条目随字段对象回收自动释放。
+ * 字段对象被回收后对应条目不再可读。
  */
 const formItemRefMap = new WeakMap<object, any>();
 const componentRefMap = new WeakMap<object, any>();
@@ -98,7 +98,7 @@ const defineFieldAccessors = (
 ) => {
   try {
     for (const [key, getter] of Object.entries(accessors)) {
-      // 不可枚举：不进入 Object.keys / spread，不随字段配置透传
+      // 访问器仅用于字段对象读取，不参与属性遍历与字段配置透传
       Object.defineProperty(raw, key, {
         value: getter,
         enumerable: false,

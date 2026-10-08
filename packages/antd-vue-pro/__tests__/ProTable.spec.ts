@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h, ref, toRaw } from 'vue';
+import type { TableComponentProps } from '../src/shared/ui';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
@@ -944,5 +945,187 @@ describe('ProTable 组件测试', () => {
       blank.wrapper.find('.pro-table_header_column-control').exists()
     ).toBe(false);
     blank.wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A23 [判别]: 序号偏移取有效分页（attrs.pagination.pageSize 优先于 table.pageParam）
+  // ----------------------------------------------------
+  it('PT-A23 [判别]: attrs 传入 pageSize 时序号按有效分页偏移', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: Array.from({ length: 12 }, (_, i) => ({
+        id: `row-${i + 1}`,
+      })),
+    });
+
+    const { wrapper } = mountProTable({
+      table,
+      props: {
+        addIndexColumn: true,
+        pagination: { current: 2, pageSize: 5 },
+      },
+    });
+    await flushPromises();
+
+    // 有效分页 current=2 / pageSize=5 → 首行序号 (2-1)*5+1 = 6
+    const indexCells = wrapper
+      .findAll('tbody tr')
+      .map(row => row.findAll('td')[0]?.text());
+    expect(indexCells).toEqual(['6', '7', '8', '9', '10']);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A24 [判别]: search 告警按原因分键去重，两类告警互不静音
+  // ----------------------------------------------------
+  it('PT-A24 [判别]: 两类 search 告警按原因分别输出，同一原因不重复告警', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const proTableWarns = () =>
+      warnSpy.mock.calls
+        .map(args => String(args[0]))
+        .filter(msg => msg.startsWith('[ProTable]'));
+
+    // 同时配置 :search 与 @search，且 search 返回非 Promise → 两条告警互不静音
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        search: () => 'sync-result',
+        onSearch: () => {},
+      } as any,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+    expect(searchBtn.exists()).toBe(true);
+    await searchBtn.trigger('click');
+    await flushPromises();
+
+    expect(proTableWarns()).toHaveLength(2);
+    expect(
+      proTableWarns().some(msg =>
+        msg.includes('同时配置了 :search prop 与 @search 监听')
+      )
+    ).toBe(true);
+    expect(
+      proTableWarns().some(msg => msg.includes('search 未返回 Promise'))
+    ).toBe(true);
+
+    // 同一原因重复触发不重复告警
+    await searchBtn.trigger('click');
+    await flushPromises();
+    expect(proTableWarns()).toHaveLength(2);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A24b [判别]: 未配置 search 与 @search 时点击搜索不产生告警
+  // ----------------------------------------------------
+  it('PT-A24b [判别]: 未配置 search 时点击搜索不产生「未返回 Promise」告警', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const proTableWarns = () =>
+      warnSpy.mock.calls
+        .map(args => String(args[0]))
+        .filter(msg => msg.startsWith('[ProTable]'));
+
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+    const wrapper = mount(ProTable, {
+      props: { table },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    await wrapper.find('.pro-table_search-form_search-button').trigger('click');
+    await flushPromises();
+
+    expect(proTableWarns()).toHaveLength(0);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A25 [判别]: search-form / table 插槽向调用方暴露作用域参数
+  // ----------------------------------------------------
+  it('PT-A25 [判别]: search-form 与 table 插槽收到作用域参数', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '甲' }],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+    const Parent = defineComponent({
+      components: { ProTable },
+      setup() {
+        return { table };
+      },
+      template: `
+        <ProTable :table="table">
+          <template #search-form="scope">
+            <div class="scope-search">{{ scope.form ? 'form' : 'none' }}|{{ typeof scope.search }}|{{ typeof scope.reset }}</div>
+          </template>
+          <template #table="scope">
+            <div class="scope-table">{{ scope.columns && scope.columns.length > 0 ? 'cols' : 'none' }}|{{ scope.dataSource ? scope.dataSource.length : 'none' }}|{{ scope.pagination === false ? 'off' : 'on' }}|{{ scope.loading }}|{{ scope.size ?? 'none' }}|{{ typeof scope.onChange }}</div>
+          </template>
+        </ProTable>
+      `,
+    });
+
+    const wrapper = mount(Parent, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    expect(wrapper.find('.scope-search').text()).toBe('form|function|function');
+    expect(wrapper.find('.scope-table').text()).toBe(
+      'cols|1|on|false|none|function'
+    );
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A26 [判别]: emit 型 attrs 入口按宿主导出推导，宿主未暴露 scroll 事件面
+  // ----------------------------------------------------
+  it('PT-A26 [判别]: v-model:expanded-row-keys 到达宿主表格，组件属性面不含 scroll 事件', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+    });
+    const expandedKeys = ref<any[]>([]);
+    const Parent = defineComponent({
+      components: { ProTable },
+      setup() {
+        return { table, expandedKeys };
+      },
+      template: `
+        <ProTable :table="table" v-model:expanded-row-keys="expandedKeys" />
+      `,
+    });
+
+    const wrapper = mount(Parent, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    const hostTable = wrapper.findComponent({ name: 'ATable' });
+    expect(hostTable.exists()).toBe(true);
+    expect(hostTable.props('expandedRowKeys')).toEqual([]);
+
+    hostTable.vm.$emit('update:expandedRowKeys', ['1']);
+    await flushPromises();
+    expect(expandedKeys.value).toEqual(['1']);
+    wrapper.unmount();
+
+    // 类型面契约：属性面补齐宿主导出的 emit 键，且不含宿主未暴露的 scroll 事件面
+    const hostEmitProps: TableComponentProps = {
+      'onUpdate:expandedRowKeys': () => {},
+    };
+    expect(typeof hostEmitProps['onUpdate:expandedRowKeys']).toBe('function');
+
+    const boundaryProps: TableComponentProps = {
+      // @ts-expect-error 宿主 ant-design-vue Table 未暴露 scroll 事件面
+      onScroll: () => {},
+    };
+    expect(Object.keys(boundaryProps)).toEqual(['onScroll']);
   });
 });

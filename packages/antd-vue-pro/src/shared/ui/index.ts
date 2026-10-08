@@ -1,4 +1,9 @@
-import type { FormProps as _FormProps } from 'ant-design-vue';
+import type {
+  FormProps as _FormProps,
+  Table,
+  TableProps,
+} from 'ant-design-vue';
+import type { ComponentProps } from 'vue-component-type-helpers';
 import type { Options } from 'scroll-into-view-if-needed';
 
 export {
@@ -55,3 +60,18 @@ export { type MenuItemType } from 'ant-design-vue/es/menu/src/interface';
 export type FormProps = Omit<_FormProps, 'scrollToFirstError'> & {
   scrollToFirstError?: boolean | Options<any>;
 };
+
+/** TableProps 未声明的 emit 型属性（事件处理器），键名取自宿主 Table 的组件属性面 */
+export type TableEmitProps = {
+  'onUpdate:expandedRowKeys'?: ComponentProps<
+    typeof Table
+  >['onUpdate:expandedRowKeys'];
+};
+
+/**
+ * 宿主 Table 的完整属性面
+ *
+ * @description 由宿主 `TableProps` 与其未声明的 emit 型属性键组成，键名与签名均取自宿主导出；
+ * 宿主 Table 未暴露 scroll 事件面，故不提供 `@scroll` 入口。
+ */
+export type TableComponentProps = TableProps & TableEmitProps;

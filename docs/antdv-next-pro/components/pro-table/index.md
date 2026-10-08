@@ -79,12 +79,12 @@ const search = async () => {
 
 ### Slots
 
-| 插槽名      | 说明           |
-| ----------- | -------------- |
-| search-form | 自定义搜索表单 |
-| button-bar  | 自定义按钮组   |
-| toolbar     | 自定义工具栏   |
-| table       | 自定义表格     |
+| 插槽名      | 说明           | 作用域参数                                                                |
+| ----------- | -------------- | ------------------------------------------------------------------------- |
+| search-form | 自定义搜索表单 | `form` / `search` / `reset`                                               |
+| button-bar  | 自定义按钮组   | 无                                                                        |
+| toolbar     | 自定义工具栏   | 无                                                                        |
+| table       | 自定义表格     | `columns` / `dataSource` / `pagination` / `loading` / `size` / `onChange` |
 
 ## 列配置（Column）
 

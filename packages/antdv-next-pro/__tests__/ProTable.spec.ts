@@ -1049,9 +1049,9 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PT-A26 [判别]: 宿主 Table 静态 props 缺失时回退内置透传清单并仅告警一次
+  // PT-A26 [判别]: 宿主静态 props 可用时按宿主导出的键名限定透传；缺失时全量透传并仅告警一次
   // ----------------------------------------------------
-  it('PT-A26 [判别]: 宿主 Table 静态 props 缺失时回退内置清单并仅告警一次', async () => {
+  it('PT-A26 [判别]: 宿主静态 props 缺失时全量透传 attrs 并仅告警一次', async () => {
     const { Table } = await import('antdv-next');
     const hostTable = Table as any;
     const snapshot = hostTable.props;
@@ -1060,29 +1060,65 @@ describe('ProTable 组件测试', () => {
     expect(hostKeys).toContain('columns');
     expect(hostKeys).toContain('pagination');
 
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+    });
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    try {
-      // ① 快照整体缺失：回退清单仍覆盖宿主全部运行时 props 与 emit 型键
-      hostTable.props = undefined;
-      const fallbackKeys = Object.keys(tableProps());
-      expect(hostKeys.every(key => fallbackKeys.includes(key))).toBe(true);
-      expect(fallbackKeys).toContain('dataSource');
-      expect(fallbackKeys).toContain('rowKey');
-      expect(fallbackKeys).toContain('onScroll');
-      expect(fallbackKeys).toContain('onUpdate:expandedRowKeys');
-
-      // ② 快照缺少关键键：同样回退并补齐缺失键
-      hostTable.props = { size: { type: String } };
-      const mergedKeys = Object.keys(tableProps());
-      expect(mergedKeys).toContain('size');
-      expect(mergedKeys).toContain('dataSource');
-      expect(mergedKeys).toContain('columns');
-
-      // 两次回退只告警一次
-      const warns = warnSpy.mock.calls
+    const hostWarns = () =>
+      warnSpy.mock.calls
         .map(args => String(args[0]))
         .filter(msg => msg.includes('宿主 Table'));
-      expect(warns).toHaveLength(1);
+
+    // ① 静态 props 可用：透传键取自宿主导出，未被宿主导出的 attrs 不向宿主表格转发
+    const usable = mount(ProTable, {
+      props: { table },
+      attrs: { 'data-probe': 'filtered-out' },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(usable.find('.pro-table_content').exists()).toBe(true);
+    expect(usable.find('.pro-table_content').html()).not.toContain(
+      'filtered-out'
+    );
+    expect(hostWarns()).toHaveLength(0);
+    usable.unmount();
+
+    // ② 静态 props 缺失：不做键名限定，attrs 全量透传至宿主表格
+    hostTable.props = undefined;
+    try {
+      const passed = mount(ProTable, {
+        props: { table },
+        attrs: { 'data-probe': 'pass-through' },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      expect(passed.find('.pro-table_content').exists()).toBe(true);
+      expect(passed.find('.pro-table_content').html()).toContain(
+        'pass-through'
+      );
+
+      // 空记录即不限定键名，宿主 emits 键仍向调用方开放
+      const emptyKeys = Object.keys(tableProps());
+      expect(emptyKeys).toHaveLength(0);
+
+      // 再次挂载不重复告警
+      const again = mount(ProTable, {
+        props: { table },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      again.unmount();
+      passed.unmount();
+      expect(hostWarns()).toHaveLength(1);
+
+      // ③ 快照非空即视为可用：仅补齐宿主 emits 键，不合并任何内置 props 键
+      hostTable.props = { size: { type: String } };
+      const partialKeys = Object.keys(tableProps());
+      expect(partialKeys).toContain('size');
+      expect(partialKeys).toContain('onChange');
+      expect(partialKeys).toContain('onUpdate:expandedRowKeys');
+      expect(partialKeys).not.toContain('dataSource');
     } finally {
       hostTable.props = snapshot;
     }

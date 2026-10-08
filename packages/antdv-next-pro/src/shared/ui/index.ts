@@ -74,30 +74,7 @@ const TABLE_EMIT_PROP_KEYS = (() => {
     : ['onChange', 'onScroll', 'onUpdate:expandedRowKeys'];
 })();
 
-/*
- * 宿主 Table 静态 props 缺失时的兜底透传白名单，
- * 口径为 antdv-next Table 的运行时 props，随宿主版本升级同步维护
- */
-// prettier-ignore
-const FALLBACK_TABLE_PROP_KEYS = [
-  'classes', 'styles', 'dropdownPrefixCls', 'dataSource', 'column',
-  'columns', 'pagination', 'loading', 'size', 'bordered', 'locale',
-  'rowSelection', 'getPopupContainer', 'scroll', 'sortDirections',
-  'showSorterTooltip', 'virtual', 'rootClass', 'prefixCls', 'rowKey',
-  'tableLayout', 'expandable', 'indentSize', 'rowClassName', 'title',
-  'footer', 'summary', 'headerCell', 'bodyCell', 'caption', 'id',
-  'showHeader', 'components', 'onRow', 'onHeaderRow', 'direction',
-  'sticky', 'rowHoverable', 'tailor', 'getContainerWidth',
-  'measureRowRender', 'expandedRowKeys', 'defaultExpandedRowKeys',
-  'expandedRowRender', 'expandRowByClick', 'expandIcon', 'onExpand',
-  'onExpandedRowsChange', 'defaultExpandAllRows', 'expandIconColumnIndex',
-  'expandedRowClassName', 'childrenColumnName',
-];
-
-/** 判定宿主 Table 静态 props 是否可用的关键键 */
-const REQUIRED_TABLE_PROP_KEYS = ['dataSource', 'columns', 'pagination'];
-
-/** 宿主 Table 静态 props 不可用时的告警去重位 */
+/** 宿主 Table 静态 props 缺失时的告警去重位 */
 let warnedTablePropsFallback = false;
 
 const toPropRecord = (keys: string[]): Record<string, any> =>
@@ -106,28 +83,23 @@ const toPropRecord = (keys: string[]): Record<string, any> =>
 /**
  * 宿主 Table 的透传属性记录
  *
- * @description 返回宿主 Table 的运行时 props 与事件型键；静态 props 缺失或缺少关键键时
- * 输出一次告警，并回退到内置透传清单。
+ * @description 返回宿主静态 props 与事件型键构成的属性记录；宿主未暴露静态 props 时
+ * 返回空记录并输出一次开发期告警，调用方此时不对透传键做键名限定。
  */
 export const tableProps = (): Record<string, any> => {
   const snapshot = (Table as any).props || {};
   const keys = Object.keys(snapshot);
-  const usable =
-    keys.length > 0 &&
-    REQUIRED_TABLE_PROP_KEYS.every(key => keys.includes(key));
-  if (usable) return { ...snapshot, ...toPropRecord(TABLE_EMIT_PROP_KEYS) };
+  if (keys.length > 0) {
+    return { ...snapshot, ...toPropRecord(TABLE_EMIT_PROP_KEYS) };
+  }
 
   if (!warnedTablePropsFallback) {
     warnedTablePropsFallback = true;
     console.warn(
-      '[pro-components] 宿主 Table 未暴露完整的静态 props，表格属性透传已回退到内置清单。'
+      '[pro-components] 宿主 Table 未暴露静态 props，表格属性不做键名限定，全量透传给宿主表格。'
     );
   }
-  return {
-    ...snapshot,
-    ...toPropRecord(FALLBACK_TABLE_PROP_KEYS),
-    ...toPropRecord(TABLE_EMIT_PROP_KEYS),
-  };
+  return {};
 };
 
 /** TableProps 未声明的 emit 型属性（事件处理器），键名对应宿主 Table 的 emits */

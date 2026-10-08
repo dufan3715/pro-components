@@ -41,14 +41,15 @@
  * @param {SearchFormConfig} [searchFormConfig] - 搜索栏查询字段表单配置
  * @param {ContainerComponent | false} [tableContainer] - 表格区域包裹容器
  *
- * @slot search-form - 搜索区域插槽
+ * @slot search-form - 搜索区域插槽，作用域参数 form / search / reset
  * @slot button-bar - 表格头部按钮区插槽
  * @slot toolbar - 工具栏插槽
- * @slot table - 表格区域插槽
+ * @slot table - 表格区域插槽，作用域参数 columns / dataSource / pagination / loading / size / onChange
  */
 import type {
   PaginationProps,
   TableProps,
+  TableComponentProps,
   ColumnType,
 } from '../../../shared/ui';
 import { Table as ATable, tableProps } from '../../../shared/ui';
@@ -116,7 +117,7 @@ type Props = {
   searchFormConfig?: SearchFormConfig;
   // 表格区域包裹容器
   tableContainer?: ContainerComponent | false;
-} & /* @vue-ignore */ TableProps;
+} & /* @vue-ignore */ TableComponentProps;
 
 const props = withDefaults(defineProps<Props>(), {
   table: undefined,
@@ -134,8 +135,8 @@ const config = INJECT_CONFIG['pro-table'];
 const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
-const injectAttrs = computed<TableProps>(
-  () => pick(injectProps.value, tableProperties) as TableProps
+const injectAttrs = computed<TableComponentProps>(
+  () => pick(injectProps.value, tableProperties) as TableComponentProps
 );
 
 const computedSearchFormConfig = computed(() => {
@@ -151,8 +152,11 @@ const computedSearchFormConfig = computed(() => {
 });
 
 const attrs: Record<string, any> = useAttrs();
-const tableAttrs = computed<TableProps>(() => {
-  return pick(camelizeProperties(attrs), tableProperties) as TableProps;
+const tableAttrs = computed<TableComponentProps>(() => {
+  return pick(
+    camelizeProperties(attrs),
+    tableProperties
+  ) as TableComponentProps;
 });
 
 const size = defineModel<TableProps['size']>('size');
@@ -160,23 +164,28 @@ const loading = defineModel<boolean>('loading', { default: false });
 
 // 递增序号做请求竞态守卫，仅最新一次请求可变更 loading
 let searchSequence = 0;
-let warnedSearchConfig = false;
-const warnSearchConfig = (reason: string) => {
-  if (warnedSearchConfig) return;
-  warnedSearchConfig = true;
-  console.warn(`[ProTable] ${reason}`);
+/** 告警文案按原因分键，各原因独立去重 */
+const SEARCH_WARN_MESSAGES = {
+  duplicate:
+    '同时配置了 :search prop 与 @search 监听，@search 监听不会被执行，请仅保留其一。',
+  'not-promise':
+    'search 未返回 Promise，本次查询不参与 loading 竞态管理（在途请求的 loading 状态保持不变）。',
+} as const;
+const warnedSearchReasons = new Set<keyof typeof SEARCH_WARN_MESSAGES>();
+const warnSearchConfig = (reason: keyof typeof SEARCH_WARN_MESSAGES) => {
+  if (warnedSearchReasons.has(reason)) return;
+  warnedSearchReasons.add(reason);
+  console.warn(`[ProTable] ${SEARCH_WARN_MESSAGES[reason]}`);
 };
 const _search = async () => {
+  const search = props.search || attrs.onSearch;
   if (props.search && attrs.onSearch) {
-    warnSearchConfig(
-      '同时配置了 :search prop 与 @search 监听，@search 监听不会被执行，请仅保留其一。'
-    );
+    warnSearchConfig('duplicate');
   }
-  const searchPromise = (props.search || attrs.onSearch)?.();
+  if (!search) return;
+  const searchPromise = search();
   if (!isPromise(searchPromise)) {
-    warnSearchConfig(
-      'search 未返回 Promise，本次查询不参与 loading 竞态管理（在途请求的 loading 状态保持不变）。'
-    );
+    warnSearchConfig('not-promise');
     return;
   }
   const seq = ++searchSequence;
@@ -263,7 +272,7 @@ const isBoundProp = (name: string) => {
   return name in vnodeProps || `onUpdate:${name}` in vnodeProps;
 };
 
-const computedTableProps = computed<TableProps>(() => {
+const computedTableProps = computed<TableComponentProps>(() => {
   const merged = {
     ...injectAttrs.value,
     ...tableAttrs.value,
@@ -271,7 +280,7 @@ const computedTableProps = computed<TableProps>(() => {
     loading: undefined,
     pagination: undefined,
     onChange: undefined,
-  } as TableProps;
+  } as TableComponentProps;
   // 始终读取本地模型以建立依赖；本地显式绑定或已由 SizeControl 写入时覆盖注入值
   const localSize = size.value;
   if (isBoundProp('size') || localSize !== undefined) {
@@ -291,12 +300,17 @@ const computedTableContainer = computed(() => {
 type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
 type RecordType = ReturnGenericParameterTypes<T>;
 
-// 序号列随分页偏移：第 n 页首行序号 = (n-1)*pageSize + i + 1（无分页时退化为 index+1）
+/*
+ * 序号列随有效分页偏移：第 n 页首行序号 = (n-1)*pageSize + i + 1；
+ * 有效分页取自 computedPagination（attrs/provider 的 pageSize 优先于 table.pageParam），
+ * 分页关闭时退化为 index+1
+ */
 const getIndex = (i: number) => {
+  const pagination = computedPagination.value;
   const pageParam = props.table?.pageParam;
-  if (pageParam && computedPagination.value !== false) {
-    const current = pageParam.current ?? 1;
-    const pageSize = pageParam.pageSize ?? 10;
+  if (pageParam && pagination !== false) {
+    const current = pagination.current ?? pageParam.current ?? 1;
+    const pageSize = pagination.pageSize ?? pageParam.pageSize ?? 10;
     return (current - 1) * pageSize + i + 1;
   }
   return i + 1;
@@ -381,7 +395,7 @@ const computedPagination = computed<PaginationProps | false>(() => {
   };
 });
 
-const onTableChange: TableProps['onChange'] = (...args) => {
+const onTableChange: TableComponentProps['onChange'] = (...args) => {
   props.table?.setPageParam?.(args[0]);
   // change 回放：模板监听器优先，未绑定时回退 Provider 全局配置
   (attrs.onChange ?? injectProps.value.onChange)?.(...args);
@@ -440,7 +454,10 @@ defineExpose({
       v-if="searchFormVisible || $slots['search-form']"
       :component="computedSearchFormConfig.container"
     >
-      <slot name="search-form">
+      <slot
+        name="search-form"
+        v-bind="{ form: props.table?.searchForm, search: searchPage1st, reset }"
+      >
         <SearchForm
           v-if="props.table?.searchForm"
           :form="props.table.searchForm"
@@ -477,7 +494,17 @@ defineExpose({
         </div>
       </div>
 
-      <slot name="table">
+      <slot
+        name="table"
+        v-bind="{
+          columns: visibleComputedColumns,
+          dataSource: computedDataSource,
+          pagination: computedPagination,
+          loading: loading,
+          size: size,
+          onChange: onTableChange,
+        }"
+      >
         <ATable
           class="pro-table_content"
           v-bind="computedTableProps"

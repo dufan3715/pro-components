@@ -1,15 +1,15 @@
 import {
   useTable as coreUseTable,
   type Table as _Table,
-} from '../../shared/core';
+} from '../../../shared/core';
 import type {
   Data,
   ExtendWithAny,
   DeepPartial,
   PageParam,
-} from '../../shared/core';
-import type { Fields } from '../form/types';
-import type { Column, Columns } from './types';
+} from '../../../shared/core';
+import type { Fields } from '../../form/types';
+import type { Column, Columns } from '../types';
 import type { Ref } from 'vue';
 
 /**

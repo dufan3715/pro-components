@@ -13,6 +13,6 @@ export { type Column, type Columns } from './types';
 export { type TableEmits } from '../../shared/ui';
 
 // 仅导出核心表格 Hook 与类型
-export { useTable, type Table } from './useTable';
+export { useTable, type Table } from './hooks';
 
 export default ProTable;

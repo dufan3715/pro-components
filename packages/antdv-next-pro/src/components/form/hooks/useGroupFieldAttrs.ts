@@ -58,13 +58,16 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         // prettier-ignore
         const { class: injectClassName, style: injectStyle, span: injectSpan, xs, sm, md, lg, xl, xxl, formItemContainer: injectFormItemContainer, ...injectRest } = rawInject;
 
-        // 字段显式 span 优先，否则回退注入配置的响应式断点
+        /*
+         * 字段显式指定 span 时整体接管栅格，不再叠加注入的响应式断点；
+         * 未指定 span 时使用注入的断点配置
+         */
         const initGridItemProps =
           span || span === 0
             ? { span }
             : { xs, sm, md, lg, xl, xxl, span: injectSpan };
 
-        // 分组字段默认整行（span 兜底 24），注入断点同样生效
+        // 分组字段未指定 span 时整行渲染（span 兜底 24），注入的响应式断点保持生效
         gridItemProps = fields
           ? { ...initGridItemProps, span: span ?? 24 }
           : initGridItemProps;
@@ -74,10 +77,7 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
           { class: toValue(formItemClass), style: toValue(formItemStyle) },
           formItemDataAttrs
         );
-        /*
-         * 字段级容器优先，回退注入级配置；注入级键已解构剔除
-         * 不随 injectRest 透传为 FormItem 的 DOM 属性
-         */
+        // 字段级容器优先，回退注入级配置
         const container = formItemContainer ?? injectFormItemContainer;
 
         Object.keys(rest).forEach(k => {

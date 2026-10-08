@@ -5,7 +5,7 @@ import SizeControl from '../src/components/table/components/SizeControl.vue';
 import ColumnControl from '../src/components/table/components/ColumnControl.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
-import { useTable } from '../src/components/table/useTable';
+import { useTable } from '../src/components/table/hooks/useTable';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';

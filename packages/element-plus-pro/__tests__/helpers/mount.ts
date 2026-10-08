@@ -4,7 +4,7 @@ import { expect } from 'vitest';
 import ProForm from '../../src/components/form/components/ProForm/index.vue';
 import ProTable from '../../src/components/table/components/ProTable.vue';
 import { useForm } from '../../src/components/form/hooks/useForm';
-import { useTable } from '../../src/components/table/useTable';
+import { useTable } from '../../src/components/table/hooks/useTable';
 import type { Field } from '../../src/components/form/types';
 import type { Column } from '../../src/components/table/types';
 

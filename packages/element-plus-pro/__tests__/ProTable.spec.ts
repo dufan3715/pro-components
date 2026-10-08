@@ -3,7 +3,7 @@ import { defineComponent, h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
-import { useTable } from '../src/components/table/useTable';
+import { useTable } from '../src/components/table/hooks/useTable';
 import { flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
 import { ElPagination } from 'element-plus';

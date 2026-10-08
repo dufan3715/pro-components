@@ -150,7 +150,7 @@ const slots = defineSlots<Partial<FieldSlots & { default: Slot }>>();
 
 /*
  * 动态插槽映射中心 (Slot Teleporting)：
- * slots 以 shallowRef 注入，组件每次更新后触发通知，深层 BaseField 可感知父级运行期增删的具名插槽
+ * 向深层 BaseField 提供 ProForm 的具名插槽，父级运行期增删插槽后下游可感知
  */
 const formSlotsRef = shallowRef<Record<string, any>>(slots);
 onUpdated(() => {
