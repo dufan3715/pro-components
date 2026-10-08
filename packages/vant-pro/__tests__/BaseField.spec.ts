@@ -5,7 +5,10 @@ import BaseField from '../src/components/form/components/BaseField/index.vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { Field as VanField } from '../src/shared/ui';
-import { INJECT_COMPONENTS } from '../src/components/component-provider/constants';
+import {
+  INJECT_COMPONENTS,
+  INJECT_CONFIG,
+} from '../src/components/component-provider/constants';
 import { InjectionFormKey } from '../src/components/form/constants';
 
 describe('BaseField 组件测试 (vant-pro)', () => {
@@ -262,20 +265,27 @@ describe('BaseField 组件测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
-  // VP-V7 [判别]: 弹层选择器打开时，向 open 传递的是原始数据而非 valueFormatter.get 展示值
+  // VP-V7 [判别]: 弹层选择器打开时，向 open 传递与内联分支一致的控件侧取值（已应用 valueFormatter.get）
   // ----------------------------------------------------
-  it('VP-V7 [判别]: 弹层选择器打开时，向 open 传递的是原始数据而非 valueFormatter.get 展示值', async () => {
+  it('VP-V7 [判别]: 弹层选择器打开时，向 open 传递与内联分支一致的控件侧取值', async () => {
     const form = useForm(
       {
-        date: '2026-08-25',
+        tags: 'a,b',
       },
       [
         {
-          path: 'date',
-          component: 'date-picker',
+          path: 'tags',
+          component: 'picker',
           popup: true,
+          columns: [
+            { text: 'A', value: 'a' },
+            { text: 'B', value: 'b' },
+            { text: 'C', value: 'c' },
+          ],
+          displayFormatter: (val: string[]) => val.join('、'),
           valueFormatter: {
-            get: (val: string) => `Formatted: ${val}`,
+            get: (val: string) => val.split(','),
+            set: (val: string[]) => val.join(','),
           },
         },
       ]
@@ -283,21 +293,34 @@ describe('BaseField 组件测试 (vant-pro)', () => {
 
     const wrapper = mount(ProForm, {
       props: { form },
-      global: { stubs: { transition: false, teleport: true } },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
     });
 
     await flushPromises();
 
     const field = wrapper.findComponent(VanField);
-    // 展示值是经过 get 转换的
-    expect(field.props('modelValue')).toBe('Formatted: 2026-08-25');
+    // 内联展示值取自 get 变换后的数组
+    expect(field.props('modelValue')).toBe('a、b');
 
     // 触发点击打开弹层
     await field.trigger('click');
     await flushPromises();
 
-    // 判别断言：formPopup.popupFieldValue 接收的是未被 get 转换的原始值 '2026-08-25'
-    expect(form.formPopup.popupFieldValue.value).toBe('2026-08-25');
+    // 判别断言：弹层初值同样为 get 变换后的数组，而非 formData 中的原始字符串 'a,b'
+    expect(form.formPopup.popupFieldValue.value).toEqual(['a', 'b']);
+    expect(
+      wrapper.findComponent({ name: 'VanPicker' }).props('modelValue')
+    ).toEqual(['a', 'b']);
+
+    // 往返对称：弹层确认值经 value setter 还原为 formData 原始形态
+    form.formPopup.popupFieldValue.value = ['a', 'b', 'c'];
+    const computedProps = (
+      wrapper.findComponent({ name: 'BaseField' }).vm as any
+    ).getComponentComputedProps();
+    computedProps.onConfirm?.();
+    await flushPromises();
+    expect(form.getFormData('tags')).toBe('a,b,c');
     wrapper.unmount();
   });
 
@@ -634,6 +657,221 @@ describe('BaseField 组件测试 (vant-pro)', () => {
     const fieldEl = wrapper.findComponent(VanField).element as HTMLElement;
     expect(fieldEl.classList.contains('field-cls')).toBe(true);
     expect(fieldEl.getAttribute('style')).toContain('color: blue');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-08 [判别]: 四类 class/style 分别落到外层 van-field 与内层控件
+  // ----------------------------------------------------
+  it('BF-08 [判别]: fieldClass/fieldStyle 落外层 van-field，componentClass/componentStyle 落内层控件', async () => {
+    const form = useForm({ count: 2 }, [
+      {
+        path: 'count',
+        component: 'stepper',
+        fieldClass: 'field-cls',
+        fieldStyle: { color: 'red' },
+        componentClass: 'comp-cls',
+        componentStyle: { margin: '4px' },
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const vanField = wrapper.findComponent(VanField);
+    expect(vanField.classes()).toContain('field-cls');
+    expect(vanField.attributes('style')).toContain('color: red');
+
+    const stepper = wrapper.findComponent({ name: 'VanStepper' });
+    expect(stepper.exists()).toBe(true);
+    expect(stepper.classes()).toContain('comp-cls');
+    expect(stepper.attributes('style')).toContain('margin: 4px');
+
+    // 判别点：两类 class/style 各归其位，不互相串层
+    expect(vanField.classes()).not.toContain('comp-cls');
+    expect(stepper.classes()).not.toContain('field-cls');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-09 [判别]: Field 层专有键不下发内层控件 DOM
+  // ----------------------------------------------------
+  it('BF-09 [判别]: Field 层专有键不降级为内层控件 DOM 属性，控件声明的键仍按 prop 保留', async () => {
+    const form = useForm({ city: ['Hangzhou'], count: 1 }, [
+      {
+        path: 'city',
+        component: 'picker',
+        label: '城市',
+        rules: [{ required: true, message: '请选择城市' }],
+        columns: [{ text: '杭州', value: 'Hangzhou' }],
+        popup: true,
+      },
+      {
+        path: 'count',
+        component: 'stepper',
+        label: '数量',
+        placeholder: '请输入数量',
+        max: 9,
+        disabled: true,
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const fieldList = wrapper.findAllComponents(VanField);
+    // Field 层承接 label / rules
+    expect(fieldList[0].props('label')).toBe('城市');
+    expect(fieldList[0].props('rules')).toEqual([
+      { required: true, message: '请选择城市' },
+    ]);
+
+    // 打开弹层后检查内层 Picker 根节点
+    await fieldList[0].trigger('click');
+    await flushPromises();
+    const pickerEl = wrapper.findComponent({ name: 'VanPicker' })
+      .element as HTMLElement;
+    expect(pickerEl.classList.contains('van-picker')).toBe(true);
+    // 判别点：Field 层专有键不落为控件根节点属性
+    expect(pickerEl.hasAttribute('label')).toBe(false);
+    expect(pickerEl.hasAttribute('rules')).toBe(false);
+    expect(pickerEl.hasAttribute('disabled')).toBe(false);
+
+    // 反向约束：控件同样声明的键仍以 prop 形式保留，且不落为 DOM 属性
+    const stepper = wrapper.findComponent({ name: 'VanStepper' });
+    expect(stepper.props('placeholder')).toBe('请输入数量');
+    expect(stepper.props('max')).toBe(9);
+    expect(stepper.props('disabled')).toBe(true);
+    const stepperEl = stepper.element as HTMLElement;
+    expect(stepperEl.hasAttribute('label')).toBe(false);
+    expect(stepperEl.hasAttribute('placeholder')).toBe(false);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-B7 [判别]: 弹层打开期间字段被隐藏/删除时弹层随之关闭
+  // ----------------------------------------------------
+  it('VP-B7 [判别]: 弹层打开期间字段被隐藏或删除时，弹层随之关闭', async () => {
+    const form = useForm({ city: ['Hangzhou'], area: ['Zhejiang'] }, [
+      {
+        path: 'city',
+        label: '城市',
+        component: 'picker',
+        popup: true,
+        columns: [{ text: '杭州', value: 'Hangzhou' }],
+      },
+      {
+        path: 'area',
+        label: '地区',
+        component: 'picker',
+        popup: true,
+        columns: [{ text: '浙江', value: 'Zhejiang' }],
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false, teleport: true } },
+    });
+    await flushPromises();
+
+    await wrapper.findAllComponents(VanField)[0].trigger('click');
+    await flushPromises();
+    expect(form.formPopup.visible.value).toBe(true);
+    // 判别前置：弹层组件收到展开状态
+    const popupShow = () =>
+      wrapper.findComponent({ name: 'VanPopup' }).props('show');
+    expect(popupShow()).toBe(true);
+
+    // 隐藏承载弹层的字段
+    form.setField('city', { hidden: true } as any);
+    await flushPromises();
+    expect(form.formPopup.visible.value).toBe(false);
+    expect(form.formPopup.activeFieldId.value).toBeUndefined();
+    expect(popupShow()).toBe(false);
+
+    // 删除承载弹层的字段
+    const rest = wrapper.findAllComponents(VanField);
+    expect(rest.length).toBe(1);
+    await rest[0].trigger('click');
+    await flushPromises();
+    expect(form.formPopup.popupFieldPath.value).toBe('area');
+    expect(popupShow()).toBe(true);
+
+    form.deleteField('area');
+    await flushPromises();
+    expect(wrapper.findAllComponents(VanField).length).toBe(0);
+    expect(form.formPopup.visible.value).toBe(false);
+    expect(popupShow()).toBe(false);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-B8 [判别]: 合并为数组的 confirm/cancel/onUpdate 监听器逐一派发
+  // ----------------------------------------------------
+  it('VP-B8 [判别]: 字段与 Provider 的同名 confirm/cancel/onUpdate 监听器合并为数组后逐一派发', async () => {
+    const calls: string[] = [];
+    const form = useForm({ city: ['Hangzhou'] }, [
+      {
+        path: 'city',
+        component: 'picker',
+        popup: true,
+        columns: [{ text: '杭州', value: 'Hangzhou' }],
+        onConfirm: () => calls.push('field-confirm'),
+        onCancel: () => calls.push('field-cancel'),
+        'onUpdate:modelValue': () => calls.push('field-update'),
+      } as any,
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: {
+        provide: {
+          [INJECT_CONFIG.picker.injectionKey as symbol]: {
+            onConfirm: () => calls.push('provider-confirm'),
+            onCancel: () => calls.push('provider-cancel'),
+            'onUpdate:modelValue': () => calls.push('provider-update'),
+          },
+        },
+        stubs: { transition: false, teleport: true },
+      },
+    });
+    await flushPromises();
+
+    form.formPopup.open('city', ['Hangzhou']);
+    await flushPromises();
+
+    const computedProps = (
+      wrapper.findComponent({ name: 'BaseField' }).vm as any
+    ).getComponentComputedProps();
+
+    // 判别点：数组形态逐一派发（Provider 在字段之前），而非抛 confirmEvent is not a function
+    computedProps.onConfirm('payload');
+    expect(calls).toEqual([
+      // 先经 value setter 回放 onUpdate 监听器，再派发 confirm 监听器
+      'provider-update',
+      'field-update',
+      'provider-confirm',
+      'field-confirm',
+    ]);
+    expect(form.formPopup.visible.value).toBe(false);
+
+    calls.length = 0;
+    form.formPopup.open('city', ['Hangzhou'], undefined, 'other-field');
+    computedProps.onCancel();
+    expect(calls).toEqual(['provider-cancel', 'field-cancel']);
+    expect(form.formPopup.visible.value).toBe(false);
 
     wrapper.unmount();
   });

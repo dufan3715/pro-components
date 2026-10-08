@@ -40,9 +40,9 @@ export const DEFAULT_POPUP_PROPS: Partial<PopupProps> = {
  * @public
  */
 export type FormPopup = {
-  /** Popup 组件属性 */
+  /** Popup 组件消费的合并属性：基础属性叠加单次打开覆盖 */
   props: PopupProps;
-  /** 打开指定路径字段的弹出层，支持传入初始值、自定义 PopupProps 和字段实例 ID */
+  /** 打开指定路径字段的弹出层，支持传入控件侧初始值、仅本次生效的 PopupProps 和字段实例 ID */
   open: (
     path: string,
     initialValue?: any,
@@ -51,9 +51,9 @@ export type FormPopup = {
   ) => void;
   /** 关闭弹出层 */
   close: () => void;
-  /** 重置 Popup 属性为全局默认配置 */
+  /** 重置 Popup 基础属性为全局默认配置并清除单次打开覆盖 */
   resetProps: () => void;
-  /** 更新 Popup 组件属性 */
+  /** 更新 Popup 基础属性，后续每次打开均沿用 */
   updateProps: (props: Partial<PopupProps>) => void;
   /** 弹出层是否可见 */
   visible: ComputedRef<boolean>;
@@ -120,29 +120,50 @@ export function useFormPopup(initRoot?: boolean): FormPopup {
   const contentId = computed(() => `pro-form-popup-content-${instanceId}`);
   const teleportTo = computed(() => `#${contentId.value}`);
 
-  const props = reactive<Partial<PopupProps>>({
-    ...DEFAULT_POPUP_PROPS,
-  });
-
   const popupFieldPath = ref<string>();
   const activeFieldId = ref<number | string>();
   const popupFieldValue = ref<any>();
 
-  /** 重置弹层属性：移除非默认项并还原为 DEFAULT_POPUP_PROPS */
-  function resetProps() {
+  /** 持久基础属性：默认配置与 updateProps 写入的合并结果 */
+  const baseProps = reactive<Partial<PopupProps>>({
+    ...DEFAULT_POPUP_PROPS,
+  });
+  /** 单次打开的覆盖属性：随下一次 open 重置 */
+  const openProps = reactive<Partial<PopupProps>>({});
+  /** 弹层组件消费的合并属性：openProps 覆盖 baseProps */
+  const props = reactive<Partial<PopupProps>>({
+    ...DEFAULT_POPUP_PROPS,
+  });
+
+  /** 将基础属性与单次覆盖属性同步到合并属性 */
+  function syncProps() {
     Object.keys(props).forEach(k => {
-      if (!(k in DEFAULT_POPUP_PROPS)) {
+      if (!(k in baseProps) && !(k in openProps)) {
         delete (props as any)[k];
       }
     });
-    Object.assign(props, DEFAULT_POPUP_PROPS);
+    Object.assign(props, baseProps, openProps);
+  }
+
+  /** 重置弹层基础属性：移除非默认项并还原为 DEFAULT_POPUP_PROPS，同时清空单次打开覆盖 */
+  function resetProps() {
+    Object.keys(baseProps).forEach(k => {
+      if (!(k in DEFAULT_POPUP_PROPS)) {
+        delete (baseProps as any)[k];
+      }
+    });
+    Object.assign(baseProps, DEFAULT_POPUP_PROPS);
+    Object.keys(openProps).forEach(k => {
+      delete (openProps as any)[k];
+    });
+    syncProps();
   }
 
   /**
    * 打开指定路径字段的弹层
    * @param path - 字段路径
-   * @param initialValue - 弹层初始值（原始数据）
-   * @param customProps - 本次打开的 PopupProps 覆盖项
+   * @param initialValue - 弹层初始值，取控件侧取值（已应用 valueFormatter.get）
+   * @param customProps - 本次打开的 PopupProps 覆盖项，仅对本次打开生效
    * @param fieldId - 字段实例 ID，用于多实例隔离
    */
   function open(
@@ -151,14 +172,17 @@ export function useFormPopup(initRoot?: boolean): FormPopup {
     customProps?: Partial<PopupProps>,
     fieldId?: number | string
   ) {
-    resetProps();
+    Object.keys(openProps).forEach(k => {
+      delete (openProps as any)[k];
+    });
+    if (customProps) {
+      Object.assign(openProps, customProps);
+    }
+    syncProps();
     popupFieldPath.value = path;
     activeFieldId.value = fieldId;
     // 无条件赋值：打开字段时写入当前初值，不残留上一个字段的旧值
     popupFieldValue.value = initialValue;
-    if (customProps) {
-      Object.assign(props, customProps);
-    }
   }
 
   /** 关闭弹层并清空当前字段状态 */
@@ -170,9 +194,10 @@ export function useFormPopup(initRoot?: boolean): FormPopup {
 
   const visible = computed(() => !!popupFieldPath.value);
 
-  /** 合并更新当前弹层属性 */
+  /** 写入持久基础属性，后续每次打开均沿用 */
   function updateProps(_props: Partial<PopupProps>) {
-    Object.assign(props, _props);
+    Object.assign(baseProps, _props);
+    syncProps();
   }
 
   const store: FormPopup = {

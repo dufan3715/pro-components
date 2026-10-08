@@ -34,6 +34,7 @@ import {
   getCurrentInstance,
   inject,
   mergeProps,
+  onBeforeUnmount,
   ref,
   Teleport,
   toValue,
@@ -50,6 +51,7 @@ import {
 } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps, warnUnknownComponent } from './utils';
+import { dispatchListeners } from '../../utils/listeners';
 import { useLocale } from '../../../../locale';
 import { Field as VanField } from '../../../../shared/ui';
 
@@ -120,12 +122,7 @@ const value = computed({
      * 字段配置/attrs 传入的 onUpdate:* 监听器与内部写值组合回放，参数为组件原始 emit 值
      * popup 字段在 confirm 提交时经此 setter 触发，滚动选择过程的中间值不会误触监听器
      */
-    const { onUpdateValue } = groupedAttrs.value;
-    if (typeof onUpdateValue === 'function') {
-      onUpdateValue(val);
-    } else if (Array.isArray(onUpdateValue)) {
-      onUpdateValue.forEach(listener => listener(val));
-    }
+    dispatchListeners(groupedAttrs.value.onUpdateValue, val);
   },
 });
 
@@ -144,6 +141,34 @@ const popupCloseEventName = computed(() => {
   }
   return { confirm, cancel };
 });
+
+// 从 ProForm 插槽注入的 slots 集合（优先级最高；shallowRef 形态，computed 内经 .value 读取建立依赖）
+const injectedFormSlots = inject(InjectionFormSlotsKey, undefined);
+
+// 从 ProComponentProvider 注入的自定义组件映射
+const customComponents = inject(INJECT_COMPONENTS, {});
+
+/*
+ * 按优先级解析最终要渲染的组件：
+ * ProForm 插槽 → 自定义组件映射 → 内置组件映射 → 原始 component 值
+ */
+const is = computed(() => {
+  const teleportSlot = props.path && injectedFormSlots?.value?.[props.path];
+  if (teleportSlot) return teleportSlot;
+  if (typeof props.component === 'string') {
+    const customMap = toValue(customComponents) as any;
+    const resolved =
+      customMap?.[props.component] || (componentMap as any)[props.component];
+    if (resolved) return resolved;
+    warnUnknownComponent(props.component);
+    return props.component;
+  }
+  return props.component;
+});
+
+// 内层控件声明的 props 键；无静态 props 声明（原生元素、未注册组件）时为空集
+const getControlPropsKeys = (component: any): string[] =>
+  Object.keys(component?.props || {});
 
 /*
  * 将注入的默认 props、外部传入的 attrs、field 配置合并为最终属性
@@ -193,11 +218,11 @@ const groupedAttrs = computed(() => {
             : form?.formPopup?.popupFieldValue?.value;
         value.value = nextValue;
         form?.formPopup?.close();
-        confirmEvent?.(...args);
+        dispatchListeners(confirmEvent, ...args);
       },
       [popupCloseEventName.value.cancel]: (...args: any[]) => {
         form?.formPopup?.close();
-        cancelEvent?.(...args);
+        dispatchListeners(cancelEvent, ...args);
       },
     });
   }
@@ -213,6 +238,22 @@ const groupedAttrs = computed(() => {
     { class: fieldClass, style: fieldStyle } as Record<string, any>
   );
 
+  /*
+   * Field 层专有键由 fieldAttrs 下发外层 Field；内层控件同样声明为 props 的键留在控件绑定中，
+   * 内层控件未声明的 Field 层键从 bindAttrs 剔除，不参与控件绑定
+   */
+  const controlPropsKeys = getControlPropsKeys(is.value);
+  Object.keys(bindAttrs).forEach(key => {
+    if (
+      uiFieldPropsKeys.includes(key) &&
+      key !== 'type' &&
+      key !== 'name' &&
+      !controlPropsKeys.includes(key)
+    ) {
+      delete (bindAttrs as any)[key];
+    }
+  });
+
   return {
     attrs: bindAttrs,
     fieldAttrs,
@@ -224,30 +265,6 @@ const groupedAttrs = computed(() => {
     popup,
     onUpdateValue,
   };
-});
-
-// 从 ProForm 插槽注入的 slots 集合（优先级最高；shallowRef 形态，computed 内经 .value 读取建立依赖）
-const injectedFormSlots = inject(InjectionFormSlotsKey, undefined);
-
-// 从 ProComponentProvider 注入的自定义组件映射
-const customComponents = inject(INJECT_COMPONENTS, {});
-
-/*
- * 按优先级解析最终要渲染的组件：
- * ProForm 插槽 → 自定义组件映射 → 内置组件映射 → 原始 component 值
- */
-const is = computed(() => {
-  const teleportSlot = props.path && injectedFormSlots?.value?.[props.path];
-  if (teleportSlot) return teleportSlot;
-  if (typeof props.component === 'string') {
-    const customMap = toValue(customComponents) as any;
-    const resolved =
-      customMap?.[props.component] || (componentMap as any)[props.component];
-    if (resolved) return resolved;
-    warnUnknownComponent(props.component);
-    return props.component;
-  }
-  return props.component;
 });
 
 // 处理 Popup 相关的逻辑
@@ -268,16 +285,24 @@ const displayValue = computed(() => {
 });
 
 const onFieldClick = () => {
-  const compAttrs = groupedAttrs.value.attrs as any;
-  if (!popupAble.value || compAttrs.disabled || compAttrs.readonly) return;
+  const { disabled, readonly } = groupedAttrs.value.fieldAttrs as any;
+  if (!popupAble.value || disabled || readonly) return;
 
   const popupProps =
     typeof groupedAttrs.value.popup === 'object'
       ? groupedAttrs.value.popup
       : {};
-  const rawValue = form?.getFormData?.(props.path);
-  form?.formPopup?.open(props.path, rawValue, popupProps, fieldUid);
+  // 弹层初值与内联分支同为控件侧取值（已应用 valueFormatter.get）
+  form?.formPopup?.open(props.path, value.value, popupProps, fieldUid);
 };
+
+// 字段被隐藏或删除导致组件卸载时，关闭其自身开启的弹层
+onBeforeUnmount(() => {
+  const popup = form?.formPopup;
+  if (popup?.activeFieldId?.value === fieldUid) {
+    popup.close();
+  }
+});
 
 const teleportTarget = computed(() => {
   return form?.formPopup?.teleportTo?.value || '#pro-form-popup-content';

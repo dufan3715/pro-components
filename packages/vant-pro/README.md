@@ -473,23 +473,27 @@ declare module '@qin-ui/vant-pro' {
 
 ```vue
 <script setup lang="ts">
-const form = useForm({ date: '', area: [] }, [
-  {
-    path: 'date',
-    label: '日期',
-    component: 'date-picker',
-    popup: true,
-    displayFormatter: (val: string) => val || '请选择日期',
-  },
-  {
-    path: 'area',
-    label: '地区',
-    component: 'area',
-    popup: true,
-    title: '请选择所在地区',
-    displayFormatter: (val: string[]) => val?.join(' ') || '请选择地区',
-  },
-]);
+// DatePicker / Area 的 v-model 为列值数组（如 ['2026', '09', '04']），初始值与回显均按数组处理
+const form = useForm<{ date: string[]; area: string[] }>(
+  { date: [], area: [] },
+  [
+    {
+      path: 'date',
+      label: '日期',
+      component: 'date-picker',
+      popup: true,
+      displayFormatter: (val: string[]) => val?.join('-') || '请选择日期',
+    },
+    {
+      path: 'area',
+      label: '地区',
+      component: 'area',
+      popup: true,
+      title: '请选择所在地区',
+      displayFormatter: (val: string[]) => val?.join(' ') || '请选择地区',
+    },
+  ]
+);
 </script>
 ```
 

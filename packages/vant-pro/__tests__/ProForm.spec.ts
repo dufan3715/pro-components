@@ -336,4 +336,55 @@ describe('ProForm 组件测试 (vant-pro)', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // VP-V19 [判别]: 运行期替换 :form 实例触发整棵表单子树重挂载（formKey 契约）
+  // ----------------------------------------------------
+  it('VP-V19 [判别]: 运行期替换 :form 实例时表单子树重挂载，字段控件状态整体重置', async () => {
+    let setupCount = 0;
+    const CountingField = defineComponent({
+      name: 'CountingField',
+      props: { modelValue: { default: undefined } },
+      setup(props) {
+        setupCount++;
+        return () =>
+          h('input', { class: 'counting-field', value: props.modelValue });
+      },
+    });
+
+    // 两个表单共用同一批字段对象：字段渲染 key 不随 :form 替换变化
+    const sharedFields = [
+      { path: 'username', component: CountingField as any },
+    ] as any;
+
+    const form1 = useForm({ username: 'Alice' }, sharedFields);
+    const form2 = useForm({ username: 'Bob' }, sharedFields);
+
+    const currentForm = shallowRef(form1);
+    const wrapper = mount(
+      {
+        setup() {
+          return () => h(ProForm, { form: currentForm.value });
+        },
+      },
+      { global: { stubs: { transition: false } } }
+    );
+
+    await flushPromises();
+    expect(setupCount).toBe(1);
+    const inputBefore = wrapper.find('input.counting-field').element;
+    expect((inputBefore as HTMLInputElement).value).toBe('Alice');
+
+    // 运行期替换 :form 实例
+    currentForm.value = form2;
+    await nextTick();
+    await flushPromises();
+
+    // 判别点：字段控件随宿主表单重挂载（重新 setup），节点重建而非原位复用
+    expect(setupCount).toBe(2);
+    const inputAfter = wrapper.find('input.counting-field').element;
+    expect(inputAfter).not.toBe(inputBefore);
+    expect((inputAfter as HTMLInputElement).value).toBe('Bob');
+    wrapper.unmount();
+  });
 });

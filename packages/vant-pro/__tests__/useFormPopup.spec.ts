@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h } from 'vue';
+import { computed, defineComponent, h } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import { useFormPopup } from '../src/components/form/hooks/useFormPopup';
 import { useForm } from '../src/components/form/hooks/useForm';
@@ -144,49 +144,111 @@ describe('useFormPopup Hook & Popup 交互测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
-  // VP-V11 [判别]: 多个相同 path 字段仅被点击的实例激活 Teleport 内容，杜绝双渲染
+  // VP-V11 [判别]: 多字段列表头部增删经 keyed diff 后，仅被点击实例激活弹层内容
   // ----------------------------------------------------
-  it('VP-V11 [判别]: 多个相同 path 字段仅被点击的实例激活 Teleport 内容，杜绝双渲染', async () => {
+  it('VP-V11 [判别]: 多字段列表头部增删经 keyed diff 后，仅被点击实例激活弹层内容', async () => {
     const form = useForm(
       {
-        date: '2026-08-25',
+        city: ['Hangzhou'],
+        area: ['Zhejiang'],
       },
       [
-        { path: 'date', label: '日期1', component: 'date-picker', popup: true },
-        { path: 'date', label: '日期2', component: 'date-picker', popup: true },
+        {
+          path: 'city',
+          label: '城市',
+          component: 'picker',
+          popup: true,
+          columns: [{ text: '杭州', value: 'Hangzhou' }],
+        },
+        {
+          path: 'area',
+          label: '地区',
+          component: 'picker',
+          popup: true,
+          columns: [{ text: '浙江', value: 'Zhejiang' }],
+        },
       ]
     );
 
     const wrapper = mount(ProForm, {
       props: { form },
-      global: { stubs: { transition: false, teleport: true } },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
     });
 
     await flushPromises();
 
     const fields = wrapper.findAllComponents(VanField);
     expect(fields.length).toBe(2);
+    const areaInputBefore = fields[1].element.querySelector('input');
 
-    // 点击第一个字段
-    await fields[0].trigger('click');
+    // 点击第二个字段
+    await fields[1].trigger('click');
     await flushPromises();
 
-    expect(form.formPopup.visible.value).toBe(true);
-    expect(form.formPopup.activeFieldId.value).toBeTruthy();
+    expect(form.formPopup.popupFieldPath.value).toBe('area');
+    const clickedUid = (
+      wrapper.findAllComponents({ name: 'BaseField' })[1].vm as any
+    ).$.uid;
+    expect(form.formPopup.activeFieldId.value).toBe(clickedUid);
+    // 仅被点击实例激活弹层内容
+    expect(wrapper.findAll('.van-picker')).toHaveLength(1);
+
+    // 头部插入新字段：触发 keyed diff 的 map 分支
+    form.prependField('city', {
+      path: 'country',
+      label: '国家',
+      component: 'field',
+    } as any);
+    await flushPromises();
+
+    expect(
+      wrapper.findAllComponents(VanField).map(f => f.props('label'))
+    ).toEqual(['国家', '城市', '地区']);
+    // 判别点：地区字段的输入节点随 key 迁移保留，未被错位复用
+    const areaFieldAfter = wrapper
+      .findAllComponents(VanField)
+      .find(f => f.props('label') === '地区')!;
+    expect(areaFieldAfter.element.querySelector('input')).toBe(areaInputBefore);
+    // 弹层内容仍仅一份，字段归属未被列表增删改写
+    expect(wrapper.findAll('.van-picker')).toHaveLength(1);
+    expect(form.formPopup.activeFieldId.value).toBe(clickedUid);
 
     wrapper.unmount();
   });
 
   // ----------------------------------------------------
-  // POP-01: updateProps 动态更新 Popup 属性
+  // POP-01: updateProps 写入的持久属性在后续 open 时保留，单次覆盖仅对本次生效
   // ----------------------------------------------------
-  it('POP-01: updateProps 可动态更新弹窗属性', () => {
+  it('POP-01: updateProps 写入的持久属性在后续 open 时保留，单次覆盖仅对本次生效', () => {
     const popup = useFormPopup(true);
     expect(popup.props.position).toBe('bottom');
+    expect('closeOnClickOverlay' in popup.props).toBe(false);
 
-    popup.updateProps({ position: 'top', round: false });
+    popup.updateProps({ position: 'top', closeOnClickOverlay: false });
     expect(popup.props.position).toBe('top');
-    expect(popup.props.round).toBe(false);
+    expect(popup.props.closeOnClickOverlay).toBe(false);
+
+    // 判别点：updateProps 的写入不再被 open 重置
+    popup.open('fieldA', 'valA');
+    expect(popup.props.position).toBe('top');
+    expect(popup.props.closeOnClickOverlay).toBe(false);
+
+    // 判别点：open 的 customProps 仅对本次生效
+    popup.open('fieldB', 'valB', { position: 'bottom' });
+    expect(popup.props.position).toBe('bottom');
+    expect(popup.props.closeOnClickOverlay).toBe(false);
+
+    // 判别点：再次 open 无覆盖时回到持久基础属性
+    popup.open('fieldC', 'valC');
+    expect(popup.props.position).toBe('top');
+    expect(popup.props.closeOnClickOverlay).toBe(false);
+
+    // 显式重置后基础属性回到默认值
+    popup.resetProps();
+    popup.open('fieldD', 'valD');
+    expect(popup.props.position).toBe('bottom');
+    expect('closeOnClickOverlay' in popup.props).toBe(false);
   });
 
   // ----------------------------------------------------
@@ -321,5 +383,83 @@ describe('useFormPopup Hook & Popup 交互测试 (vant-pro)', () => {
       (fieldComp.vm as any).$.uid
     );
     w.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-V17 [判别]: 首开时弹层内容经真实 defer Teleport 挂载到实例容器
+  // ----------------------------------------------------
+  it('VP-V17 [判别]: 首开时弹层内容经真实 defer Teleport 挂载到 contentId 容器', async () => {
+    const form = useForm({ city: ['Hangzhou'] }, [
+      {
+        path: 'city',
+        label: '城市',
+        component: 'picker',
+        popup: true,
+        columns: [{ text: '杭州', value: 'Hangzhou' }],
+      },
+    ]);
+    const w = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 首开前：Popup 懒渲染，容器尚未落地
+    const containerId = form.formPopup.contentId.value;
+    expect(document.querySelector(`#${containerId}`)).toBeNull();
+
+    await w.findComponent(VanField).trigger('click');
+    await flushPromises();
+
+    const target = document.querySelector(`#${containerId}`);
+    expect(target).not.toBeNull();
+    // 判别点：解析到实例容器，而非无实例后缀的降级选择器
+    expect(document.querySelector('#pro-form-popup-content')).toBeNull();
+    const picker = w.findComponent({ name: 'VanPicker' });
+    expect(picker.exists()).toBe(true);
+    expect(target!.contains(picker.element)).toBe(true);
+    w.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-V18 [判别]: 显式覆盖 teleportTo 时弹层内容挂载到指定容器
+  // ----------------------------------------------------
+  it('VP-V18 [判别]: 显式覆盖 teleportTo 时弹层内容挂载到指定容器', async () => {
+    const form = useForm({ city: ['Hangzhou'] }, [
+      {
+        path: 'city',
+        label: '城市',
+        component: 'picker',
+        popup: true,
+        columns: [{ text: '杭州', value: 'Hangzhou' }],
+      },
+    ]);
+    const host = document.createElement('div');
+    host.id = 'custom-popup-host';
+    document.body.appendChild(host);
+    form.formPopup.teleportTo = computed(() => '#custom-popup-host');
+
+    const w = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    await w.findComponent(VanField).trigger('click');
+    await flushPromises();
+
+    const picker = w.findComponent({ name: 'VanPicker' });
+    expect(picker.exists()).toBe(true);
+    expect(host.contains(picker.element)).toBe(true);
+    // 判别点：覆盖后内容不再挂到实例默认容器
+    const defaultContainer = document.querySelector(
+      `#${form.formPopup.contentId.value}`
+    );
+    expect(defaultContainer).not.toBeNull();
+    expect(defaultContainer!.contains(picker.element)).toBe(false);
+    w.unmount();
+    host.remove();
   });
 });
