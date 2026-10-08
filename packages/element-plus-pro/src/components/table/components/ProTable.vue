@@ -59,8 +59,8 @@ import SearchForm from './SearchForm.vue';
 import type { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../useTable';
 import { useLocale } from '../../../locale';
+import type { Path } from '../../../shared/core';
 import {
-  Path,
   camelizeProperties,
   getObject,
   isObjectItem,

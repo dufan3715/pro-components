@@ -15,9 +15,11 @@
  *
  * @internal 本模块为底层基建，外部业务通常调用上层 UI 封装包二次导出的 typed useTable。
  */
-import { Reactive, customRef, reactive, Ref, ref, toValue } from 'vue';
-import { applyByGroupDesc, GroupMatch } from '../shared/internals';
-import {
+import type { Reactive, Ref } from 'vue';
+import { customRef, reactive, ref, toValue } from 'vue';
+import type { GroupMatch } from '../shared/internals';
+import { applyByGroupDesc } from '../shared/internals';
+import type {
   BaseColumn,
   Columns,
   PageParam,
@@ -25,9 +27,10 @@ import {
   ColumnUpdater,
   ColumnFindBy,
 } from './types';
-import { Data, DeepPartial, ExtendWithAny, Path } from '../shared/types';
+import type { Data, DeepPartial, ExtendWithAny, Path } from '../shared/types';
 import { cloneDeep, pick } from '../shared/utils';
-import { Fields, Form, useForm } from '../form';
+import type { Fields, Form } from '../form';
+import { useForm } from '../form';
 
 const getDefaultPageParam = (): PageParam => ({
   current: 1,

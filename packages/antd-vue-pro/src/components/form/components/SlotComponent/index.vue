@@ -5,8 +5,7 @@
  *
  * @public
  */
-import { isVNode } from 'vue';
-import { SlotComponentType } from '../../types';
+import type { SlotComponentType } from '../../types';
 
 defineOptions({ name: 'SlotComponent', inheritAttrs: false });
 
@@ -16,12 +15,21 @@ type Props = {
 const props = withDefaults(defineProps<Props>(), {
   component: undefined,
 });
+
+/*
+ * 可组件化渲染判定：VNode / 函数（含函数式组件）/ 组件定义对象
+ * 其余（string/number/boolean/null/undefined）一律按文本渲染，不作为 <component :is> 的标签名解析
+ */
+const isRenderable = (c: Props['component']) =>
+  c !== null &&
+  c !== undefined &&
+  (typeof c === 'function' || typeof c === 'object');
 </script>
 
 <template>
   <component
     :is="props.component"
-    v-if="isVNode(props.component) || typeof props.component === 'function'"
+    v-if="isRenderable(props.component)"
     v-bind="$attrs"
   />
   <template v-else>{{ props.component }}</template>

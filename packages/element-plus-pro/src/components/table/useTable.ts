@@ -8,7 +8,7 @@ import type {
   DeepPartial,
   PageParam,
 } from '../../shared/core';
-import { Fields } from '../form/types';
+import type { Fields } from '../form/types';
 import type { Column, Columns } from './types';
 import type { Ref } from 'vue';
 

@@ -1,11 +1,12 @@
 import { ref } from 'vue';
+import type { Ref } from 'vue';
 
 export interface UseFormRefReturn<F = any> {
   /**
    * 表单组件实例的响应式引用（Vue ref）
    * @description 通过此 ref 可访问到底层 UI 框架的 Form 实例
    */
-  formRef: import('vue').Ref<F | undefined>;
+  formRef: Ref<F | undefined>;
 
   /**
    * 设置表单组件实例

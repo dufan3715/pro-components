@@ -4,21 +4,20 @@ import type {
   FormInstance,
   FormItemProps,
 } from '../../../shared/ui';
-import { FormItem } from '../../../shared/ui';
+import type { FormItem } from '../../../shared/ui';
 import type {
   ComponentProps,
   ComponentSlots,
 } from 'vue-component-type-helpers';
+import type { VNode, VNodeProps } from 'vue';
 import {
   type CSSProperties,
   type Component,
   type Raw,
   type MaybeRef,
   type ComputedRef,
-  VNode,
-  VNodeProps,
 } from 'vue';
-import { ComponentName, GetComponentType } from '../constants';
+import type { ComponentName, GetComponentType } from '../constants';
 import type { Data, Path } from '../../../shared/core';
 import type { AdditionalMethods } from '../../../shared/core';
 import type { FormItemInstance } from '../../../shared/ui';
@@ -261,6 +260,12 @@ export type WithRef<T> = {
       : MaybeRefOrComputedRef<T[P]>;
 };
 
+/**
+ * @description 公共字段属性集合：FormItem 透传属性与 GridItem 栅格属性
+ *
+ * 栅格行为边界：字段显式指定 `span` 时整体接管栅格，不再叠加 Provider 注入的响应式断点；
+ * 未指定 `span` 时使用注入的断点配置。
+ */
 type WithCommonBase<T = unknown> = T &
   Omit<FormItemProps, 'label'> &
   GridItemProps;

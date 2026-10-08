@@ -27,11 +27,11 @@ import {
   isObjectItem,
   normalizePathKey,
 } from '../../../../shared/core';
+import type { GridProps } from '../../../../shared/ui';
 import {
   FormItem,
   Grid as ElGrid,
   GridItem as ElGridItem,
-  GridProps,
   useProviderDisabled,
 } from '../../../../shared/ui';
 import { computed, inject, toRaw, toValue } from 'vue';

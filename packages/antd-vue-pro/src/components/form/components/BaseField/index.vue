@@ -123,7 +123,7 @@ const value = computed({
           : undefined;
 
     if (setFormatter) {
-      // 仅当 set 转换函数需要旧值参数时，才获取旧值上下文
+      // 旧值仅在 set 转换函数声明双形参时注入
       const oldVal =
         setFormatter.length > 1
           ? cloneDeepIfObject(form.getFormData?.(props.path))
@@ -177,7 +177,7 @@ const groupedAttrs = computed(() => {
   };
 });
 
-// 从 ProForm 插槽注入的 slots 集合（优先级最高；shallowRef 形态，computed 内经 .value 读取建立依赖）
+// 从 ProForm 插槽注入的 slots 集合（优先级最高）
 const injectedFormSlots = inject(InjectionFormSlotsKey, undefined);
 
 // 从 ProComponentProvider 注入的自定义组件映射

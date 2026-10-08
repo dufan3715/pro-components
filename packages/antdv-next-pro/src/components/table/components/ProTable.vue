@@ -33,14 +33,13 @@
  * 4. 重置 → reset() → resetQueryParams + _search()
  */
 
-import {
+import type {
   PaginationProps,
-  Table as ATable,
   TableProps,
   TableComponentProps,
   ColumnType,
-  tableProps,
 } from '../../../shared/ui';
+import { Table as ATable, tableProps } from '../../../shared/ui';
 import {
   computed,
   getCurrentInstance,
@@ -55,11 +54,11 @@ import { INJECT_CONFIG } from '../../component-provider/constants';
 import ContainerFragment from '../../form/components/ContainerFragment/index.vue';
 import type { ContainerComponent } from '../../form/types';
 import SearchForm from './SearchForm.vue';
-import { SearchFormProps } from './SearchForm.vue';
+import type { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../hooks/useTable';
 import { useLocale } from '../../../locale';
+import type { Path } from '../../../shared/core';
 import {
-  Path,
   camelizeProperties,
   getObject,
   isObjectItem,
@@ -71,8 +70,8 @@ import DefaultSearchFormContainer from './DefaultSearchFormContainer.vue';
 import DefaultTableContainer from './DefaultTableContainer.vue';
 import SizeControl from './SizeControl.vue';
 import ColumnControl from './ColumnControl.vue';
-import { ComponentSlots } from 'vue-component-type-helpers';
-import { Column, Columns, ColumnControlConfig } from '../types';
+import type { ComponentSlots } from 'vue-component-type-helpers';
+import type { Column, Columns, ColumnControlConfig } from '../types';
 
 defineOptions({ name: 'ProTable', inheritAttrs: false });
 

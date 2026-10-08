@@ -1,5 +1,5 @@
 import type { ColumnType } from '../../../shared/ui';
-import { Data, ExtendWithAny, Path } from '../../../shared/core';
+import type { Data, ExtendWithAny, Path } from '../../../shared/core';
 
 type BivariantRender<D extends Data = Data> = {
   bivarianceHack(scope: ColumnScope<D>): any;

@@ -1,17 +1,17 @@
-import {
+import type {
   GridItemProps,
   FormItemProps,
   TableProps,
   PaginationProps,
   DatePicker,
 } from '../../../shared/ui';
-import { ComponentName, GetComponentType } from '../../form/constants';
-import { Base, Grid, ContainerComponent } from '../../form/types';
-import { ProFormProps } from '../../form/components';
+import type { ComponentName, GetComponentType } from '../../form/constants';
+import type { Base, Grid, ContainerComponent } from '../../form/types';
+import type { ProFormProps } from '../../form/components';
 import type { SearchFormProps } from '../../table/components/SearchForm.vue';
-import { AllowedComponentProps } from 'vue';
+import type { AllowedComponentProps } from 'vue';
 import type { ComponentProps } from 'vue-component-type-helpers';
-import { ColumnControlConfig } from '../../table/types';
+import type { ColumnControlConfig } from '../../table/types';
 
 type PP<T extends Record<string, any>> = Partial<T & AllowedComponentProps>;
 

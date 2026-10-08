@@ -42,9 +42,9 @@
  * </template>
  * ```
  */
+import type { FormProps as AFormProps } from '../../../../shared/ui';
 import {
   Form as AForm,
-  FormProps as AFormProps,
   useDisabledContext,
   useDisabledContextProvider,
 } from '../../../../shared/ui';
@@ -64,11 +64,8 @@ import { INJECT_CONFIG } from '../../../component-provider/constants';
 import BaseFormItem from '../BaseFormItem/index.vue';
 import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { Grid, VModelProps, PathProps } from '../../types';
-import {
-  Path,
-  camelizeProperties,
-  createFormProxy,
-} from '../../../../shared/core';
+import type { Path } from '../../../../shared/core';
+import { camelizeProperties, createFormProxy } from '../../../../shared/core';
 import { useForm, type Form } from '../../hooks/useForm';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });

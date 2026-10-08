@@ -1,7 +1,7 @@
-import { Base } from '../../form/types';
-import { ProFormProps } from '../../form/components';
-import { AllowedComponentProps } from 'vue';
-import { GetComponentType, ComponentName } from '../../form/constants';
+import type { Base } from '../../form/types';
+import type { ProFormProps } from '../../form/components';
+import type { AllowedComponentProps } from 'vue';
+import type { GetComponentType, ComponentName } from '../../form/constants';
 import type { ComponentProps } from 'vue-component-type-helpers';
 import type { FormProps } from 'vant';
 

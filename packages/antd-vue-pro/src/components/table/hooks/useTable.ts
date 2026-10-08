@@ -9,7 +9,7 @@ import type {
   PageParam,
 } from '../../../shared/core';
 import type { Column, Columns } from '../types';
-import { Fields } from '../../form/types';
+import type { Fields } from '../../form/types';
 
 /**
  * 表格实例类型

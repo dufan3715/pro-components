@@ -1,5 +1,5 @@
 import { getCurrentInstance, inject, provide, reactive } from 'vue';
-import { Path, Data, ExtendWithAny, DeepPartial } from '../shared/types';
+import type { Path, Data, ExtendWithAny, DeepPartial } from '../shared/types';
 import { isPlainObject } from '../shared/utils';
 import { get, isDangerousKey, normalizePathKey, set } from '../shared/path';
 

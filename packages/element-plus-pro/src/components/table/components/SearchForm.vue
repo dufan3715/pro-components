@@ -56,13 +56,10 @@ export type SearchFormProps = {
  * 3. 如果实际高度 > 折叠高度，显示展开/折叠按钮
  * 4. 使用 IntersectionObserver 检测隐藏字段是否有值，有值则自动展开
  */
-import { Space, Button, FormProps } from '../../../shared/ui';
-import {
-  AllowedComponentProps,
-  computed,
-  type Component,
-  type DefineComponent,
-} from 'vue';
+import type { FormProps } from '../../../shared/ui';
+import { Space, Button } from '../../../shared/ui';
+import type { AllowedComponentProps } from 'vue';
+import { computed, type Component, type DefineComponent } from 'vue';
 import ProForm from '../../form/components/ProForm/index.vue';
 import { type Form } from '../../form/hooks/useForm';
 import DownOutlined from './icons/DownOutlined.vue';
@@ -81,7 +78,6 @@ const props = withDefaults(defineProps<SearchFormProps>(), {
   expandButton: undefined,
   rowGap: 16,
   columnGap: 24,
-  form: undefined,
 });
 
 type Emits = {

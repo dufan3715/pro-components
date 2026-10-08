@@ -1,4 +1,4 @@
-import { FormItemInstance } from '../../../shared/ui';
+import type { FormItemInstance } from '../../../shared/ui';
 import {
   useFields as coreUseFields,
   type UseFieldsReturn,

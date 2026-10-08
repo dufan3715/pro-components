@@ -25,11 +25,11 @@
  */
 
 import { getObject, isObjectItem, toPath } from '../../../../shared/core';
+import type { GridProps } from '../../../../shared/ui';
 import {
   FormItem,
   Grid as AGrid,
   GridItem as AGridItem,
-  GridProps,
   useDisabledContext,
   useDisabledContextProvider,
 } from '../../../../shared/ui';

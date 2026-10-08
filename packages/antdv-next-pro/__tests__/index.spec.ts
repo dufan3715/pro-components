@@ -27,10 +27,12 @@ describe('Public API Export Smoke Test (SX-01)', () => {
 
   it('SX-02 [判别]: 表格模块导出面与同构包对齐，不额外导出 PageParam', async () => {
     // 类型面契约：PageParam 不再由表格 Hook 模块与表格模块导出
+    /* eslint-disable @typescript-eslint/consistent-type-imports */
     // @ts-expect-error PageParam 已从表格 Hook 模块导出面移除
     type _HookPageParamFace = import('../src/components/table/hooks').PageParam;
     // @ts-expect-error PageParam 不属于表格模块导出面
     type _PageParamFace = import('../src/components/table').PageParam;
+    /* eslint-enable @typescript-eslint/consistent-type-imports */
 
     // 运行时面契约：表格模块仅导出 useTable 与默认组件
     const tableModule: any = await import('../src/components/table');

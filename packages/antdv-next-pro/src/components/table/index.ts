@@ -1,4 +1,7 @@
-import { ComponentExposed, ComponentProps } from 'vue-component-type-helpers';
+import type {
+  ComponentExposed,
+  ComponentProps,
+} from 'vue-component-type-helpers';
 import ProTable from './components/ProTable.vue';
 
 // 仅保留组件 Props 与实例类型

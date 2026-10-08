@@ -1,26 +1,20 @@
-import {
-  type FormInstance,
-  type FieldProps,
-  Field as VanField,
-} from '../../../shared/ui';
+import type { Field as VanField } from '../../../shared/ui';
+import { type FormInstance, type FieldProps } from '../../../shared/ui';
 import type {
   ComponentProps,
   ComponentSlots,
 } from 'vue-component-type-helpers';
+import type { VNodeProps, DefineComponent, VNodeTypes, VNode } from 'vue';
 import {
   type CSSProperties,
   type Component,
   type Raw,
   type MaybeRef,
   type ComputedRef,
-  VNodeProps,
-  DefineComponent,
-  VNodeTypes,
-  VNode,
 } from 'vue';
-import { ComponentName, GetComponentType } from '../constants';
+import type { ComponentName, GetComponentType } from '../constants';
 import type { Data, Path } from '../../../shared/core';
-import { PopupProps } from '../hooks/useFormPopup';
+import type { PopupProps } from '../hooks/useFormPopup';
 import type { AdditionalMethods } from '../../../shared/core';
 
 export type { FormInstance };

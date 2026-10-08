@@ -1,4 +1,4 @@
-import { FieldInstance } from '../../../shared/ui';
+import type { FieldInstance } from '../../../shared/ui';
 import {
   useFields as coreUseFields,
   type UseFieldsReturn,

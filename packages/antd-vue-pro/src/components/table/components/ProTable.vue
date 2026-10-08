@@ -25,20 +25,33 @@
  *         └── 转发所有 table 插槽
  * ```
  *
- * ## 搜索流程
+ * ## 搜索行为
  *
- * 1. 用户点击搜索 → SearchForm @search → searchPage1st()
- * 2. searchPage1st 重置分页到第一页，触发 _search()
- * 3. 分页变化 → onTableChange → setPageParam + _search()
- * 4. 重置 → reset() → resetQueryParams + _search()
+ * 1. 搜索：分页回到第一页后发起查询
+ * 2. 分页变化：分页参数同步后发起查询
+ * 3. 重置：查询参数恢复初始值后重新查询
+ *
+ * @template T - 表格实例类型（useTable 返回值）
+ *
+ * @param {T} [table] - 列表表格对象，来自 useTable
+ * @param {() => Promise<unknown>} [search] - 列表数据查询方法
+ * @param {boolean} [addIndexColumn] - 是否在首列插入序号列
+ * @param {boolean} [immediateSearch] - 挂载后是否立即触发一次查询
+ * @param {boolean | Partial<Control>} [control] - 是否展示尺寸与列控制按钮
+ * @param {SearchFormConfig} [searchFormConfig] - 搜索栏查询字段表单配置
+ * @param {ContainerComponent | false} [tableContainer] - 表格区域包裹容器
+ *
+ * @slot search-form - 搜索区域插槽
+ * @slot button-bar - 表格头部按钮区插槽
+ * @slot toolbar - 工具栏插槽
+ * @slot table - 表格区域插槽
  */
-import {
+import type {
   PaginationProps,
-  Table as ATable,
   TableProps,
   ColumnType,
-  tableProps,
 } from '../../../shared/ui';
+import { Table as ATable, tableProps } from '../../../shared/ui';
 import {
   computed,
   getCurrentInstance,
@@ -53,11 +66,11 @@ import { INJECT_CONFIG } from '../../component-provider/constants';
 import ContainerFragment from '../../form/components/ContainerFragment/index.vue';
 import type { ContainerComponent } from '../../form/types';
 import SearchForm from './SearchForm.vue';
-import { SearchFormProps } from './SearchForm.vue';
+import type { SearchFormProps } from './SearchForm.vue';
 import type { Table } from '../hooks/useTable';
 import { useLocale } from '../../../locale';
+import type { Path } from '../../../shared/core';
 import {
-  Path,
   camelizeProperties,
   getObject,
   isObjectItem,
@@ -65,12 +78,12 @@ import {
   isPromise,
   pick,
 } from '../../../shared/core';
-import { ComponentSlots } from 'vue-component-type-helpers';
+import type { ComponentSlots } from 'vue-component-type-helpers';
 import DefaultSearchFormContainer from './DefaultSearchFormContainer.vue';
 import DefaultTableContainer from './DefaultTableContainer.vue';
 import SizeControl from './SizeControl.vue';
 import ColumnControl from './ColumnControl.vue';
-import { Column, Columns, ColumnControlConfig } from '../types';
+import type { Column, Columns, ColumnControlConfig } from '../types';
 
 defineOptions({ name: 'ProTable', inheritAttrs: false });
 
@@ -220,10 +233,15 @@ const columnRequiredSlotNames = new Set([
 ]);
 
 /**
- * 判定插槽是否具备渲染条件（守卫过渡状态或空列下 column 为 undefined 的情况）
- * 当列被动态隐藏或所有列均隐藏时，旧单元格销毁过渡帧或空占位中 column 可能为 undefined，
- * 此时阻断依赖 column 的业务插槽调用；
- * 非列依赖的表格级插槽（如 emptyText、footer、summary 等）始终正常渲染。
+ * 判定插槽在当前渲染状态下是否可渲染。
+ *
+ * @description
+ * 依赖列信息的插槽（`bodyCell` / `headerCell` / `customFilterDropdown` / `customFilterIcon`）仅在存在可见列且作用域中存在 `column` 时渲染；
+ * 非列依赖的表格级插槽（如 `emptyText`、`footer`、`summary` 等）始终渲染。
+ *
+ * @param name - 插槽名
+ * @param scoped - 插槽作用域参数
+ * @returns 该插槽是否参与渲染
  */
 const isSlotRenderable = (name: string, scoped: any) => {
   if (columnRequiredSlotNames.has(name)) {

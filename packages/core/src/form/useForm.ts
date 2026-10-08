@@ -19,8 +19,8 @@ import useFields, { type UseFieldsOptions } from './useFields';
 import useFormData from './useFormData';
 import useFormRef from './useFormRef';
 import { InjectionFormKey } from './constants';
-import { Data, DeepPartial, ExtendWithAny } from '../shared/types';
-import { BaseField } from './types';
+import type { Data, DeepPartial, ExtendWithAny } from '../shared/types';
+import type { BaseField } from './types';
 
 import type { UseFormDataReturn } from './useFormData';
 import type { UseFieldsReturn } from './useFields';

@@ -1,8 +1,10 @@
-import { isRef, Ref, ref, toRaw, toValue } from 'vue';
-import { Data, Path } from '../shared/types';
+import type { Ref } from 'vue';
+import { isRef, ref, toRaw, toValue } from 'vue';
+import type { Data, Path } from '../shared/types';
 import { get, normalizePathKey } from '../shared/path';
-import { applyByGroupDesc, GroupMatch } from '../shared/internals';
-import {
+import type { GroupMatch } from '../shared/internals';
+import { applyByGroupDesc } from '../shared/internals';
+import type {
   AdditionalMethods as AM,
   BaseField,
   FieldFindBy,

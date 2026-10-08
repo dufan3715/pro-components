@@ -1,4 +1,7 @@
-import { ComponentProps, ComponentExposed } from 'vue-component-type-helpers';
+import type {
+  ComponentProps,
+  ComponentExposed,
+} from 'vue-component-type-helpers';
 import ProForm from './ProForm/index.vue';
 import BaseFormItem from './BaseFormItem/index.vue';
 

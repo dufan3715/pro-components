@@ -497,4 +497,18 @@ describe('SearchForm 组件测试', () => {
     enabled.unmount();
     disabled.unmount();
   });
+
+  // ----------------------------------------------------
+  // SF-A16 [判别]: form 为必填 prop，无默认值兜底
+  // ----------------------------------------------------
+  it('SF-A16 [判别]: form 声明为必填且不带默认值', () => {
+    // @ts-expect-error form 为必填 prop，省略时不通过类型检查
+    const wrapper = mount(SearchForm, { props: {} });
+
+    const formProp = (SearchForm as any).props.form;
+    expect(formProp.required).toBe(true);
+    expect('default' in formProp).toBe(false);
+
+    wrapper.unmount();
+  });
 });

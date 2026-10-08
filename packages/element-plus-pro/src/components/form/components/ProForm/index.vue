@@ -24,10 +24,8 @@
  
  * @public
  */
-import {
-  Form as ElForm,
-  FormProps as ElFormProps,
-} from '../../../../shared/ui';
+import type { FormProps as ElFormProps } from '../../../../shared/ui';
+import { Form as ElForm } from '../../../../shared/ui';
 import {
   computed,
   inject,
@@ -44,11 +42,8 @@ import { INJECT_CONFIG } from '../../../component-provider/constants';
 import BaseFormItem from '../BaseFormItem/index.vue';
 import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { Grid, VModelProps, PathProps } from '../../types';
-import {
-  Path,
-  camelizeProperties,
-  createFormProxy,
-} from '../../../../shared/core';
+import type { Path } from '../../../../shared/core';
+import { camelizeProperties, createFormProxy } from '../../../../shared/core';
 import { useForm, type Form } from '../../hooks/useForm';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });

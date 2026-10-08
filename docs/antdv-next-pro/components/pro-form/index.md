@@ -128,6 +128,8 @@ const form = useForm<FormData>({ name: '' }, [
 - 继承 `GridItemProps`
 - 常用字段：`span`、`xs`、`sm`、`md`、`lg`、`xl`、`xxl`
 
+**栅格优先级**：字段显式指定 `span` 时整体接管栅格，不再叠加 Provider 注入的响应式断点；未指定 `span` 时使用注入的断点配置。
+
 ### 组件透传
 
 去向：传给具体表单组件。

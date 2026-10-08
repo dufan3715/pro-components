@@ -13,9 +13,9 @@
  * ## 渲染流程
  *
  * 1. 遍历 fields 数组，过滤 hidden 字段
- * 2. 通过 useGroupFieldAttrs Hook 纯计算将 field 配置拆分为 gridItemProps / formItemProps / componentProps / slots
+ * 2. 将字段属性分流为 GridItem / FormItem / 组件 / 插槽四类
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
- * 4. 通过 ref 回调收集 FormItem 和 Component 实例，注入到 field 对象上
+ * 4. 渲染后字段对象上可读取 FormItem 与组件实例
  *
  * @param {Fields<D>} [fields] - 字段配置数组
  * @param {boolean | GridProps} [grid] - 是否启用网格布局
@@ -24,11 +24,11 @@
  * @internal
  */
 import { getObject, isObjectItem, toPath } from '../../../../shared/core';
+import type { GridProps } from '../../../../shared/ui';
 import {
   FormItem,
   Grid as AGrid,
   GridItem as AGridItem,
-  GridProps,
   useProviderDisabled,
 } from '../../../../shared/ui';
 import { computed, inject, toRaw, toValue } from 'vue';
@@ -79,7 +79,7 @@ const computedGridProps = computed<GridProps>(() => {
 
 /**
  * 以字段原始对象为 key 登记 FormItem / 控件实例，供 getFormItemRef / getComponentRef 读取；
- * WeakMap 不参与响应式追踪，条目随字段对象回收自动释放。
+ * 字段对象被回收后对应条目不再可读。
  */
 const formItemInstanceMap = new WeakMap<object, any>();
 const componentInstanceMap = new WeakMap<object, any>();
@@ -92,7 +92,7 @@ const defineFieldAccessors = (
 ) => {
   try {
     for (const [key, getter] of Object.entries(accessors)) {
-      // 不可枚举：不进入 Object.keys / spread，不随字段配置透传
+      // 访问器仅用于字段对象读取，不参与属性遍历与字段配置透传
       Object.defineProperty(raw, key, {
         value: getter,
         enumerable: false,

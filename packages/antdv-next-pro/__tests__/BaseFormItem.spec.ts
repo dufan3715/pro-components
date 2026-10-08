@@ -485,4 +485,47 @@ describe('BaseFormItem 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A20 [判别]: slots 组件对象经 <component :is> 渲染，原始值仍走文本插值
+  // ----------------------------------------------------
+  it('BI-A20 [判别]: slots 传入组件对象时渲染组件本体，传入字符串时按文本渲染', async () => {
+    const CustomExtra = defineComponent({
+      setup() {
+        return () =>
+          h('span', { class: 'slot-comp-extra' }, 'EXTRA-FROM-COMPONENT');
+      },
+    });
+
+    const form = useForm({}, [
+      {
+        path: 'email',
+        label: '邮箱',
+        component: 'input',
+        slots: { extra: CustomExtra as any },
+      },
+      {
+        path: 'phone',
+        label: '手机号',
+        component: 'input',
+        slots: { extra: '纯文本提示' as any },
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const extras = wrapper.findAll('.ant-form-item-extra');
+    expect(extras).toHaveLength(2);
+    // 组件对象：渲染组件本体，而非组件对象的序列化文本
+    expect(extras[0].find('.slot-comp-extra').exists()).toBe(true);
+    expect(extras[0].text()).toBe('EXTRA-FROM-COMPONENT');
+    // 原始值：保持文本插值
+    expect(extras[1].text()).toBe('纯文本提示');
+
+    wrapper.unmount();
+  });
 });

@@ -4,22 +4,21 @@ import type {
   GridItemProps,
   FormInstance,
 } from '../../../shared/ui';
-import { FormItem } from '../../../shared/ui';
+import type { FormItem } from '../../../shared/ui';
 import type {
   ComponentProps,
   ComponentSlots,
 } from 'vue-component-type-helpers';
+import type { VNode, VNodeProps } from 'vue';
 import {
   type CSSProperties,
   type Component,
   type Raw,
   type MaybeRef,
   type ComputedRef,
-  VNode,
-  VNodeProps,
 } from 'vue';
 import type { Data, Path } from '../../../shared/core';
-import { ComponentName, GetComponentType } from '../constants';
+import type { ComponentName, GetComponentType } from '../constants';
 import type { AdditionalMethods } from '../../../shared/core';
 import type { FormItemInstance } from '../../../shared/ui';
 

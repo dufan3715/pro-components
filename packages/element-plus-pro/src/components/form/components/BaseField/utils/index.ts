@@ -1,4 +1,4 @@
-import { Field } from '../../../types';
+import type { Field } from '../../../types';
 
 type LocaleT = (
   key: string,

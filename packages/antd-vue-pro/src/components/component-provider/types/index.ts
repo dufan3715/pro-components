@@ -1,10 +1,14 @@
-import { GridItemProps, FormItemProps, TableProps } from '../../../shared/ui';
-import { Base, Grid } from '../../form/types';
-import { ProFormProps } from '../../form/components';
-import { ProTableProps } from '../../table';
-import { AllowedComponentProps } from 'vue';
+import type {
+  GridItemProps,
+  FormItemProps,
+  TableProps,
+} from '../../../shared/ui';
+import type { Base, Grid } from '../../form/types';
+import type { ProFormProps } from '../../form/components';
+import type { ProTableProps } from '../../table';
+import type { AllowedComponentProps } from 'vue';
 
-import { GetComponentType, ComponentName } from '../../form/constants';
+import type { GetComponentType, ComponentName } from '../../form/constants';
 import type { ComponentProps } from 'vue-component-type-helpers';
 
 type PP<T extends Record<string, any>> = Partial<T & AllowedComponentProps>;

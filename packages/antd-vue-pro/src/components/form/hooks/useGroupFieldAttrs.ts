@@ -15,7 +15,6 @@ const formItemPropKeys = Object.keys(formItemProps()).concat([
   'formItemContainer',
 ]);
 const gridItemPropKeys = Object.keys(gridItemProps());
-// 模块级 Set：字段循环内 O(1) 命中，替代数组 includes 线性扫描
 const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
 const formItemPropKeySet = new Set<string>(formItemPropKeys);
 const formItemSlotKeySet = new Set<string>(FORM_ITEM_SLOT_KEYS);
@@ -58,13 +57,16 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         // prettier-ignore
         const { class: injectClassName, style: injectStyle, span: injectSpan, xs, sm, md, lg, xl, xxl, formItemContainer: injectFormItemContainer, ...injectRest } = rawInject;
 
-        // 字段显式 span 优先，否则回退注入配置的响应式断点
+        /*
+         * 字段显式指定 span 时整体接管栅格，不再叠加注入的响应式断点；
+         * 未指定 span 时使用注入的断点配置
+         */
         const initGridItemProps =
           span || span === 0
             ? { span }
             : { xs, sm, md, lg, xl, xxl, span: injectSpan };
 
-        // 分组字段默认整行（span 兜底 24），注入断点同样生效
+        // 分组字段未指定 span 时整行渲染（span 兜底 24），注入的响应式断点保持生效
         gridItemProps = fields
           ? { ...initGridItemProps, span: span ?? 24 }
           : initGridItemProps;

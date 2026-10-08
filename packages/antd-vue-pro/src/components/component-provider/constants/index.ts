@@ -1,5 +1,6 @@
-import { RequiredComponentVars } from '../types';
-import { InjectionKey, Component, type ComputedRef } from 'vue';
+import type { RequiredComponentVars } from '../types';
+import type { InjectionKey, Component } from 'vue';
+import { type ComputedRef } from 'vue';
 
 const getPopupContainer = (triggerNode: any) =>
   triggerNode.closest?.("form[class*='-form']") ||

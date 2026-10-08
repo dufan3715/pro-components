@@ -9,7 +9,7 @@ import {
   getCurrentInstance,
   useId,
 } from 'vue';
-import { Popup } from '../../../shared/ui';
+import type { Popup } from '../../../shared/ui';
 import type { ComponentProps } from 'vue-component-type-helpers';
 import type { ContainerComponent } from '../types';
 

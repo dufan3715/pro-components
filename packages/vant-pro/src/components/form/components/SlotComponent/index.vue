@@ -6,7 +6,7 @@
  * @public
  */
 import { isVNode } from 'vue';
-import { SlotComponentType } from '../../types';
+import type { SlotComponentType } from '../../types';
 
 defineOptions({ name: 'SlotComponent', inheritAttrs: false });
 

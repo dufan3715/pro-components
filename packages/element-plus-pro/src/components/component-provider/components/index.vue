@@ -22,7 +22,7 @@
  
  * @public
  */
-import { ComponentVars } from '../types';
+import type { ComponentVars } from '../types';
 import {
   INJECT_COMPONENTS,
   INJECT_CONFIG,
@@ -30,7 +30,7 @@ import {
 } from '../constants';
 import { computed, provide } from 'vue';
 import { getObject } from '../../../shared/core';
-import { ComponentName } from '../../form/constants';
+import type { ComponentName } from '../../form/constants';
 import { LOCALE_INJECT_KEY, type ProLocale } from '../../../locale';
 
 type ComponentMap = Partial<Record<ComponentName, any>>;

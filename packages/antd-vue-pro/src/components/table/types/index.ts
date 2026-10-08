@@ -1,5 +1,5 @@
 import type { ColumnType } from '../../../shared/ui';
-import { Data, KeyExpandString, Paths, Path } from '../../../shared/core';
+import type { Data, KeyExpandString, Paths, Path } from '../../../shared/core';
 
 /**
  * @qin-ui/antd-vue-pro 表格列配置类型

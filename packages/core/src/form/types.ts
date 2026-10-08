@@ -1,4 +1,4 @@
-import { Data, Path } from '../shared/types';
+import type { Data, Path } from '../shared/types';
 
 /**
  * 基础字段配置接口

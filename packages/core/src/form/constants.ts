@@ -1,4 +1,4 @@
-import { InjectionKey, ShallowRef } from 'vue';
+import type { InjectionKey, ShallowRef } from 'vue';
 
 /**
  * 表单注入 key
