@@ -69,27 +69,27 @@ const form = useForm<FormData>({}, [
 
 #### 公共属性
 
-| 属性                 | 类型                             | 说明                                                        |
-| -------------------- | -------------------------------- | ----------------------------------------------------------- |
-| `path`               | `Path<D>`                        | 字段标识，对应 `formData` 中的 key                          |
-| `label`              | `SlotComponentType`              | 字段标签，支持字符串、组件、VNode、函数等                   |
-| `component`          | 见下方组件表                     | 使用的内置组件名或自定义组件                                |
-| `hidden`             | `MaybeRef<boolean>`              | 是否隐藏                                                    |
-| `disabled`           | `MaybeRef<boolean>`              | 是否禁用                                                    |
-| `rules`              | `FormItemRule[]`                 | Vant 表单校验规则                                           |
-| `slots`              | `Slots`                          | 字段插槽配置                                                |
-| `fields`             | `Fields<D>`                      | 嵌套子字段配置                                              |
-| `fieldStyle`         | `CSSProperties`                  | 外层 `van-field` 样式属性                                   |
-| `fieldClass`         | `any`                            | 外层 `van-field` 样式类名                                   |
-| `fieldContainer`     | `Component`                      | 嵌套字段容器包裹组件                                        |
-| `componentStyle`     | `CSSProperties`                  | 内部组件样式                                                |
-| `componentClass`     | `any`                            | 内部组件类名                                                |
-| `componentContainer` | `Component`                      | 组件外层包裹容器                                            |
-| `valueFormatter`     | `ValueFormatter`                 | 值转换函数（支持 `get`/`set` 形式）；双参声明才注入旧值快照 |
-| `displayFormatter`   | `DisplayFormatter`               | 针对 Popup 展现形式的组件，将选中值转化为输入框展示文字     |
-| `modelProp`          | `string`                         | v-model 绑定属性名                                          |
-| `popup`              | `boolean \| Partial<PopupProps>` | 是否通过 Popup 弹窗展示该组件                               |
-| `extraProps`         | `Record<string, any>`            | 额外的自定义属性，不会被当作组件参数传递                    |
+| 属性                 | 类型                                                   | 说明                                                        |
+| -------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| `path`               | `Path<D>`                                              | 字段标识，对应 `formData` 中的 key                          |
+| `label`              | `SlotComponentType`                                    | 字段标签，支持字符串、组件、VNode、函数等                   |
+| `component`          | 见下方组件表                                           | 使用的内置组件名或自定义组件                                |
+| `hidden`             | `MaybeRef<boolean>`（支持 `boolean` / `Ref` / getter） | 是否隐藏                                                    |
+| `disabled`           | `MaybeRef<boolean>`                                    | 是否禁用                                                    |
+| `rules`              | `FormItemRule[]`                                       | Vant 表单校验规则                                           |
+| `slots`              | `Slots`                                                | 字段插槽配置                                                |
+| `fields`             | `Fields<D>`                                            | 嵌套子字段配置                                              |
+| `fieldStyle`         | `CSSProperties`                                        | 外层 `van-field` 样式属性                                   |
+| `fieldClass`         | `any`                                                  | 外层 `van-field` 样式类名                                   |
+| `fieldContainer`     | `Component`                                            | 嵌套字段容器包裹组件                                        |
+| `componentStyle`     | `CSSProperties`                                        | 内部组件样式                                                |
+| `componentClass`     | `any`                                                  | 内部组件类名                                                |
+| `componentContainer` | `Component`                                            | 组件外层包裹容器                                            |
+| `valueFormatter`     | `ValueFormatter`                                       | 值转换函数（支持 `get`/`set` 形式）；双参声明才注入旧值快照 |
+| `displayFormatter`   | `DisplayFormatter`                                     | 针对 Popup 展现形式的组件，将选中值转化为输入框展示文字     |
+| `modelProp`          | `string`                                               | v-model 绑定属性名                                          |
+| `popup`              | `boolean \| Partial<PopupProps>`                       | 是否通过 Popup 弹窗展示该组件                               |
+| `extraProps`         | `Record<string, any>`                                  | 额外的自定义属性，不会被当作组件参数传递                    |
 
 > **响应式支持**：除了 `component`、`fields`、`slots`、`modelProp` 等属性之外，很多属性均支持 `Ref` 或 `ComputedRef` 以实现动态表单。
 

@@ -88,7 +88,7 @@ const form = useForm<FormData>({ name: '' }, [
 | 字段                 | 说明                                                                                   |
 | -------------------- | -------------------------------------------------------------------------------------- |
 | `path`               | 字段标识 namePath，同 FormItem 的 `name`                                               |
-| `hidden`             | 字段是否隐藏                                                                           |
+| `hidden`             | 字段是否隐藏（支持 `boolean` / `Ref` / getter，渲染期按 `toValue` 取值）               |
 | `disabled`           | 字段是否禁用                                                                           |
 | `label`              | 字段标题，支持字符串或 VNode                                                           |
 | `slots`              | 字段插槽配置（FormItem 与组件插槽）                                                    |

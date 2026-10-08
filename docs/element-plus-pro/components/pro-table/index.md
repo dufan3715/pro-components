@@ -32,7 +32,7 @@ const search = async () => {
 
 - 原生字段：`prop`、`label`、`width`、`fixed`、`align`、`sortable`、`filters`、`filterMethod`
 - 原生格式化：`formatter`
-- Pro 扩展：`render(scope)`、`hidden`
+- Pro 扩展：`render(scope)`、`hidden`（支持 `boolean` / `Ref` / getter，分组子列递归生效）
 
 渲染优先级：`render(scope)` > `formatter`。
 

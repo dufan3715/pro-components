@@ -85,25 +85,25 @@ const form = useForm<FormData>({ name: '' }, [
 
 去向：公共属性会被 `BaseFormItem`/`BaseField` 解析并分发到对应层级。
 
-| 字段                 | 说明                                                                  |
-| -------------------- | --------------------------------------------------------------------- |
-| `path`               | 字段标识 namePath，同 FormItem 的 `name`                              |
-| `hidden`             | 字段是否隐藏                                                          |
-| `disabled`           | 字段是否禁用                                                          |
-| `label`              | 字段标题，支持字符串或 VNode                                          |
-| `component`          | 指定渲染组件名称或组件对象                                            |
-| `slots`              | 字段插槽配置（FormItem 与组件插槽）                                   |
-| `formItemStyle`      | FormItem 样式                                                         |
-| `formItemClass`      | FormItem 类名                                                         |
-| `formItemContainer`  | FormItem 外层包裹组件                                                 |
-| `formItemDataAttrs`  | 附加到 FormItem DOM 的属性                                            |
-| `componentStyle`     | 组件样式                                                              |
-| `componentClass`     | 组件类名                                                              |
-| `componentContainer` | 组件外层包裹组件                                                      |
-| `componentDataAttrs` | 附加到组件 DOM 的属性                                                 |
-| `valueFormatter`     | 值格式化（get/set 或单函数）；双参 `(val, oldVal)` 声明才注入旧值快照 |
-| `modelProp`          | v-model 属性名，默认 `value`                                          |
-| `extraProps`         | 不参与渲染，仅用于业务侧自定义标识                                    |
+| 字段                 | 说明                                                                     |
+| -------------------- | ------------------------------------------------------------------------ |
+| `path`               | 字段标识 namePath，同 FormItem 的 `name`                                 |
+| `hidden`             | 字段是否隐藏（支持 `boolean` / `Ref` / getter，渲染期按 `toValue` 取值） |
+| `disabled`           | 字段是否禁用                                                             |
+| `label`              | 字段标题，支持字符串或 VNode                                             |
+| `component`          | 指定渲染组件名称或组件对象                                               |
+| `slots`              | 字段插槽配置（FormItem 与组件插槽）                                      |
+| `formItemStyle`      | FormItem 样式                                                            |
+| `formItemClass`      | FormItem 类名                                                            |
+| `formItemContainer`  | FormItem 外层包裹组件                                                    |
+| `formItemDataAttrs`  | 附加到 FormItem DOM 的属性                                               |
+| `componentStyle`     | 组件样式                                                                 |
+| `componentClass`     | 组件类名                                                                 |
+| `componentContainer` | 组件外层包裹组件                                                         |
+| `componentDataAttrs` | 附加到组件 DOM 的属性                                                    |
+| `valueFormatter`     | 值格式化（get/set 或单函数）；双参 `(val, oldVal)` 声明才注入旧值快照    |
+| `modelProp`          | v-model 属性名，默认 `value`                                             |
+| `extraProps`         | 不参与渲染，仅用于业务侧自定义标识                                       |
 
 ### Nested（嵌套字段）
 

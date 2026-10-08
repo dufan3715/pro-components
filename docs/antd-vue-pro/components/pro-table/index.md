@@ -88,11 +88,11 @@ const search = async () => {
 
 `Column` 基于 Ant Design Vue `ColumnType` 扩展而来，常用字段如下：
 
-| 字段        | 说明                            |
-| ----------- | ------------------------------- |
-| `dataIndex` | 列字段，支持路径数组            |
-| `key`       | 列标识，默认由 `dataIndex` 推导 |
-| `hidden`    | 是否隐藏该列                    |
+| 字段        | 说明                                                              |
+| ----------- | ----------------------------------------------------------------- |
+| `dataIndex` | 列字段，支持路径数组                                              |
+| `key`       | 列标识，默认由 `dataIndex` 推导                                   |
+| `hidden`    | 是否隐藏该列（支持 `boolean` / `Ref` / getter，分组子列递归生效） |
 
 其余字段均继承 Ant Design Vue `ColumnType`。
 

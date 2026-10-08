@@ -59,7 +59,7 @@ export type Column<D extends Data = Data> = Partial<
   /** 是否隐藏该列 */
   /**
    * @description 列是否隐藏；支持布尔、Ref 与 getter 形式，渲染期按 `toValue` 取值。
-   * 分组列的子列 `hidden` 不参与过滤（仅顶层列参与）。
+   * 分组列的子列同样参与过滤（递归生效）。
    */
   hidden?: boolean;
   /** 自定义渲染函数 */

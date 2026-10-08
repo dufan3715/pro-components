@@ -80,7 +80,7 @@ const form = useForm<FormData>({ name: '' }, [
 | 字段                 | 说明                                                                                    |
 | -------------------- | --------------------------------------------------------------------------------------- |
 | `path`               | 字段标识，同 Element Plus FormItem 的 `prop`                                            |
-| `hidden`             | 字段是否隐藏                                                                            |
+| `hidden`             | 字段是否隐藏（支持 `boolean` / `Ref` / getter，渲染期按 `toValue` 取值）                |
 | `disabled`           | 字段是否禁用                                                                            |
 | `label`              | 字段标题，支持字符串或 VNode/渲染函数                                                   |
 | `component`          | 指定渲染组件名称或组件对象                                                              |
