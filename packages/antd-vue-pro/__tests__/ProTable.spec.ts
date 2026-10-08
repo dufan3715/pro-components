@@ -708,4 +708,65 @@ describe('ProTable 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PT-A19 [判别]: 分组子列 hidden 递归过滤（含响应式与引用保持）
+  // ----------------------------------------------------
+  it('PT-A19 [判别]: 分组列的子列 hidden 参与过滤，未变动列保持原引用', async () => {
+    const hiddenRef = ref(true);
+    const plainColumn = { dataIndex: 'plain', title: '普通列' };
+    const table = useTable({
+      columns: [
+        plainColumn,
+        {
+          title: '分组',
+          children: [
+            { dataIndex: 'a', title: '子列甲', hidden: true },
+            { dataIndex: 'b', title: '子列乙' },
+            { dataIndex: 'c', title: '子列丙', hidden: hiddenRef },
+          ],
+        },
+      ],
+      dataSource: [{ a: 'A', b: 'B', c: 'C' }],
+    } as any);
+
+    const wrapper = mount(ProTable, {
+      props: { table, addIndexColumn: false },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 表头不含被过滤的子列；表体不含其数据
+    const headerText = wrapper
+      .findAll('thead th')
+      .map(th => th.text())
+      .join(' ');
+    expect(headerText).toContain('子列乙');
+    expect(headerText).not.toContain('子列甲');
+    expect(headerText).not.toContain('子列丙');
+    expect(wrapper.find('tbody').text()).toContain('B');
+    expect(wrapper.find('tbody').text()).not.toContain('A');
+
+    // 未发生变动的普通列保持原对象引用（仅含被过滤子列的列生成浅拷贝）
+    const passed = wrapper
+      .findComponent({ name: 'ATable' })
+      .props('columns') as any[];
+    expect(toRaw(passed[0])).toBe(plainColumn);
+
+    // 下发给宿主表格的列中，被过滤的子列已被移除（与宿主是否自行过滤 hidden 无关）
+    const groupColumn = passed.find((c: any) => c.title === '分组');
+    expect(groupColumn.children.map((c: any) => c.title)).toEqual(['子列乙']);
+
+    // 响应式形态：ref(true) → ref(false) 后子列丙出现
+    hiddenRef.value = false;
+    await flushPromises();
+    expect(
+      wrapper
+        .findAll('thead th')
+        .map(th => th.text())
+        .join(' ')
+    ).toContain('子列丙');
+
+    wrapper.unmount();
+  });
 });

@@ -227,4 +227,47 @@ describe('TableColumnRenderer 列渲染器测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PT-A27 [判别]: 分组子列 hidden 递归过滤（布尔与响应式）
+  // ----------------------------------------------------
+  it('PT-A27 [判别]: 分组列的子列 hidden 参与过滤（含嵌套与响应式）', async () => {
+    const hiddenRef = ref(true);
+    const columns = [
+      {
+        label: '分组',
+        children: [
+          { prop: 'a', label: '子列甲', hidden: true },
+          { prop: 'b', label: '子列乙' },
+          {
+            label: '嵌套分组',
+            children: [{ prop: 'c', label: '子列丙', hidden: hiddenRef }],
+          },
+        ],
+      },
+    ];
+
+    const wrapper = mountRenderer(columns, [{ a: 'A', b: 'B', c: 'C' }]);
+    await flushPromises();
+
+    // 被过滤的子列不生成 ElTableColumn（分组 + 子列乙 + 嵌套分组 = 3）
+    expect(findColumns(wrapper).map((c: any) => c.props('label'))).toEqual([
+      '分组',
+      '子列乙',
+      '嵌套分组',
+    ]);
+    expect(headerTexts(wrapper).join(' ')).not.toContain('子列甲');
+    // 被过滤子列的数据不进入表体
+    expect(wrapper.find('.el-table__body').text()).toContain('B');
+    expect(wrapper.find('.el-table__body').text()).not.toContain('A');
+
+    // 响应式形态：ref(true) → ref(false) 后子列丙出现
+    hiddenRef.value = false;
+    await flushPromises();
+    expect(findColumns(wrapper).map((c: any) => c.props('label'))).toContain(
+      '子列丙'
+    );
+
+    wrapper.unmount();
+  });
 });

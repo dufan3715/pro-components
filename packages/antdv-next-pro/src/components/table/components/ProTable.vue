@@ -296,10 +296,35 @@ const computedColumns = computed<Columns<RecordType>>(() => {
   return needIndex ? [indexColumn.value, ...cols] : cols;
 });
 
+/*
+ * 递归过滤 hidden 列（含分组子列）：仅对被过滤过子列的列生成浅拷贝，
+ * 未发生变动的列保持原对象引用（每次 columns 变化执行一次，不在渲染期递归）
+ */
+const filterVisibleColumns = (
+  columns: any[]
+): { list: any[]; changed: boolean } => {
+  const list: any[] = [];
+  let changed = false;
+  for (const column of columns) {
+    if (!isObjectItem(column) || toValue((column as Column).hidden)) {
+      changed = true;
+      continue;
+    }
+    if (Array.isArray(column.children) && column.children.length > 0) {
+      const filtered = filterVisibleColumns(column.children);
+      if (filtered.changed) {
+        changed = true;
+        list.push({ ...column, children: filtered.list });
+        continue;
+      }
+    }
+    list.push(column);
+  }
+  return { list, changed };
+};
+
 const visibleComputedColumns = computed(() => {
-  return computedColumns.value.filter(
-    item => isObjectItem(item) && !toValue((item as Column).hidden)
-  );
+  return filterVisibleColumns(computedColumns.value).list;
 });
 
 const computedDataSource = computed<RecordType[]>(() => {

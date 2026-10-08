@@ -66,7 +66,12 @@ const renderColumn = (column: Column): any => {
   const vnodeProps = { key: getColumnKey(column), ...getColumnProps(column) };
   if (hasChildren) {
     return h(TableColumn, vnodeProps, {
-      default: () => column.children!.map(child => renderColumn(child)),
+      default: () =>
+        column
+          .children!.filter(
+            child => isObjectItem(child) && !toValue(child.hidden)
+          )
+          .map(child => renderColumn(child)),
     });
   }
   if (typeof column.render === 'function') {
