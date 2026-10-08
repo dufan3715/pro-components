@@ -250,7 +250,7 @@ export interface UseFieldsReturn<
  * @template F - 字段配置类型，继承自 BaseField<D>
  * @template FormInstance - 底层 FormItem 组件实例类型
  *
- * @param {F[]} [initFields] - 初始字段配置数组
+ * @param {F[]} [initFields] - 初始字段配置数组；内部持有其浅拷贝，`appendField` / `prependField` / `deleteField` 的增删不会修改传入数组
  *
  * @returns {object} 字段操作对象
  * @returns {Ref<F[]>} .fields - 字段配置数组（响应式）
@@ -305,7 +305,8 @@ const useFields = <
 ): UseFieldsReturn<D, F, FormInstance> => {
   const fields = ref<F[]>([]) as Ref<F[]>;
 
-  fields.value = initFields || [];
+  // 内部持有浅拷贝：后续 appendField/prependField/deleteField 的增删只作用于内部数组
+  fields.value = [...(initFields || [])];
 
   const identityKeys =
     options?.fieldIdentityKeys ?? DEFAULT_FIELD_IDENTITY_KEYS;

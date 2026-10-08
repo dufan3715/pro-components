@@ -237,10 +237,16 @@ describe('useTable', () => {
     expect(searchForm.fields.value.length).toBe(1);
   });
 
-  it('TT-21 dataSource 同一引用', () => {
+  it('TT-21 [判别] dataSource 内部浅拷贝：元素共享、内部增删不修改调用方数组', () => {
     const ds = [{ id: 1 }];
     const { dataSource } = useTable<any>({ dataSource: ds });
-    expect(toRaw(dataSource.value)).toBe(ds);
+
+    expect(toRaw(dataSource.value)).not.toBe(ds);
+    expect(toRaw(dataSource.value[0])).toBe(ds[0]);
+
+    dataSource.value.push({ id: 2 });
+    expect(ds).toHaveLength(1);
+    expect(ds).toEqual([{ id: 1 }]);
   });
 
   it('TT-22 [判别] 自动列 key 为实例级种子，多实例互不影响', () => {
@@ -295,14 +301,16 @@ describe('useTable', () => {
     expect((frozenCol as any).key).toBeUndefined();
   });
 
-  it('TT-26 [判别] 整体重赋值保持引用与可变异语义', () => {
+  it('TT-26 [判别] 整体重赋值收编浅拷贝：不替换调用方数组，元素级变异仍同步', () => {
     const { columns, setColumn, deleteColumn } = useTable<any>({
       columns: [{ key: 'a', title: 'A' }],
     });
     const newColumns = [{ title: 'B' }, { title: 'C' }] as any;
+    const snapshot = [...newColumns];
     columns.value = newColumns;
-    // 判别点：重赋值不换引用，新数组被收编为状态本体
-    expect(toRaw(columns.value)).toBe(newColumns);
+    // 判别点：状态持有浅拷贝，调用方数组不被收编为状态本体（元素仍共享）
+    expect(toRaw(columns.value)).not.toBe(newColumns);
+    expect(toRaw(columns.value[0])).toBe(newColumns[0]);
 
     // resizeColumn 式直接变异对新数组可见
     const proxyCol = columns.value[0];
@@ -315,7 +323,8 @@ describe('useTable', () => {
     expect(newColumns[0].title).toBe('B-New');
     deleteColumn(autoKey);
     expect(columns.value.length).toBe(1);
-    expect(newColumns[0].title).toBe('C');
+    // 内部删除只作用于内部数组，调用方数组长度不变
+    expect(newColumns).toHaveLength(snapshot.length);
   });
 
   describe('直接变异 (DC 组)', () => {
@@ -337,8 +346,10 @@ describe('useTable', () => {
       expect(columns.value).toBe(columns.value);
       expect(columns.value[0]).toBe(columns.value[0]);
 
-      // 初始数组仍为状态本体（原引用透传契约）
-      expect(toRaw(columns.value)).toBe(rawColumns);
+      // 内部数组与调用方数组解耦：状态持有浅拷贝，索引赋值不反作用于调用方数组
+      expect(toRaw(columns.value)).not.toBe(rawColumns);
+      expect(rawColumns).toHaveLength(1);
+      expect(rawColumns[0].dataIndex).toBe('a');
     });
 
     it('TT-28 [判别] 元素级插入的分组列在读取时递归补齐 children 的 key', () => {

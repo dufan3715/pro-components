@@ -156,7 +156,7 @@ export type Table<
  * @template C - 列配置类型，继承自 BaseColumn<T>
  *
  * @param {object} params - 表格配置参数
- * @param {Columns<T, C>} [params.columns] - 初始列配置。会直接包裹（复用）传入的数组引用，并被 normalizeColumns 就地补齐 key（`@mutates`）；后续整体重赋值返回实例的 columns（`.value =`）时会同步对新数组就地补齐缺失的 key
+ * @param {Columns<T, C>} [params.columns] - 初始列配置。内部持有其**浅拷贝**（列增删与整体重赋值不修改传入数组），列对象的 `key` 仍由 normalizeColumns 就地补齐（`@mutates`，见 {@link normalizeColumns}）
  * @param {T[]} [params.dataSource] - 初始数据源。会直接包裹（复用）传入的数组引用，后续对返回实例的变更会穿透到调用方原对象
  * @param {PageParam} [params.pageParam] - 初始分页参数。会直接包裹（复用）传入的对象引用，后续对返回实例的变更会穿透到调用方原对象
  * @param {ExtendWithAny<DeepPartial<D>>} [params.searchParam] - 初始搜索参数
@@ -274,7 +274,7 @@ export function normalizeColumn<
  * @mutates 会就地修改传入的数组及其元素：
  * - 对每个元素调用 {@link normalizeColumn} 补齐 `key`；
  * - 若元素为冻结对象，会用解冻副本**替换**数组中对应位置的元素（`columns[i] = ...`）。
- * 调用方传入的原始数组会被直接变异。
+ * 直接调用本工具时，传入的原始数组会被就地变异；经 {@link useTable} 使用时传入的是其内部浅拷贝。
  *
  * @param columns - 列配置数组
  * @param allocateKey - 传给 {@link normalizeColumn} 的自动 key 生成函数；未提供时回退模块级兜底种子
@@ -317,8 +317,10 @@ const useTable = <
   let columnKeySeed = 0;
   const allocateColumnKey = () => `__col_${++columnKeySeed}`;
 
+  // 内部持有数组浅拷贝：列增删与重赋值只作用于内部数组（列对象的 key 补齐仍为就地写入，见 normalizeColumns）
+  const initialColumns = [...initColumns];
   const columnState = ref<Columns<T, C>>(
-    normalizeColumns(initColumns, allocateColumnKey)
+    normalizeColumns(initialColumns, allocateColumnKey)
   ) as Ref<Columns<T, C>>;
 
   /*
@@ -353,15 +355,16 @@ const useTable = <
       return columnState.value;
     },
     set(next) {
-      normalizeColumns(next, allocateColumnKey);
-      columnState.value = next;
+      const nextColumns = [...next];
+      normalizeColumns(nextColumns, allocateColumnKey);
+      columnState.value = nextColumns;
       trigger();
     },
   }));
 
-  const dataSource = ref<T[]>(initDataSource) as Ref<T[]>;
+  const dataSource = ref<T[]>([...initDataSource]) as Ref<T[]>;
 
-  const pageParam = reactive(initPageParam);
+  const pageParam = reactive({ ...toValue(initPageParam) });
 
   const setPageParam: SetPageParam = pa => {
     let newPageParam = pa;

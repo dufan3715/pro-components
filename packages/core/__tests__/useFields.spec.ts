@@ -9,10 +9,20 @@ const baseFields = [
 ];
 
 describe('useFields', () => {
-  it('FF-01 init 数组与 fields.value 同一引用', () => {
+  it('FF-01 [判别] 内部持有 init 数组浅拷贝：增删字段不修改调用方数组', () => {
     const arr = [...baseFields];
-    const { fields } = useFields<any>(arr);
-    expect(toRaw(fields.value)).toBe(arr);
+    const snapshot = [...arr];
+    const { fields, appendField, deleteField } = useFields<any>(arr);
+
+    // 数组层解耦（非同一引用），元素仍共享（浅拷贝语义）
+    expect(toRaw(fields.value)).not.toBe(arr);
+    expect(toRaw(fields.value[0])).toBe(arr[0]);
+
+    // 内部增删不反作用于调用方数组
+    appendField('extra', { path: 'extra', label: '额外' } as any);
+    deleteField('name');
+    expect(arr).toEqual(snapshot);
+    expect(arr).toHaveLength(snapshot.length);
   });
 
   it('FF-02 无 init 时为空数组', () => {

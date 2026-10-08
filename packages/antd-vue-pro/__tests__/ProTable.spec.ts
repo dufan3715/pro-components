@@ -663,9 +663,9 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PT-A15 [判别]: resizeColumn 式就地变异列对象，在 columns 读时规范化下保持引用与渲染更新
+  // PT-A15 [判别]: resizeColumn 式就地变异列对象，在 columns 读时规范化下保持元素引用与渲染更新（数组层为浅拷贝）
   // ----------------------------------------------------
-  it('PT-A15 [判别]: resizeColumn 式就地变异列对象后引用不变且渲染宽度更新', async () => {
+  it('PT-A15 [判别]: resizeColumn 式就地变异列对象后元素引用不变、渲染宽度更新且数组层解耦', async () => {
     const rawColumns = [
       { dataIndex: 'name', title: '姓名', width: 100 },
     ] as any[];
@@ -693,11 +693,13 @@ describe('ProTable 组件测试', () => {
     aTable.vm.$emit('resizeColumn', 240, col);
     await flushPromises();
 
-    // 写入可见、元素与数组引用恒等、初始数组仍是状态本体
+    // 写入可见；内部数组为调用方数组的浅拷贝（非本体），元素仍共享
     expect(table.columns.value[0].width).toBe(240);
     expect(table.columns.value[0]).toBe(col);
-    expect(toRaw(table.columns.value)).toBe(rawColumns);
+    expect(toRaw(table.columns.value)).not.toBe(rawColumns);
     expect(toRaw(table.columns.value)[0]).toBe(rawColumns[0]);
+    // 元素级就地变异仍同步到调用方对象（浅拷贝语义）
+    expect(rawColumns[0].width).toBe(240);
     // 渲染层随就地变异更新
     expect(wrapper.html()).toContain('240px');
 
