@@ -19,7 +19,7 @@ type MapPathValue = Array<number | 'fields'>;
 
 export type FR<F, FormInstance> = Readonly<F & AM<FormInstance>>;
 
-/** 字段标识键序：按顺序取第一个非空值 */
+/** 字段标识键序：按顺序取第一个非 null / undefined 的值 */
 export type FieldIdentityKeys = readonly string[];
 
 /** 默认标识键序：宿主表单域标识键（name）优先，path 兜底 */
@@ -28,7 +28,7 @@ export const DEFAULT_FIELD_IDENTITY_KEYS: FieldIdentityKeys = ['name', 'path'];
 /**
  * 解析字段标识
  *
- * @description 按 `keys` 顺序取字段配置上第一个非空值，并归一化为路径键；
+ * @description 按 `keys` 顺序取字段配置上第一个非 null / undefined 的值，并归一化为路径键；
  * 字段配置的读写绑定、表单域标识与字段查找 API 共用本解析结果。
  *
  * @param field - 字段配置对象
@@ -605,7 +605,7 @@ const useFields = <
     placement?: 'before' | 'after'
   ) {
     if (newFields.length === 0) return;
-    if (path) {
+    if (path !== undefined && path !== null) {
       const matches: GroupMatch<F>[] = [];
       updaterMatch(
         path,

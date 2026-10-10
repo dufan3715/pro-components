@@ -157,8 +157,8 @@ export type Table<
  *
  * @param {object} params - 表格配置参数
  * @param {Columns<T, C>} [params.columns] - 初始列配置。内部持有其**浅拷贝**（列增删与整体重赋值不修改传入数组），列对象的 `key` 仍由 normalizeColumns 就地补齐（`@mutates`，见 {@link normalizeColumns}）
- * @param {T[]} [params.dataSource] - 初始数据源。会直接包裹（复用）传入的数组引用，后续对返回实例的变更会穿透到调用方原对象
- * @param {PageParam} [params.pageParam] - 初始分页参数。会直接包裹（复用）传入的对象引用，后续对返回实例的变更会穿透到调用方原对象
+ * @param {T[]} [params.dataSource] - 初始数据源。内部持有其浅拷贝（增删不修改传入数组，元素仍为同一批对象）
+ * @param {PageParam} [params.pageParam] - 初始分页参数。内部持有其浅拷贝（字段写入不修改传入对象）
  * @param {ExtendWithAny<DeepPartial<D>>} [params.searchParam] - 初始搜索参数
  * @param {Fields<D>} [params.searchFields] - 搜索表单字段配置
  *
@@ -325,7 +325,7 @@ const useTable = <
 
   /*
    * 就地补齐缺失的 key（含 children 递归）：仅缺失时写入、命中即跳过，
-   * 不改写已有 key、不重建 children 数组，返回值表示是否发生写入
+   * 不改写已有 key；补齐过程中子列数组由 normalizeColumn 重建，返回值表示是否发生写入
    */
   const ensureColumnKeys = (list: Columns<T, C>, allocateKey: () => string) => {
     let changed = false;
@@ -595,7 +595,7 @@ const useTable = <
     placement?: 'before' | 'after'
   ) {
     if (newColumns.length === 0) return;
-    if (path) {
+    if (path !== undefined && path !== null) {
       const matches: GroupMatch[] = [];
       updaterMatch(
         path,
