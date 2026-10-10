@@ -1,7 +1,7 @@
 import type {
   GridItemProps,
   FormItemProps,
-  TableComponentProps,
+  TableProps,
 } from '../../../shared/ui';
 import type { ComponentName, GetComponentType } from '../../form/constants';
 import type { Base, Grid } from '../../form/types';
@@ -27,7 +27,7 @@ type FP<T extends Record<string, any>> = Partial<
 
 export type RequiredComponentVars = {
   'pro-table': PP<
-    Omit<TableComponentProps, 'loading'> &
+    Omit<TableProps, 'loading'> &
       Pick<
         ProTableProps,
         | 'control'

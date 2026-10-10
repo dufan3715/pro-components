@@ -1,6 +1,5 @@
 import { Col, Table, FormItem } from 'antdv-next';
-import type { TableProps } from 'antdv-next';
-import type { ComponentProps } from 'vue-component-type-helpers';
+import type { TableEmits, TableProps as _TableProps } from 'antdv-next';
 
 export {
   theme,
@@ -36,7 +35,6 @@ export {
   type FormProps,
   type FormItemProps,
   type FormInstance,
-  type TableProps,
   type PaginationProps,
   type RowProps as GridProps,
   type ColProps as GridItemProps,
@@ -102,17 +100,15 @@ export const tableProps = (): Record<string, any> => {
   return {};
 };
 
-/** TableProps 未声明的 emit 型属性（事件处理器），键名对应宿主 Table 的 emits */
-export type TableEmitProps = {
-  onChange?: ComponentProps<typeof Table>['onChange'];
-  onScroll?: ComponentProps<typeof Table>['onScroll'];
-  'onUpdate:expandedRowKeys'?: ComponentProps<
-    typeof Table
-  >['onUpdate:expandedRowKeys'];
+/**
+ * 表格完整属性面
+ *
+ * @description 宿主 `TableProps` 未声明 emit 型事件键，故并入由宿主根导出的 `TableEmits` 推导的同族键
+ * （`on${Capitalize<K>}`，与宿主的 `TableEmitsProps` 同式）；键名与签名均取自宿主导出。
+ */
+export type TableProps = _TableProps & {
+  [K in keyof TableEmits as `on${Capitalize<string & K>}`]?: TableEmits[K];
 };
-
-/** 宿主 Table 的完整属性面：运行时 props 与 emit 型事件处理器 */
-export type TableComponentProps = TableProps & TableEmitProps;
 
 export {
   useDisabledContext,

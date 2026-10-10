@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h, ref, toRaw } from 'vue';
-import type { TableComponentProps } from '../src/shared/ui';
+import type { TableProps } from '../src/shared/ui';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
@@ -1152,12 +1152,12 @@ describe('ProTable 组件测试', () => {
     wrapper.unmount();
 
     // 类型面契约：属性面补齐宿主导出的 emit 键，且不含宿主未暴露的 scroll 事件面
-    const hostEmitProps: TableComponentProps = {
+    const hostEmitProps: TableProps = {
       'onUpdate:expandedRowKeys': () => {},
     };
     expect(typeof hostEmitProps['onUpdate:expandedRowKeys']).toBe('function');
 
-    const boundaryProps: TableComponentProps = {
+    const boundaryProps: TableProps = {
       // @ts-expect-error 宿主 ant-design-vue Table 未暴露 scroll 事件面
       onScroll: () => {},
     };

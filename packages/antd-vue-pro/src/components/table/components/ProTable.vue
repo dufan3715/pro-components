@@ -49,7 +49,6 @@
 import type {
   PaginationProps,
   TableProps,
-  TableComponentProps,
   ColumnType,
 } from '../../../shared/ui';
 import { Table as ATable, tableProps } from '../../../shared/ui';
@@ -117,7 +116,7 @@ type Props = {
   searchFormConfig?: SearchFormConfig;
   // 表格区域包裹容器
   tableContainer?: ContainerComponent | false;
-} & /* @vue-ignore */ TableComponentProps;
+} & /* @vue-ignore */ TableProps;
 
 const props = withDefaults(defineProps<Props>(), {
   table: undefined,
@@ -135,8 +134,8 @@ const config = INJECT_CONFIG['pro-table'];
 const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
-const injectAttrs = computed<TableComponentProps>(
-  () => pick(injectProps.value, tableProperties) as TableComponentProps
+const injectAttrs = computed<TableProps>(
+  () => pick(injectProps.value, tableProperties) as TableProps
 );
 
 const computedSearchFormConfig = computed(() => {
@@ -152,11 +151,8 @@ const computedSearchFormConfig = computed(() => {
 });
 
 const attrs: Record<string, any> = useAttrs();
-const tableAttrs = computed<TableComponentProps>(() => {
-  return pick(
-    camelizeProperties(attrs),
-    tableProperties
-  ) as TableComponentProps;
+const tableAttrs = computed<TableProps>(() => {
+  return pick(camelizeProperties(attrs), tableProperties) as TableProps;
 });
 
 const size = defineModel<TableProps['size']>('size');
@@ -272,7 +268,7 @@ const isBoundProp = (name: string) => {
   return name in vnodeProps || `onUpdate:${name}` in vnodeProps;
 };
 
-const computedTableProps = computed<TableComponentProps>(() => {
+const computedTableProps = computed<TableProps>(() => {
   const merged = {
     ...injectAttrs.value,
     ...tableAttrs.value,
@@ -280,7 +276,7 @@ const computedTableProps = computed<TableComponentProps>(() => {
     loading: undefined,
     pagination: undefined,
     onChange: undefined,
-  } as TableComponentProps;
+  } as TableProps;
   // 始终读取本地模型以建立依赖；本地显式绑定或已由 SizeControl 写入时覆盖注入值
   const localSize = size.value;
   if (isBoundProp('size') || localSize !== undefined) {
@@ -395,7 +391,7 @@ const computedPagination = computed<PaginationProps | false>(() => {
   };
 });
 
-const onTableChange: TableComponentProps['onChange'] = (...args) => {
+const onTableChange: TableProps['onChange'] = (...args) => {
   props.table?.setPageParam?.(args[0]);
   // change 回放：模板监听器优先，未绑定时回退 Provider 全局配置
   (attrs.onChange ?? injectProps.value.onChange)?.(...args);
