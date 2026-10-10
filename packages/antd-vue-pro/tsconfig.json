@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "lib": ["ESNext", "ES2022", "DOM"],
     "baseUrl": ".",
-    "types": ["ant-design-vue/typings/global"],
+    "types": ["node", "ant-design-vue/typings/global"],
     "declaration": true,
     "declarationMap": true,
     "skipLibCheck": true,

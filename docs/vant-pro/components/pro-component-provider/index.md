@@ -65,3 +65,7 @@ const customMap = {
 ```
 
 > **注意**：注册组件解决的是**运行时渲染**问题；如果你需要**开发时 TypeScript 类型提示**（比如配置 `component: 'my-upload'` 后自动带出 Params 校验），请参考 `ProForm` 文档中的 **高级：拓展、覆盖组件** 章节进行环境类型扩展。
+
+## AI 编码工具适配
+
+本组件承载的 `componentVars` / `componentMap` / `locale` 属于**项目级覆盖层**，优先级介于 Field 属性与库内置默认之间。包内 AI 上下文已要求 AI 编码工具在生成任何字段/列配置代码前，先搜索并读取项目源码中本组件的实际配置（机制说明见 [AI 编码助手接入指南](/ai-integration-guide.html)），因此项目修改配置后无需任何额外操作。

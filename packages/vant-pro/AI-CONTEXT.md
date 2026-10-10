@@ -46,7 +46,7 @@ import { ProForm, useForm, useFormPopup } from '@qin-ui/vant-pro';
 
 ### 隐式默认行为（INJECT_CONFIG，易踩坑）
 
-由 `ProComponentProvider` 注入，优先级低于 Field 配置。**vant 版预设极简**，仅以下两项有默认值，其余内置组件（switch/stepper/rate/slider/uploader/checkbox-group/radio-group/picker/date-picker/time-picker/cascader/area/signature/button）均 `{}` 无预设；表单右对齐与校验滚动定位属移动端体验默认，可在 Field 或 `componentVars` 中覆盖：
+由 `ProComponentProvider` 注入，优先级低于 Field 配置。**vant 版预设极简**，仅以下两项有默认值，其余内置组件（switch/stepper/rate/slider/uploader/checkbox-group/radio-group/picker/date-picker/time-picker/cascader/area/signature/button）均 `{}` 无预设；表单右对齐与校验滚动定位属移动端体验默认，可在 Field 或 `componentVars` 中覆盖。下表为**库内置默认**，项目 Provider 可能已按 key 覆盖部分值，最终以现场读取的实际配置为准（见「项目级覆盖层」）：
 
 | component  | 默认预设                                                                                                                                                         |
 | :--------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -55,6 +55,24 @@ import { ProForm, useForm, useFormPopup } from '@qin-ui/vant-pro';
 
 > `modelProp` 默认 `'modelValue'`（vant 统一约定，即 `v-model:modelValue`）。
 > **占位符由 locale 兜底**：未显式设置 `placeholder` 时自动生成（`input.placeholder`），语言随宿主 vant 语言自动切换。
+
+### 项目级覆盖层（写码前必查，实时生效）
+
+项目 `ProComponentProvider`（通常挂载在 App.vue 或布局组件）的配置介于 Field 属性与上表内置默认之间，优先级为 **Field 属性 > 项目 Provider > 内置默认**。
+
+**硬规则：生成任何 Field / ProForm 代码前，先全局搜索项目源码（排除 node_modules），读取 Provider 实际配置：**
+
+```
+搜索: <ProComponentProvider   挂载点（通常在 App.vue / 布局 / Provider 包装组件）
+搜索: componentVars            项目覆盖的默认属性（field clearable、pro-form 对齐等）
+搜索: componentMap             注册的自定义组件 / 接管的内置组件
+搜索: :locale=                 覆盖的内置文案（占位符等）
+```
+
+- 配置值若抽离到独立文件（如 `:component-vars="providerVars"`），沿 import / 定义语句追到源头读取；
+- `componentMap` 注册的 key 是合法的 `Field.component` 取值，应优先使用项目已注册组件，而非新写；
+- 内置文案以项目 `locale` 覆盖为准，不硬编码默认文案；
+- 全项目搜不到挂载点时，按上表内置默认工作。
 
 ### 内置文案（locale）
 
@@ -153,6 +171,7 @@ useForm(true | false)                          // 重载二：仅拿实例（roo
 - ❌ 把 `columns`（picker 数据）当 van-field 属性 -- 它属于内部控件层。
 - ❌ 传 SFC 给 `component` 不用 `markRaw`。
 - ❌ 移动端选择类字段忘了配 `popup: true` -- 桌面端没有的弹窗模式，是 vant 表单的核心用法。
+- ❌ 不读项目 `ProComponentProvider` 实际配置就写 Field 属性 -- 默认值与组件映射可能已被项目覆盖。
 
 ## 按需深查
 
@@ -163,3 +182,4 @@ useForm(true | false)                          // 重载二：仅拿实例（roo
 - `.agents/skills/vant-pro/references/api.md` — 结构化 API 元数据
 - `node_modules/@qin-ui/vant-pro/README.md` — 完整用法与进阶示例
 - vant 组件属性查阅官方文档：https://vant-ui.com
+- 项目注册了自定义 `componentMap` key 时，推荐补 `declare module` 环境类型声明（见 README 方式 3），使 `Field.component` 联合类型包含项目注册的 key

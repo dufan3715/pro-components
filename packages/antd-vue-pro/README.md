@@ -191,6 +191,10 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 > `modelProp` 控制 v-model 绑定的属性名，默认 `'value'`（即 `v-model:value`）。`switch` 经预设绑定为 `checked`，通常无需手动设置。
 > `showTotal`（分页总计）与 `placeholder` 不在 INJECT_CONFIG 预设内，由 locale 体系提供，可在 Field / ProTable 配置中显式覆盖。
 
+#### 与 AI 编码工具协作
+
+属性优先级为 **Field 配置 > Provider 注入（含项目在 `componentVars` / `componentMap` / `locale` 上的覆盖）> 内置默认**。包内 AI 上下文（`AI-CONTEXT.md`）已要求 AI 在生成任何 Field / Column 代码前，先搜索并读取项目 `ProComponentProvider` 的实际配置。执行一次 `npx @qin-ui/antd-vue-pro init-ai` 即可让该规则进入项目 `AGENTS.md`，此后项目配置变更无需任何操作，AI 每次会话都读取最新源码。
+
 ---
 
 ### 2. ProForm
@@ -217,16 +221,16 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 
 #### Props
 
-| 参数名             | 说明                                                      | 类型                                   | 默认值  |
-| :----------------- | :-------------------------------------------------------- | :------------------------------------- | :------ |
-| `table`            | 由 `useTable` 返回的表格实例                              | `Table`                                | -       |
-| `search`           | 触发表格查询的回调函数，需返回 Promise 或直接返回查询数据 | `(params: any) => Promise<any> \| any` | -       |
-| `addIndexColumn`   | 是否自动在表格首列插入序号列                              | `boolean`                              | `true`  |
-| `immediateSearch`  | 表格挂载时（onMounted）是否立即触发一次 `search` 查询     | `boolean`                              | `false` |
-| `control`          | 是否在表格右上角工具栏中展示尺寸调节和列动态显示控制按钮  | `boolean`                              | `true`  |
-| `searchFormConfig` | 查询表单的布局配置参数                                    | `SearchFormConfig`                     | -       |
-| `tableContainer`   | 表格的外部包裹容器，默认为 false                          | `Component \| false`                   | -       |
-| `...`              | 其余参数继承自 Ant Design Vue `a-table` 的原生属性        | `TableProps`                           | -       |
+| 参数名             | 说明                                                              | 类型                     | 默认值                  |
+| :----------------- | :---------------------------------------------------------------- | :----------------------- | :---------------------- |
+| `table`            | 由 `useTable` 返回的表格实例                                      | `Table`                  | -                       |
+| `search`           | 触发表格查询的回调函数，无入参；返回 Promise 时由组件接管 loading | `() => Promise<unknown>` | -                       |
+| `addIndexColumn`   | 是否自动在表格首列插入序号列                                      | `boolean`                | `true`                  |
+| `immediateSearch`  | 表格挂载时（onMounted）是否立即触发一次 `search` 查询             | `boolean`                | `false`                 |
+| `control`          | 是否在表格右上角工具栏中展示尺寸调节和列动态显示控制按钮          | `boolean`                | `true`                  |
+| `searchFormConfig` | 查询表单的布局配置参数                                            | `SearchFormConfig`       | -                       |
+| `tableContainer`   | 表格的外部包裹容器，默认包裹；传 `false` 关闭包裹                 | `Component \| false`     | `DefaultTableContainer` |
+| `...`              | 其余参数继承自 Ant Design Vue `a-table` 的原生属性                | `TableProps`             | -                       |
 
 #### Slots
 

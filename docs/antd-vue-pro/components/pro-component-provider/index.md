@@ -77,3 +77,7 @@ const customMap = {
 ## 使用示例
 
 - [内置文案语言切换](./demos/locale/)
+
+## AI 编码工具适配
+
+本组件承载的 `componentVars` / `componentMap` / `locale` 属于**项目级覆盖层**，优先级介于 Field 属性与库内置默认之间。包内 AI 上下文已要求 AI 编码工具在生成任何字段/列配置代码前，先搜索并读取项目源码中本组件的实际配置（机制说明见 [AI 编码助手接入指南](/ai-integration-guide.html)），因此项目修改配置后无需任何额外操作。

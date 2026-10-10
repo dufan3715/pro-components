@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "lib": ["ESNext", "ES2022", "DOM"],
     "baseUrl": ".",
-    "types": ["element-plus/global"],
+    "types": ["node", "element-plus/global"],
     "declaration": true,
     "declarationMap": true,
     "skipLibCheck": true,

@@ -408,7 +408,7 @@ const table = useTable<Row>({
 | 属性               | 类型                                                                           | 默认值  | 说明                                                                                  |
 | :----------------- | :----------------------------------------------------------------------------- | :------ | :------------------------------------------------------------------------------------ |
 | `table`            | `Table<D>`                                                                     | -       | 由 `useTable` 返回的表格实例引用                                                      |
-| `search`           | `() => Promise<void>`                                                          | -       | 触发表格数据查询的异步回调函数                                                        |
+| `search`           | `() => Promise<unknown>`                                                       | -       | 触发表格数据查询的异步回调函数                                                        |
 | `addIndexColumn`   | `boolean`                                                                      | `true`  | 是否自动在表格首列插入序号列                                                          |
 | `immediateSearch`  | `boolean`                                                                      | `false` | 表格挂载完毕（onMounted）是否立即触发一次查询回调                                     |
 | `control`          | `boolean \| { sizeControl, columnControl }`                                    | `true`  | 是否展示表格右上角尺寸调节和列显示控制条                                              |
@@ -509,6 +509,10 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 > `modelProp` 控制 v-model 绑定的属性名，默认 `'value'`（即 `v-model:value`）。`switch` 经预设绑定为 `checked`，通常无需手动设置。
 > antdv-next 的 `date-picker` 还支持按 picker 子类型分别预设：`date-picker.date` / `.week` / `.month` / `.year` / `.quarter`。
 > `showTotal`（分页总计）与 `placeholder` 不在 INJECT_CONFIG 预设内，由 locale 体系提供，可在 Field / ProTable 配置中显式覆盖。
+
+#### 与 AI 编码工具协作
+
+属性优先级为 **Field 配置 > Provider 注入（含项目在 `componentVars` / `componentMap` / `locale` 上的覆盖）> 内置默认**。包内 AI 上下文（`AI-CONTEXT.md`）已要求 AI 在生成任何 Field / Column 代码前，先搜索并读取项目 `ProComponentProvider` 的实际配置。执行一次 `npx @qin-ui/antdv-next-pro init-ai` 即可让该规则进入项目 `AGENTS.md`，此后项目配置变更无需任何操作，AI 每次会话都读取最新源码。
 
 ---
 

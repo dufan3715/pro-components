@@ -54,6 +54,7 @@
     "vue-component-type-helpers": "^3.2.5"
   },
   "devDependencies": {
+    "@types/node": "^24",
     "@vue/test-utils": "^2.4.11",
     "antdv-next": "^1.5.2",
     "happy-dom": "^20.11.6",

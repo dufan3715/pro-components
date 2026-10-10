@@ -43,7 +43,7 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/antd-vue-pro';
 
 ### 隐式默认行为（INJECT_CONFIG，易踩坑）
 
-由 `ProComponentProvider` 注入，优先级低于 Field 配置。**不写也有这些默认值，需知晓以免行为与预期不符**；其中 `maxlength` / `max` / `min` / `controls` 属非中性默认（超长输入被静默截断、数值范围受限、步进按钮隐藏），业务要求更高时在 Field 或 `componentVars` 中显式覆盖：
+由 `ProComponentProvider` 注入，优先级低于 Field 配置。**不写也有这些默认值，需知晓以免行为与预期不符**；其中 `maxlength` / `max` / `min` / `controls` 属非中性默认（超长输入被静默截断、数值范围受限、步进按钮隐藏），业务要求更高时在 Field 或 `componentVars` 中显式覆盖。下表为**库内置默认**，项目 Provider 可能已按 key 覆盖部分值，最终以现场读取的实际配置为准（见「项目级覆盖层」）：
 
 | component                                      | 默认预设                                                                                                                                                                                                                      |
 | :--------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -61,6 +61,24 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/antd-vue-pro';
 > `date-picker` 支持按 picker 子类型分别预设：`date-picker.date` / `.week` / `.month` / `.year` / `.quarter`，默认值同上；预设 key 在 setup 期定型，运行期变更 `picker` 不会切换预设。
 > `input-search` / `checkbox-group` / `radio-group` / `slider` / `tree-select` / `transfer` 无预设（`{}`）。
 > **占位符由 locale 兜底**：未显式设置 `placeholder` 时按组件类型自动生成（input 类 -> `input.placeholder`，select/cascader 类 -> `select.placeholder`），语言随宿主组件库自动切换。
+
+### 项目级覆盖层（写码前必查，实时生效）
+
+项目 `ProComponentProvider`（通常挂载在 App.vue 或布局组件）的配置介于 Field 属性与上表内置默认之间，优先级为 **Field 属性 > 项目 Provider > 内置默认**。
+
+**硬规则：生成任何 Field / Column / ProForm / ProTable / SearchForm 代码前，先全局搜索项目源码（排除 node_modules），读取 Provider 实际配置：**
+
+```
+搜索: <ProComponentProvider   挂载点（通常在 App.vue / 布局 / Provider 包装组件）
+搜索: componentVars            项目覆盖的默认属性（input maxlength、select 配置等）
+搜索: componentMap             注册的自定义组件 / 接管的内置组件
+搜索: :locale=                 覆盖的内置文案（查询/重置/展开/占位符等）
+```
+
+- 配置值若抽离到独立文件（如 `:component-vars="providerVars"`），沿 import / 定义语句追到源头读取；
+- `componentMap` 注册的 key 是合法的 `Field.component` 取值，应优先使用项目已注册组件，而非新写；
+- 内置文案以项目 `locale` 覆盖为准，不硬编码默认文案；
+- 全项目搜不到挂载点时，按上表内置默认工作。
 
 ### 内置文案（locale）
 
@@ -163,6 +181,7 @@ useTable({ columns, dataSource, pageParam, searchParam, searchFields });
 - ❌ 把 `span` 当输入控件属性。
 - ❌ 传 SFC 给 `component` 不用 `markRaw`。
 - ❌ 在 ProTable 上忘了传 `:search`，或期望它自动请求 -- 查询由你提供并驱动。
+- ❌ 不读项目 `ProComponentProvider` 实际配置就写 Field/Column 属性 -- 默认值与组件映射可能已被项目覆盖。
 
 ## 按需深查
 
@@ -173,3 +192,4 @@ useTable({ columns, dataSource, pageParam, searchParam, searchFields });
 - `.agents/skills/antd-vue-pro/references/api.md` — 结构化 API 元数据
 - `node_modules/@qin-ui/antd-vue-pro/README.md` — 完整用法与进阶示例
 - ant-design-vue 组件属性查阅官方文档：https://antdv.com
+- 项目注册了自定义 `componentMap` key 时，推荐补 `declare module` 环境类型声明（见 README 方式 3），使 `Field.component` 联合类型包含项目注册的 key

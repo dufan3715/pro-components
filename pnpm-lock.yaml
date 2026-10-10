@@ -250,6 +250,9 @@ importers:
         specifier: ^3.2.5
         version: 3.2.5
     devDependencies:
+      '@types/node':
+        specifier: ^24
+        version: 24.10.0
       '@vue/test-utils':
         specifier: ^2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.34)(@vue/server-renderer@3.5.34(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))
@@ -275,6 +278,9 @@ importers:
         specifier: ^3.2.5
         version: 3.2.5
     devDependencies:
+      '@types/node':
+        specifier: ^24
+        version: 24.10.0
       '@vue/test-utils':
         specifier: ^2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.34)(@vue/server-renderer@3.5.34(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))
@@ -337,6 +343,9 @@ importers:
         specifier: ^3.2.5
         version: 3.2.6
     devDependencies:
+      '@types/node':
+        specifier: ^24
+        version: 24.10.0
       '@vue/test-utils':
         specifier: ^2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.34)(@vue/server-renderer@3.5.34(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))
@@ -362,6 +371,9 @@ importers:
         specifier: ^3.2.5
         version: 3.2.6
     devDependencies:
+      '@types/node':
+        specifier: ^24
+        version: 24.10.0
       '@vue/test-utils':
         specifier: ^2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.34)(@vue/server-renderer@3.5.34(vue@3.5.34(typescript@5.9.3)))(vue@3.5.34(typescript@5.9.3))

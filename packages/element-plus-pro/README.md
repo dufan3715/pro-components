@@ -219,6 +219,10 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 > `date-picker` 支持按 type 子类型分别预设：`date-picker.date` / `.dates` / `.daterange` / `.datetime` / `.datetimerange` / `.week` / `.month` / `.monthrange` / `.months` / `.year` / `.yearrange` / `.years` 等。
 > `placeholder`（含范围选择器的 `startPlaceholder` / `endPlaceholder`）不在 INJECT_CONFIG 预设内，由 locale 体系提供，可在 Field 配置中显式覆盖。
 
+#### 与 AI 编码工具协作
+
+属性优先级为 **Field 配置 > Provider 注入（含项目在 `componentVars` / `componentMap` / `locale` 上的覆盖）> 内置默认**。包内 AI 上下文（`AI-CONTEXT.md`）已要求 AI 在生成任何 Field / Column 代码前，先搜索并读取项目 `ProComponentProvider` 的实际配置。执行一次 `npx @qin-ui/element-plus-pro init-ai` 即可让该规则进入项目 `AGENTS.md`，此后项目配置变更无需任何操作，AI 每次会话都读取最新源码。
+
 ---
 
 ### 2. ProForm

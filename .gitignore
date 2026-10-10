@@ -40,3 +40,5 @@ packages/*/bin/init-ai.mjs
 .codegraph
 .claude
 .zcode
+
+.pnpm-store/*

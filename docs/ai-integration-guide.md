@@ -20,6 +20,19 @@ npx @qin-ui/antdv-next-pro init-ai
 
 > 提示：其他包（如 `antd-vue-pro`, `element-plus-pro`, `vant-pro`）使用方式相同。生成后，请将 `AGENTS.md` 与 `.agents/` 目录提交到 Git 代码库。
 
+### 项目级 ProComponentProvider 覆盖与 AI（免维护）
+
+业务项目通常会在 `ProComponentProvider` 上覆盖库默认配置（`componentVars` 改默认属性、`componentMap` 注册/接管组件、`locale` 覆盖文案）。**AI 遗漏这层逻辑是常见缺陷来源**——AI 只按库内置默认值生成代码，不知道项目已覆盖。
+
+本库对此采用**免维护的"活指令"机制**：`init-ai` 写入 `AGENTS.md` 的规则**不包含任何配置值快照**，只包含稳定搜索词（`ProComponentProvider` / `componentVars` / `componentMap` / `:locale=`），并要求 AI 在生成任何 Field / Column / 表单 / 表格代码前**现场搜索并读取项目源码中的 Provider 实际配置**。
+
+带来的效果：
+
+- 项目修改 Provider 配置后**无需重跑 `init-ai`**——AI 每次会话读取的都是最新源码，规则永不失效；
+- 规则只在初始化时投递一次，之后对配置变更完全无感。
+
+若你的 Provider 配置通过运行期动态拼接（AI 静态搜索难以定位），可在 `AGENTS.md` 中手工补充一段指向配置源文件路径的说明作为兜底。
+
 ---
 
 ## 核心原理
