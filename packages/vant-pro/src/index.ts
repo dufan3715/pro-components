@@ -60,6 +60,9 @@ export default {
    */
   install(app: App) {
     app.component(ProForm.name, ProForm);
-    app.component(ProComponentProvider.name!, ProComponentProvider);
+    app.component(
+      ProComponentProvider.name ?? 'ProComponentProvider',
+      ProComponentProvider
+    );
   },
 };

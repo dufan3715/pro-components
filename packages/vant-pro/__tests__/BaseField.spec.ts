@@ -507,7 +507,7 @@ describe('BaseField 组件测试 (vant-pro)', () => {
     wrapper.unmount();
   });
   // ----------------------------------------------------
-  // VP-V10 [判别]: Signature 弹层确认时经 submit 事件载荷把签名图写入 formData
+  // VP-F13a [判别]: Signature 弹层确认时经 submit 事件载荷把签名图写入 formData
   // ----------------------------------------------------
   it('VP-F13a [判别]: Signature 弹层确认后，签名图数据经 submit 载荷写入 formData（非弹层初值）', async () => {
     const form = useForm({ sign: '' }, [
@@ -538,7 +538,7 @@ describe('BaseField 组件测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
-  // VP-V11 [判别]: 内联（非弹层）Picker 类字段绑定 model-value 供 VanField 校验取值
+  // VP-F13b [判别]: 内联（非弹层）Picker 类字段绑定 model-value 供 VanField 校验取值
   // ----------------------------------------------------
   it('VP-F13b [判别]: 内联选择器字段的 VanField 收到 model-value，校验可取到真实值', async () => {
     // vant DatePicker 的 modelValue 为列值数组
@@ -564,7 +564,7 @@ describe('BaseField 组件测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
-  // VP-V12 [判别]: 字段配置的事件监听仅绑内层组件，外层 VanField 不重复绑定
+  // VP-F13c [判别]: 字段配置的事件监听仅绑内层组件，外层 VanField 不重复绑定
   // ----------------------------------------------------
   it('VP-F13c [判别]: on 开头的字段事件不进入外层 VanField，避免冒泡类事件双触发', async () => {
     let clickCount = 0;
@@ -754,6 +754,126 @@ describe('BaseField 组件测试 (vant-pro)', () => {
     const stepperEl = stepper.element as HTMLElement;
     expect(stepperEl.hasAttribute('label')).toBe(false);
     expect(stepperEl.hasAttribute('placeholder')).toBe(false);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-10 [判别]: 数组式 props 声明的控件保留自己声明的 Field 层同名键
+  // ----------------------------------------------------
+  it('BF-10 [判别]: 数组式 props 声明的控件仍按 prop 收到自己声明的键', async () => {
+    const ArrayPropsComp = defineComponent({
+      name: 'ArrayPropsComp',
+      props: ['modelValue', 'disabled', 'placeholder'],
+      setup() {
+        return () => h('div', { class: 'arr-props-root' });
+      },
+    });
+
+    const form = useForm({ count: 2 });
+    const wrapper = mount(BaseField, {
+      props: {
+        path: 'count',
+        component: ArrayPropsComp,
+        disabled: true,
+        placeholder: '请输入数量',
+        label: '数量',
+        rules: [{ required: true, message: '请填写数量' }],
+      },
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    const comp = wrapper.findComponent(ArrayPropsComp);
+    // 判别点：数组式声明面同样生效（旧实现按 Object.keys(['disabled']) 取到 ['0'] 而全删）
+    expect(comp.props('modelValue')).toBe(2);
+    expect(comp.props('disabled')).toBe(true);
+    expect(comp.props('placeholder')).toBe('请输入数量');
+    // 反向约束：控件未声明的 Field 层专有键不下发
+    const root = wrapper.find('.arr-props-root');
+    expect(root.attributes('label')).toBeUndefined();
+    expect(root.attributes('rules')).toBeUndefined();
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-11 [判别]: 原生元素回退路径保留 DOM 属性，字段层专有键不外泄
+  // ----------------------------------------------------
+  it('BF-11 [判别]: 未注册字符串组件回退为原生元素时保留 placeholder/disabled/type', async () => {
+    const form = useForm({ keyword: 'abc' });
+    const wrapper = mount(BaseField, {
+      props: {
+        path: 'keyword',
+        component: 'input',
+        type: 'tel',
+        placeholder: '请输入关键字',
+        disabled: true,
+        label: '关键字',
+        rules: [{ required: true, message: '请填写关键字' }],
+      },
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    const input = wrapper.find('input');
+    // 判别点：原生元素无 props 声明面，DOM 属性仍下发（旧实现被当作 Field 专有键剔除）
+    expect(input.attributes('type')).toBe('tel');
+    expect(input.attributes('placeholder')).toBe('请输入关键字');
+    expect(input.attributes('disabled')).toBeDefined();
+    // 反向约束：字段层专有键不外泄为原生元素属性
+    expect(input.attributes('label')).toBeUndefined();
+    expect(input.attributes('rules')).toBeUndefined();
+
+    // 外层 van-field 仍按 Field 层承接 label / rules
+    const vanField = wrapper.findComponent(VanField);
+    expect(vanField.props('label')).toBe('关键字');
+    expect(vanField.props('rules')).toEqual([
+      { required: true, message: '请填写关键字' },
+    ]);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-12 [判别]: type 例外收窄——控件未声明的 type 不下发内层控件
+  // ----------------------------------------------------
+  it('BF-12 [判别]: 内层控件未声明的 type 不下发，field 组件的 type 仍生效', async () => {
+    const form = useForm({ city: ['Hangzhou'], keyword: '' }, [
+      {
+        path: 'city',
+        component: 'picker',
+        popup: true,
+        type: 'tel',
+        columns: [{ text: '杭州', value: 'Hangzhou' }],
+      } as any,
+      { path: 'keyword', component: 'field', type: 'tel' },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    await wrapper.findAllComponents(VanField)[0].trigger('click');
+    await flushPromises();
+    const pickerEl = wrapper.findComponent({ name: 'VanPicker' })
+      .element as HTMLElement;
+    expect(pickerEl.classList.contains('van-picker')).toBe(true);
+    // 判别点：Picker 未声明 type，Field 层的 type 不得泄漏为内层控件 DOM 属性
+    expect(pickerEl.hasAttribute('type')).toBe(false);
+
+    // 反向约束：component 为 field 时 type 仍按 VanField 的 prop 生效
+    const fieldInput = wrapper.findAllComponents(VanField)[1].find('input');
+    expect(fieldInput.attributes('type')).toBe('tel');
 
     wrapper.unmount();
   });

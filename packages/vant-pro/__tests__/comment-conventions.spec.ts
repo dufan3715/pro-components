@@ -63,4 +63,19 @@ describe('注释规范契约 · vant-pro', () => {
     );
     expect(sources.slotComponent).toContain('const isRenderable');
   });
+
+  // ----------------------------------------------------
+  // DOC-03 [判别]: README 的 useFormPopup 语义与实现口径一致
+  // ----------------------------------------------------
+  it('DOC-03 [判别]: README 的 useFormPopup 表格与示例不再保留旧语义', () => {
+    const readme = read('../README.md');
+    // 旧语义缺席：原始数据初值 / 先重置默认再合并 / 更新当前属性
+    expect(readme).not.toContain('初始值（原始数据）');
+    expect(readme).not.toContain('自动重置属性为默认值后合并');
+    expect(readme).not.toContain('合并更新当前弹层属性');
+    // 当前语义在场：控件侧取值 / 单次覆盖 / 基础属性持久生效
+    expect(readme).toContain('打开指定路径字段的弹层');
+    expect(readme).toContain('`customProps` 仅对本次打开生效');
+    expect(readme).toContain('更新 Popup 基础属性，此后每次打开均沿用');
+  });
 });

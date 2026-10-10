@@ -41,9 +41,7 @@ const props = withDefaults(defineProps<Props>(), {
 const validFields = computed(() => {
   const f = toValue(props.fields);
   if (!Array.isArray(f)) return [];
-  return f.filter(
-    field => isObjectItem(field) && !toValue((field as any).hidden)
-  );
+  return f.filter(field => isObjectItem(field) && !toValue(field.hidden));
 });
 
 const groupedFields = useGroupFieldAttrs(validFields);

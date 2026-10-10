@@ -233,7 +233,7 @@ const form = useForm<FormDataType>(initialData, fields, root?)
 import { useFormPopup } from '@qin-ui/vant-pro';
 
 const formPopup = useFormPopup(true);
-// 打开弹窗：可传初始值（原始数据）、本次 Popup 属性覆盖项与字段实例 ID
+// 打开弹窗：可传控件侧初始值（已应用字段 valueFormatter.get）、本次 Popup 属性覆盖项与字段实例 ID
 formPopup.open(
   'fieldName',
   ['110000', '110100'],
@@ -244,18 +244,18 @@ formPopup.close(); // 关闭弹窗
 formPopup.updateProps({ position: 'top' }); // 更新弹窗属性
 ```
 
-| 属性/方法                                           | 说明                                                                                           |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `props`                                             | Popup 的 props（reactive，默认 `{ position:'bottom', round:true, safeAreaInsetBottom:true }`） |
-| `visible`                                           | 弹窗是否可见（computed）                                                                       |
-| `popupFieldPath`                                    | 当前打开的字段路径（ref）                                                                      |
-| `popupFieldValue`                                   | 当前弹窗字段的值（ref）                                                                        |
-| `activeFieldId`                                     | 当前激活的字段实例 ID，用于同 path 多实例隔离                                                  |
-| `contentId` / `teleportTo`                          | 弹层 Teleport 容器的唯一 DOM id 与选择器，多实例互不干扰                                       |
-| `open(path, initialValue?, customProps?, fieldId?)` | 打开指定字段的弹层；自动重置属性为默认值后合并 `customProps`；`initialValue` 传原始数据        |
-| `close()`                                           | 关闭弹窗                                                                                       |
-| `resetProps()`                                      | 重置弹层属性为全局默认值                                                                       |
-| `updateProps(props)`                                | 合并更新当前弹层属性                                                                           |
+| 属性/方法                                           | 说明                                                                                                                   |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `props`                                             | Popup 的 props（reactive，默认 `{ position:'bottom', round:true, safeAreaInsetBottom:true }`）                         |
+| `visible`                                           | 弹窗是否可见（computed）                                                                                               |
+| `popupFieldPath`                                    | 当前打开的字段路径（ref）                                                                                              |
+| `popupFieldValue`                                   | 当前弹窗字段的值（ref）                                                                                                |
+| `activeFieldId`                                     | 当前激活的字段实例 ID，用于同 path 多实例隔离                                                                          |
+| `contentId` / `teleportTo`                          | 弹层 Teleport 容器的唯一 DOM id 与选择器，多实例互不干扰                                                               |
+| `open(path, initialValue?, customProps?, fieldId?)` | 打开指定路径字段的弹层；`initialValue` 为控件侧取值（已应用字段 `valueFormatter.get`）；`customProps` 仅对本次打开生效 |
+| `close()`                                           | 关闭弹窗                                                                                                               |
+| `resetProps()`                                      | 重置弹层属性为全局默认值                                                                                               |
+| `updateProps(props)`                                | 更新 Popup 基础属性，此后每次打开均沿用                                                                                |
 
 #### Props
 

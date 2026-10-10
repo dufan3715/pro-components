@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, ref } from 'vue';
 import BaseFormItem from '../src/components/form/components/BaseFormItem/index.vue';
 import { Field as VanField } from '../src/shared/ui';
 import { useForm } from '../src/components/form/hooks/useForm';
@@ -250,6 +250,36 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
     expect(after[1].element).toBe(elA);
     expect(after[0].text()).toContain('B');
     expect(after[1].text()).toContain('A');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A18 [判别]: hidden 的 Ref/getter 形态在公开类型面与渲染期一致
+  // ----------------------------------------------------
+  it('BI-A18 [判别]: hidden 支持 Ref 与 getter 形态并在渲染期按 toValue 过滤', async () => {
+    const hiddenRef = ref(false);
+    // 类型面：以下字面量在旧声明 hidden?: boolean 下报错（getter 形态不被接受）
+    const fields: Field[] = [
+      { path: 'a', label: 'A', component: 'field', hidden: hiddenRef },
+      { path: 'b', label: 'B', component: 'field', hidden: () => true },
+    ];
+    const form = useForm({ a: '', b: '' }, fields);
+
+    const wrapper = mount(BaseFormItem, {
+      props: { fields: form.fields.value },
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    // 判别点：Ref(false) 的字段渲染，getter 返回 true 的字段被过滤
+    expect(wrapper.findAll('input')).toHaveLength(1);
+    hiddenRef.value = true;
+    await flushPromises();
+    expect(wrapper.findAll('input')).toHaveLength(0);
 
     wrapper.unmount();
   });

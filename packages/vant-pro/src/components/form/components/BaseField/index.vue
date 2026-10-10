@@ -166,9 +166,44 @@ const is = computed(() => {
   return props.component;
 });
 
-// 内层控件声明的 props 键；无静态 props 声明（原生元素、未注册组件）时为空集
-const getControlPropsKeys = (component: any): string[] =>
-  Object.keys(component?.props || {});
+/*
+ * 原生元素回退（未注册的字符串 component，如 'input'）没有 props 声明面，
+ * 按 DOM 属性名放行 Field 层同名键；字段层专有键（label/rules 等）仍从控件绑定中剔除
+ */
+const nativeElementAttrKeys = [
+  'type',
+  'name',
+  'id',
+  'value',
+  'placeholder',
+  'disabled',
+  'readonly',
+  'maxlength',
+  'min',
+  'max',
+  'size',
+  'title',
+  'required',
+  'autocomplete',
+  'autocapitalize',
+  'autocorrect',
+  'inputmode',
+  'spellcheck',
+  'enterkeyhint',
+  'autofocus',
+  'rows',
+];
+
+/*
+ * 内层控件声明的 props 键：对象式与数组式声明均取声明面；
+ * 字符串目标（原生元素、未注册组件）按 DOM 属性名放行
+ */
+const getControlPropsKeys = (component: unknown): string[] => {
+  if (typeof component === 'string') return nativeElementAttrKeys;
+  const declaredProps = (component as { props?: unknown } | undefined)?.props;
+  if (Array.isArray(declaredProps)) return declaredProps as string[];
+  return Object.keys((declaredProps as Record<string, unknown>) || {});
+};
 
 /*
  * 将注入的默认 props、外部传入的 attrs、field 配置合并为最终属性
@@ -244,13 +279,8 @@ const groupedAttrs = computed(() => {
    */
   const controlPropsKeys = getControlPropsKeys(is.value);
   Object.keys(bindAttrs).forEach(key => {
-    if (
-      uiFieldPropsKeys.includes(key) &&
-      key !== 'type' &&
-      key !== 'name' &&
-      !controlPropsKeys.includes(key)
-    ) {
-      delete (bindAttrs as any)[key];
+    if (uiFieldPropsKeys.includes(key) && !controlPropsKeys.includes(key)) {
+      delete bindAttrs[key];
     }
   });
 
