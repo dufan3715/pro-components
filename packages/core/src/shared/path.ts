@@ -117,7 +117,12 @@ const isObjectLike = (v: unknown): v is object =>
   v !== null && (typeof v === 'object' || typeof v === 'function');
 const isIndexKey = (v: string | number) =>
   typeof v === 'number' || /^(?:0|[1-9]\d*)$/.test(v);
-/** 原型污染危险键判定（`__proto__` / `constructor` / `prototype`） */
+/**
+ * 原型污染危险键判定（`__proto__` / `constructor` / `prototype`）
+ *
+ * @param {string | number} v - 待判定的键
+ * @returns {boolean} 键为字符串且命中危险键清单时返回 true，否则返回 false
+ */
 export const isDangerousKey = (v: string | number) =>
   typeof v === 'string' &&
   (v === '__proto__' || v === 'constructor' || v === 'prototype');

@@ -59,17 +59,14 @@ export const formItemProps = () => _formItemProps;
 
 /*
  * 宿主 Table 事件型透传键：由宿主 emits（change / scroll / update:expandedRowKeys）推导，
- * 宿主未暴露 emits 时使用内置清单，模板中的 @change / @scroll / v-model:expanded-row-keys
- * 均以这些键名进入 attrs
+ * 模板中的 @change / @scroll / v-model:expanded-row-keys 均以这些键名进入 attrs
  */
 const TABLE_EMIT_PROP_KEYS = (() => {
   const emits = (Table as any).emits;
   const names: string[] = Array.isArray(emits)
     ? emits
     : Object.keys(emits || {});
-  return names.length > 0
-    ? names.map(name => `on${name.charAt(0).toUpperCase()}${name.slice(1)}`)
-    : ['onChange', 'onScroll', 'onUpdate:expandedRowKeys'];
+  return names.map(name => `on${name.charAt(0).toUpperCase()}${name.slice(1)}`);
 })();
 
 /** 宿主 Table 静态 props 缺失时的告警去重位 */

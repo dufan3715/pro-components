@@ -68,9 +68,9 @@ const search = async () => {
 | ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
 | table            | useTable 返回对象                                          | Object                                                                               | -      |
 | search           | 表格数据查询获取方法                                       | Function                                                                             | -      |
-| addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | -      |
+| addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | true   |
 | immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                              | -      |
-| control          | 是否展示表格 size 和 column 控制按钮                       | boolean \| { sizeControl?: boolean; columnControl?: boolean \| ColumnControlConfig } | -      |
+| control          | 是否展示表格 size 和 column 控制按钮                       | boolean \| { sizeControl?: boolean; columnControl?: boolean \| ColumnControlConfig } | true   |
 | searchFormConfig | 搜索表单配置                                               | Object                                                                               | -      |
 | tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component                                                                            | -      |
 | v-model:size     | 表格尺寸双向绑定                                           | 'large' \| 'middle' \| 'small'                                                       | -      |

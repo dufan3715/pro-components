@@ -21,6 +21,8 @@ import type { ComponentName } from '../constants';
  * - 字段的添加、插入、删除
  * - 父级字段查找
  *
+ * 字段标识按 `name`、`path` 的顺序取首个非 `null` / `undefined` 的值。
+ *
  * @template D - 表单数据类型
  * @param {Fields<D>} [initFields] - 初始字段配置数组
  *

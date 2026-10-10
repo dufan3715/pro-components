@@ -62,7 +62,9 @@ export type FormProps = Omit<_FormProps, 'scrollToFirstError'> & {
 
 /**
  * 表格完整属性面
- * @description 由宿主 `TableProps` 与其未声明的 emit 型属性键组成
+ *
+ * @description 由宿主 `TableProps` 与其未声明的 emit 型属性键组成；
+ * ant-design-vue 的 Table 未暴露 `scroll` 事件面，故不提供 `@scroll` 入口。
  */
 export interface TableProps extends _TableProps {
   'onUpdate:expandedRowKeys'?: ComponentProps<
