@@ -524,4 +524,83 @@ describe('BaseField 组件测试', () => {
     noLinkWrapper.unmount();
     document.body.innerHTML = '';
   });
+
+  // ----------------------------------------------------
+  // BF-A21 [判别]: 单次输入恰好触发一次校验（内置控件自报，不与字段事件通路叠加）
+  // ----------------------------------------------------
+  it('BF-A21 [判别]: 内置控件单次输入恰好校验一次，自定义控件仍由字段事件通路校验一次', async () => {
+    let validators = 0;
+    const rules = [
+      {
+        validator: () => {
+          validators += 1;
+          return Promise.resolve();
+        },
+      },
+    ];
+
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'input',
+        rules,
+      },
+    ]);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    validators = 0;
+    const input = wrapper.find('input');
+    (input.element as HTMLInputElement).value = 'x';
+    await input.trigger('input');
+    await flushPromises();
+    // 判别点：内置控件自身向 FormItem 上报变更，字段事件通路不再重复回传
+    expect(validators).toBe(1);
+    expect(form.getFormData('name')).toBe('x');
+    wrapper.unmount();
+
+    // 反向约束：自定义控件不注入宿主上下文，仍由字段事件通路校验恰好一次
+    const CustomInput = defineComponent({
+      name: 'CustomInput',
+      props: { value: { type: String, default: '' } },
+      emits: ['update:value'],
+      setup(props, { emit }) {
+        return () =>
+          h('input', {
+            class: 'custom-input',
+            value: props.value,
+            onInput: (e: any) => emit('update:value', e.target.value),
+          });
+      },
+    });
+    const customForm = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: CustomInput,
+        rules,
+      },
+    ] as any);
+    const customWrapper = mount(ProForm, {
+      props: { form: customForm },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    validators = 0;
+    const customInput = customWrapper.find('input.custom-input');
+    (customInput.element as HTMLInputElement).value = 'y';
+    await customInput.trigger('input');
+    await flushPromises();
+    expect(validators).toBe(1);
+    expect(customForm.getFormData('name')).toBe('y');
+    customWrapper.unmount();
+    document.body.innerHTML = '';
+  });
 });

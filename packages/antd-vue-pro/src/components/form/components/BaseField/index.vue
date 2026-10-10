@@ -47,7 +47,11 @@ import {
   getInjectConfig,
 } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
-import { getInitProps, warnUnknownComponent } from './utils';
+import {
+  getInitProps,
+  isHostFieldComponent,
+  warnUnknownComponent,
+} from './utils';
 import { useLocale } from '../../../../locale';
 
 const cloneDeepIfObject = (val: unknown) =>
@@ -74,8 +78,9 @@ const componentRef = ref<any>();
 const emit = defineEmits<{
   (e: 'field-value-change', value: unknown): void;
 }>();
-// 值写入 formData 后向外广播，字段级校验由上级 FormItem 订阅该事件触发
+// 值写入 formData 后向外广播；宿主内置控件自身已上报变更，仅自定义控件经此回传校验
 const triggerFormItemChange = (value: unknown) => {
+  if (isHostFieldComponent(is.value)) return;
   emit('field-value-change', value);
 };
 
