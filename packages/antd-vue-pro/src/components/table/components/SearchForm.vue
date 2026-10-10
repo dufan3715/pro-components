@@ -71,7 +71,7 @@ export type SearchFormProps = {
 import type { FormProps } from '../../../shared/ui';
 import { Space, Button } from '../../../shared/ui';
 import type { AllowedComponentProps } from 'vue';
-import { computed, type Component, type DefineComponent } from 'vue';
+import { computed, nextTick, type Component, type DefineComponent } from 'vue';
 import ProForm from '../../form/components/ProForm/index.vue';
 import { type Form } from '../../form/hooks/useForm';
 import DownOutlined from './icons/DownOutlined.vue';
@@ -125,9 +125,27 @@ const onReset = () => {
   emit('reset');
 };
 
-// 查询按钮为 html-type=submit：点击与回车统一经表单 submit 事件触发
-const onSearch = () => {
+// 同一 tick 内 click 与 submit 只放行首个触达者，下一 tick 释放标记
+let searchTriggeredInTick = false;
+
+const emitSearch = () => {
+  searchTriggeredInTick = true;
+  nextTick(() => {
+    searchTriggeredInTick = false;
+  });
   emit('search');
+};
+
+// 默认查询按钮为 html-type=submit：点击与回车统一经表单 submit 事件触发
+const onSearchSubmit = () => {
+  if (searchTriggeredInTick) return;
+  emitSearch();
+};
+
+// 自定义查询按钮与 search-button 插槽经 click 触发
+const onSearchClick = () => {
+  if (searchTriggeredInTick) return;
+  emitSearch();
 };
 </script>
 
@@ -136,7 +154,7 @@ const onSearch = () => {
     v-bind="layoutProps"
     :form="props.form"
     class="pro-table_search-form transition"
-    @submit.prevent="onSearch"
+    @submit.prevent="onSearchSubmit"
   >
     <Space align="start" class="pro-table_search-form_button-group">
       <slot name="reset-button" :on-reset="onReset">
@@ -154,12 +172,12 @@ const onSearch = () => {
           >
         </template>
       </slot>
-      <slot name="search-button" :on-search="onSearch">
+      <slot name="search-button" :on-search="onSearchClick">
         <template v-if="props.searchButton !== false">
           <component
             :is="props.searchButton"
             v-if="props.searchButton"
-            @click="onSearch"
+            @click="onSearchClick"
           />
           <Button
             v-else

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, markRaw } from 'vue';
+import { defineComponent, h, markRaw, type PropType } from 'vue';
 import { mount } from '@vue/test-utils';
 import SearchForm from '../src/components/table/components/SearchForm.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
@@ -128,9 +128,9 @@ describe('SearchForm 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // SF-A10 [判别]: 自定义按钮插槽接收作用域方法
+  // SF-A10 [判别]: 自定义插槽接收作用域方法，点击自定义查询按钮仅发 1 次 search
   // ----------------------------------------------------
-  it('SF-A10 [判别]: 自定义插槽接收 onReset / onSearch / expandStatus 作用域参数', async () => {
+  it('SF-A10 [判别]: 自定义插槽接收作用域方法，点击自定义查询按钮仅发 1 次 search', async () => {
     const form = useForm({}, [{ path: 'name', component: 'input' }]);
     let capturedOnReset: any = null;
     let capturedOnSearch: any = null;
@@ -138,12 +138,17 @@ describe('SearchForm 组件测试', () => {
 
     const wrapper = mount(SearchForm, {
       props: { form },
+      attachTo: document.body,
       slots: {
         'reset-button': (props: any) => {
           capturedOnReset = props.onReset;
           return h(
             'button',
-            { class: 'custom-reset-btn', onClick: props.onReset },
+            {
+              class: 'custom-reset-btn',
+              type: 'button',
+              onClick: props.onReset,
+            },
             'CustomReset'
           );
         },
@@ -167,22 +172,89 @@ describe('SearchForm 组件测试', () => {
       global: { stubs: { transition: false } },
     });
 
-    await flushPromises();
+    try {
+      await flushPromises();
 
-    expect(typeof capturedOnReset).toBe('function');
-    expect(typeof capturedOnSearch).toBe('function');
-    expect(typeof capturedExpandStatus).toBe('boolean');
+      expect(typeof capturedOnReset).toBe('function');
+      expect(typeof capturedOnSearch).toBe('function');
+      expect(typeof capturedExpandStatus).toBe('boolean');
 
-    // 点击自定义按钮能正常触发父级 emit，且各恰好一次
-    await wrapper.find('.custom-reset-btn').trigger('click');
-    await flushPromises();
-    expect(wrapper.emitted('reset')).toHaveLength(1);
+      // 重置按钮显式 type=button：与默认重置按钮语义一致，点击不产生隐式提交
+      await wrapper.find('.custom-reset-btn').trigger('click');
+      await flushPromises();
+      expect(wrapper.emitted('reset')).toHaveLength(1);
+      expect(wrapper.emitted('search')).toBeUndefined();
 
-    await wrapper.find('.custom-search-btn').trigger('click');
-    await flushPromises();
-    expect(wrapper.emitted('search')).toHaveLength(1);
+      // 查询按钮不声明 type：点击同时送达 click 与浏览器隐式 submit
+      let nativeSubmitCount = 0;
+      wrapper.find('form').element.addEventListener('submit', () => {
+        nativeSubmitCount += 1;
+      });
 
-    wrapper.unmount();
+      await wrapper.find('.custom-search-btn').trigger('click');
+      await flushPromises();
+      // 判别点 1：click 与隐式 submit 两条路径均已送达
+      expect(nativeSubmitCount).toBe(1);
+      // 判别点 2：同 tick 去重后 search 恰好 1 次
+      expect(wrapper.emitted('search')).toHaveLength(1);
+    } finally {
+      wrapper.unmount();
+      document.body.innerHTML = '';
+    }
+  });
+
+  // ----------------------------------------------------
+  // SF-A19 [判别]: 自定义 searchButton 点击与隐式提交同 tick 去重
+  // ----------------------------------------------------
+  it('SF-A19 [判别]: 点击自定义 searchButton 一次仅发 1 次 search', async () => {
+    const form = useForm({}, [{ path: 'name', component: 'input' }]);
+    const CustomSearchBtn = defineComponent({
+      props: {
+        onClick: { type: Function as PropType<() => void>, required: true },
+      },
+      setup(props) {
+        return () =>
+          h(
+            'button',
+            { class: 'custom-search-widget', onClick: props.onClick },
+            'CustomSearch'
+          );
+      },
+    });
+
+    const wrapper = mount(SearchForm, {
+      props: {
+        form,
+        searchButton: markRaw(CustomSearchBtn),
+        resetButton: false,
+      },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+
+    try {
+      await flushPromises();
+
+      let nativeSubmitCount = 0;
+      wrapper.find('form').element.addEventListener('submit', () => {
+        nativeSubmitCount += 1;
+      });
+
+      await wrapper.find('.custom-search-widget').trigger('click');
+      await flushPromises();
+      // 判别点 1：click 与隐式 submit 两条路径均已送达
+      expect(nativeSubmitCount).toBe(1);
+      // 判别点 2：同 tick 去重后 search 恰好 1 次
+      expect(wrapper.emitted('search')).toHaveLength(1);
+
+      // 判别点 3：下一 tick 的点击独立放行，连续两次点击为两次查询
+      await wrapper.find('.custom-search-widget').trigger('click');
+      await flushPromises();
+      expect(wrapper.emitted('search')).toHaveLength(2);
+    } finally {
+      wrapper.unmount();
+      document.body.innerHTML = '';
+    }
   });
 
   // ----------------------------------------------------
