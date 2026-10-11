@@ -411,4 +411,88 @@ describe('useTable', () => {
     deleteColumn(0 as any);
     expect(columns.value.map((c: any) => c.key)).toEqual(['a']);
   });
+
+  // ----------------------------------------------------
+  // TT-30 [判别]: 非数组入参回退空数组（不抛 TypeError）
+  // ----------------------------------------------------
+  it('TT-30 [判别]: columns/dataSource 非数组入参回退空数组', () => {
+    expect(() =>
+      useTable<any>({ columns: { a: 1 } as any, dataSource: { a: 1 } as any })
+    ).not.toThrow();
+    const obj = useTable<any>({
+      columns: { a: 1 } as any,
+      dataSource: { a: 1 } as any,
+    });
+    expect(obj.columns.value).toEqual([]);
+    expect(obj.dataSource.value).toEqual([]);
+
+    // 字符串入参不按字符拆段
+    const str = useTable<any>({
+      columns: 'oops' as any,
+      dataSource: 'oops' as any,
+    });
+    expect(str.columns.value).toEqual([]);
+    expect(str.dataSource.value).toEqual([]);
+
+    // undefined 走默认空数组
+    const undef = useTable<any>({
+      columns: undefined as any,
+      dataSource: undefined as any,
+    });
+    expect(undef.columns.value).toEqual([]);
+    expect(undef.dataSource.value).toEqual([]);
+
+    // columns 整体重赋值同样兜底
+    expect(() => {
+      obj.columns.value = { a: 1 } as any;
+    }).not.toThrow();
+    expect(obj.columns.value).toEqual([]);
+    str.columns.value = 'oops' as any;
+    expect(str.columns.value).toEqual([]);
+  });
+
+  // ----------------------------------------------------
+  // TT-31 [判别]: append/prependColumn 的数字 0 与空字符串路径边界
+  // ----------------------------------------------------
+  it("TT-31 [判别]: appendColumn/prependColumn 的 0 走匹配分支；'' 按 key 严格匹配", () => {
+    const matched = useTable<any>({
+      columns: [
+        { key: '0', title: '零' },
+        { key: 'a', title: 'A' },
+      ],
+    });
+    matched.appendColumn(0 as any, { key: 'x' } as any);
+    expect(matched.columns.value.map((c: any) => c.key)).toEqual([
+      '0',
+      'x',
+      'a',
+    ]);
+    matched.prependColumn(0 as any, { key: 'y' } as any);
+    expect(matched.columns.value.map((c: any) => c.key)).toEqual([
+      'y',
+      '0',
+      'x',
+      'a',
+    ]);
+
+    // 无 key 为 '0' 的列：零命中，不插入（不回退顶层插入）
+    const unmatched = useTable<any>({ columns: [{ key: 'a' }, { key: 'b' }] });
+    unmatched.appendColumn(0 as any, { key: 'x' } as any);
+    unmatched.prependColumn(0 as any, { key: 'y' } as any);
+    expect(unmatched.columns.value.map((c: any) => c.key)).toEqual(['a', 'b']);
+
+    // '' 为合法列 key：精确命中该列
+    const emptyKey = useTable<any>({ columns: [{ key: 'a' }, { key: '' }] });
+    emptyKey.appendColumn('' as any, { key: 'x' } as any);
+    expect(emptyKey.columns.value.map((c: any) => c.key)).toEqual([
+      'a',
+      '',
+      'x',
+    ]);
+
+    // 无空 key 列：零命中
+    const noEmpty = useTable<any>({ columns: [{ key: 'a' }] });
+    noEmpty.appendColumn('' as any, { key: 'x' } as any);
+    expect(noEmpty.columns.value.map((c: any) => c.key)).toEqual(['a']);
+  });
 });

@@ -494,4 +494,60 @@ describe('useFields', () => {
     deleteField(0 as any);
     expect(fields.value.map((f: any) => f.path)).toEqual(['a']);
   });
+
+  // ----------------------------------------------------
+  // FF-44 [判别]: append/prependField 的数字路径 0 走分组匹配分支
+  // ----------------------------------------------------
+  it('FF-44 [判别]: appendField/prependField 的数字路径 0 命中分组匹配，零命中不插入', () => {
+    const matched = useFields<any>([
+      { path: '0', label: '零' },
+      { path: 'a', label: 'A' },
+    ]);
+    matched.appendField(0 as any, { path: 'x', label: 'X' } as any);
+    expect(matched.fields.value.map((f: any) => f.path)).toEqual([
+      '0',
+      'x',
+      'a',
+    ]);
+    matched.prependField(0 as any, { path: 'y', label: 'Y' } as any);
+    expect(matched.fields.value.map((f: any) => f.path)).toEqual([
+      'y',
+      '0',
+      'x',
+      'a',
+    ]);
+
+    // 无标识为 '0' 的字段：走匹配分支但零命中，不插入（不回退顶层插入）
+    const unmatched = useFields<any>([{ path: 'a' }, { path: 'b' }]);
+    unmatched.appendField(0 as any, { path: 'x' } as any);
+    unmatched.prependField(0 as any, { path: 'y' } as any);
+    expect(unmatched.fields.value.map((f: any) => f.path)).toEqual(['a', 'b']);
+  });
+
+  // ----------------------------------------------------
+  // FF-45 [判别]: 空字符串路径不匹配任何字段
+  // ----------------------------------------------------
+  it("FF-45 [判别]: appendField/prependField 传 '' 时不插入，undefined 仍回退顶层插入", () => {
+    // 标识解析为空串的字段不参与字符串路径匹配
+    const withEmpty = useFields<any>([
+      { path: 'a', label: 'A' },
+      { path: '', label: '空' },
+    ]);
+    withEmpty.appendField('' as any, { path: 'x' } as any);
+    withEmpty.prependField('' as any, { path: 'y' } as any);
+    expect(withEmpty.fields.value.map((f: any) => f.path)).toEqual(['a', '']);
+
+    const unmatched = useFields<any>([{ path: 'a' }]);
+    unmatched.appendField('' as any, { path: 'x' } as any);
+    unmatched.prependField('' as any, { path: 'y' } as any);
+    expect(unmatched.fields.value.map((f: any) => f.path)).toEqual(['a']);
+
+    unmatched.appendField(undefined, { path: 'tail' } as any);
+    unmatched.prependField(undefined, { path: 'head' } as any);
+    expect(unmatched.fields.value.map((f: any) => f.path)).toEqual([
+      'head',
+      'a',
+      'tail',
+    ]);
+  });
 });

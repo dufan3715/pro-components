@@ -120,6 +120,8 @@ const isIndexKey = (v: string | number) =>
 /**
  * 原型污染危险键判定（`__proto__` / `constructor` / `prototype`）
  *
+ * @internal 仅深层导入面（`shared/path`）可见，不进入包根导出清单
+ *
  * @param {string | number} v - 待判定的键
  * @returns {boolean} 键为字符串且命中危险键清单时返回 true，否则返回 false
  */
@@ -209,7 +211,10 @@ export function set(
   return obj;
 }
 
-/** 自身属性且 SameValueZero 等值时跳过写入，语义对齐 lodash assignValue */
+/**
+ * 自身属性且 SameValueZero 等值时跳过写入，语义对齐 lodash `assignValue`。
+ * SameValueZero 判定下 `0` 与 `-0` 视为相同值（`NaN` 与 `NaN` 亦视为相同），命中即跳过写入。
+ */
 function assignValue(object: any, key: string | number, value: unknown) {
   const cur = object[key];
   if (
@@ -223,6 +228,11 @@ function assignValue(object: any, key: string | number, value: unknown) {
 /**
  * 字段路径归一化（toPath(p).join('.') 语义）。
  * 无 '[' 的路径 toPath(p).join('.') 恒等于 p 本身，直接返回（零分配）。
+ *
+ * 数组入参经 `Array.prototype.join('.')` 归一，参与拼接的 `null` / `undefined` 段视为空串
+ * （`normalizePathKey(['a', null])` 为 `'a.'`）；该口径与 `toPath` 数组分支的逐段 `String`
+ * 归一化（`toPath(['a', null])` 为 `['a', 'null']`）仅在数组含 `null` / `undefined` 段时结果不同，
+ * 数字段、空字符串段、纯字符串与数字/布尔标量的两种口径一致。
  */
 export function normalizePathKey(path: unknown): string {
   if (typeof path === 'string') {
@@ -241,9 +251,16 @@ export function normalizePathKey(path: unknown): string {
  * 与 `normalizePathKey` 互补：本函数返回段数组形式，供需要嵌套路径数组的绑定场景
  * （如 ant-design-vue FormItem 的 `name` 数组语义：`['user','address','city']`）。
  * 非法语法（空段、未闭合括号、引号段）输出告警并给出确定性兜底；空字符串返回 `[]`。
- * 非字符串入参：数组按段取字符串、数字与布尔取单段、其余类型返回 `[]`；
- * 与 `normalizePathKey` 满足 `toPath(v).join('.') === normalizePathKey(v)`。
- * 返回值为模块级缓存中的同一数组实例且已冻结，调用方按只读使用。
+ *
+ * 入参与返回值按分支分档：
+ * - 非空字符串：解析结果取自模块级缓存，同路径重复调用返回同一数组实例且已冻结，调用方按只读使用；
+ * - 数组：逐段 `String` 归一化后返回新数组，不缓存、不冻结；
+ * - 数字 / 布尔：返回单段新数组，不缓存、不冻结；
+ * - 空字符串、`null` / `undefined`、对象、symbol：返回新空数组。
+ *
+ * `toPath(v).join('.') === normalizePathKey(v)` 对段值经 `String` 归一化后与 `join` 同口径的入参成立
+ * （纯字符串、数字 / 布尔标量、数字段、空字符串段均满足）；数组含 `null` / `undefined` 段时不成立：
+ * `toPath(['a', null])` 为 `['a', 'null']`，而 `normalizePathKey(['a', null])` 为 `'a.'`。
  */
 export function toPath(path: unknown): string[] {
   if (Array.isArray(path)) return path.map(String);

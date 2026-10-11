@@ -87,7 +87,7 @@ packages/
 
 - **收窄语法**：仅支持点分（`a.b`）、数字段（`list.0`）、简单括号（`a[0]`），不为 lodash 复杂边界付费；
 - **告警与兜底**：非法语法在开发环境输出带去重保护的 `console.warn`；
-- **响应式安全**：`set` 遇到相同值（`Object.is`）时跳过写入，避免触发无效的 Vue 依赖更新。
+- **响应式安全**：`set` 遇到相同值（SameValueZero，对齐 lodash `assignValue` 的同值判定，`0` 与 `-0` 视为相同值）时跳过写入，避免触发无效的 Vue 依赖更新。
 
 ### 3.5 实例注册与 WeakMap (`BaseFormItem`)
 

@@ -318,7 +318,8 @@ const useTable = <
   const allocateColumnKey = () => `__col_${++columnKeySeed}`;
 
   // 内部持有数组浅拷贝：列增删与重赋值只作用于内部数组（列对象的 key 补齐仍为就地写入，见 normalizeColumns）
-  const initialColumns = [...initColumns];
+  // 入参非数组时回退空数组（列数组按数组语义使用）
+  const initialColumns = Array.isArray(initColumns) ? [...initColumns] : [];
   const columnState = ref<Columns<T, C>>(
     normalizeColumns(initialColumns, allocateColumnKey)
   ) as Ref<Columns<T, C>>;
@@ -355,14 +356,18 @@ const useTable = <
       return columnState.value;
     },
     set(next) {
-      const nextColumns = [...next];
+      // 入参非数组时回退空数组
+      const nextColumns = Array.isArray(next) ? [...next] : [];
       normalizeColumns(nextColumns, allocateColumnKey);
       columnState.value = nextColumns;
       trigger();
     },
   }));
 
-  const dataSource = ref<T[]>([...initDataSource]) as Ref<T[]>;
+  // 入参非数组时回退空数组（数据源按数组语义使用）
+  const dataSource = ref<T[]>(
+    Array.isArray(initDataSource) ? [...initDataSource] : []
+  ) as Ref<T[]>;
 
   const pageParam = reactive({ ...toValue(initPageParam) });
 
@@ -535,7 +540,8 @@ const useTable = <
   /**
    * 在指定列后追加列
    *
-   * @param {Path<T> | ColumnFindBy<T, C> | undefined} path - 目标列路径，传 undefined 则在末尾追加
+   * @param {Path<T> | ColumnFindBy<T, C> | undefined} path - 目标列路径，传 undefined 则在末尾追加；
+   * 传 `''` 时按列 `key` 严格匹配（可命中 `key` 为 `''` 的列），零命中则不插入；数字路径经字符串归一后比对（`0` 命中 `key: '0'`）
    * @param {C | Columns<T, C>} column - 要追加的列配置或列数组
    * @param {object} [options] - 追加选项
    *
@@ -566,7 +572,8 @@ const useTable = <
   /**
    * 在指定列前插入列
    *
-   * @param {Path<T> | ColumnFindBy<T, C> | undefined} path - 目标列路径，传 undefined 则在开头插入
+   * @param {Path<T> | ColumnFindBy<T, C> | undefined} path - 目标列路径，传 undefined 则在开头插入；
+   * 传 `''` 时按列 `key` 严格匹配（可命中 `key` 为 `''` 的列），零命中则不插入；数字路径经字符串归一后比对
    * @param {C | Columns<T, C>} column - 要插入的列配置或列数组
    * @param {object} [options] - 插入选项
    *

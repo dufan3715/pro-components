@@ -151,7 +151,8 @@ export interface UseFieldsReturn<
   /**
    * 在指定字段后追加字段
    *
-   * @param {Path<D> | FieldFindBy<D, F> | undefined} path - 目标字段路径，传 undefined 则在末尾追加
+   * @param {Path<D> | FieldFindBy<D, F> | undefined} path - 目标字段路径，传 undefined 则在末尾追加；
+   * 传 `''` 时不匹配任何字段（字段标识解析为空串的字段不参与字符串路径匹配），调用不产生插入；数字路径经字符串归一后比对（`0` 命中标识为 `'0'` 的字段）
    * @param {F | F[]} field - 要追加的字段配置或字段数组
    * @param {object} [options] - 追加选项
    * @param {boolean} [options.all] - 是否在所有匹配字段后追加，默认只在第一个后追加
@@ -180,7 +181,8 @@ export interface UseFieldsReturn<
   /**
    * 在指定字段前插入字段
    *
-   * @param {Path<D> | FieldFindBy<D, F> | undefined} path - 目标字段路径，传 undefined 则在开头插入
+   * @param {Path<D> | FieldFindBy<D, F> | undefined} path - 目标字段路径，传 undefined 则在开头插入；
+   * 传 `''` 时不匹配任何字段（字段标识解析为空串的字段不参与字符串路径匹配），调用不产生插入；数字路径经字符串归一后比对
    * @param {F | F[]} field - 要插入的字段配置或字段数组
    * @param {object} [options] - 插入选项
    * @param {boolean} [options.all] - 是否在所有匹配字段前插入，默认只在第一个前插入
@@ -519,7 +521,8 @@ const useFields = <
   /**
    * 在指定字段后追加字段
    *
-   * @param {Path<D> | FieldFindBy<D, F> | undefined} path - 目标字段路径，传 undefined 则在末尾追加
+   * @param {Path<D> | FieldFindBy<D, F> | undefined} path - 目标字段路径，传 undefined 则在末尾追加；
+   * 传 `''` 时不匹配任何字段（字段标识解析为空串的字段不参与字符串路径匹配），调用不产生插入；数字路径经字符串归一后比对（`0` 命中标识为 `'0'` 的字段）
    * @param {F | F[]} field - 要追加的字段配置或字段数组
    * @param {object} [options] - 追加选项
    * @param {boolean} [options.all] - 是否在所有匹配字段后追加，默认只在第一个后追加
@@ -551,7 +554,8 @@ const useFields = <
   /**
    * 在指定字段前插入字段
    *
-   * @param {Path<D> | FieldFindBy<D, F> | undefined} path - 目标字段路径，传 undefined 则在开头插入
+   * @param {Path<D> | FieldFindBy<D, F> | undefined} path - 目标字段路径，传 undefined 则在开头插入；
+   * 传 `''` 时不匹配任何字段（字段标识解析为空串的字段不参与字符串路径匹配），调用不产生插入；数字路径经字符串归一后比对
    * @param {F | F[]} field - 要插入的字段配置或字段数组
    * @param {object} [options] - 插入选项
    * @param {boolean} [options.all] - 是否在所有匹配字段前插入，默认只在第一个前插入

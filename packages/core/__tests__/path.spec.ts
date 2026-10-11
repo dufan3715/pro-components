@@ -3,7 +3,13 @@ import { reactive, watch } from 'vue';
 import lodashGet from 'lodash-es/get';
 import lodashSet from 'lodash-es/set';
 import lodashToPath from 'lodash-es/toPath';
-import { get, set, normalizePathKey, toPath } from '../src/shared/path';
+import {
+  get,
+  set,
+  normalizePathKey,
+  toPath,
+  isDangerousKey,
+} from '../src/shared/path';
 
 describe('shared/path', () => {
   const sampleData = () => ({
@@ -232,6 +238,96 @@ describe('shared/path', () => {
       expect(() => ((first as string[])[0] = 'hacked')).toThrow(TypeError);
       expect(toPath('user.address.city')).toEqual(['user', 'address', 'city']);
     });
+
+    // ----------------------------------------------------
+    // PT-01 [判别]: 返回实例与冻结状态按入参分支分档
+    // ----------------------------------------------------
+    it('PT-01 [判别]: 字符串分支返回缓存同一实例且已冻结，数组与标量分支每次新建且不冻结', () => {
+      // 字符串分支（含单段）：缓存共享 + 冻结
+      const str = toPath('user.address.city');
+      expect(str).toBe(toPath('user.address.city'));
+      expect(Object.isFrozen(str)).toBe(true);
+      expect(toPath('user')).toBe(toPath('user'));
+      expect(Object.isFrozen(toPath('user'))).toBe(true);
+
+      // 数组 / 数字 / 布尔分支：每次新建、不冻结、不共享
+      for (const input of [
+        ['a', 'b'],
+        [0, 'x'],
+        123,
+        0,
+        true,
+        false,
+      ] as any[]) {
+        const first = toPath(input);
+        const second = toPath(input);
+        expect(first).toEqual(second);
+        expect(first).not.toBe(second);
+        expect(Object.isFrozen(first)).toBe(false);
+      }
+
+      // 空字符串与非法类型返回的新空数组同样每次新建
+      expect(toPath('')).toEqual([]);
+      expect(toPath('')).not.toBe(toPath(''));
+      expect(Object.isFrozen(toPath(''))).toBe(false);
+    });
+
+    // ----------------------------------------------------
+    // PT-02 [判别]: 段值归一化矩阵——数组含 null/undefined 段时 join 不变量分叉
+    // ----------------------------------------------------
+    it('PT-02 [判别]: 段值归一化矩阵：null/undefined 段上 toPath 与 normalizePathKey 分叉', () => {
+      // 分叉：toPath 逐段 String 归一化（对齐 lodash toPath），normalizePathKey 走 join
+      expect(toPath(['a', null])).toEqual(['a', 'null']);
+      expect(toPath(['a', null])).toEqual(lodashToPath(['a', null]));
+      expect(normalizePathKey(['a', null])).toBe('a.');
+      expect(toPath(['a', null]).join('.')).not.toBe(
+        normalizePathKey(['a', null])
+      );
+
+      expect(toPath(['a', undefined])).toEqual(['a', 'undefined']);
+      expect(toPath(['a', undefined])).toEqual(lodashToPath(['a', undefined]));
+      expect(normalizePathKey(['a', undefined])).toBe('a.');
+      expect(toPath(['a', undefined]).join('.')).not.toBe(
+        normalizePathKey(['a', undefined])
+      );
+
+      // 同口径：数字段、空字符串段、纯字符串、数字/布尔标量
+      for (const input of [
+        ['a', 0],
+        ['a', ''],
+        [1, 2],
+        'a.b',
+        123,
+        true,
+      ] as any[]) {
+        expect(toPath(input).join('.')).toBe(normalizePathKey(input));
+      }
+      expect(toPath(['a', 0])).toEqual(['a', '0']);
+      expect(toPath(['a', ''])).toEqual(['a', '']);
+      expect(toPath([1, 2])).toEqual(['1', '2']);
+    });
+  });
+
+  // ----------------------------------------------------
+  // PT-03 [判别]: isDangerousKey 判定矩阵（深层导入面）
+  // ----------------------------------------------------
+  describe('isDangerousKey 判定矩阵', () => {
+    it('PT-03 [判别]: 原型敏感键返回 true，普通键与数字键返回 false', () => {
+      for (const key of ['__proto__', 'prototype', 'constructor']) {
+        expect(isDangerousKey(key)).toBe(true);
+      }
+      for (const key of [
+        'name',
+        '0',
+        '',
+        'toString',
+        '__proto',
+        'Constructor',
+      ]) {
+        expect(isDangerousKey(key)).toBe(false);
+      }
+      expect(isDangerousKey(0)).toBe(false);
+    });
   });
 
   describe('Vue 响应式与性能边界', () => {
@@ -261,12 +357,35 @@ describe('shared/path', () => {
         },
         { flush: 'sync' }
       );
-
       set(state, 'count', 1);
       expect(triggered).toBe(0);
 
       set(state, 'notNumber', NaN);
       expect(state.notNumber).toBeNaN();
+    });
+
+    // ----------------------------------------------------
+    // PT-04 [判别]: SameValueZero 口径下 ±0 视为相同值（对齐 lodash assignValue）
+    // ----------------------------------------------------
+    it('PT-04 [判别]: set 对 ±0 视为相同值并跳过写入', () => {
+      const state = reactive({ zero: 0, negZero: -0 });
+      let triggered = 0;
+      watch(
+        () => state.zero,
+        () => {
+          triggered++;
+        },
+        { flush: 'sync' }
+      );
+
+      // 0 → -0：SameValueZero 视为相同值，跳过写入，依赖更新不触发
+      set(state, 'zero', -0);
+      expect(triggered).toBe(0);
+      expect(Object.is(state.zero, -0)).toBe(false);
+
+      // -0 → 0：同样跳过写入，原值保持 -0
+      set(state, 'negZero', 0);
+      expect(Object.is(state.negZero, -0)).toBe(true);
     });
 
     it('原型污染属性被安全忽略', () => {
