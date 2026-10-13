@@ -4,6 +4,7 @@ import {
   getObject,
   camelizeProperties,
   isPlainObject,
+  isObjectItem,
   pick,
   cloneDeep,
   isPromise,
@@ -219,19 +220,24 @@ describe('utils', () => {
       expect(copy.self).not.toBe(obj);
     });
 
-    it('降级路径：含函数属性的对象安全丢弃函数并成功克隆其他属性', () => {
-      const obj = {
-        a: 1,
-        fn: () => 'hello',
-        nested: { b: 2, fn2: function () {} },
-      };
-      // 含函数属性进入 JSON 降级路径：静音并断言一次性告警（避免跨用例输出泄漏）
+    it('SU-06 [判别]: JSON 降级路径的类型变形告警在多次降级中仅输出一次', () => {
+      // 首个进入降级路径的用例：连续两次含函数入参的降级拷贝只应产生 1 条告警
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const copy = cloneDeep(obj);
-      expect(copy.a).toBe(1);
-      expect((copy as any).fn).toBeUndefined();
-      expect(copy.nested.b).toBe(2);
-      expect((copy as any).nested.fn2).toBeUndefined();
+      const first = cloneDeep({ a: 1, fn: () => 'hello' });
+      const second = cloneDeep({
+        b: 2,
+        nested: { fn2: function () {} },
+      });
+      expect(first.a).toBe(1);
+      expect((first as any).fn).toBeUndefined();
+      expect(second.b).toBe(2);
+      expect((second as any).nested.fn2).toBeUndefined();
+      expect(
+        warnSpy.mock.calls.filter(c => String(c[0]).includes('cloneDeep'))
+      ).toHaveLength(1);
+
+      // 第三次进入降级路径同样不再重复告警
+      cloneDeep({ c: 3, fn: () => 1 });
       expect(
         warnSpy.mock.calls.filter(c => String(c[0]).includes('cloneDeep'))
       ).toHaveLength(1);
@@ -262,13 +268,56 @@ describe('utils', () => {
 
         const copy = cloneDeep(circular);
         expect(warnSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[pro-components] cloneDeep 降级失败')
+          expect.stringContaining('[pro-components] cloneDeep 无法快照')
         );
         expect(copy).toBe(circular);
       } finally {
         globalThis.structuredClone = originalStructuredClone;
         warnSpy.mockRestore();
       }
+    });
+
+    // ----------------------------------------------------
+    // SU-09 [判别]: 快照失败的告警按真实失败阶段归因，且每次失败都可感知
+    // ----------------------------------------------------
+    it('SU-09 [判别]: 快照失败按真实原因归因告警并返回原引用', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const cloneWarnings = () =>
+        warnSpy.mock.calls
+          .map(call => String(call[0]))
+          .filter(msg => msg.includes('cloneDeep'));
+
+      // 含函数（structuredClone 失败）且含 BigInt（JSON 序列化失败）：两条真实原因都要出现在文案中
+      const source = { fn: () => 1, big: 10n };
+      const copy = cloneDeep(source);
+      expect(copy).toBe(source);
+      const failure = cloneWarnings().find(msg => msg.includes('无法快照'));
+      expect(failure).toBeDefined();
+      expect(failure).toContain('JSON 序列化失败');
+      expect(failure).toContain('structuredClone 失败');
+      // 判别点：不再谎称「循环引用且环境不支持 structuredClone」
+      expect(failure).not.toContain('且环境不支持 structuredClone');
+
+      // 抛错 getter：告警携带真实错误信息
+      warnSpy.mockClear();
+      const throwing = {
+        get boom(): number {
+          throw new Error('getter-boom');
+        },
+      };
+      expect(cloneDeep(throwing)).toBe(throwing);
+      expect(cloneWarnings().some(msg => msg.includes('getter-boom'))).toBe(
+        true
+      );
+
+      // 判别点：快照隔离失效每次都告警（不受「降级告警仅一次」去重约束）
+      warnSpy.mockClear();
+      cloneDeep({ fn: () => 1, big: 1n });
+      cloneDeep({ fn: () => 1, big: 2n });
+      expect(
+        cloneWarnings().filter(msg => msg.includes('无法快照'))
+      ).toHaveLength(2);
+      warnSpy.mockRestore();
     });
 
     it('JSON 子集与 lodash cloneDeep 差分对拍', () => {
@@ -340,12 +389,79 @@ describe('utils', () => {
     expect(out.userName).toBe('张三');
     expect(out.isActive).toBe(true);
     expect(out.onRowClick).toBe(1);
-    // data-* / aria-* 保名（大小写前缀均识别）
+    // data-* / aria-* 保名（大小写前缀均识别；DOM 属性值形态）
     expect(out['data-testid']).toBe('form-x');
     expect(out['aria-label']).toBe('表单');
     expect(out['aria-hidden']).toBe('true');
     expect(out['ARIA-live']).toBe('polite');
     expect(out.dataTestid).toBeUndefined();
     expect(out.ariaLabel).toBeUndefined();
+  });
+
+  // ----------------------------------------------------
+  // SU-11 [判别]: data-*/aria-* 仅在 DOM 属性值形态下保名
+  // ----------------------------------------------------
+  it('SU-11 [判别]: data-*/aria-* 取值为组件 prop 形态时参与驼峰转换', () => {
+    const rows = [{ id: 1 }];
+    const out = camelizeProperties({
+      'data-source': rows,
+      'data-columns': [{ key: 'a' }],
+      'data-fetch': () => rows,
+      'aria-modal': true,
+      'aria-hidden': false,
+      'data-count': 0,
+      'data-title': '',
+      'data-testid': 'tbl',
+    });
+
+    // 判别点：对象 / 数组 / 函数取值按组件 prop 处理，kebab 写法不再被静默忽略
+    expect(out.dataSource).toBe(rows);
+    expect(out.dataColumns).toEqual([{ key: 'a' }]);
+    expect(typeof out.dataFetch).toBe('function');
+    expect(out['data-source']).toBeUndefined();
+    expect(out['data-columns']).toBeUndefined();
+
+    // DOM 属性值形态（字符串 / 数字 / 布尔）保持原样
+    expect(out['aria-modal']).toBe(true);
+    expect(out['aria-hidden']).toBe(false);
+    expect(out['data-count']).toBe(0);
+    expect(out['data-title']).toBe('');
+    expect(out['data-testid']).toBe('tbl');
+    expect(out.ariaModal).toBeUndefined();
+    expect(out.dataCount).toBeUndefined();
+  });
+
+  it('SU-08 [判别]: pick 不拷贝危险键（__proto__ 不替换结果对象原型）', () => {
+    const polluted = JSON.parse('{"__proto__":{"polluted":"yes"},"ok":1}');
+    const result = pick(polluted, ['__proto__', 'ok'] as never);
+    // 判别点：结果对象原型仍是 Object.prototype，危险键未落地
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+    expect((result as Record<string, unknown>).polluted).toBeUndefined();
+    expect(result.ok).toBe(1);
+  });
+
+  it('SU-05 [判别]: isObjectItem 仅非 null 的对象为 true', () => {
+    // 对象形态（含数组 / 内建对象 / 装箱原始值 / 无原型对象）均为 true
+    expect(isObjectItem({})).toBe(true);
+    expect(isObjectItem([])).toBe(true);
+    expect(isObjectItem([1])).toBe(true);
+    expect(isObjectItem(new Date())).toBe(true);
+    expect(isObjectItem(new Map())).toBe(true);
+    expect(isObjectItem(/re/)).toBe(true);
+    expect(isObjectItem(Promise.resolve())).toBe(true);
+    expect(isObjectItem(Object.create(null))).toBe(true);
+    expect(isObjectItem(new Number(1))).toBe(true);
+
+    // 非对象（null / undefined / 原始值 / 函数 / Symbol）均为 false
+    expect(isObjectItem(null)).toBe(false);
+    expect(isObjectItem(undefined)).toBe(false);
+    expect(isObjectItem(0)).toBe(false);
+    expect(isObjectItem(1)).toBe(false);
+    expect(isObjectItem('')).toBe(false);
+    expect(isObjectItem('str')).toBe(false);
+    expect(isObjectItem(false)).toBe(false);
+    expect(isObjectItem(() => {})).toBe(false);
+    expect(isObjectItem(Symbol('s'))).toBe(false);
+    expect(isObjectItem(10n)).toBe(false);
   });
 });

@@ -1,30 +1,53 @@
 import { camelize, isProxy, toRaw } from 'vue';
+import { isDangerousKey } from '../path';
+
+// 降级告警去重标记与失败原因描述工具
+let warnedJsonFallback = false;
+const describeCloneError = (error: unknown): string =>
+  error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 
 /**
- * 深拷贝：structuredClone + JSON 降级
+ * 深拷贝：优先 `structuredClone`，不可用时降级 JSON 往返
  *
- * 覆盖业务场景（JSON 型表单/分页数据）：
- * - 原生路径：JSON 全类型、循环引用、Date/RegExp/Map/Set/Error、稀疏数组、undefined/NaN/-0 均保留
- * - 降级路径（structuredClone 缺失，或抛 DataCloneError 如含函数属性）：JSON 往返。
- *   该路径的类型变形超出「丢函数」范畴，首次进入时输出一次性告警：
- *   · 函数与 Symbol 键静默丢弃
- *   · Date → ISO 字符串、Map/Set/RegExp/Error → {}、NaN/Infinity → null
- *   · 顶层入参本身不可序列化（函数/undefined/Symbol）→ 返回原引用（快照隔离失效）
- * - 最后兜底（环境无 structuredClone 且数据含循环引用导致 JSON 亦失败）：告警并返回原引用（快照隔离失效，需感知）
- * - 响应式安全：入口为 Vue 响应式代理时先解包原始对象再克隆；仅解包入口一层，
- *   原始对象内部持有响应式代理时仍走 JSON 降级路径
+ * @description 降级路径的类型变形：函数 / Symbol 键丢失，`Date` → ISO 字符串，
+ * `Map` / `Set` / `RegExp` / `Error` → `{}`，`NaN` / `Infinity` → `null`（首次降级一次性告警）；
+ * 序列化失败（BigInt、抛错访问器、循环引用）或顶层不可序列化时返回原引用并告警（快照隔离失效）。
+ * 入口为响应式代理时按其原始对象克隆，代理嵌套在内层时仍走降级路径。
+ *
+ * @template T - 入参类型
+ * @param {T} value - 待拷贝的值
+ * @returns {T} 拷贝结果；无法快照时返回原引用
  */
-let warnedJsonFallback = false;
-
 export function cloneDeep<T>(value: T): T {
   // 响应式代理无法结构化克隆，先解包原始对象
   const source = isProxy(value) ? toRaw(value) : value;
+  let structuredCloneError: unknown;
   if (typeof structuredClone === 'function') {
     try {
       return structuredClone(source);
-    } catch {
+    } catch (error) {
       // DataCloneError：函数等不可结构化类型 → 走 JSON 降级
+      structuredCloneError = error;
     }
+  }
+  let json: string | undefined;
+  try {
+    json = JSON.stringify(source);
+  } catch (error) {
+    console.warn(
+      `[pro-components] cloneDeep 无法快照，已返回原引用（快照隔离失效）：JSON 序列化失败（${describeCloneError(error)}）；structuredClone ${
+        structuredCloneError
+          ? `失败（${describeCloneError(structuredCloneError)}）`
+          : '不可用'
+      }。可能原因：含 BigInt、抛错的数据访问器、循环引用，或数据含不可结构化类型（函数 / Symbol / 代理）。`
+    );
+    return source as T;
+  }
+  if (json === undefined) {
+    console.warn(
+      '[pro-components] cloneDeep 无法快照，已返回原引用（快照隔离失效）：顶层入参不可 JSON 序列化（函数 / undefined / Symbol）。'
+    );
+    return source as T;
   }
   if (!warnedJsonFallback) {
     warnedJsonFallback = true;
@@ -32,24 +55,15 @@ export function cloneDeep<T>(value: T): T {
       '[pro-components] cloneDeep 已降级为 JSON 拷贝：函数与 Symbol 键丢失；Date → ISO 字符串、Map/Set/RegExp/Error → {}、NaN/Infinity → null；顶层入参不可序列化时原样返回引用。'
     );
   }
-  try {
-    const json = JSON.stringify(source);
-    return json === undefined ? (source as T) : JSON.parse(json);
-  } catch {
-    console.warn(
-      '[pro-components] cloneDeep 降级失败：数据含循环引用且环境不支持 structuredClone，已返回原引用，快照隔离失效。'
-    );
-    return source as T;
-  }
+  return JSON.parse(json);
 }
 
 /**
  * 判断是否为可用配置项（字段 / 列）
  *
- * @description 仅非 null 的对象视为有效项；null / undefined / 原始值（字符串、数字、布尔等）不作为配置项参与渲染与筛选
- *
+ * @description 仅非 null 对象为 true：数组 / Date / Map 等对象形态同样通过，原始值与函数为 false
  * @param value - 待判断的值
- * @returns 是对象时为 true
+ * @returns 对象形态为 true
  */
 export const isObjectItem = (value: unknown): boolean =>
   value !== null && typeof value === 'object';
@@ -74,87 +88,74 @@ export function isPlainObject(v: unknown): v is Record<string, any> {
   );
 }
 
-/** 与 lodash pick 语义对齐：返回新对象，仅含 keys 中存在于对象（含继承）的属性 */
+/**
+ * 与 lodash pick 语义对齐：返回新对象，仅含 keys 中存在于对象（含继承）的属性
+ *
+ * @description 危险键（`__proto__` / `constructor` / `prototype`）不参与拷贝。
+ */
 export function pick<T extends object, K extends PropertyKey>(
   object: T,
   keys: readonly K[]
 ): Pick<T, Extract<K, keyof T>> {
   const result = {} as Pick<T, Extract<K, keyof T>>;
   for (const key of keys) {
+    if (isDangerousKey(key as string | number)) continue;
     if (key in object) (result as any)[key] = (object as any)[key];
   }
   return result;
 }
 
 /**
- * 安全地将任意值转换为对象
+ * 将任意值安全转为对象
  *
- * @description 如果传入的值是普通对象（plain object），直接返回；
- * 否则返回空对象 `{}`。
- *
+ * @description 普通对象（plain object）原样返回引用，其余值返回新的空对象
  * @param val - 任意值
- * @returns 如果 val 是普通对象则返回它，否则返回空对象
- *
- * @example
- * ```ts
- * getObject({ name: 'test' }) // { name: 'test' }
- * getObject(null)              // {}
- * getObject(undefined)         // {}
- * getObject('string')          // {}
- * ```
+ * @returns 普通对象本身或空对象
  */
 export function getObject(val: any): Record<string, any> {
   return isPlainObject(val) ? val : {};
 }
 
+const verbatimAttrRE = /^(data|aria)-/i;
+
+/** DOM 属性值形态：字符串 / 数字 / 布尔；对象、数组、函数等按组件 prop 取值处理 */
+const isDomAttrValue = (value: unknown): boolean =>
+  typeof value === 'string' ||
+  typeof value === 'number' ||
+  typeof value === 'boolean';
+
 /**
- * 将对象的所有属性名转为驼峰命名（camelCase）
+ * 遍历自有可枚举属性，将 kebab-case 键转为 camelCase
  *
- * @description 遍历对象的所有属性，将 key 从 kebab-case 转换为 camelCase。
- * 底层使用 Vue 的 `camelize` 工具函数（匹配 `-\w` 正则）。
- * `data-*` 与 `aria-*` 属性名按原样保留，不参与驼峰转换。
+ * @description `data-*` / `aria-*` 前缀在取值为 DOM 属性值（字符串 / 数字 / 布尔）时保名；
+ * 取值为对象 / 数组 / 函数等组件 prop 形态时转驼峰（`data-source` → `dataSource`）。
  *
  * @param obj - 源对象
- * @returns 属性名已转为驼峰格式的新对象
+ * @returns 键名转换后的新对象
  *
  * @example
  * ```ts
- * camelizeProperties({ 'user-name': '张三', 'is-active': true })
- * // { userName: '张三', isActive: true }
+ * camelizeProperties({ 'user-name': '张三', 'data-testid': 'form-x', 'data-source': [] })
+ * // { userName: '张三', 'data-testid': 'form-x', dataSource: [] }
  * ```
  */
-const verbatimAttrRE = /^(data|aria)-/i;
-
 export function camelizeProperties(
   obj: Record<string, any>
 ): Record<string, any> {
   return Object.fromEntries(
     Object.entries(obj).map(([key, value]) => [
-      verbatimAttrRE.test(key) ? key : camelize(key),
+      verbatimAttrRE.test(key) && isDomAttrValue(value) ? key : camelize(key),
       value,
     ])
   );
 }
 
 /**
- * 判断目标值是否为 Promise 或 Thenable 对象
+ * 判断目标值是否为 Promise 或 Thenable（Promises/A+）
  *
- * @description 符合 Promises/A+ 规范的 Thenable 判定：
- * 1. 目标值非 null/undefined
- * 2. 目标值类型为 object 或 function
- * 3. 目标值拥有类型为 function 的 `then` 属性
- *
+ * @description 非 null 的 object / function 且 `then` 为函数时为 true
  * @param val - 待检查的任意值
- * @returns 如果是 Promise/Thenable 则返回 true 并收窄类型为 `Promise<T>`
- *
- * @example
- * ```ts
- * isPromise(Promise.resolve(1)) // true
- * isPromise(new Promise(() => {})) // true
- * isPromise({ then: () => {} }) // true
- * isPromise(null) // false
- * isPromise({}) // false
- * ```
+ * @returns 是 Promise / Thenable 时为 true 并收窄为 `Promise<T>`
  */
 export function isPromise<T = any>(val: unknown): val is Promise<T> {
   return (

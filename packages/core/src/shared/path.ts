@@ -1,18 +1,13 @@
 /**
  * @module Core/Shared/Path
- * @description 高性能路径解析与对象读写模块：`get` / `set` / `toPath` / `normalizePathKey`。
+ * @description 路径解析与对象读写：`get` / `set` / `toPath` / `normalizePathKey`。
  *
- * ## 设计定位
- * - 收窄语法 + 非法路径告警：支持点分('a.b')、数字段('list.0')、简单括号('a[0]')。
- * - 零外部依赖、解析缓存、原生循环遍历、原型污染防护、Vue 响应式安全重读与同值跳过。
+ * 支持语法：点分 `a.b`、数字段 `list.0`、简单括号 `a[0]`；非法语法输出去重告警并给出确定性兜底。
+ * 写侧不落 `__proto__` / `constructor` / `prototype` 键；解析结果按路径缓存并冻结。
  *
- * ## 与 lodash get/set/toPath 的行为差异
- * 本模块的 `get` / `set` / `toPath` 覆盖 lodash 同名 API 的主流用法（点分路径、数字索引），
- * 但不追求全量边界兼容，以下分歧为有意设计：
- * 1. 未闭合括号 'a[b'：按段解析 (['a','b']) 并输出告警；lodash 整体视为字面量 key (obj['a[b'])。
- * 2. 引号括号段 'a["x.y"]'：保留引号原样作为段内容并输出告警；lodash 会去除引号 (['a','x.y'])。
- *    如需访问含点号的 key，请直接使用变量下标访问（obj[key]）。
- * 3. normalizePathKey 对非字符串/非数组/非数字布尔（如对象/symbol）返回 ''；lodash toPath({}) 会产生 '[object Object]' 垃圾 key。
+ * 与 lodash 的口径差异：未闭合括号 `a[b` 解析为 `['a','b']`；引号段 `a["x.y"]` 保留引号；
+ * `normalizePathKey` 对对象 / symbol 等返回 `''`；`get` / `set` 的非字符串路径统一经 `toPath` 归一
+ * （数字 / 布尔按单段键，空数组 / `null` / 对象不读不写）。
  */
 
 const PATH_CACHE_LIMIT = 5000;
@@ -57,7 +52,7 @@ function parseBracketPath(p: string): string[] {
   while (i < n) {
     const c = p[i];
     if (c === '.') {
-      // 括号后的点是纯分隔符（'a[0].b' -> ['a','0','b']）；连续点保留空段（与 lodash 兜底一致）
+      // 括号后的点是纯分隔符（a[0].b -> ['a','0','b']），连续点保留空段
       if (buf !== '' || !afterBracket) segs.push(buf);
       buf = '';
       i++;
@@ -100,7 +95,7 @@ function parsePath(p: string): string[] {
   return parseBracketPath(p);
 }
 
-/** 解析结果视为不可变、缓存共享；路径高度重复，每个字符串仅解析一次 */
+// 解析结果缓存共享并冻结，同一路径只解析一次
 function cachedParse(p: string): string[] {
   let s = pathCache.get(p);
   if (s === undefined) {
@@ -115,15 +110,19 @@ function cachedParse(p: string): string[] {
 
 const isObjectLike = (v: unknown): v is object =>
   v !== null && (typeof v === 'object' || typeof v === 'function');
-const isIndexKey = (v: string | number) =>
-  typeof v === 'number' || /^(?:0|[1-9]\d*)$/.test(v);
+// 数组下标判定：仅 0 ~ 2^32-2 的十进制整数段建数组，负数 / 小数 / NaN / 超大整数段按对象键处理
+const MAX_ARRAY_INDEX = 4294967294;
+const isIndexKey = (v: string | number) => {
+  const key = String(v);
+  return /^(?:0|[1-9]\d*)$/.test(key) && Number(key) <= MAX_ARRAY_INDEX;
+};
 /**
  * 原型污染危险键判定（`__proto__` / `constructor` / `prototype`）
  *
- * @internal 仅深层导入面（`shared/path`）可见，不进入包根导出清单
+ * @internal 仅包内使用，不进入包根导出清单
  *
  * @param {string | number} v - 待判定的键
- * @returns {boolean} 键为字符串且命中危险键清单时返回 true，否则返回 false
+ * @returns {boolean} 字符串且命中危险键清单时为 true
  */
 export const isDangerousKey = (v: string | number) =>
   typeof v === 'string' &&
@@ -136,6 +135,9 @@ const isSimple = (p: string) => p.indexOf('.') === -1 && p.indexOf('[') === -1;
 
 /**
  * 沿路径获取对象属性值
+ *
+ * @description 字符串路径命中整串字面量键时直接读取，否则按段解析；段数组与数字 / 布尔经
+ * {@link toPath} 归一。空段数组、`null` / `undefined` 与对象路径返回 `undefined`。
  *
  * @param {unknown} obj - 目标对象
  * @param {string | readonly (string | number)[]} path - 路径字符串或段数组
@@ -150,6 +152,10 @@ export function get(
     if (isObjectLike(obj) && path in obj) return (obj as any)[path]; // 单段命中或字面量点号 key
     if (isSimple(path)) return (obj as any)[path]; // 单段未命中
     path = cachedParse(path);
+  } else {
+    // 非字符串路径（段数组 / 裸数字 / 布尔）经 toPath 归一；无可读段时返回 undefined
+    path = toPath(path);
+    if (path.length === 0) return undefined;
   }
   let cur = obj as any;
   // 中间段取到 null/undefined 即视为路径断裂返回 undefined；终点值本身为 null/undefined 时原样返回
@@ -164,6 +170,9 @@ export function get(
 
 /**
  * 沿路径设置对象属性值（支持自动创建中间层对象/数组）
+ *
+ * @description 字符串路径命中整串字面量键时直接写入，否则按段解析（中间层缺失即创建）；
+ * 段数组与数字 / 布尔经 {@link toPath} 归一，空段数组、`null` / `undefined` 与对象路径不写入。
  *
  * @param {object} obj - 目标对象
  * @param {string | readonly (string | number)[]} path - 路径字符串或段数组
@@ -187,14 +196,14 @@ export function set(
       return obj;
     }
     path = cachedParse(path);
+  } else {
+    // 非字符串路径经 toPath 归一；无可写段时不做变更
+    path = toPath(path);
   }
   const n = path.length;
   if (n === 0) return obj;
   let nested = obj as any;
-  /*
-   * 中间层遍历：层级缺失时自动创建（下一段为数字 key 建数组，否则建对象）
-   * 任一中间段为原型敏感键则整条路径放弃写入
-   */
+  // 中间层缺失时创建（下一段为数组下标建数组，否则建对象）；遇危险键整条路径放弃写入
   for (let i = 0; i < n - 1; i++) {
     const key = path[i];
     if (isDangerousKey(key)) return obj;
@@ -211,10 +220,7 @@ export function set(
   return obj;
 }
 
-/**
- * 自身属性且 SameValueZero 等值时跳过写入，语义对齐 lodash `assignValue`。
- * SameValueZero 判定下 `0` 与 `-0` 视为相同值（`NaN` 与 `NaN` 亦视为相同），命中即跳过写入。
- */
+/** 自身属性且 SameValueZero 等值时跳过写入（`0` / `-0`、`NaN` / `NaN` 视为同值） */
 function assignValue(object: any, key: string | number, value: unknown) {
   const cur = object[key];
   if (
@@ -226,18 +232,18 @@ function assignValue(object: any, key: string | number, value: unknown) {
 }
 
 /**
- * 字段路径归一化（toPath(p).join('.') 语义）。
- * 无 '[' 的路径 toPath(p).join('.') 恒等于 p 本身，直接返回（零分配）。
+ * 字段路径归一化（`toPath(p).join('.')` 语义）
  *
- * 数组入参经 `Array.prototype.join('.')` 归一，参与拼接的 `null` / `undefined` 段视为空串
- * （`normalizePathKey(['a', null])` 为 `'a.'`）；该口径与 `toPath` 数组分支的逐段 `String`
- * 归一化（`toPath(['a', null])` 为 `['a', 'null']`）仅在数组含 `null` / `undefined` 段时结果不同，
- * 数字段、空字符串段、纯字符串与数字/布尔标量的两种口径一致。
+ * @description 无 `[` 的字符串直接返回（零分配），含 `[` 走解析缓存；数组经 `join('.')` 归一
+ * （`null` / `undefined` 段视为空串）。与 {@link toPath} 的逐段 `String` 口径仅在数组含空段时不同。
+ *
+ * @param {unknown} path - 路径字符串、段数组或数字 / 布尔标量
+ * @returns {string} 归一化后的路径键，不可归一时返回空串
  */
 export function normalizePathKey(path: unknown): string {
   if (typeof path === 'string') {
     if (path === '') return '';
-    return path.indexOf('[') === -1 ? path : parseBracketPath(path).join('.');
+    return path.indexOf('[') === -1 ? path : cachedParse(path).join('.');
   }
   if (Array.isArray(path)) return path.join('.');
   if (typeof path === 'number' || typeof path === 'boolean')
@@ -246,21 +252,14 @@ export function normalizePathKey(path: unknown): string {
 }
 
 /**
- * 将路径字符串解析为段数组。
+ * 将路径解析为段数组（供 `name` / `path` 数组语义的绑定场景使用）
  *
- * 与 `normalizePathKey` 互补：本函数返回段数组形式，供需要嵌套路径数组的绑定场景
- * （如 ant-design-vue FormItem 的 `name` 数组语义：`['user','address','city']`）。
- * 非法语法（空段、未闭合括号、引号段）输出告警并给出确定性兜底；空字符串返回 `[]`。
+ * @description 非空字符串取自模块级缓存：同路径返回同一**已冻结**实例，调用方按只读使用；
+ * 数组逐段 `String` 后返回新数组，数字 / 布尔返回单段新数组，空字符串 / `null` / `undefined` /
+ * 对象 / symbol 返回空数组。非法语法（空段、未闭合括号、引号段）输出告警并给出确定性兜底。
  *
- * 入参与返回值按分支分档：
- * - 非空字符串：解析结果取自模块级缓存，同路径重复调用返回同一数组实例且已冻结，调用方按只读使用；
- * - 数组：逐段 `String` 归一化后返回新数组，不缓存、不冻结；
- * - 数字 / 布尔：返回单段新数组，不缓存、不冻结；
- * - 空字符串、`null` / `undefined`、对象、symbol：返回新空数组。
- *
- * `toPath(v).join('.') === normalizePathKey(v)` 对段值经 `String` 归一化后与 `join` 同口径的入参成立
- * （纯字符串、数字 / 布尔标量、数字段、空字符串段均满足）；数组含 `null` / `undefined` 段时不成立：
- * `toPath(['a', null])` 为 `['a', 'null']`，而 `normalizePathKey(['a', null])` 为 `'a.'`。
+ * @param {unknown} path - 路径字符串、段数组或数字 / 布尔标量
+ * @returns {string[]} 路径段数组；不可解析时返回空数组
  */
 export function toPath(path: unknown): string[] {
   if (Array.isArray(path)) return path.map(String);

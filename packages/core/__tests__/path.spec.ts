@@ -54,13 +54,15 @@ describe('shared/path', () => {
     });
 
     it('set 差分全等', () => {
+      const values = [0, -0, NaN, '', 'val', false, null];
       for (const p of legalPaths) {
-        const data1 = sampleData();
-        const data2 = sampleData();
-        const val = `val_${Math.random()}`;
-        set(data1, p, val);
-        lodashSet(data2, p, val);
-        expect(data1).toEqual(data2);
+        for (const val of values) {
+          const data1 = sampleData();
+          const data2 = sampleData();
+          set(data1, p, val);
+          lodashSet(data2, p, val);
+          expect(data1).toEqual(data2);
+        }
       }
     });
 
@@ -347,21 +349,34 @@ describe('shared/path', () => {
       expect(triggered).toBe(1);
     });
 
-    it('SameValueZero 同值跳过不触发响应式变更', () => {
-      const state = reactive({ count: 1, notNumber: NaN });
-      let triggered = 0;
-      watch(
-        () => state.count,
-        () => {
-          triggered++;
+    // ----------------------------------------------------
+    // PT-06 [判别]: SameValueZero 同值跳过写入（普通对象 setter 计数）
+    // ----------------------------------------------------
+    it('PT-06 [判别]: SameValueZero 同值跳过写入，异值正常写入', () => {
+      let writes = 0;
+      const target: any = {};
+      Object.defineProperty(target, 'count', {
+        get: () => 1,
+        set: () => {
+          writes += 1;
         },
-        { flush: 'sync' }
-      );
-      set(state, 'count', 1);
-      expect(triggered).toBe(0);
+        configurable: true,
+      });
+      Object.defineProperty(target, 'notNumber', {
+        get: () => NaN,
+        set: () => {
+          writes += 1;
+        },
+        configurable: true,
+      });
 
-      set(state, 'notNumber', NaN);
-      expect(state.notNumber).toBeNaN();
+      // 判别点：同值（1 / NaN）不触发 setter，异值触发
+      set(target, 'count', 1);
+      set(target, 'notNumber', NaN);
+      expect(writes).toBe(0);
+
+      set(target, 'count', 2);
+      expect(writes).toBe(1);
     });
 
     // ----------------------------------------------------
@@ -394,6 +409,93 @@ describe('shared/path', () => {
       expect(({} as any).polluted).toBeUndefined();
       set(obj, 'constructor.prototype.polluted', 'yes');
       expect(({} as any).polluted).toBeUndefined();
+    });
+
+    // ----------------------------------------------------
+    // PT-05 [判别]: 非字符串路径（段数组 / 裸数字 / 布尔）入口归一，与 lodash 对拍
+    // ----------------------------------------------------
+    it('PT-05 [判别]: 裸数字/布尔路径按单段键读写，不再返回整个对象或写入 undefined 键', () => {
+      // 读取：数字 / 布尔标量按单段键；未命中返回 undefined（旧实现返回整个入参对象）
+      expect(get({ a: 1 }, 0 as any)).toBe(lodashGet({ a: 1 }, 0 as any));
+      expect(get({ a: 1 }, 0 as any)).toBeUndefined();
+      expect(get({ 0: 'zero' }, 0 as any)).toBe('zero');
+      expect(get([1, 2] as any, 0 as any)).toBe(1);
+      expect(get({ a: 1 }, true as any)).toBe(lodashGet({ a: 1 }, true as any));
+      expect(get({ a: 1 }, true as any)).toBeUndefined();
+      expect(get({ 1.5: 'x' }, 1.5 as any)).toBe('x');
+      expect(get({ a: 1 }, NaN as any)).toBe(lodashGet({ a: 1 }, NaN as any));
+
+      // 写入：数字 / 布尔路径与 lodash 落位一致（旧实现写入键名 "undefined"）
+      const numeric: any = {};
+      set(numeric, 0 as any, 'v');
+      expect(numeric).toEqual(lodashSet({} as any, 0 as any, 'v'));
+      expect(numeric).toEqual({ 0: 'v' });
+
+      const decimal: any = {};
+      set(decimal, 1.5 as any, 'v');
+      expect(decimal).toEqual(lodashSet({} as any, 1.5 as any, 'v'));
+
+      const bool: any = { a: 1 };
+      set(bool, true as any, 'v');
+      expect(bool).toEqual(lodashSet({ a: 1 } as any, true as any, 'v'));
+
+      // 段数组路径与 lodash 对拍
+      expect(get({ a: { b: 1 } }, ['a', 'b'])).toBe(
+        lodashGet({ a: { b: 1 } }, ['a', 'b'])
+      );
+      const nested: any = {};
+      expect(set(nested, ['a', 'b'], 2)).toBe(nested);
+      expect(nested).toEqual(lodashSet({} as any, ['a', 'b'], 2));
+
+      // 空段数组：读取返回 undefined（与 lodash 一致），写入早退
+      expect(get({ a: 1 }, [])).toBe(lodashGet({ a: 1 }, []));
+      expect(get({ a: 1 }, [])).toBeUndefined();
+      const target: any = { a: 1 };
+      expect(set(target, [], 'v')).toBe(target);
+      expect(target).toEqual({ a: 1 });
+
+      // null / 对象路径：读取返回 undefined，写入不产生键（对齐 toPath 归一口径）
+      expect(get({ a: 1 }, null as any)).toBeUndefined();
+      expect(get({ a: 1 }, {} as any)).toBeUndefined();
+      const guarded: any = { a: 1 };
+      expect(set(guarded, null as any, 'v')).toBe(guarded);
+      expect(set(guarded, {} as any, 'v')).toBe(guarded);
+      expect(guarded).toEqual({ a: 1 });
+
+      // 目标为 null / undefined 时读写均不抛错
+      expect(get(null, 'a')).toBeUndefined();
+      expect(get(undefined, 0 as any)).toBeUndefined();
+      expect(set(null as any, 'a', 1)).toBeNull();
+      expect(set(undefined as any, 'a', 1)).toBeUndefined();
+    });
+
+    // ----------------------------------------------------
+    // PT-07 [判别]: 段数组中的非索引数字段建对象而非数组（对齐 lodash）
+    // ----------------------------------------------------
+    it('PT-07 [判别]: 负数/小数/NaN/超大整数段建对象，非负整数段仍建数组', () => {
+      const objectSegments = [-1, 1.5, NaN, Infinity, 1e21, 2 ** 53];
+      for (const seg of objectSegments) {
+        const ours: any = {};
+        const theirs: any = {};
+        set(ours, ['k', seg], 'v');
+        lodashSet(theirs, ['k', seg], 'v');
+        // 判别点：不再建数组并挂隐藏属性（旧实现得到 { k: [] }，JSON 不可见）
+        expect(Array.isArray(ours.k)).toBe(false);
+        expect(ours).toEqual(theirs);
+      }
+
+      // 非负整数段保持数组语义（含 0 与 -0，以及数组下标上限）
+      for (const seg of [0, -0, 2, 4294967294]) {
+        const list: any = {};
+        set(list, ['k', seg], 'v');
+        expect(Array.isArray(list.k)).toBe(true);
+        expect(list.k[seg]).toBe('v');
+      }
+      const asArray: any = {};
+      lodashSet(asArray, ['k', 2], 'v');
+      const oursArray: any = {};
+      set(oursArray, ['k', 2], 'v');
+      expect(oursArray).toEqual(asArray);
     });
   });
 });
