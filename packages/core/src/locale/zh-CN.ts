@@ -1,9 +1,6 @@
 /**
- * 简体中文语言包
- *
- * @description pro-components 内置文案的简体中文翻译，作为默认语言包。
- * key 采用扁平化的点路径结构（如 `'table.query'`），
- * 支持 `{placeholder}` 形式的参数占位符（配合 format 使用）。
+ * 简体中文语言包（默认语言包）
+ * @description key 为扁平点路径（如 `'table.query'`），值可含 `{placeholder}` 占位符（配合 `format`）
  */
 export default {
   // 表格

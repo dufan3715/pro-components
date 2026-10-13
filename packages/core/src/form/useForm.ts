@@ -1,18 +1,9 @@
 /**
  * @module Core/useForm
- * @description 框架无关（Framework-Agnostic）的表单状态管理核心
+ * @description 框架无关的表单状态核心：组合 `useFormData`（数据）、`useFields`（字段）、`useFormRef`（宿主实例）
  *
- * ## 架构设计说明
- *
- * `useForm` 是表单系统的核心大脑。它的核心设计理念是 **"状态管理与 UI 渲染解耦"**。
- * 表单逻辑不依赖具体 UI 框架（如 Ant Design / Element Plus），是纯粹的 Vue 响应式状态流（Reactive Data）。
- *
- * ### 核心职责
- * 1. **数据中枢**：统一管理表单数据 (`formData`) 的读写，支持基于路径（如 `'user.address.city'`）的深层数据代理操作。
- * 2. **字段调度**：集成 `useFields` 引擎，负责所有表单字段的动态配置、显隐控制及状态联动。
- * 3. **实例桥接**：集成 `useFormRef`，代理底层 UI 框架特有的方法（如 `validate`, `clearValidate`），提供抹平差异的标准化 API 表面。
- *
- * @internal 本模块为底层基建，上层组件库（如 antdv-next-pro）会对其进行泛型绑定和二次导出。
+ * 对外提供统一的 `formData` 读写、字段增删改查与宿主 Form 实例方法桥接（`validate` / `clearValidate` 等）；
+ * 本模块为底层基建，上层组件库做泛型绑定与二次导出。
  */
 import { getCurrentInstance, inject } from 'vue';
 import useFields, { type UseFieldsOptions } from './useFields';
@@ -27,39 +18,20 @@ import type { UseFieldsReturn } from './useFields';
 import type { UseFormRefReturn } from './useFormRef';
 
 /**
- * 表单实例类型
+ * 表单实例类型：数据操作 + 字段操作 + 宿主实例桥接
+ *
  * @template D - 表单数据类型
  * @template F - 字段配置类型
  * @template I - 底层 UI 框架 Form 组件实例类型
  *
- * 组合了表单数据操作、字段操作和表单 ref 操作的能力。
- *
  * @example
  * ```ts
- * // 定义数据类型
- * interface User {
- *   name: string
- *   age: number
- *   address: { city: string; street: string }
- * }
+ * const form: Form<User> = useForm({ name: '张三' })
  *
- * // 创建表单实例
- * const form: Form<User> = useForm({
- *   name: '张三',
- *   age: 25,
- * })
- *
- * // 读取数据
- * form.getFormData('name') // '张三'
- * form.getFormData('address.city') // 支持深层路径
- *
- * // 设置数据
- * form.setFormData('name', '李四')
- * form.setFormData({ name: '王五', age: 30 }) // 批量设置
- *
- * // 字段操作
- * form.getField('name') // 获取字段配置
- * form.setField('name', { label: '用户名' }) // 更新字段配置
+ * form.getFormData('name')           // '张三'（支持 'address.city' 深层路径）
+ * form.setFormData('name', '李四')   // 路径写入
+ * form.setFormData({ name: '王五' }) // 批量覆盖
+ * form.setField('name', { label: '用户名' })
  * ```
  */
 export interface Form<
@@ -71,39 +43,29 @@ export interface Form<
     UseFormRefReturn<I> {}
 
 /**
- * 创建表单实例的核心 Hook
+ * 创建表单实例
  *
- * @description useForm 是 ProForm 的核心，它组合了三个子 Hook：
- * - useFormData: 表单数据管理（响应式数据、读取、更新）
- * - useFields: 字段配置管理（增删改查字段配置）
- * - useFormRef: 底层 UI 框架 Form 组件实例引用
+ * @description 组合三个子 Hook：`useFormData`（数据）/ `useFields`（字段）/ `useFormRef`（宿主实例）；
+ * `root=false` 时优先复用注入的父表单实例，无注入则告警并回退为独立根表单。
  *
  * @template D - 表单数据类型，应为一个对象类型
  * @template F - 字段配置类型，应继承 BaseField<D>
  *
- * @param {ExtendWithAny<DeepPartial<D>>} [initFormData] - 初始表单数据
+ * @param {ExtendWithAny<DeepPartial<D>>} [initFormData] - 初始表单数据（内部持顶层浅拷贝）
  * @param {F[]} [initFields] - 初始字段配置数组
- * @param {boolean} [root=true] - 是否为根表单。如果为 false，会尝试从注入中获取父表单实例
+ * @param {boolean} [root=true] - 是否为根表单；`false` 时尝试复用注入的父表单实例
  *
- * @returns {Form<D, F>} 表单实例，包含数据操作、字段操作和 ref 操作
+ * @returns {Form<D, F>} 表单实例
  *
  * @example
  * ```ts
- * // 方式一：同时传入初始数据和字段
  * const form = useForm<User>(
  *   { name: '张三', age: 25 },
- *   [
- *     { path: 'name', label: '姓名', component: 'input' },
- *     { path: 'age', label: '年龄', component: 'input-number' },
- *   ],
+ *   [{ path: 'name', label: '姓名' }],
  *   true
  * )
  *
- * // 方式二：仅设置 root 标识
- * const form = useForm<User>(true)
- *
- * // 方式三：获取父表单实例（非根）
- * const form = useForm<User>(false)
+ * const shared = useForm<User>(false) // 复用父表单实例（无注入时回退独立根表单）
  * ```
  */
 function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
@@ -114,7 +76,7 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
 ): Form<D, F>;
 
 /**
- * 创建表单实例的核心 Hook（仅传入 root 标识的重载）
+ * 仅传入 root 标识的重载：`useForm(true)` 创建根表单、`useForm(false)` 取父表单实例
  *
  * @template D - 表单数据类型
  * @template F - 字段配置类型
@@ -164,17 +126,14 @@ function useForm<D extends Data = Data, F extends BaseField<D> = BaseField<D>>(
 }
 
 /**
- * 创建具有方法引用记忆化与动态目标代理能力的表单代理对象
+ * 创建表单代理：动态转发至当前实例，且方法引用恒等
  *
- * @description
- * 1. 动态转发：当下游组件持有本代理时，若顶层 ProForm 的 `:form` prop 发生动态替换，所有属性读写与方法调用均实时路由至最新的 Form 实例；
- * 2. 引用稳定性：同一方法的函数引用恒等（`proxy.setFormData === proxy.setFormData`），可直接用作事件处理器与 watcher 依赖。
+ * @description `:form` prop 运行期替换后，属性读写与方法调用实时路由到新实例；
+ * 同一方法的引用恒等（`proxy.setFormData === proxy.setFormData`），可直接用作事件处理器与 watcher 依赖。
  *
  * @template F - 表单实例类型
- * @param {() => F | undefined} getCurrentForm - 返回当前活跃表单实例的 getter 函数
- * @returns {F} 具有引用稳定性的表单代理对象
- *
- * @public
+ * @param {() => F | undefined} getCurrentForm - 返回当前活跃表单实例的 getter
+ * @returns {F} 表单代理对象
  */
 export function createFormProxy<F extends object = any>(
   getCurrentForm: () => F | undefined
@@ -182,10 +141,7 @@ export function createFormProxy<F extends object = any>(
   const methodCache = new Map<string | symbol, (...args: any[]) => any>();
 
   return new Proxy({} as F, {
-    /*
-     * 每次访问实时取当前实例：:form 运行期替换后属性读写无需重绑
-     * 函数属性经 methodCache 包装后引用恒等（调用时再次取当前实例，双重保证动态路由）
-     */
+    // 实时取当前实例；函数属性经缓存包装保证引用恒等（调用时再次取实例）
     get(_, prop) {
       const current = getCurrentForm() as any;
       const val = current?.[prop];
@@ -200,7 +156,7 @@ export function createFormProxy<F extends object = any>(
       }
       return val;
     },
-    // 转发写入当前实例；实例缺失时静默丢弃（返回 true，挂载前经代理写入是无效操作）
+    // 转发写入当前实例；实例缺失时静默丢弃（挂载前写入为无效操作）
     set(_, prop, value) {
       const current = getCurrentForm();
       if (current) {

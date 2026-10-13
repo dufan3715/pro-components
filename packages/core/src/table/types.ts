@@ -1,44 +1,26 @@
 import type { Data, Path } from '../shared/types';
 
 /**
- * 基础表格列配置接口
+ * 基础表格列配置：`key` / `dataIndex` 定位字段，`children` 声明表头分组
+ *
  * @template D - 表格数据类型，应为一个对象类型
  *
  * @example
  * ```ts
- * interface User { name: string; age: number; address: { city: string } }
- *
- * // 简单列
- * const column: BaseColumn<User> = {
- *   key: 'name',
- *   title: '姓名',
- * }
- *
- * // 带数据索引和嵌套列
- * const column: BaseColumn<User> = {
+ * const column: BaseColumn<User> = { key: 'name', title: '姓名' }
+ * const grouped: BaseColumn<User> = {
  *   key: 'address',
  *   title: '地址',
- *   children: [
- *     { key: 'city', title: '城市' },
- *   ],
+ *   children: [{ key: 'address.city', title: '城市' }],
  * }
  * ```
  */
 export interface BaseColumn<D extends Data = Data> {
-  /**
-   * @description 列字段路径（数据对象的 key 路径），支持点号分隔的深层路径
-   * @example 'name' | 'address.city'
-   */
+  /** 列字段路径：数据对象的 key 路径，支持点号分隔的深层路径（`'address.city'`） */
   key?: Path<D>;
-  /**
-   * @description 数据索引，与 key 作用类似，支持数组格式
-   * @example 'name' | ['address', 'city']
-   */
+  /** 数据索引（与 `key` 同义，支持 `['address','city']` 数组形式） */
   dataIndex?: Path<D> | Path<D>[];
-  /**
-   * @description 嵌套子列配置，用于实现表头分组
-   * @example [{ key: 'firstName', title: '名' }, { key: 'lastName', title: '姓' }]
-   */
+  /** 嵌套子列配置（表头分组） */
   children?: BaseColumn<D>[];
   /** 其他任意自定义属性（如 title、width、fixed 等 UI 属性） */
   [key: string]: any;
@@ -78,19 +60,15 @@ export interface PageParam {
 }
 
 /**
- * 列更新选项
+ * 列更新选项：`all` 控制是否作用于全部匹配列
  */
 export type UpdateColumnOptions = {
-  /**
-   * @description 是否更新所有匹配的列
-   * - true: 更新所有匹配的列
-   * - false/undefined: 只更新第一个匹配的列
-   */
+  /** 是否更新所有匹配的列（默认只更新第一个匹配） */
   all?: boolean;
 };
 
 /**
- * 列更新回调的参数对象
+ * 列更新回调的入参：命中列、其在组内的索引与所在组
  * @template D - 表格数据类型
  * @template C - 列配置类型
  */
@@ -102,7 +80,7 @@ export type ColumnUpdaterParam<
   column: Readonly<C>;
   /** 当前列在父级 columns 数组中的索引 */
   columnIndex: number;
-  /** 包含当前列的组（一级列则为根 columns 数组的包装对象） */
+  /** 包含当前列的组（数组引用；一级列为根 columns 数组） */
   group: Columns<D, C>;
 };
 
@@ -117,18 +95,9 @@ export type ColumnUpdater<
 > = (param: ColumnUpdaterParam<D, C>) => void;
 
 /**
- * 列查找函数类型，通过自定义函数匹配列
+ * 列查找函数：返回 true 即命中
  * @template D - 表格数据类型
  * @template C - 列配置类型
- *
- * @example
- * ```ts
- * // 查找 title 为 '姓名' 的列
- * const findBy: ColumnFindBy<MyData> = (column) => column.title === '姓名'
- *
- * // 查找所有宽度小于 100 的列
- * const findBy: ColumnFindBy<MyData> = (column) => column.width && column.width < 100
- * ```
  */
 export type ColumnFindBy<
   D extends Data,

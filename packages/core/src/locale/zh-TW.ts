@@ -1,7 +1,6 @@
 /**
  * 繁體中文語言包
- *
- * @description pro-components 內置文案的繁體中文翻譯，key 結構與 zh-CN 保持一致。
+ * @description key 結構與 zh-CN 完全對齊，僅文案值不同
  */
 export default {
   // 表格

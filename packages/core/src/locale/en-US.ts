@@ -1,8 +1,6 @@
 /**
  * English language pack
- *
- * @description English translations for built-in texts of pro-components.
- * The key structure is identical to zh-CN.
+ * @description Key structure is identical to zh-CN; only the text values differ
  */
 export default {
   // Table
