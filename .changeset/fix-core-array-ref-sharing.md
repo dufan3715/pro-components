@@ -1,5 +1,5 @@
 ---
-'@qin-ui/pro-components-core': minor
+'@qin-ui/pro-components-core': patch
 ---
 
 `useFields` / `useTable` 不再就地变异调用方传入的数组（`@mutates` 契约收敛，CR-016）：
