@@ -48,6 +48,14 @@ import { Card, Typography } from 'ant-design-vue';
         >
       </Card>
       <Card hoverable>
+        <template #title>core 复核验证台（A 批修复）</template>
+        <p>
+          搜索表单折叠：初值自动展开、重测不回弹、折叠行数；kebab 写法
+          :data-source 与多位点列 key 唯一；非 grid 布局 heightStyle 探针。
+        </p>
+        <RouterLink to="/core-audit-verification">进入验证台 →</RouterLink>
+      </Card>
+      <Card hoverable>
         <template #title>CR-009 列就地变异 key 补齐与联动对比 Demo</template>
         <p>
           useTable 对 columns 执行 push 变异后 key 未分配导致 setColumn 失效 vs

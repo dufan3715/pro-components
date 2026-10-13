@@ -36,6 +36,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       never
     >;
+    '/core-audit-verification': RouteRecordInfo<
+      '/core-audit-verification',
+      '/core-audit-verification',
+      Record<never, never>,
+      Record<never, never>,
+      never
+    >;
     '/form-item-a11y-demo': RouteRecordInfo<
       '/form-item-a11y-demo',
       '/form-item-a11y-demo',
@@ -93,6 +100,11 @@ declare module 'vue-router/auto-routes' {
   export interface _RouteFileInfoMap {
     'src/views/index.vue': {
       routes: '/';
+      views: never;
+      pathParamNames: never;
+    };
+    'src/views/core-audit-verification.vue': {
+      routes: '/core-audit-verification';
       views: never;
       pathParamNames: never;
     };
