@@ -3,6 +3,21 @@
   "private": false,
   "version": "2.0.6",
   "description": "Core logic for pro-components",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dufan3715/pro-components.git"
+  },
+  "homepage": "https://dufan3715.github.io/pro-components/",
+  "keywords": [
+    "vue",
+    "pro-components",
+    "core",
+    "ui",
+    "form",
+    "table",
+    "pro-form",
+    "pro-table"
+  ],
   "type": "module",
   "module": "es/index.js",
   "types": "es/index.d.ts",
@@ -11,7 +26,8 @@
     ".": {
       "types": "./es/index.d.ts",
       "import": "./es/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "sideEffects": false,
   "files": [
