@@ -1,14 +1,11 @@
 /**
  * @module Core/useSearchFormExpand
- * @description 搜索表单高度测量、网格折叠与自适应展开状态管理核心 Hook
+ * @description 搜索表单的折叠高度测量与展开状态管理
  *
- * ## 核心职责
- * 1. 自然高度与行边界测量：以布局盒属性测量表单自然展开高度与各行边界（scrollHeight / offsetTop / offsetHeight，读数不受祖先元素 transform 缩放影响）；
- * 2. 折叠高度计算与溢出检测：优先取第 minExpandRows 行的真实底部作为折叠高度，行边界不可测时回退行高算术计算；自然高度与折叠高度差异超过阈值时显示展开/收起按钮；
- * 3. 尺寸变化重测：ResizeObserver 同时观察表单容器与全部顶层行元素，行元素高度变化（如 textarea 自适应内容增高）后自动重测；
- * 4. 溢出字段初值自动展开：检测隐藏区域内是否有已填写的搜索值，有值自动展开；
- * 5. 用户交互锁定：置位 isManualToggle 后，自动测量不覆盖用户手动折叠/展开状态；
- * 6. 跨包统一高度状态导出（heightStyle, currentHeight, showExpandToggle, expandStatus）。
+ * 取值链：`heightStyle`（当前应施加的高度）← `currentHeight` ← `expandStatus`（展开/折叠）× 测量结果；
+ * 测量经 rAF 合帧，读布局盒属性（`scrollHeight` / `offsetTop` / `offsetHeight`）不受祖先 transform 缩放影响；
+ * 折叠高度优先取第 `minExpandRows` 行真实底部，行边界不可测时回退行高算术。
+ * 尺寸变化（ResizeObserver）与字段增减触发重测；用户手动切换后自动测量不再覆盖其状态。
  */
 import {
   ref,
@@ -25,30 +22,70 @@ import { isObjectItem } from '../shared/utils';
 // 测量写入死区（px）：与上次写入值的差异小于该值时不更新状态
 const MEASURE_DEAD_ZONE_PX = 2;
 
+/**
+ * useSearchFormExpand 入参
+ */
 export interface UseSearchFormExpandProps {
+  /** 表单实例（读取 `formRef` 取容器元素、`getFormData` 判定隐藏区初值） */
   form: any;
+  /**
+   * 折叠配置：`false` / 未传不启用折叠；`true` 等价 `{ minExpandRows: 2, expandStatus: false }`
+   */
   expand?: boolean | { minExpandRows?: number; expandStatus?: boolean };
+  /** 布局模式：仅 `'grid'` 参与折叠高度计算，其余布局 `showExpandToggle` 恒为 false */
   layout?: 'grid' | 'inline';
+  /** 行间距（px），仅在行边界不可测、回退行高算术时使用；默认 16 */
   rowGap?: number;
 }
 
+/**
+ * useSearchFormExpand 返回值：跨包统一的高度状态与操作句柄
+ */
 export interface UseSearchFormExpandReturn {
+  /** 表单自然展开高度（px）；首次测量前为 `'unset'` */
   proFormHeight: Ref<'unset' | number>;
+  /** 折叠态高度（px），取第 minExpandRows 行底部或行高算术值 */
   collapseHeight: Ref<number>;
+  /** 行高（px），取首个顶层行元素的布局盒高度；默认 32 */
   rowHeight: Ref<number>;
+  /** 是否存在溢出行（自然高度 - 折叠高度 > 1px） */
   showExpandToggle: Ref<boolean>;
+  /** 当前展开状态（受 expand 配置、初值自动展开与用户手动切换共同影响） */
   expandStatus: Ref<boolean>;
+  /** 用户是否手动切换过（置位后自动测量不再覆盖 expandStatus） */
   isManualToggle: Ref<boolean>;
+  /** `expand` 配置的标准化结果：`false` 表示未启用折叠 */
   computedExpand: ComputedRef<
     false | { minExpandRows: number; expandStatus: boolean }
   >;
+  /** 当前应施加的高度：折叠态为 `collapseHeight`；首次测量前、非 grid 布局或未启用折叠时为 `'unset'` */
   currentHeight: ComputedRef<'unset' | number>;
+  /** 供宿主绑定的高度样式值（如 `'72px'`）；`currentHeight` 为 `'unset'` 时为 `undefined`（非 grid 布局不施加高度） */
   heightStyle: ComputedRef<string | undefined>;
+  /** 切换展开/折叠，并置位 `isManualToggle` */
   changeExpandStatus: () => void;
+  /** 立即重测一次（自然高度 / 行高 / 行边界），并同步容器与行元素观察 */
   updateHeights: () => void;
+  /** 断开 RO / IO 并复位观察与测量状态；调用后需再次 `updateHeights()` 才恢复观察 */
   cleanupObservers: () => void;
 }
 
+/**
+ * 搜索表单高度测量与折叠状态 Hook
+ *
+ * @description 由 UI 适配层的 `SearchForm` 调用：测量表单自然高度与行边界，产出折叠高度、
+ * 是否显示展开按钮与当前应施加的高度样式；容器或行元素尺寸变化后自动重测，
+ * 折叠态下隐藏区存在已填值的字段时自动展开。
+ *
+ * @param props - 见 {@link UseSearchFormExpandProps}
+ * @returns {UseSearchFormExpandReturn} 高度状态与操作句柄（见 {@link UseSearchFormExpandReturn}）
+ *
+ * @example
+ * ```ts
+ * const { heightStyle, showExpandToggle, expandStatus, changeExpandStatus } =
+ *   useSearchFormExpand({ form, expand: true, layout: 'grid', rowGap: 16 })
+ * ```
+ */
 export function useSearchFormExpand(
   props: UseSearchFormExpandProps
 ): UseSearchFormExpandReturn {
@@ -62,6 +99,10 @@ export function useSearchFormExpand(
   let intersectionObserver: IntersectionObserver | null = null;
   let observedFormEl: Element | null = null;
   let observedItemEls = new Set<Element>();
+  let observedInitEls = new Set<Element>();
+  let initObserverGeneration = 0;
+  // 初值自动展开判定是否已产出结果：产出后重测不覆盖当前展开状态
+  let initExpandSettled = false;
   let measuredEl: any;
   let lastAppliedNaturalHeight: number | undefined;
   let lastAppliedRowHeight: number | undefined;
@@ -81,6 +122,11 @@ export function useSearchFormExpand(
       intersectionObserver.disconnect();
       intersectionObserver = null;
     }
+    initObserverGeneration += 1;
+    observedFormEl = null;
+    observedItemEls = new Set();
+    observedInitEls = new Set();
+    measuredEl = undefined;
   };
 
   onBeforeUnmount(() => {
@@ -146,13 +192,16 @@ export function useSearchFormExpand(
     const formTop = getAbsoluteTop(formEl);
     if (formTop === null) return null;
 
-    const boxes = itemEls
-      .map(el => el as HTMLElement)
-      .map(el => ({ el, absTop: getAbsoluteTop(el) }))
-      .filter(
-        (box): box is { el: HTMLElement; absTop: number } =>
-          box.absTop !== null && box.el.offsetHeight > 0
-      )
+    const measured: Array<{ el: HTMLElement; absTop: number }> = [];
+    for (const el of itemEls as HTMLElement[]) {
+      const absTop = getAbsoluteTop(el);
+      // 任一元素坐标链不可测则整组行边界不可信，放弃本次测量
+      if (absTop === null) return null;
+      measured.push({ el, absTop });
+    }
+
+    const boxes = measured
+      .filter(box => box.el.offsetHeight > 0)
       .map(box => ({
         top: box.absTop - formTop,
         bottom: box.absTop - formTop + box.el.offsetHeight,
@@ -212,10 +261,25 @@ export function useSearchFormExpand(
     observedItemEls = next;
   };
 
+  /*
+   * 表单容器观察同步：容器元素变化时改观察新容器，
+   * 观察器缺失（重测前被 cleanupObservers 断开）时按需重建
+   */
+  const syncObservedForm = (formEl: Element) => {
+    if (observedFormEl === formEl) return;
+    const observer = createResizeObserver();
+    if (!observer) return;
+    if (observedFormEl) observer.unobserve(observedFormEl);
+    observedFormEl = formEl;
+    observer.observe(formEl);
+  };
+
   const updateHeights = () => {
     if (!props.expand || !props.form?.formRef?.value) return;
     const proFormEl = (props.form.formRef.value as any)?.$el;
     if (!proFormEl) return;
+
+    syncObservedForm(proFormEl);
 
     // 新表单元素重建测量基线
     if (measuredEl !== proFormEl) {
@@ -295,26 +359,32 @@ export function useSearchFormExpand(
 
   /*
    * 使用 IntersectionObserver 检测折叠状态下隐藏字段是否有值
-   * 如果有值则自动展开，让用户看到已填写的搜索条件
+   * 如果有值则自动展开，判定结果一次性产出，后续重测保持当前状态
    */
   const setInitExpandStatus = () => {
-    if (isManualToggle.value) return;
+    if (isManualToggle.value || initExpandSettled) return;
     const initStatus = computedExpand.value
       ? computedExpand.value.expandStatus
       : false;
     expandStatus.value = initStatus;
-    if (props.form?.formRef?.value && computedExpand.value) {
-      const formEl = (props.form.formRef.value as any).$el;
-      const formItemsEl = formEl?.querySelectorAll?.(
-        "[class*='-form-item'] [path], [class*='-form-item'][path]"
-      );
-      if (!formItemsEl || formItemsEl.length === 0) return;
-      if (intersectionObserver) {
-        intersectionObserver.disconnect();
-      }
-      intersectionObserver = new IntersectionObserver(
+    if (!props.form?.formRef?.value || !computedExpand.value) return;
+    const formEl = (props.form.formRef.value as any).$el;
+    const formItemsEl = formEl?.querySelectorAll?.(
+      "[class*='-form-item'] [path], [class*='-form-item'][path]"
+    );
+    if (!formItemsEl || formItemsEl.length === 0) return;
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    if (!intersectionObserver) {
+      const generation = ++initObserverGeneration;
+      const observer = new IntersectionObserver(
         entries => {
+          observer.disconnect();
+          observedInitEls = new Set();
+          // 表单实例切换前入队的回调不参与当前判定
+          if (generation !== initObserverGeneration) return;
           if (isManualToggle.value) return;
+          initExpandSettled = true;
           expandStatus.value = entries.some(e => {
             // 如果隐藏字段（intersectionRatio === 0）有值，则自动展开
             if (e.intersectionRatio === 0) {
@@ -328,19 +398,24 @@ export function useSearchFormExpand(
               ? computedExpand.value.expandStatus
               : false;
           });
-          intersectionObserver?.disconnect();
         },
         { root: formEl }
       );
-      formItemsEl.forEach((element: Element) => {
-        intersectionObserver?.observe(element);
-      });
+      intersectionObserver = observer;
+      observedInitEls = new Set();
     }
+
+    const observer = intersectionObserver;
+    formItemsEl.forEach((element: Element) => {
+      if (observedInitEls.has(element)) return;
+      observedInitEls.add(element);
+      observer.observe(element);
+    });
   };
 
   /*
    * ResizeObserver 随表单实例重挂：容器元素变化时重建观察（断开旧监听并观察新容器），
-   * 行元素在后续测量中经 syncObservedItems 重新登记
+   * 行元素与初值判定元素在后续测量中重新登记
    */
   watch(
     () => props.form?.formRef?.value,
@@ -353,6 +428,13 @@ export function useSearchFormExpand(
         resizeObserver = null;
       }
       observedItemEls = new Set();
+      if (intersectionObserver) {
+        intersectionObserver.disconnect();
+        intersectionObserver = null;
+        initObserverGeneration += 1;
+      }
+      observedInitEls = new Set();
+      initExpandSettled = false;
       if (formEl) {
         createResizeObserver()?.observe(formEl);
       }
@@ -412,9 +494,10 @@ export function useSearchFormExpand(
     { flush: 'post' }
   );
 
-  // 首次测量完成前不施加高度约束
+  // 首次测量完成前、非 grid 布局或未启用折叠时不施加高度约束
   const currentHeight = computed(() => {
     if (proFormHeight.value === 'unset') return 'unset';
+    if (!computedExpand.value || props.layout !== 'grid') return 'unset';
     return expandStatus.value ? proFormHeight.value : collapseHeight.value;
   });
 
