@@ -5,12 +5,15 @@ import useFormData from '../src/form/useFormData';
 import useForm from '../src/form/useForm';
 
 describe('useFormData', () => {
-  it('FD-01 初始数据创建响应式 formData', () => {
+  it('FD-01 [判别] 初始数据创建响应式 formData，顶层与调用方对象隔离', () => {
     const init = { name: '张三' };
     const { formData } = useFormData(init);
     expect(formData.name).toBe('张三');
+    // 判别点：内部持有顶层浅拷贝，调用方对象与 formData 的顶层写入互不影响
     init.name = '李四';
-    expect(formData.name).toBe('李四');
+    expect(formData.name).toBe('张三');
+    formData.name = '王五';
+    expect(init.name).toBe('李四');
   });
 
   it('FD-02 setFormData 后 formData 对象身份稳定', () => {
@@ -277,5 +280,31 @@ describe('useFormData', () => {
 
     // 未传路径（undefined）仍走批量分支/返回 undefined
     expect(form.getFormData(undefined as any)).toBeUndefined();
+  });
+
+  // ----------------------------------------------------
+  // FD-26 [判别]: 批量覆盖只作用于内部副本，入参对象与跨实例互不影响
+  // ----------------------------------------------------
+  it('FD-26 [判别]: 批量覆盖不删除调用方对象的 key，同一入参喂两个实例互不串号', () => {
+    const init = { a: 1, b: 2 };
+    const store = useFormData<any>(init);
+
+    // 判别点：全量替换语义只作用于内部副本，调用方对象 key 不被 delete
+    store.setFormData({ c: 3 });
+    expect(Object.keys(init).sort()).toEqual(['a', 'b']);
+    expect(init.a).toBe(1);
+    expect(Object.keys(store.formData)).toEqual(['c']);
+
+    // 判别点：同一对象喂两个实例，顶层写入不互相污染
+    const shared = { count: 1 };
+    const first = useFormData<any>(shared);
+    const second = useFormData<any>(shared);
+    first.setFormData('count', 99);
+    expect(second.formData.count).toBe(1);
+    expect(shared.count).toBe(1);
+    // 批量覆盖同样不污染另一实例
+    first.setFormData({ count: 5, extra: true } as any);
+    expect(Object.keys(second.formData)).toEqual(['count']);
+    expect((shared as any).extra).toBeUndefined();
   });
 });

@@ -5,29 +5,20 @@ import { get, isDangerousKey, normalizePathKey, set } from '../shared/path';
 
 const InjectionFormDataKey = Symbol('form-data');
 
+/**
+ * useFormData 返回值：响应式数据对象与读写方法
+ */
 export interface UseFormDataReturn<D extends Data = Data> {
-  /**
-   * 响应式表单数据（Vue reactive）
-   * @description 包含整个表单的状态，基于 Vue reactive 实现
-   */
+  /** 响应式表单数据（Vue reactive），路径读写与批量覆盖共用同一对象 */
   formData: ExtendWithAny<D>;
 
   /**
    * 获取表单数据
    *
-   * @description 支持通过顶级字段 key 或点分隔深层路径（如 `'address.city'`）读取数据。
-   *
+   * @description 支持顶级字段 key 与点分隔深层路径（`'address.city'`），也可传段数组
    * @template K - 顶级字段 Key
    * @param {K} path - 数据字段路径
-   * @returns {D[K]} 对应路径的值
-   *
-   * @example
-   * ```ts
-   * const name = getFormData('name')           // 顶级字段（强类型推导）
-   * const city = getFormData('address.city')   // 2 层嵌套（强类型推导）
-   * const street = getFormData('user.address.street') // 3 层嵌套（强类型推导）
-   * const dynamic = getFormData(dynamicPath)   // 动态深层路径
-   * ```
+   * @returns {D[K]} 对应路径的值，未命中为 `undefined`
    */
   getFormData<K extends keyof D>(path: K): D[K];
   getFormData<K extends keyof D & string, K1 extends keyof D[K] & string>(
@@ -43,33 +34,15 @@ export interface UseFormDataReturn<D extends Data = Data> {
   getFormData(path: Path<D>): any;
 
   /**
-   * 设置表单数据
+   * 设置表单数据，四种调用方式：
    *
-   * @description 支持以下四种调用方式：
-   * - **1. 路径设置**：`setFormData('name', '张三')` 或 `setFormData('address.city', '北京')`
-   * - **2. 路径函数式更新**：`setFormData('count', prev => (prev ?? 0) + 1)`
-   * - **3. 批量覆盖**：`setFormData({ name: '李四', age: 20 })`（全量替换，未指定的 key 会被删除）
-   * - **4. 函数式批量更新**：`setFormData(prev => ({ ...prev, name: '王五' }))`
+   * - 路径设置 / 函数式更新：`setFormData('name', '张三')`、`setFormData('count', prev => prev + 1)`
+   * - 批量覆盖：`setFormData({ name: '李四' })`（全量替换，未指定的 key 会被删除）
+   * - 函数式批量更新：`setFormData(prev => ({ ...prev, name: '王五' }))`
    *
    * @template K - 顶级字段 Key
    * @param {K} path - 顶级字段路径
    * @param {D[K] | ((preValue: Readonly<D[K]>) => D[K])} value - 新值或基于旧值的更新函数
-   *
-   * @example
-   * ```ts
-   * // 1. 字段设置
-   * setFormData('name', '李四')
-   * setFormData('address.city', '上海')
-   *
-   * // 2. 字段函数式更新
-   * setFormData('count', prev => (prev ?? 0) + 1)
-   *
-   * // 3. 批量覆盖整个表单
-   * setFormData({ name: '王五', age: 30 })
-   *
-   * // 4. 函数式批量更新
-   * setFormData(prev => ({ ...prev, name: '赵六' }))
-   * ```
    */
   setFormData<K extends keyof D>(
     path: K,
@@ -88,46 +61,31 @@ export interface UseFormDataReturn<D extends Data = Data> {
 }
 
 /**
- * 表单数据管理 Hook
+ * 表单数据管理 Hook：响应式 `formData` + 路径读写 + 批量覆盖 + 多级表单共享
  *
- * @description 基于 Vue reactive 实现的响应式表单数据源，提供：
- * - 响应式 `formData` 对象
- * - 基于点分隔路径（如 `'user.address.city'`）的深层 `getFormData` / `setFormData`
- * - 批量数据覆盖和函数式更新
- * - 多级表单数据注入支持（若无初始数据则尝试从父级 inject）
+ * @description 入参收编：内部持 `initFormData` 的**顶层浅拷贝**——批量覆盖的删除与顶层写入不改写调用方对象；
+ * 嵌套对象按引用共享，嵌套字段的就地变异对调用方可见。未传初始数据且处于组件上下文时复用父级数据 store。
  *
  * @template D - 表单数据对象的类型定义
  * @param {ExtendWithAny<DeepPartial<D>>} [initFormData] - 初始表单数据
- * @returns {UseFormDataReturn<D>} 表单数据操作方法集合
+ * @returns {UseFormDataReturn<D>} 数据读写方法集合
  *
  * @example
  * ```ts
- * interface UserForm {
- *   name: string
- *   age: number
- *   address: { city: string; street: string }
- * }
- *
- * const { formData, getFormData, setFormData } = useFormData<UserForm>({
+ * const { getFormData, setFormData } = useFormData<UserForm>({
  *   name: '张三',
- *   address: { city: '北京', street: '' },
+ *   address: { city: '北京' },
  * })
  *
- * // 读取
- * getFormData('name') // => '张三'
- * getFormData('address.city') // => '北京'
- *
- * // 设置
- * setFormData('name', '李四')
- * setFormData('address.city', '上海')
- * setFormData({ name: '王五', age: 30 }) // 批量覆盖
- * setFormData(prev => ({ ...prev, name: '赵六' })) // 函数式更新
+ * getFormData('address.city')   // '北京'
+ * setFormData('name', '李四')   // 路径写入
+ * setFormData({ name: '王五' }) // 批量覆盖
  * ```
  */
 const useFormData = <D extends Data = Data>(
   initFormData?: ExtendWithAny<DeepPartial<D>>
 ): UseFormDataReturn<D> => {
-  // 未传初始数据且处于组件上下文时，复用父级提供的数据 store（子表单默认与父共享数据）
+  // 未传初始数据且处于组件上下文时复用父级数据 store（子表单默认与父共享数据）
   if (initFormData === undefined && getCurrentInstance()) {
     const injectFormDataStore = inject(InjectionFormDataKey, undefined);
     if (injectFormDataStore) return injectFormDataStore as never;
@@ -136,7 +94,8 @@ const useFormData = <D extends Data = Data>(
   const initialObject = isPlainObject(initFormData)
     ? initFormData
     : ({} as ExtendWithAny<D>);
-  const formData = reactive(initialObject as ExtendWithAny<D>);
+  // 顶层浅拷贝：批量覆盖的删除与顶层写入不改写调用方对象，嵌套对象仍共享引用
+  const formData = reactive({ ...initialObject } as ExtendWithAny<D>);
 
   function getFormData(path: Path<D>) {
     if (path === undefined || path === null) return undefined;
@@ -147,7 +106,7 @@ const useFormData = <D extends Data = Data>(
   }
 
   function setFormData(...args: any[]) {
-    // 单实现分派四种重载形态：两参为路径设置/函数式更新，单参为批量覆盖/函数式批量
+    // 按入参数量分派：两参为路径设置 / 函数式更新，单参为批量覆盖 / 函数式批量
     let path;
     let value;
     if (args.length >= 2) {
@@ -177,7 +136,7 @@ const useFormData = <D extends Data = Data>(
       Object.entries(value).forEach(([key, val]) => {
         if (!isDangerousKey(key)) safeValue[key] = val;
       });
-      // 批量覆盖：先删除新对象不含的自有 key 再合并——全量替换语义（非 merge），formData 引用保持不变
+      // 批量覆盖：先删新对象未含的自有 key 再合并（全量替换），formData 引用不变
       const newKeys = new Set(Object.keys(safeValue));
       Object.keys(formData).forEach(key => {
         if (!newKeys.has(key)) {
@@ -189,7 +148,7 @@ const useFormData = <D extends Data = Data>(
   }
 
   const formDataStore = { formData, getFormData, setFormData } as any;
-  // 组件上下文中把数据 store 提供给下游，支撑多级表单的数据复用
+  // 组件上下文中向子表单提供数据 store
   if (getCurrentInstance()) {
     provide(InjectionFormDataKey, formDataStore);
   }

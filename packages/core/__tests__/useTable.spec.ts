@@ -495,4 +495,136 @@ describe('useTable', () => {
     noEmpty.appendColumn('' as any, { key: 'x' } as any);
     expect(noEmpty.columns.value.map((c: any) => c.key)).toEqual(['a']);
   });
+
+  // ----------------------------------------------------
+  // TT-35 [判别]: 多位点插入的列 key 全量唯一
+  // ----------------------------------------------------
+  it('TT-35 [判别]: append/prependColumn 多位点插入的列（含显式 key 与子列）key 全量唯一', () => {
+    const table = useTable<any>({
+      columns: [
+        { key: 'a', title: 'A' },
+        { key: 'b', title: 'B' },
+        { key: 'c', title: 'C' },
+      ],
+    });
+
+    // 带显式 key 与子列的列配置在多个位点插入
+    table.appendColumn(
+      (c: any) => c.key === 'a' || c.key === 'c',
+      {
+        key: 'x',
+        title: 'X',
+        children: [{ key: 'x1', title: 'X1' }],
+      } as any,
+      { all: true }
+    );
+
+    const flat: any[] = [];
+    const collect = (list: any[]) => {
+      list.forEach(col => {
+        flat.push(col);
+        if (Array.isArray(col.children)) collect(col.children);
+      });
+    };
+    collect(table.columns.value as any);
+    const keys = flat.map(col => col.key);
+
+    // 判别点：逐层 key 全量唯一（旧实现会产生 ["a","x","b","x","c","x"]）
+    expect(keys).toHaveLength(new Set(keys).size);
+    expect(keys.filter(key => String(key).startsWith('__col_'))).toHaveLength(
+      4
+    );
+
+    // 每个位点为独立对象，子列对象与子列数组同样不共享
+    const xs = (table.columns.value as any[]).filter(col => col.title === 'X');
+    expect(xs).toHaveLength(2);
+    expect(xs[0]).not.toBe(xs[1]);
+    expect(xs[0].children[0]).not.toBe(xs[1].children[0]);
+    expect(xs[0].children).not.toBe(xs[1].children);
+
+    // 前缀插入同样逐层唯一，插入对象不被回写显式 key
+    const prepended = useTable<any>({
+      columns: [{ key: 'a' }, { key: 'b' }],
+    });
+    const inserted = { key: 'x', title: 'X' };
+    prepended.prependColumn(() => true, inserted as any, { all: true });
+    const prependKeys = (prepended.columns.value as any[]).map(c => c.key);
+    expect(prependKeys).toHaveLength(new Set(prependKeys).size);
+    expect(prependKeys.filter(key => key === 'x')).toHaveLength(0);
+    expect(inserted.key).toBe('x');
+  });
+
+  // ----------------------------------------------------
+  // TT-36 [判别]: 环状 children 与不可扩展列对象不崩溃
+  // ----------------------------------------------------
+  it('TT-36 [判别]: 环状 children 不爆栈；不可扩展（seal/preventExtensions）列降级为副本', () => {
+    // 自引用列配置：不再 RangeError 爆栈
+    const cyclic: any = { title: 'A' };
+    cyclic.children = [cyclic];
+    expect(() => normalizeColumn(cyclic)).not.toThrow();
+    expect(cyclic.key).toBeTruthy();
+    // 环状引用原样保留，不重复展开
+    expect(cyclic.children[0]).toBe(cyclic);
+
+    // 互引用环
+    const first: any = { title: 'P1' };
+    const second: any = { title: 'P2' };
+    first.children = [second];
+    second.children = [first];
+    expect(() => normalizeColumns([first, second] as any)).not.toThrow();
+    expect(first.key).toBeTruthy();
+    expect(second.key).toBeTruthy();
+
+    // preventExtensions 列：降级为解冻副本，不抛 TypeError
+    const sealed = Object.preventExtensions({ title: 'S' });
+    const normalized = normalizeColumn(sealed as any);
+    expect(normalized).not.toBe(sealed);
+    expect(normalized.key).toBeTruthy();
+    expect((sealed as any).key).toBeUndefined();
+
+    // 冻结列既有的降级语义保持不变
+    const frozen = Object.freeze({ title: 'F' });
+    const frozenCopy = normalizeColumn(frozen as any);
+    expect(frozenCopy).not.toBe(frozen);
+    expect(frozenCopy.key).toBeTruthy();
+
+    // 经 useTable 构造期同样不崩溃，环状列可被读取且 key 唯一
+    const table = useTable<any>({ columns: [{ key: 'a' }, cyclic] });
+    expect(() => table.columns.value).not.toThrow();
+    const keys = table.columns.value.map((c: any) => c.key);
+    expect(keys).toHaveLength(new Set(keys).size);
+    expect((table.columns.value[1] as any).children[0]).toBe(
+      table.columns.value[1]
+    );
+
+    // 环状列同样不影响增删改查的遍历终止
+    expect(() => table.setColumn('a', { title: 'A2' })).not.toThrow();
+    expect(() => table.appendColumn('a', { key: 'b' } as any)).not.toThrow();
+    expect(table.columns.value.map((c: any) => c.key)).toEqual([
+      'a',
+      'b',
+      cyclic.key,
+    ]);
+  });
+
+  // ----------------------------------------------------
+  // TT-37 [判别]: searchParam 与 pageParam 入参隔离口径一致
+  // ----------------------------------------------------
+  it('TT-37 [判别]: searchParam 入参不改写调用方对象，与 pageParam 同为内部副本', () => {
+    const searchParam = { kw: 'a', extra: 1 };
+    const table = useTable<any>({ searchParam });
+
+    // 判别点：批量覆盖只作用于内部数据，调用方 searchParam 的 key 不被删除
+    table.searchForm.setFormData({ kw: 'b' } as any);
+    expect(Object.keys(searchParam).sort()).toEqual(['extra', 'kw']);
+    expect(searchParam.kw).toBe('a');
+    expect(table.searchForm.getFormData('kw')).toBe('b');
+
+    // 分页参数同口径
+    const pageParam = { current: 1, pageSize: 10, total: 0, custom: 'x' };
+    const paged = useTable<any>({ pageParam });
+    paged.setPageParam({ current: 5 });
+    expect(pageParam.current).toBe(1);
+    expect(paged.pageParam.current).toBe(5);
+  });
 });

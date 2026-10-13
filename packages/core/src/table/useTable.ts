@@ -1,19 +1,10 @@
 /**
  * @module Core/useTable
- * @description 框架无关（Framework-Agnostic）的表格状态管理核心
+ * @description 表格状态核心：列配置、数据源、分页参数与搜索表单的统一管理
  *
- * ## 架构设计说明
- *
- * `useTable` 是表格系统的数据流引擎。核心理念是 **"配置数据化，状态流转中枢化"**。
- * 它将表格的列配置、分页状态、搜索条件、以及底层组件的 API 代理统一在这一层进行管理，做到与具体的 UI 框架完全隔离。
- *
- * ### 核心职责
- * 1. **列状态管理**：提供动态控制列显示/隐藏（hidden 属性）的能力，以及对列配置的灵活更新机制。
- * 2. **分页与查询流**：内置跨框架标准化的分页状态 (`pageParam`)，支持重置、参数更新，方便与远程 API 无缝衔接。
- * 3. **搜索整合**：内置挂载 `searchForm` 表单实例，在逻辑层面打通了“条件输入 → 重置分页 → 触发列表查询”的数据闭环。
- * 4. **API 代理**：桥接底层的表格组件实例，为外部业务代码提供一致的操作手柄。
- *
- * @internal 本模块为底层基建，外部业务通常调用上层 UI 封装包二次导出的 typed useTable。
+ * 列操作与整体重赋值共用 `columns`（customRef，读取时幂等补齐缺失 key）；分页写入按
+ * `current` / `pageSize` / `total` 白名单过滤；`resetQueryParams` 恢复初始化深拷贝快照（含自定义分页键）；
+ * `searchForm` 为内部 `useForm` 实例。本模块为底层基建，上层组件库做泛型绑定与二次导出。
  */
 import type { Reactive, Ref } from 'vue';
 import { customRef, reactive, ref, toValue } from 'vue';
@@ -58,42 +49,21 @@ type SetColumn<
 ) => void;
 
 /**
- * 表格实例类型
- * @template D - 搜索表单数据类型
- * @template T - 表格数据类型（表格行数据类型），默认为 ExtendWithAny<D>
- * @template C - 列配置类型，继承自 BaseColumn<T>
+ * 表格实例类型：列操作 + 数据源 + 分页 + 搜索表单
  *
- * 组合了列操作、数据源管理、分页管理和搜索表单的能力。
+ * @template D - 搜索表单数据类型
+ * @template T - 表格数据类型（行数据类型），默认为 ExtendWithAny<D>
+ * @template C - 列配置类型，继承自 BaseColumn<T>
  *
  * @example
  * ```ts
- * interface User { name: string; age: number; }
- * interface SearchParams { keyword: string }
- *
  * const table: Table<SearchParams, User> = useTable({
- *   columns: [
- *     { key: 'name', title: '姓名' },
- *     { key: 'age', title: '年龄' },
- *   ],
- *   dataSource: [
- *     { name: '张三', age: 25 },
- *   ],
- *   searchFields: [
- *     { path: 'keyword', label: '关键词', component: 'input' },
- *   ],
+ *   columns: [{ key: 'name', title: '姓名' }],
+ *   searchFields: [{ path: 'keyword', label: '关键词' }],
  * })
  *
- * // 列操作
  * table.setColumn('name', { title: '用户名' })
- * table.appendColumn('name', { key: 'email', title: '邮箱' })
- * table.deleteColumn('age')
- *
- * // 分页操作
- * table.setPageParam({ current: 2, pageSize: 20 })
- * table.resetQueryParams()
- *
- * // 搜索表单
- * table.searchForm.getFormData('keyword')
+ * table.setPageParam({ current: 2 })
  * table.searchForm.setFormData('keyword', '张三')
  * ```
  */
@@ -129,117 +99,50 @@ export type Table<
     column: C | Columns<T, C>,
     options?: UpdateColumnOptions
   ) => void;
-  /**
-   * 设置分页参数
-   * @description 仅接受并保留 current / pageSize / total 三个标准属性，其余 key 会被丢弃。
-   */
+  /** 设置分页参数：仅保留 `current` / `pageSize` / `total`（未知 key 丢弃，部分更新只写不删） */
   setPageParam: SetPageParam;
-  /**
-   * 重置查询参数（重置分页和搜索条件到初始值）
-   * @description 恢复的是初始快照的全部 key（含调用时传入的自定义分页属性），与 setPageParam 的过滤行为不对称，属刻意设计。
-   */
+  /** 重置查询参数：分页与搜索条件恢复到初始化快照（含自定义分页键，非固定回到第一页） */
   resetQueryParams: () => void;
 };
 
 /**
- * 创建表格实例的核心 Hook
- *
- * @description useTable 是 ProTable 的核心，提供了：
- * - 列配置管理（增删改查）
- * - 数据源管理
- * - 分页管理
- * - 搜索表单集成（内部使用 useForm）
- * - 查询参数重置
- *
- * @template D - 搜索表单数据类型
- * @template T - 表格数据类型（行数据类型），默认与搜索表单数据一致并扩展
- * @template C - 列配置类型，继承自 BaseColumn<T>
- *
- * @param {object} params - 表格配置参数
- * @param {Columns<T, C>} [params.columns] - 初始列配置。内部持有其**浅拷贝**（列增删与整体重赋值不修改传入数组），列对象的 `key` 仍由 normalizeColumns 就地补齐（`@mutates`，见 {@link normalizeColumns}）
- * @param {T[]} [params.dataSource] - 初始数据源。内部持有其浅拷贝（增删不修改传入数组，元素仍为同一批对象）
- * @param {PageParam} [params.pageParam] - 初始分页参数。内部持有其浅拷贝（字段写入不修改传入对象）
- * @param {ExtendWithAny<DeepPartial<D>>} [params.searchParam] - 初始搜索参数
- * @param {Fields<D>} [params.searchFields] - 搜索表单字段配置
- *
- * @returns {Table<D, T, C>} 表格实例
- *
- * @example
- * ```ts
- * interface SearchParams { keyword: string; status: string }
- * interface User { name: string; age: number; email: string }
- *
- * const table = useTable<SearchParams, User>({
- *   // 列配置
- *   columns: [
- *     { key: 'name', title: '姓名' },
- *     { key: 'age', title: '年龄' },
- *     { key: 'email', title: '邮箱' },
- *   ],
- *   // 数据源
- *   dataSource: [],
- *   // 分页
- *   pageParam: { current: 1, pageSize: 20, total: 0 },
- *   // 搜索表单
- *   searchParam: { keyword: '', status: '' },
- *   searchFields: [
- *     { path: 'keyword', label: '关键词', component: 'input' },
- *     { path: 'status', label: '状态', component: 'select' },
- *   ],
- * })
- *
- * // 查询
- * const handleSearch = async () => {
- *   const res = await fetchUserList({
- *     ...table.searchForm.formData,
- *     ...table.pageParam,
- *   })
- *   table.dataSource.value = res.data
- *   table.setPageParam({ total: res.total })
- * }
- *
- * // 重置
- * const handleReset = () => {
- *   table.resetQueryParams()
- *   handleSearch()
- * }
- * ```
- */
-
-/**
- * 独立调用 {@link normalizeColumn} / {@link normalizeColumns} 且未传 `allocateKey` 时，
- * 为无 key 列自动补齐唯一标识（`__col_1`, `__col_2`, ...）的兜底自增种子。
- *
- * @internal 模块级可变状态，不对外暴露。
+ * 独立调用 {@link normalizeColumn} / {@link normalizeColumns} 且未传 `allocateKey` 时的兜底自增种子（`__col_N`）
+ * @internal 模块级可变状态，不对外暴露
  */
 let fallbackColumnKeySeed = 0;
 
 /**
- * 规范化单个表格列配置（补齐 key，递归处理 children，不破坏原对象引用）
+ * 规范化单个列配置：为缺失 key 的列就地补齐 `key` 并递归 `children`
  *
- * @description 就地为缺失 key 的列对象补齐 key（优先级：key → dataIndex → prop → columnKey → 全局唯一自增标识 `__col_N`）；
- * 若列对象被冻结（Object.isFrozen），则降级为浅拷贝后赋值。
+ * @description key 兜底链：`key` → `dataIndex`（数组 join 点分）→ `prop` → `columnKey` → 自增 `__col_N`；
+ * 不可扩展对象（冻结 / seal / preventExtensions）返回浅拷贝副本；环状 `children` 不再展开。
  *
- * @mutates 会就地修改传入的列对象（补齐 `key` 属性）。若对象被冻结，则返回解冻的浅拷贝副本。
- * 调用方应知悉：传入的原始对象可能被直接变异。
+ * @mutates 就地修改传入的列对象（补 `key`）；不可扩展对象不改写原对象。
  *
  * @param col - 列配置对象
- * @param allocateKey - 自动 key 生成函数；未提供时回退模块级兜底种子，递归处理 children 时沿用同一函数
- * @returns 规范化后的原列配置对象（或解冻后的副本）
+ * @param allocateKey - 自动 key 生成函数；未提供时回退模块级兜底种子，递归 `children` 沿用同一函数
+ * @returns 规范化后的列对象（或不可扩展对象的浅拷贝副本）
  */
 export function normalizeColumn<
   T extends Data = Data,
   C extends BaseColumn<T> = BaseColumn<T>,
 >(col: C, allocateKey?: () => string): C {
+  return normalizeColumnNode(col, allocateKey, new WeakSet());
+}
+
+/** 列配置递归实现：`seen` 记录当前递归链上已展开的对象，环状 children 原样保留 */
+function normalizeColumnNode<
+  T extends Data = Data,
+  C extends BaseColumn<T> = BaseColumn<T>,
+>(col: C, allocateKey: (() => string) | undefined, seen: WeakSet<object>): C {
   if (!col || typeof col !== 'object') return col;
+  if (seen.has(col as object)) return col;
+  seen.add(col as object);
   let target = col;
-  if (Object.isFrozen(target)) {
+  if (!Object.isExtensible(target)) {
     target = { ...col };
   }
-  /*
-   * key 兜底链（仅 key 为 undefined/null 时触发）：dataIndex（数组 join 点分）→ prop → columnKey → 自增
-   * 保证任何列最终都具备字符串 key；冻结列在浅拷贝副本上补 key
-   */
+  // key 兜底链（仅缺失时）：dataIndex → prop → columnKey → 自增，保证列最终具备字符串 key
   if (target.key === undefined || target.key === null) {
     if (target.dataIndex !== undefined && target.dataIndex !== null) {
       target.key = (
@@ -262,23 +165,20 @@ export function normalizeColumn<
   }
   if (Array.isArray(target.children) && target.children.length > 0) {
     target.children = target.children.map((child: any) =>
-      normalizeColumn(child as C, allocateKey)
+      normalizeColumnNode(child as C, allocateKey, seen)
     );
   }
   return target;
 }
 
 /**
- * 规范化表格列配置数组（就地补齐 key，不破坏原对象引用）
+ * 规范化列配置数组：逐项调用 {@link normalizeColumn} 并回写数组元素
  *
- * @mutates 会就地修改传入的数组及其元素：
- * - 对每个元素调用 {@link normalizeColumn} 补齐 `key`；
- * - 若元素为冻结对象，会用解冻副本**替换**数组中对应位置的元素（`columns[i] = ...`）。
- * 直接调用本工具时，传入的原始数组会被就地变异；经 {@link useTable} 使用时传入的是其内部浅拷贝。
+ * @mutates 就地修改传入数组；不可扩展的元素会被其浅拷贝副本**替换**
  *
  * @param columns - 列配置数组
- * @param allocateKey - 传给 {@link normalizeColumn} 的自动 key 生成函数；未提供时回退模块级兜底种子
- * @returns 原列配置数组（若传入非数组则返回空数组）
+ * @param allocateKey - 传给 {@link normalizeColumn} 的自动 key 生成函数
+ * @returns 原数组（传入非数组时返回空数组）
  */
 export function normalizeColumns<
   T extends Data = Data,
@@ -291,6 +191,36 @@ export function normalizeColumns<
   return columns;
 }
 
+/**
+ * 创建表格实例
+ *
+ * @description 组合列状态（`columns` + 列操作）、`dataSource`、`pageParam`（分页读写与重置）
+ * 与 `searchForm`（内部 `useForm`；条件输入 → 重置分页 → 触发查询的数据闭环由适配层完成）。
+ *
+ * @template D - 搜索表单数据类型
+ * @template T - 表格数据类型（行数据类型），默认与搜索表单数据一致并扩展
+ * @template C - 列配置类型，继承自 BaseColumn<T>
+ *
+ * @param {object} params - 表格配置参数
+ * @param {Columns<T, C>} [params.columns] - 初始列配置；内部持浅拷贝，列对象 `key` 由 {@link normalizeColumns} 就地补齐
+ * @param {T[]} [params.dataSource] - 初始数据源；内部持浅拷贝（元素为同一批对象）
+ * @param {PageParam} [params.pageParam] - 初始分页参数；内部持浅拷贝（字段写入不改写传入对象）
+ * @param {ExtendWithAny<DeepPartial<D>>} [params.searchParam] - 初始搜索参数（内部持顶层浅拷贝）
+ * @param {Fields<D>} [params.searchFields] - 搜索表单字段配置
+ * @returns {Table<D, T, C>} 表格实例
+ *
+ * @example
+ * ```ts
+ * const table = useTable<SearchParams, User>({
+ *   columns: [{ key: 'name', title: '姓名' }],
+ *   searchParam: { keyword: '' },
+ * })
+ *
+ * table.dataSource.value = await fetchUserList({ ...table.searchForm.formData, ...table.pageParam })
+ * table.setPageParam({ total: 100 })
+ * table.resetQueryParams()
+ * ```
+ */
 const useTable = <
   D extends Data = Data,
   T extends Data = ExtendWithAny<D>,
@@ -317,18 +247,18 @@ const useTable = <
   let columnKeySeed = 0;
   const allocateColumnKey = () => `__col_${++columnKeySeed}`;
 
-  // 内部持有数组浅拷贝：列增删与重赋值只作用于内部数组（列对象的 key 补齐仍为就地写入，见 normalizeColumns）
-  // 入参非数组时回退空数组（列数组按数组语义使用）
+  // 内部持数组浅拷贝：列增删与重赋值只作用于内部数组（列对象 key 由 normalizeColumns 就地补齐）
   const initialColumns = Array.isArray(initColumns) ? [...initColumns] : [];
   const columnState = ref<Columns<T, C>>(
     normalizeColumns(initialColumns, allocateColumnKey)
   ) as Ref<Columns<T, C>>;
 
-  /*
-   * 就地补齐缺失的 key（含 children 递归）：仅缺失时写入、命中即跳过，
-   * 不改写已有 key；补齐过程中子列数组由 normalizeColumn 重建，返回值表示是否发生写入
-   */
-  const ensureColumnKeys = (list: Columns<T, C>, allocateKey: () => string) => {
+  // 就地补齐缺失 key（含 children 递归，仅缺失时写入）；ancestors 记录递归链，环状 children 不再深入
+  const ensureColumnKeys = (
+    list: Columns<T, C>,
+    allocateKey: () => string,
+    ancestors: WeakSet<object> = new WeakSet()
+  ) => {
     let changed = false;
     for (let i = 0; i < list.length; i++) {
       const col = list[i] as C;
@@ -336,19 +266,28 @@ const useTable = <
       if (col.key === undefined || col.key === null) {
         list[i] = normalizeColumn(col, allocateKey);
         changed = true;
-      } else if (Array.isArray(col.children) && col.children.length > 0) {
-        if (ensureColumnKeys(col.children as Columns<T, C>, allocateKey)) {
+      } else if (
+        Array.isArray(col.children) &&
+        col.children.length > 0 &&
+        !ancestors.has(col)
+      ) {
+        ancestors.add(col);
+        if (
+          ensureColumnKeys(
+            col.children as Columns<T, C>,
+            allocateKey,
+            ancestors
+          )
+        ) {
           changed = true;
         }
+        ancestors.delete(col);
       }
     }
     return changed;
   };
 
-  /*
-   * columns 以 customRef 暴露：读取时就地补齐缺失 key（幂等，仅缺失时写入），
-   * 整体重赋值先规范化再收编；内部经 ref 转发以保持数组与元素的深层响应式与原引用
-   */
+  // customRef：读取时幂等补齐缺失 key，整体重赋值先规范化再收编（经 ref 转发保持深层响应式）
   const columns = customRef<Columns<T, C>>((track, trigger) => ({
     get() {
       track();
@@ -383,10 +322,7 @@ const useTable = <
   const searchForm = useForm<D>(initSearchParam as any, initSearchFields, true);
 
   const resetQueryParams = () => {
-    /*
-     * 恢复初始化快照（全部 key，含自定义分页键）：分页合并写、搜索走批量覆盖
-     * 每次都重新深拷贝快照，恢复出的对象与快照本体相互独立
-     */
+    // 恢复初始化快照（全部 key，含自定义分页键）：分页合并写、搜索走批量覆盖；每次重新深拷贝
     Object.assign(pageParam, cloneDeep(_initPageParam));
     searchForm.setFormData(cloneDeep(_initSearchParam) as any);
   };
@@ -403,11 +339,11 @@ const useTable = <
     const keyStr =
       typeof key === 'string' || typeof key === 'function' ? key : String(key);
 
-    /*
-     * DFS 递归匹配：字符串定位先比 key，列为空时退比 dataIndex（数组 join 点分后比对）
-     * 命中回调携带 column / columnIndex / group（所在数组引用），非 all 模式命中即短路返回
-     */
-    const traverse = (currentColumns: Columns<T, C>): boolean => {
+    // DFS 匹配：先比 key，列为空时退比 dataIndex；非 all 命中即返回，ancestors 防环状 children
+    const traverse = (
+      currentColumns: Columns<T, C>,
+      ancestors: WeakSet<object> = new WeakSet()
+    ): boolean => {
       for (let i = 0; i < currentColumns.length; i++) {
         const columnItem = currentColumns[i];
         let matched = false;
@@ -434,9 +370,15 @@ const useTable = <
         }
         if (
           Array.isArray(columnItem.children) &&
-          columnItem.children.length > 0
+          columnItem.children.length > 0 &&
+          !ancestors.has(columnItem)
         ) {
-          const finished = traverse(columnItem.children as Columns<T, C>);
+          ancestors.add(columnItem);
+          const finished = traverse(
+            columnItem.children as Columns<T, C>,
+            ancestors
+          );
+          ancestors.delete(columnItem);
           if (finished && !all) return true;
         }
       }
@@ -447,24 +389,12 @@ const useTable = <
   };
 
   /**
-   * 设置列配置
+   * 更新列配置
    *
-   * @param {Path<T>} key - 列字段路径
-   * @param {C | ((pre: Readonly<C>) => C)} column - 新的列配置或更新函数
-   * @param {object} [options] - 更新选项
-   * @param {'rewrite' | 'merge'} [options.updateType='merge'] - 更新方式：merge 合并、rewrite 覆盖
-   *
-   * @example
-   * ```ts
-   * // 合并更新
-   * table.setColumn('name', { title: '用户姓名', width: 200 })
-   *
-   * // 覆盖更新
-   * table.setColumn('name', { key: 'name', title: '用户姓名' }, { updateType: 'rewrite' })
-   *
-   * // 函数式更新
-   * table.setColumn('status', prev => ({ ...prev, width: prev.width + 50 }))
-   * ```
+   * @param key - 列字段路径或查找函数
+   * @param column - 新配置或基于旧配置的更新函数（返回假值跳过）
+   * @param [options.updateType='merge'] - `merge` 合并 / `rewrite` 覆盖（新对象未显式指定 key 时继承原列 key）
+   * @param [options.all] - 是否更新全部匹配（函数匹配默认 `true`，路径匹配默认 `false`）
    */
   const setColumn: SetColumn<T, C> = (key, column, options) => {
     if (key === undefined || key === null || !column) return;
@@ -506,18 +436,8 @@ const useTable = <
   /**
    * 删除列
    *
-   * @param {Path<T> | ColumnFindBy<T, C>} path - 列字段路径或查找函数
-   * @param {object} [options] - 删除选项
-   * @param {boolean} [options.all] - 是否删除所有匹配，默认只删除第一个
-   *
-   * @example
-   * ```ts
-   * // 删除单个列
-   * table.deleteColumn('email')
-   *
-   * // 删除所有隐藏列
-   * table.deleteColumn(c => c.hidden, { all: true })
-   * ```
+   * @param path - 列字段路径或查找函数
+   * @param [options.all] - 是否删除全部匹配（默认只删除第一个）
    */
   function deleteColumn(
     path: Path<T> | ColumnFindBy<T, C>,
@@ -540,25 +460,9 @@ const useTable = <
   /**
    * 在指定列后追加列
    *
-   * @param {Path<T> | ColumnFindBy<T, C> | undefined} path - 目标列路径，传 undefined 则在末尾追加；
-   * 传 `''` 时按列 `key` 严格匹配（可命中 `key` 为 `''` 的列），零命中则不插入；数字路径经字符串归一后比对（`0` 命中 `key: '0'`）
-   * @param {C | Columns<T, C>} column - 要追加的列配置或列数组
-   * @param {object} [options] - 追加选项
-   *
-   * @example
-   * ```ts
-   * // 在 name 列后追加 email 列
-   * table.appendColumn('name', { key: 'email', title: '邮箱' })
-   *
-   * // 在末尾追加
-   * table.appendColumn(undefined, { key: 'remark', title: '备注' })
-   *
-   * // 批量追加
-   * table.appendColumn('name', [
-   *   { key: 'email', title: '邮箱' },
-   *   { key: 'phone', title: '电话' },
-   * ])
-   * ```
+   * @param path - 目标列路径：`undefined` 追加到末尾，`''` 按 key 严格匹配（零命中不插入），数字路径按字符串归一比对
+   * @param column - 列配置或列数组
+   * @param [options.all] - 是否在所有匹配列后追加（默认仅第一个）；多位点插入时每个位点获得独立克隆列，克隆列及其 `children` 各层重新分配 key，互不共享
    */
   function appendColumn(
     path: Path<T> | ColumnFindBy<T, C> | undefined,
@@ -572,19 +476,9 @@ const useTable = <
   /**
    * 在指定列前插入列
    *
-   * @param {Path<T> | ColumnFindBy<T, C> | undefined} path - 目标列路径，传 undefined 则在开头插入；
-   * 传 `''` 时按列 `key` 严格匹配（可命中 `key` 为 `''` 的列），零命中则不插入；数字路径经字符串归一后比对
-   * @param {C | Columns<T, C>} column - 要插入的列配置或列数组
-   * @param {object} [options] - 插入选项
-   *
-   * @example
-   * ```ts
-   * // 在 name 列前插入 id 列
-   * table.prependColumn('name', { key: 'id', title: 'ID' })
-   *
-   * // 在开头插入
-   * table.prependColumn(undefined, { key: 'id', title: 'ID' })
-   * ```
+   * @param path - 目标列路径：`undefined` 插入到开头，`''` 按 key 严格匹配（零命中不插入），数字路径按字符串归一比对
+   * @param column - 列配置或列数组
+   * @param [options.all] - 是否在所有匹配列前插入（默认仅第一个）；多位点插入时每个位点获得独立克隆列，克隆列及其 `children` 各层重新分配 key，互不共享
    */
   function prependColumn(
     path: Path<T> | ColumnFindBy<T, C> | undefined,
@@ -594,6 +488,21 @@ const useTable = <
     const newColumns = Array.isArray(column) ? column : [column];
     addColumns(path, newColumns, options, 'before');
   }
+
+  // 多位点插入的列克隆：逐层浅拷贝并重新分配 key，与调用方对象及其他位点互不共享
+  const cloneColumnForInsert = (col: C): C => {
+    const copy = { ...(col as any) } as C;
+    (copy as any).key = allocateColumnKey();
+    if (
+      Array.isArray((copy as any).children) &&
+      (copy as any).children.length > 0
+    ) {
+      (copy as any).children = (copy as any).children.map((child: any) =>
+        cloneColumnForInsert(child)
+      );
+    }
+    return copy;
+  };
 
   function addColumns(
     path: Path<T> | ColumnFindBy<T, C> | undefined,
@@ -611,7 +520,7 @@ const useTable = <
         },
         options
       );
-      // 多位点匹配时克隆列对象并独立生成 key，单位点保持原引用
+      // 多位点匹配时每个位点克隆列对象并重新分配 key，单位点保持原引用
       const multiSite = matches.length > 1;
       if (!multiSite) normalizeColumns(newColumns, allocateColumnKey);
       applyByGroupDesc(matches, ({ group, index }) => {
@@ -620,9 +529,7 @@ const useTable = <
           insertIndex,
           0,
           ...(multiSite
-            ? newColumns.map(col =>
-                normalizeColumn({ ...col }, allocateColumnKey)
-              )
+            ? newColumns.map(col => cloneColumnForInsert(col))
             : newColumns)
         );
       });

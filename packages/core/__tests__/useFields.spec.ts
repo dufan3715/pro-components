@@ -459,18 +459,19 @@ describe('useFields', () => {
   // ----------------------------------------------------
   it('FF-42 [判别]: fieldIdentityKeys 决定字段标识解析键序，默认 name 优先于 path', () => {
     const defaultKeys = useFields([{ name: 'a', path: 'b' } as any]);
-    expect(!!defaultKeys.getField('a')).toBe(true);
-    expect(!!defaultKeys.getField('b')).toBe(false);
+    // 身份断言：'a' 命中同一字段对象（name 优先解析），'b' 不参与匹配
+    expect((defaultKeys.getField('a') as any)?.path).toBe('b');
+    expect(defaultKeys.getField('b' as any)).toBeUndefined();
 
     const propKeys = useFields([{ prop: 'a', path: 'b' } as any], {
       fieldIdentityKeys: ['prop', 'path'],
     });
-    expect(!!propKeys.getField('a')).toBe(true);
-    expect(!!propKeys.getField('b')).toBe(false);
+    expect((propKeys.getField('a') as any)?.path).toBe('b');
+    expect(propKeys.getField('b' as any)).toBeUndefined();
 
     // 未配置 prop 键时，prop 不参与标识解析
     const untouched = useFields([{ prop: 'a' } as any]);
-    expect(!!untouched.getField('a')).toBe(false);
+    expect(untouched.getField('a' as any)).toBeUndefined();
   });
 
   // ----------------------------------------------------
@@ -549,5 +550,69 @@ describe('useFields', () => {
       'a',
       'tail',
     ]);
+  });
+
+  // ----------------------------------------------------
+  // FF-47 [判别]: initFields 含非对象项不摧毁字段 API
+  // ----------------------------------------------------
+  it('FF-47 [判别]: initFields 含 null/undefined/原始值时剔除该项，字段查找与编排保持可用', () => {
+    const {
+      fields,
+      getField,
+      setField,
+      deleteField,
+      getParentField,
+      appendField,
+    } = useFields<any>([
+      null,
+      { path: 'a', label: 'A' },
+      undefined,
+      'raw',
+    ] as any);
+
+    // 判别点：非对象项在构造期剔除，查找与动态编排 API 全程不抛 TypeError
+    expect(fields.value.map((f: any) => f?.path)).toEqual(['a']);
+    expect((getField('a') as any)?.label).toBe('A');
+    setField('a', { label: 'A2' } as any);
+    expect((getField('a') as any)?.label).toBe('A2');
+    expect(getParentField('a')).toEqual({ fields: fields.value });
+    appendField('a', { path: 'b' } as any);
+    expect(fields.value.map((f: any) => f.path)).toEqual(['a', 'b']);
+    deleteField('a');
+    expect(fields.value.map((f: any) => f.path)).toEqual(['b']);
+
+    // 嵌套 children 内的非对象项不参与遍历（原样保留在子数组中，遍历与插入不受影响）
+    const nested = useFields<any>([
+      { path: 'g', fields: [null, { path: 'g.x' }] } as any,
+    ]);
+    expect((nested.getField('g.x') as any)?.path).toBe('g.x');
+    nested.appendField('g.x', { path: 'g.y' } as any);
+    const nestedChildren = (nested.getField('g') as any)?.fields;
+    expect(nestedChildren[1]?.path).toBe('g.x');
+    expect(nestedChildren[2]?.path).toBe('g.y');
+  });
+
+  // ----------------------------------------------------
+  // FF-48 [判别]: 非数组入参回退空字段数组
+  // ----------------------------------------------------
+  it('FF-48 [判别]: initFields 非数组时回退空数组，字符串不被拆成多个假字段', () => {
+    // 字符串入参不再被静默展开为 ['a','b'] 两个假字段
+    const fromString = useFields<any>('ab' as any);
+    expect(fromString.fields.value).toEqual([]);
+    expect(fromString.getField('a' as any)).toBeUndefined();
+    fromString.appendField(undefined, { path: 'x' } as any);
+    expect(fromString.fields.value.map((f: any) => f.path)).toEqual(['x']);
+
+    // 对象 / 函数入参不再抛 TypeError
+    const fromObject = useFields<any>({ path: 'a' } as any);
+    expect(fromObject.fields.value).toEqual([]);
+    const fromFn = useFields<any>((() => []) as any);
+    expect(fromFn.fields.value).toEqual([]);
+
+    // falsy 入参保持空数组
+    expect(useFields<any>(0 as any).fields.value).toEqual([]);
+    expect(useFields<any>('' as any).fields.value).toEqual([]);
+    expect(useFields<any>(false as any).fields.value).toEqual([]);
+    expect(useFields<any>().fields.value).toEqual([]);
   });
 });
