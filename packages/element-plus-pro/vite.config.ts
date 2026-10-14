@@ -22,6 +22,8 @@ export default defineConfig({
     lib: {
       entry,
       formats: ['es'],
+      // 固定样式产物文件名：默认由 package.json 的 name 推导，改包名会让下方 intro 的引入路径失效
+      cssFileName: 'element-plus-pro',
     },
     rollupOptions: {
       external: [

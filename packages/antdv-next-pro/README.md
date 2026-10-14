@@ -453,11 +453,11 @@ const fetchData = async () => {
 
 `columns` 数组中每一项为 `Column<T>` 类型，**继承 antdv-next `ColumnType`**，因此所有原生列属性（`title` / `width` / `fixed` / `align` / `customRender` / `ellipsis` 等）均可用。在此基础上新增：
 
-| 属性        | 说明                                                                                      | 类型                 | 默认值  |
-| :---------- | :---------------------------------------------------------------------------------------- | :------------------- | :------ |
-| `dataIndex` | 列数据路径（主要字段），类型安全，支持 `'name'` / `'address.city'` / `['address','city']` | `string \| string[]` | -       |
-| `key`       | 列字段标识（辅助），仅当 `dataIndex` 无法满足时使用，匹配优先级低于 `dataIndex`           | `string`             | -       |
-| `hidden`    | 是否隐藏该列（配合列动态控制）                                                            | `boolean`            | `false` |
+| 属性        | 说明                                                                                      | 类型                                              | 默认值  |
+| :---------- | :---------------------------------------------------------------------------------------- | :------------------------------------------------ | :------ |
+| `dataIndex` | 列数据路径（主要字段），类型安全，支持 `'name'` / `'address.city'` / `['address','city']` | `string \| string[]`                              | -       |
+| `key`       | 列字段标识（辅助），仅当 `dataIndex` 无法满足时使用，匹配优先级低于 `dataIndex`           | `string`                                          | -       |
+| `hidden`    | 是否隐藏该列（配合列动态控制），支持 `Ref` / `ComputedRef` 响应式，分组列子列递归生效     | `boolean \| Ref<boolean> \| ComputedRef<boolean>` | `false` |
 
 ---
 

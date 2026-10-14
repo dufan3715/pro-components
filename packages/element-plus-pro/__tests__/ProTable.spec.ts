@@ -9,6 +9,7 @@ import { createBasicColumns } from './helpers/fixtures';
 import { ElPagination, ElTable } from 'element-plus';
 import SearchForm from '../src/components/table/components/SearchForm.vue';
 import SizeControl from '../src/components/table/components/SizeControl.vue';
+import type { Column } from '../src/components/table/types';
 
 describe('ProTable 组件测试', () => {
   // ----------------------------------------------------
@@ -1277,6 +1278,44 @@ describe('ProTable 组件测试', () => {
       ]);
     } finally {
       wrappers.forEach(wrapper => wrapper.unmount());
+    }
+  });
+
+  // ----------------------------------------------------
+  // PT-A34 [判别]: 列 hidden 的类型面支持 Ref/ComputedRef，渲染期按 toValue 过滤（含分组子列）
+  // ----------------------------------------------------
+  it('PT-A34 [判别]: 列 hidden 支持 Ref 形态并在渲染期过滤，分组子列递归生效', async () => {
+    const hiddenRef = ref(false);
+    // 类型面：列 hidden 现为 MaybeRefOrComputedRef<boolean>，传 Ref 无需断言
+    const columns: Column[] = [
+      { prop: 'name', label: '姓名', hidden: hiddenRef },
+      { prop: 'age', label: '年龄' },
+    ];
+    const table = useTable({
+      columns,
+      data: [{ name: '甲', age: 18 }],
+    });
+
+    const { wrapper } = mountProTable({ table, props: { control: false } });
+    await flushPromises();
+
+    try {
+      // Ref(false)：列正常渲染
+      expect(wrapper.findAll('thead th').map(th => th.text())).toContain(
+        '姓名'
+      );
+
+      // 外部 ref 翻转驱动列显隐
+      hiddenRef.value = true;
+      await flushPromises();
+      expect(wrapper.findAll('thead th').map(th => th.text())).not.toContain(
+        '姓名'
+      );
+      expect(wrapper.findAll('thead th').map(th => th.text())).toContain(
+        '年龄'
+      );
+    } finally {
+      wrapper.unmount();
     }
   });
 });

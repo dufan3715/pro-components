@@ -386,29 +386,29 @@ const table = useTable<D, T>({
 
 ### 公共基础属性
 
-| 属性名               | 说明                                                                               | 类型                          | 默认值         |
-| :------------------- | :--------------------------------------------------------------------------------- | :---------------------------- | :------------- |
-| `path`               | 字段标识，需对应数据对象 `formData` 的 key，支持多级嵌套，例如 `address.city`      | `string`                      | -              |
-| `prop`               | 字段标识（对应 `el-form-item` 的 `prop`），**优先于 `path`**；校验与取值均以它为准 | `string \| string[]`          | -              |
-| `name`               | 透传给字段控件作为其原生 `name` 属性（不作为字段标识）                             | `string`                      | -              |
-| `label`              | 字段中文标签，支持字符串或直接传入 VNode 组件进行自定义                            | `string \| Component \| Slot` | -              |
-| `component`          | 调用的表单项组件的类型，支持内置类型键名或直接传入自定义 Vue 组件                  | `string \| Component`         | `'input'`      |
-| `hidden`             | 字段是否被隐藏（在 DOM 中不渲染），支持 Ref/Computed 响应式                        | `boolean \| Ref<boolean>`     | `false`        |
-| `disabled`           | 组件的禁用状态，支持 Ref/Computed 响应式                                           | `boolean \| Ref<boolean>`     | `false`        |
-| `rules`              | 字段数据校验规则，遵循 Element Plus 表单校验格式                                   | `Rule[]`                      | -              |
-| `span`               | 栅格占位宽度（在 ProForm 开启 `grid` 后有效）                                      | `number`                      | -              |
-| `formItemStyle`      | 挂载在外部 `el-form-item` 节点上的额外 CSS 样式属性                                | `CSSProperties`               | -              |
-| `formItemClass`      | 挂载在外部 `el-form-item` 节点上的自定义类名                                       | `string`                      | -              |
-| `formItemContainer`  | 针对该表单项的最外层 DOM 包裹组件                                                  | `Component`                   | -              |
-| `formItemDataAttrs`  | 附加在 `el-form-item` DOM 节点上的自定义 data 属性                                 | `Record<string, string>`      | -              |
-| `componentStyle`     | 直接传递给内部表单输入组件的额外 CSS 样式属性                                      | `CSSProperties`               | -              |
-| `componentClass`     | 直接传递给内部表单输入组件的自定义类名                                             | `string`                      | -              |
-| `componentContainer` | 针对表单输入组件的包裹组件                                                         | `Component`                   | -              |
-| `componentDataAttrs` | 附加在内部输入组件 DOM 节点上的自定义 data 属性                                    | `Record<string, string>`      | -              |
-| `valueFormatter`     | 字段值转换处理器，可在输入更新或提取数据时做 get/set 转换                          | `ValueFormatter`              | -              |
-| `modelProp`          | 双向绑定的数据属性名称（默认为 `modelValue`）                                      | `string`                      | `'modelValue'` |
-| `fields`             | 嵌套子表单项的 Schema 数组配置                                                     | `Field[]`                     | -              |
-| `grid`               | 针对当前嵌套子表单项所使用的网格布局参数（仅当有 `fields` 时有效）                 | `boolean \| GridProps`        | -              |
+| 属性名               | 说明                                                                               | 类型                                              | 默认值         |
+| :------------------- | :--------------------------------------------------------------------------------- | :------------------------------------------------ | :------------- |
+| `path`               | 字段标识，需对应数据对象 `formData` 的 key，支持多级嵌套，例如 `address.city`      | `string`                                          | -              |
+| `prop`               | 字段标识（对应 `el-form-item` 的 `prop`），**优先于 `path`**；校验与取值均以它为准 | `string \| string[]`                              | -              |
+| `name`               | 透传给字段控件作为其原生 `name` 属性（不作为字段标识）                             | `string`                                          | -              |
+| `label`              | 字段中文标签，支持字符串或直接传入 VNode 组件进行自定义                            | `string \| Component \| Slot`                     | -              |
+| `component`          | 调用的表单项组件的类型，支持内置类型键名或直接传入自定义 Vue 组件                  | `string \| Component`                             | `'input'`      |
+| `hidden`             | 字段是否被隐藏（在 DOM 中不渲染），支持 Ref/Computed 响应式                        | `boolean \| Ref<boolean> \| ComputedRef<boolean>` | `false`        |
+| `disabled`           | 组件的禁用状态，支持 Ref/Computed 响应式                                           | `boolean \| Ref<boolean>`                         | `false`        |
+| `rules`              | 字段数据校验规则，遵循 Element Plus 表单校验格式                                   | `Rule[]`                                          | -              |
+| `span`               | 栅格占位宽度（在 ProForm 开启 `grid` 后有效）                                      | `number`                                          | -              |
+| `formItemStyle`      | 挂载在外部 `el-form-item` 节点上的额外 CSS 样式属性                                | `CSSProperties`                                   | -              |
+| `formItemClass`      | 挂载在外部 `el-form-item` 节点上的自定义类名                                       | `string`                                          | -              |
+| `formItemContainer`  | 针对该表单项的最外层 DOM 包裹组件                                                  | `Component`                                       | -              |
+| `formItemDataAttrs`  | 附加在 `el-form-item` DOM 节点上的自定义 data 属性                                 | `Record<string, string>`                          | -              |
+| `componentStyle`     | 直接传递给内部表单输入组件的额外 CSS 样式属性                                      | `CSSProperties`                                   | -              |
+| `componentClass`     | 直接传递给内部表单输入组件的自定义类名                                             | `string`                                          | -              |
+| `componentContainer` | 针对表单输入组件的包裹组件                                                         | `Component`                                       | -              |
+| `componentDataAttrs` | 附加在内部输入组件 DOM 节点上的自定义 data 属性                                    | `Record<string, string>`                          | -              |
+| `valueFormatter`     | 字段值转换处理器，可在输入更新或提取数据时做 get/set 转换                          | `ValueFormatter`                                  | -              |
+| `modelProp`          | 双向绑定的数据属性名称（默认为 `modelValue`）                                      | `string`                                          | `'modelValue'` |
+| `fields`             | 嵌套子表单项的 Schema 数组配置                                                     | `Field[]`                                         | -              |
+| `grid`               | 针对当前嵌套子表单项所使用的网格布局参数（仅当有 `fields` 时有效）                 | `boolean \| GridProps`                            | -              |
 
 #### `valueFormatter` 字段值转换
 

@@ -1,5 +1,7 @@
 import type { ColumnType } from '../../../shared/ui';
 import type { Data, ExtendWithAny, Path } from '../../../shared/core';
+import type { ComputedRef, MaybeRef } from 'vue';
+type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
 
 type BivariantRender<D extends Data = Data> = {
   bivarianceHack(scope: ColumnScope<D>): any;
@@ -57,10 +59,10 @@ export type Column<D extends Data = Data> = Partial<
    */
   prop?: Path<D>;
   /**
-   * @description 列是否隐藏；支持布尔、Ref 与 getter 形式，渲染期按 `toValue` 取值。
+   * @description 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值。
    * 分组列的子列同样参与过滤（递归生效）。
    */
-  hidden?: boolean;
+  hidden?: MaybeRefOrComputedRef<boolean>;
   /** 自定义渲染函数 */
   render?: BivariantRender<D>;
   /** 嵌套子列（用于表头分组） */

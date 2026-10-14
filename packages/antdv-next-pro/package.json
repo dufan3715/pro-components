@@ -14,7 +14,7 @@
       "types": "./es/index.d.ts",
       "import": "./es/index.js"
     },
-    "./antdv-next-pro.css": "./es/antdv-next-pro.css"
+    "./package.json": "./package.json"
   },
   "sideEffects": [
     "**/*.css",

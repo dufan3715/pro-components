@@ -13,7 +13,8 @@
     ".": {
       "types": "./es/index.d.ts",
       "import": "./es/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "es",

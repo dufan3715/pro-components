@@ -255,13 +255,14 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
-  // BI-A18 [判别]: hidden 的 Ref/getter 形态在公开类型面与渲染期一致
+  // BI-A18 [判别]: hidden 的类型面口径为 Ref/ComputedRef，渲染期按 toValue 过滤
   // ----------------------------------------------------
-  it('BI-A18 [判别]: hidden 支持 Ref 与 getter 形态并在渲染期按 toValue 过滤', async () => {
+  it('BI-A18 [判别]: hidden 支持 Ref 形态并在渲染期按 toValue 过滤，getter 不入类型面', async () => {
     const hiddenRef = ref(false);
-    // 类型面：以下字面量在旧声明 hidden?: boolean 下报错（getter 形态不被接受）
     const fields: Field[] = [
       { path: 'a', label: 'A', component: 'field', hidden: hiddenRef },
+      // 类型面：getter 形态不属于 hidden 契约（四包统一为 Ref / ComputedRef）
+      // @ts-expect-error hidden 不接受 getter 形式
       { path: 'b', label: 'B', component: 'field', hidden: () => true },
     ];
     const form = useForm({ a: '', b: '' }, fields);
@@ -275,7 +276,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
     });
     await flushPromises();
 
-    // 判别点：Ref(false) 的字段渲染，getter 返回 true 的字段被过滤
+    // 判别点：Ref(false) 的字段渲染，getter 返回 true 的字段在运行期同样被过滤
     expect(wrapper.findAll('input')).toHaveLength(1);
     hiddenRef.value = true;
     await flushPromises();

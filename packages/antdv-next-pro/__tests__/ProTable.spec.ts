@@ -10,6 +10,7 @@ import { tableProps } from '../src/shared/ui';
 import type { ComponentVars } from '../src/components/component-provider';
 import { expectWarn, flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
+import type { Column } from '../src/components/table/types';
 
 describe('ProTable 组件测试', () => {
   // ----------------------------------------------------
@@ -869,7 +870,7 @@ describe('ProTable 组件测试', () => {
         },
       ],
       dataSource: [{ a: 'A', b: 'B', c: 'C' }],
-    } as any);
+    });
 
     const wrapper = mount(ProTable, {
       props: { table, addIndexColumn: false },
@@ -1486,6 +1487,43 @@ describe('ProTable 组件测试', () => {
     captured.slots.filterDropdown({ column: { dataIndex: 'name' } });
     expect(calls).toHaveLength(1);
 
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // PT-A35 [判别]: 分组列 children 在类型面可直接构造（无需断言）并参与递归过滤
+  // ----------------------------------------------------
+  it('PT-A35 [判别]: 分组列 children 经公开类型直接构造，嵌套子列 hidden 递归生效', async () => {
+    const hiddenRef = ref(false);
+    // 类型面：分组列与嵌套分组均无需 as any
+    const columns: Column[] = [
+      {
+        title: '分组',
+        children: [
+          { dataIndex: 'name', title: '姓名', hidden: hiddenRef },
+          {
+            title: '嵌套',
+            children: [{ dataIndex: 'age', title: '年龄' }],
+          },
+        ],
+      },
+    ];
+    const table = useTable({ columns, dataSource: [{ name: '甲', age: 18 }] });
+
+    const { wrapper } = mountProTable({
+      table,
+      props: { addIndexColumn: false },
+    });
+    await flushPromises();
+
+    const headers = () => wrapper.findAll('thead th').map(th => th.text());
+    expect(headers()).toContain('姓名');
+    expect(headers()).toContain('年龄');
+
+    // 外部 ref 翻转驱动分组内子列显隐
+    hiddenRef.value = true;
+    await flushPromises();
+    expect(headers()).not.toContain('姓名');
+    expect(headers()).toContain('年龄');
     wrapper.unmount();
   });
 });

@@ -1,5 +1,7 @@
 import type { ColumnType } from '../../../shared/ui';
 import type { Data, KeyExpandString, Paths, Path } from '../../../shared/core';
+import type { ComputedRef, MaybeRef } from 'vue';
+type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
 
 /**
  * @qin-ui/antdv-next-pro 表格列配置类型
@@ -23,9 +25,13 @@ import type { Data, KeyExpandString, Paths, Path } from '../../../shared/core';
  
  * @public
  */
+/*
+ * 宿主 @v-c/table 的 ColumnSharedType 自带 `hidden?: boolean`，须先剔除再重声明，
+ * 否则与下方 `MaybeRefOrComputedRef<boolean>` 交叉为交集类型而拒绝 Ref
+ */
 export type Column<D extends Data = Data> = Omit<
   ColumnType,
-  'dataIndex' | 'key'
+  'dataIndex' | 'key' | 'hidden'
 > & {
   /**
    * @description 列数据路径（主要字段），优先使用 dataIndex 进行字段匹配
@@ -37,11 +43,15 @@ export type Column<D extends Data = Data> = Omit<
    */
   key?: Path<D>;
   /**
-   * @description 列是否隐藏；支持布尔、Ref 与 getter 形式，渲染期按 `toValue` 取值。
+   * @description 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值。
    * 分组列的子列同样参与过滤（递归生效）。
    * @default false
    */
-  hidden?: boolean;
+  hidden?: MaybeRefOrComputedRef<boolean>;
+  /**
+   * @description 分组子列；提供时该列作为分组表头渲染，子列沿用同一配置类型
+   */
+  children?: Column<D>[];
 };
 
 /**

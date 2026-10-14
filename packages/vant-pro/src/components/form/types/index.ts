@@ -10,7 +10,6 @@ import {
   type Component,
   type Raw,
   type MaybeRef,
-  type MaybeRefOrGetter,
   type ComputedRef,
 } from 'vue';
 import type { ComponentName, GetComponentType } from '../constants';
@@ -83,9 +82,9 @@ type BaseCommon<D extends Data = Data> = {
    */
   path?: Path<D>;
   /**
-   * @description 字段是否隐藏；支持布尔、Ref 与 getter 形式，渲染期统一按 `toValue` 取值。
+   * @description 字段是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期统一按 `toValue` 取值。
    */
-  hidden?: MaybeRefOrGetter<boolean>;
+  hidden?: MaybeRefOrComputedRef<boolean>;
   /**
    * @description 字段是否禁用；字段级取值优先，未显式指定时继承上层（表单或宿主 Provider）的禁用上下文。
    */
