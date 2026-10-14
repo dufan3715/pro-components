@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { defineComponent, h, ref, toRaw } from 'vue';
 import type { TableProps } from '../src/shared/ui';
+import type { Column } from '../src/components/table/types';
+import { tableProps as hostTableProps } from '../src/shared/ui';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
@@ -92,6 +94,79 @@ describe('ProTable 组件测试', () => {
     await flushPromises();
     expect(wrapper2.findComponent(Pagination).exists()).toBe(false);
     wrapper2.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A31 [判别]: 分页正向渲染与来源优先级（显式绑定 > Provider 全局配置）
+  // ----------------------------------------------------
+  it('PT-A31 [判别]: 显式绑定的分页配置覆盖 Provider 注入的同名键', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+    });
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': {
+            pagination: { current: 3, pageSize: 20, showQuickJumper: true },
+          },
+        },
+      },
+      slots: {
+        default: () =>
+          h(ProTable, {
+            table,
+            pagination: { current: 1, pageSize: 20, total: 42 },
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 正向对照：分页确实渲染
+    const pagination = wrapper.findComponent(Pagination);
+    expect(pagination.exists()).toBe(true);
+
+    // 有效分页以显式绑定为准，Provider 的同名键不覆盖
+    const tableProps = wrapper
+      .findComponent({ name: 'ATable' })
+      .props('pagination') as any;
+    expect(tableProps.current).toBe(1);
+    expect(tableProps.total).toBe(42);
+    expect(tableProps.pageSize).toBe(20);
+
+    // 宿主渲染结果与有效分页一致：显示当前第 1 页而非 Provider 的第 3 页
+    expect(pagination.props('current')).toBe(1);
+    expect(wrapper.find('.ant-pagination-item-active').text()).toBe('1');
+
+    // Provider 未与显式绑定同名的键（showQuickJumper）仍作为基础配置生效
+    expect(tableProps.showQuickJumper).toBe(true);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A32 [判别]: 分页对象形态下 table.pageParam 与显式绑定的合并顺序
+  // ----------------------------------------------------
+  it('PT-A32 [判别]: 分页对象形态与 table.pageParam 合并后按显式绑定取值', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+    });
+    table.setPageParam({ current: 2, pageSize: 10, total: 7 });
+    const { wrapper } = mountProTable({
+      table,
+      props: { pagination: { pageSize: 50 } },
+    });
+    await flushPromises();
+
+    const paginationProps = wrapper
+      .findComponent({ name: 'ATable' })
+      .props('pagination') as any;
+    // pageParam 提供 current/total，显式绑定覆盖 pageSize
+    expect(paginationProps.current).toBe(2);
+    expect(paginationProps.total).toBe(7);
+    expect(paginationProps.pageSize).toBe(50);
+    wrapper.unmount();
   });
 
   // ----------------------------------------------------
@@ -656,10 +731,10 @@ describe('ProTable 组件测试', () => {
     );
     localWrapper.unmount();
 
-    // 编译期契约：loading 不在 componentVars.pro-table 的可配置面内
+    // 编译期契约：loading 不在 componentVars.pro-table 的可配置面内（由下面 @ts-expect-error 承担）
     // @ts-expect-error loading 已从 componentVars.pro-table 契约中移除
     const invalidVars: ComponentVars = { 'pro-table': { loading: true } };
-    expect(invalidVars).toBeTruthy();
+    expect(Object.keys(invalidVars)).toEqual(['pro-table']);
   });
 
   // ----------------------------------------------------
@@ -775,7 +850,7 @@ describe('ProTable 组件测试', () => {
         },
       ],
       dataSource: [{ a: 'A', b: 'B', c: 'C' }],
-    } as any);
+    });
 
     const wrapper = mount(ProTable, {
       props: { table, addIndexColumn: false },
@@ -1162,5 +1237,278 @@ describe('ProTable 组件测试', () => {
       onScroll: () => {},
     };
     expect(Object.keys(boundaryProps)).toEqual(['onScroll']);
+
+    // 运行期属性面判别：宿主已声明的 onChange 在集合内，未声明的 onScroll 不在集合内
+    const hostKeys = Object.keys(hostTableProps());
+    expect(hostKeys).toContain('onChange');
+    expect(hostKeys).not.toContain('onScroll');
+  });
+
+  // ----------------------------------------------------
+  // PT-A27 [判别]: Provider 注入的 columns / dataSource 不参与表格渲染（来源为 table 实例）
+  // 类型面判别由本节 `@ts-expect-error` 承担（vue-tsc 覆盖 __tests__）
+  // ----------------------------------------------------
+  it('PT-A27 [判别]: Provider 注入的 columns / dataSource 不生效，列与数据源取自 table 实例', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '实例列', key: 'name' }],
+      dataSource: [{ name: '实例数据' }],
+    });
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': {
+            columns: [
+              { dataIndex: 'injected', title: '注入列', key: 'injected' },
+            ],
+            dataSource: [{ name: '注入数据' }],
+          },
+        } as any,
+      },
+      slots: { default: () => h(ProTable, { table, addIndexColumn: false }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 列与数据源均取自 table 实例，注入值既不渲染也不落为宿主表格元素属性
+    expect(wrapper.text()).toContain('实例列');
+    expect(wrapper.text()).toContain('实例数据');
+    expect(wrapper.text()).not.toContain('注入列');
+    expect(wrapper.text()).not.toContain('注入数据');
+
+    const hostTable = wrapper.findComponent({ name: 'ATable' });
+    expect(
+      hostTable.props('columns').map((column: any) => column.title)
+    ).toEqual(['实例列']);
+    expect(hostTable.props('dataSource')).toEqual([{ name: '实例数据' }]);
+    const hostElement = hostTable.element as HTMLElement;
+    expect(hostElement.getAttribute('columns')).toBeNull();
+    expect(hostElement.getAttribute('data-source')).toBeNull();
+    wrapper.unmount();
+
+    // 类型面契约：注入面不含 columns / dataSource
+    const providerVars: ComponentVars = {
+      'pro-table': {
+        size: 'small',
+        // @ts-expect-error columns 不参与 ProTable 全局注入
+        columns: [{ dataIndex: 'injected' }],
+        dataSource: [],
+      },
+    };
+    // 运行期仍可携带被类型面排除的键，故以键集合对照锁定类型面收口
+    expect(Object.keys(providerVars['pro-table'] ?? {})).toEqual([
+      'size',
+      'columns',
+      'dataSource',
+    ]);
+  });
+
+  // ----------------------------------------------------
+  // PT-A28 [判别]: table 插槽作用域 size 与表格实际使用的尺寸一致
+  // ----------------------------------------------------
+  it('PT-A28 [判别]: table 插槽作用域 size 下发有效值（Provider 注入值优先于本地未绑定）', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '甲' }],
+    });
+    const slotScope: Record<string, any> = {};
+    const tableSlot = (scope: any) => {
+      Object.assign(slotScope, scope);
+      return h('div', { class: 'scope-marker' });
+    };
+
+    const injected = mount(ProComponentProvider, {
+      props: { componentVars: { 'pro-table': { size: 'small' } } },
+      slots: {
+        default: () =>
+          h(ProTable, { table, addIndexColumn: false }, { table: tableSlot }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(slotScope.size).toBe('small');
+    injected.unmount();
+
+    // 显式绑定 size 时插槽收到本地绑定值
+    const local = mount(ProTable, {
+      props: { table, size: 'large', addIndexColumn: false },
+      slots: { table: tableSlot },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(slotScope.size).toBe('large');
+    local.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A29 [判别]: searchFormConfig 的 container / hidden 由 ProTable 消费，不下发 SearchForm 与原生 form
+  // ----------------------------------------------------
+  it('PT-A29 [判别]: searchFormConfig 的 container / hidden 不下发 SearchForm 与原生 form', async () => {
+    const CustomContainer = defineComponent({
+      name: 'PTA29Container',
+      setup(_, { slots }) {
+        return () =>
+          h('section', { class: 'pta29-container' }, slots.default?.());
+      },
+    });
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        searchFormConfig: { container: CustomContainer as any, hidden: false },
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 自定义容器确实参与渲染
+    expect(wrapper.find('.pta29-container').exists()).toBe(true);
+
+    // container / hidden 不透传给 SearchForm，也不落为原生 form 属性
+    const searchForm = wrapper.findComponent({ name: 'SearchForm' });
+    expect(searchForm.exists()).toBe(true);
+    const searchFormProps = searchForm.props() as Record<string, any>;
+    expect('container' in searchFormProps).toBe(false);
+    expect('hidden' in searchFormProps).toBe(false);
+    const formElement = wrapper.find('form');
+    expect(formElement.exists()).toBe(true);
+    expect(formElement.attributes('container')).toBeUndefined();
+    expect(formElement.attributes('hidden')).toBeUndefined();
+    wrapper.unmount();
+
+    // hidden: true 仍隐藏搜索区域（显隐语义由 ProTable 自身承担）
+    const hiddenWrapper = mount(ProTable, {
+      props: {
+        table,
+        searchFormConfig: { hidden: true },
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(hiddenWrapper.find('.pro-table_search-form').exists()).toBe(false);
+    hiddenWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A30 [判别]: 列 hidden 的 Ref 形态经 ColumnControl 勾选后仍与外部 ref 保持绑定
+  // ----------------------------------------------------
+  it('PT-A30 [判别]: hidden 为 Ref 的列经列控制勾选后仍与外部 ref 保持绑定', async () => {
+    const hiddenRef = ref(false);
+    const table = useTable({
+      columns: [
+        { dataIndex: 'name', title: '姓名', hidden: hiddenRef },
+        { dataIndex: 'age', title: '年龄' },
+      ],
+      dataSource: [{ name: '甲', age: 18 }],
+    });
+    const wrapper = mount(ProTable, {
+      props: { table, control: { columnControl: true } },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 勾选控件读到的初始态来自 ref
+    expect(wrapper.find('.pro-table_header_column-control').exists()).toBe(
+      true
+    );
+    const rawColumn = toRaw(table.columns.value[0]);
+    expect(rawColumn.hidden).toBe(hiddenRef);
+
+    // 经 ColumnControl 反选该列：写回值应落到外部 ref，而非覆盖 ref 本身
+    table.setColumn('name', { hidden: true });
+    await flushPromises();
+    expect(hiddenRef.value).toBe(true);
+    expect(toRaw(table.columns.value[0]).hidden).toBe(hiddenRef);
+    expect(wrapper.findAll('thead th').map(th => th.text())).not.toContain(
+      '姓名'
+    );
+
+    // 外部 ref 仍是唯一来源：改回 false 后列重新渲染
+    hiddenRef.value = false;
+    await flushPromises();
+    expect(wrapper.findAll('thead th').map(th => th.text())).toContain('姓名');
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // PT-A35 [判别]: 分组列 children 在类型面可直接构造（无需断言）并参与递归过滤
+  // ----------------------------------------------------
+  it('PT-A35 [判别]: 分组列 children 经公开类型直接构造，嵌套子列 hidden 递归生效', async () => {
+    const hiddenRef = ref(false);
+    // 类型面：分组列与嵌套分组均无需 as any
+    const columns: Column[] = [
+      {
+        title: '分组',
+        children: [
+          { dataIndex: 'name', title: '姓名', hidden: hiddenRef },
+          {
+            title: '嵌套',
+            children: [{ dataIndex: 'age', title: '年龄' }],
+          },
+        ],
+      },
+    ];
+    const table = useTable({ columns, dataSource: [{ name: '甲', age: 18 }] });
+
+    const { wrapper } = mountProTable({
+      table,
+      props: { addIndexColumn: false },
+    });
+    await flushPromises();
+
+    const headers = () => wrapper.findAll('thead th').map(th => th.text());
+    expect(headers()).toContain('姓名');
+    expect(headers()).toContain('年龄');
+
+    // 外部 ref 翻转驱动分组内子列显隐
+    hiddenRef.value = true;
+    await flushPromises();
+    expect(headers()).not.toContain('姓名');
+    expect(headers()).toContain('年龄');
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // PT-A36 [判别]: 下发宿主的属性面只放行调用方的 v-model 通道，声明模型的回写通道不外泄
+  // ----------------------------------------------------
+  it('PT-A36 [判别]: forwardedTableAttrs 仅含调用方 v-model 通道，声明模型的回写通道不外泄', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+    });
+    const size = ref<any>('small');
+    const expandedKeys = ref<any[]>([]);
+    const Parent = defineComponent({
+      components: { ProTable },
+      setup: () => ({ table, size, expandedKeys }),
+      template: `
+        <ProTable :table="table" v-model:size="size" v-model:expanded-row-keys="expandedKeys" />
+      `,
+    });
+    const wrapper = mount(Parent, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    const forwarded = (wrapper.findComponent(ProTable as any).vm as any)
+      .forwardedTableAttrs;
+    const updateKeys = Object.keys(forwarded)
+      .filter(key => key.startsWith('onUpdate:'))
+      .sort();
+
+    // 调用方的 v-model 通道必须转交宿主表格（否则宿主 emit 无人接收，v-model 静默失效）
+    expect(updateKeys).toContain('onUpdate:expandedRowKeys');
+    // 声明模型（size / loading）的回写通道不进入 attrs，故不会随透传下发
+    expect(
+      Object.keys((wrapper.findComponent(ProTable as any).vm as any).$attrs)
+    ).not.toContain('onUpdate:size');
+    expect(updateKeys).not.toContain('onUpdate:size');
+    expect(updateKeys).not.toContain('onUpdate:loading');
+    // 宿主表格收不到这两个通道
+    const hostAttrs = Object.keys(
+      (wrapper.findComponent({ name: 'ATable' }).vm as any).$attrs
+    );
+    expect(hostAttrs).not.toContain('onUpdate:size');
+    expect(hostAttrs).not.toContain('onUpdate:loading');
+    wrapper.unmount();
   });
 });

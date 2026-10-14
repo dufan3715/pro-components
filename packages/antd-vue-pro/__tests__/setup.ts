@@ -171,6 +171,11 @@ console.error = (...args: any[]) => {
 afterEach(() => {
   activeResizeObservers.clear();
   activeIntersectionObservers.clear();
+  /*
+   * 兜底清理挂载到真实文档树的用例：断言中途失败时组件与残留节点不再串到后续用例
+   * （本文件所在环境的 DOM 为每个测试文件独立，可安全整体清空）
+   */
+  document.body.innerHTML = '';
   const pending = unexpectedWarnings.splice(0);
   if (pending.length > 0) {
     throw new Error(

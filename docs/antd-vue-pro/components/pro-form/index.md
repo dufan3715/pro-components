@@ -185,7 +185,7 @@ const form = useForm({ user: { first: '', last: '' } }, [
 - 同名插槽优先于 `component` 渲染
 - `modelProp` 默认 `value`
 - `valueFormatter` 在值回写前执行
-- `slots` 中 `label/extra/help/tooltip` 归属 `FormItem`，其余归属组件
+- `slots` 中 `label/extra/help/tooltip` 归属 `FormItem`，其余归属组件；`label` 插槽与字段 `label` 同时存在时由插槽渲染
 
 ## Types
 

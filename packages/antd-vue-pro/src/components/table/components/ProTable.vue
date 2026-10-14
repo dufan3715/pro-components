@@ -134,9 +134,21 @@ const config = INJECT_CONFIG['pro-table'];
 const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
-const injectAttrs = computed<TableProps>(
-  () => pick(injectProps.value, tableProperties) as TableProps
-);
+/*
+ * 表格级键由各自来源收口：columns / dataSource 取自组件绑定或 `:table` 实例，Provider 注入不参与透传；
+ * pagination 由 computedPagination 统一求优先级，Provider 值经 injectAttrs 兜底
+ */
+const TABLE_LEVEL_PROP_KEYS = new Set(['columns', 'dataSource']);
+
+const injectAttrs = computed<TableProps>(() => {
+  const config: Record<string, any> = {};
+  for (const [key, value] of Object.entries(injectProps.value)) {
+    if (!TABLE_LEVEL_PROP_KEYS.has(key)) {
+      config[key] = value;
+    }
+  }
+  return pick(config, tableProperties) as TableProps;
+});
 
 const computedSearchFormConfig = computed(() => {
   const container =
@@ -150,10 +162,17 @@ const computedSearchFormConfig = computed(() => {
   };
 });
 
-const attrs: Record<string, any> = useAttrs();
-const tableAttrs = computed<TableProps>(() => {
-  return pick(camelizeProperties(attrs), tableProperties) as TableProps;
+/** SearchForm 属性面：容器与显隐由 ProTable 自身消费，不下发 SearchForm */
+const searchFormProps = computed(() => {
+  const {
+    container: _container,
+    hidden: _hidden,
+    ...rest
+  } = computedSearchFormConfig.value;
+  return rest;
 });
+
+const attrs: Record<string, any> = useAttrs();
 
 const size = defineModel<TableProps['size']>('size');
 const loading = defineModel<boolean>('loading', { default: false });
@@ -262,27 +281,53 @@ const searchPage1st = () => {
 
 const instance = getCurrentInstance();
 
-/** 调用方是否显式绑定该 prop（含 v-model 写法） */
+/** 调用方是否显式绑定该 prop（含 kebab-case 与 v-model 写法） */
 const isBoundProp = (name: string) => {
   const vnodeProps = instance?.vnode.props || {};
-  return name in vnodeProps || `onUpdate:${name}` in vnodeProps;
+  const kebab = name.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`);
+  return (
+    name in vnodeProps ||
+    kebab in vnodeProps ||
+    `onUpdate:${name}` in vnodeProps
+  );
 };
 
-const computedTableProps = computed<TableProps>(() => {
+/*
+ * 组件自有键取值：`Props` 中声明的键取 prop，其余宿主键取 attrs；
+ * 均以调用方显式绑定为唯一来源，未绑定时不取值（留给 Provider 注入兜底）
+ */
+const resolveOwnedProp = (name: string) =>
+  isBoundProp(name)
+    ? ((props as Record<string, any>)[name] ?? attrs[name])
+    : undefined;
+
+/*
+ * 表格尺寸单一来源：显式绑定 > SizeControl 回写 > Provider 注入；
+ * 本地模型已写入时即视为已选定，未绑定的 Provider 注入不再回压
+ */
+const effectiveSize = computed<TableProps['size']>(() => {
+  return isBoundProp('size') || size.value !== undefined
+    ? size.value
+    : injectAttrs.value.size;
+});
+
+/*
+ * 下发给宿主表格的属性：Provider 注入为底，调用方绑定与 v-model 透传值覆盖同键。
+ * size / loading 为声明模型，其 onUpdate:* 回写通道不进入 attrs，无需另行剔除
+ */
+const forwardedTableAttrs = computed<TableProps>(() => {
   const merged = {
     ...injectAttrs.value,
-    ...tableAttrs.value,
-    // loading 由组件自身状态驱动，不从注入与散落 attrs 取值
-    loading: undefined,
-    pagination: undefined,
-    onChange: undefined,
-  } as TableProps;
-  // 始终读取本地模型以建立依赖；本地显式绑定或已由 SizeControl 写入时覆盖注入值
-  const localSize = size.value;
-  if (isBoundProp('size') || localSize !== undefined) {
-    merged.size = localSize;
+    ...pick(camelizeProperties(attrs), tableProperties),
+  } as Record<string, any>;
+  // onChange 由模板监听器收口，散落 attrs 中的同名监听器并入会形成重复回调
+  delete merged.onChange;
+  for (const key of TABLE_LEVEL_PROP_KEYS) {
+    delete merged[key];
   }
-  return merged;
+  merged.size = effectiveSize.value;
+  merged.loading = undefined;
+  return merged as TableProps;
 });
 
 const computedTableContainer = computed(() => {
@@ -320,8 +365,9 @@ const indexColumn = computed<ColumnType>(() => ({
   customRender: ({ index }) => getIndex(index),
 }));
 
+// 列来源优先级：显式绑定 > table 实例（useTable 创建的 columns）
 const computedColumns = computed<Columns<RecordType>>(() => {
-  const cols = (tableAttrs.value.columns ??
+  const cols = (resolveOwnedProp('columns') ??
     toValue(props.table?.columns) ??
     []) as any;
   const needIndex = props.addIndexColumn ?? injectProps.value.addIndexColumn;
@@ -359,14 +405,24 @@ const visibleComputedColumns = computed(() => {
   return filterVisibleColumns(computedColumns.value).list;
 });
 
+// 数据源优先级：显式绑定 > table 实例（useTable 创建的 dataSource）
 const computedDataSource = computed<RecordType[]>(() => {
-  return tableAttrs.value.dataSource ?? toValue(props.table?.dataSource) ?? [];
+  return (
+    resolveOwnedProp('dataSource') ?? toValue(props.table?.dataSource) ?? []
+  );
 });
 
-// 分页优先级：tableAttrs 显式配置 > provider 全局配置 > 默认合成
+/*
+ * 分页优先级：显式绑定 > provider 全局配置 > 默认合成；
+ * provider 作为基础配置与 table.pageParam 合并，显式绑定的对象形态在其之上覆盖
+ */
 const computedPagination = computed<PaginationProps | false>(() => {
-  if (tableAttrs.value.pagination === false) return false;
-  if (isPlainObject(tableAttrs.value.pagination)) {
+  const attrsPagination = resolveOwnedProp('pagination') as
+    | PaginationProps
+    | false
+    | undefined;
+  if (attrsPagination === false) return false;
+  if (isPlainObject(attrsPagination)) {
     const globalPagination =
       injectAttrs.value.pagination === false
         ? {}
@@ -374,9 +430,9 @@ const computedPagination = computed<PaginationProps | false>(() => {
     return {
       ...globalPagination,
       ...props.table?.pageParam,
-      ...tableAttrs.value.pagination,
+      ...attrsPagination,
       showTotal:
-        tableAttrs.value.pagination?.showTotal ??
+        attrsPagination?.showTotal ??
         globalPagination?.showTotal ??
         ((total: number) => t('pagination.total', { total })),
     };
@@ -457,7 +513,7 @@ defineExpose({
         <SearchForm
           v-if="props.table?.searchForm"
           :form="props.table.searchForm"
-          v-bind="computedSearchFormConfig"
+          v-bind="searchFormProps"
           @search="searchPage1st"
           @reset="reset"
         />
@@ -476,7 +532,7 @@ defineExpose({
           v-if="computedControl.sizeControl"
           class="pro-table_header_size-control"
         >
-          <SizeControl v-model:size="size" />
+          <SizeControl v-model:size="size" :effective-size="effectiveSize" />
         </div>
         <div
           v-if="computedControl.columnControl"
@@ -497,13 +553,13 @@ defineExpose({
           dataSource: computedDataSource,
           pagination: computedPagination,
           loading: loading,
-          size: size,
+          size: effectiveSize,
           onChange: onTableChange,
         }"
       >
         <ATable
           class="pro-table_content"
-          v-bind="computedTableProps"
+          v-bind="forwardedTableAttrs"
           :loading="loading"
           :columns="visibleComputedColumns"
           :data-source="computedDataSource"

@@ -5,6 +5,7 @@ import SizeControl from '../src/components/table/components/SizeControl.vue';
 import ColumnControl from '../src/components/table/components/ColumnControl.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
+import ProTable from '../src/components/table/components/ProTable.vue';
 import { useTable } from '../src/components/table/hooks/useTable';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
@@ -391,5 +392,74 @@ describe('控制组件与全局 Provider 测试', () => {
     expect(setColumnCalls).toEqual([]);
 
     wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // SC-A14 [判别]: 高亮项与表格实际使用的尺寸一致（Provider 注入 / 显式绑定）
+  // ----------------------------------------------------
+  it('SC-A14 [判别]: 高亮项等于表格有效尺寸，Provider 注入不被本地未绑定拉回默认，回写优先于注入', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+    });
+
+    // ① Provider 注入 size：高亮项应跟随注入值（本地 model 未绑定）
+    const injected = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': { size: 'small', control: { sizeControl: true } },
+        },
+      },
+      slots: { default: () => h(ProTable, { table }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    try {
+      const hostSize = injected.findComponent({ name: 'ATable' }).props('size');
+      const highlight = (injected.findComponent(SizeControl as any).vm as any)
+        .currentSize;
+      expect(hostSize).toBe('small');
+      expect(highlight).toBe(hostSize);
+    } finally {
+      injected.unmount();
+    }
+
+    // ② Provider 注入后用户经控件改尺寸：回写值优先于注入值，表格与高亮同步跟随
+    const clicked = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': { size: 'small', control: { sizeControl: true } },
+        },
+      },
+      slots: { default: () => h(ProTable, { table }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    try {
+      const sizeControl = clicked.findComponent(SizeControl as any);
+      (sizeControl.vm as any).size = 'middle';
+      await flushPromises();
+      expect(clicked.findComponent({ name: 'ATable' }).props('size')).toBe(
+        'middle'
+      );
+      expect((sizeControl.vm as any).currentSize).toBe('middle');
+    } finally {
+      clicked.unmount();
+    }
+
+    // ③ 显式绑定 size：高亮项跟随显式值
+    const explicit = mount(ProTable as any, {
+      props: { table, size: 'middle', control: { sizeControl: true } },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    try {
+      const hostSize = explicit.findComponent({ name: 'ATable' }).props('size');
+      const highlight = (explicit.findComponent(SizeControl as any).vm as any)
+        .currentSize;
+      expect(hostSize).toBe('middle');
+      expect(highlight).toBe(hostSize);
+    } finally {
+      explicit.unmount();
+    }
   });
 });

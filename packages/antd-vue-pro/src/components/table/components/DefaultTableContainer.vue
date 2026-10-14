@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+/**
+ * @component DefaultTableContainer
+ * @description 表格区域默认包裹容器，提供统一的背景色与内边距
+ */
 import { theme } from '../../../shared/ui';
 const { token } = theme.useToken();
 </script>

@@ -21,10 +21,21 @@ const sources = {
   ),
   baseField: read('../src/components/form/components/BaseField/index.vue'),
   searchForm: read('../src/components/table/components/SearchForm.vue'),
+  useFields: read('../src/components/form/hooks/useFields.ts'),
   proTable: read('../src/components/table/components/ProTable.vue'),
 };
 const proFormDoc = read(
   '../../../docs/antd-vue-pro/components/pro-form/index.md'
+);
+const proTableDoc = read(
+  '../../../docs/antd-vue-pro/components/pro-table/index.md'
+);
+const readme = read('../README.md');
+const aiContext = read('../AI-CONTEXT.md');
+const tableTypes = read('../src/components/table/types/index.ts');
+const formTypes = read('../src/components/form/types/index.ts');
+const providerTypes = read(
+  '../src/components/component-provider/types/index.ts'
 );
 
 describe('注释规范契约 · antd-vue-pro', () => {
@@ -76,5 +87,62 @@ describe('注释规范契约 · antd-vue-pro', () => {
       '@param {Form} form - 搜索表单实例，由 table.searchForm 提供'
     );
     expect(sources.searchForm).toContain('@slot expand-button -');
+  });
+
+  // ----------------------------------------------------
+  // DOC-04 [判别]: 列 hidden 的响应式口径在类型面与文档面同句（Ref / ComputedRef，不含 getter）
+  // ----------------------------------------------------
+  it('DOC-04 [判别]: 列 hidden 的类型面与文档面口径一致', () => {
+    expect(tableTypes).toContain('hidden?: MaybeRefOrComputedRef<boolean>');
+    expect(tableTypes).toContain('支持布尔、Ref 与 ComputedRef 形式');
+    expect(proTableDoc).toContain('boolean` / `Ref` / `ComputedRef');
+    expect(proTableDoc).not.toContain('`Ref` / getter');
+    expect(readme).toContain(
+      '`boolean \\| Ref<boolean> \\| ComputedRef<boolean>`'
+    );
+    expect(readme).not.toContain('| `boolean`            | `false` |');
+    expect(aiContext).toContain('支持 `boolean` / `Ref` / `ComputedRef`');
+  });
+
+  // ----------------------------------------------------
+  // DOC-05 [判别]: Provider 注入面边界（columns / dataSource / loading 不可注入）在类型与文档同句
+  // ----------------------------------------------------
+  it('DOC-05 [判别]: ProTable 注入面边界在类型面与文档面同步', () => {
+    expect(providerTypes).toContain(
+      "Omit<TableProps, 'loading' | 'columns' | 'dataSource'>"
+    );
+    expect(providerTypes).toContain('不参与全局注入');
+    expect(aiContext).toContain(
+      '`columns` / `dataSource` / `loading` 不可经 `componentVars'
+    );
+    expect(readme).toContain('不参与 `componentVars` 注入');
+    expect(proTableDoc).toContain('不参与注入');
+  });
+
+  // ----------------------------------------------------
+  // DOC-06 [判别]: useFormData 的兜底 store 边界在 README 与 AI 上下文同步声明
+  // ----------------------------------------------------
+  it('DOC-06 [判别]: useFormData 取值边界在 README 与 AI 上下文中同句声明', () => {
+    expect(readme).toContain('**`useFormData()` 的取值边界**');
+    expect(readme).toContain('**不是同一对象**');
+    expect(aiContext).toContain('承接**内部兜底实例**的数据 store');
+    expect(aiContext).toContain('useForm(false)');
+  });
+
+  // ----------------------------------------------------
+  // DOC-07 [判别]: 字段标识口径（name > path）在类型面 JSDoc 声明
+  // ----------------------------------------------------
+  it('DOC-07 [判别]: 字段标识优先级在类型面 JSDoc 与 useFields JSDoc 同口径', () => {
+    // 类型面：字段配置入口处可读到标识口径
+    expect(formTypes).toContain('字段标识按 `name`、`path` 的顺序取首个非');
+    expect(formTypes).toContain('`name` 优先');
+    // 与 core 查找 API 共用同一解析结果
+    expect(formTypes).toContain('core 字段查找 API');
+    // hook 层保留同一行为陈述
+    expect(sources.useFields).toContain(
+      '字段标识按 `name`、`path` 的顺序取首个非 `null` / `undefined` 的值'
+    );
+    // 跨包差异已声明，避免与 element 的 prop 口径混用
+    expect(formTypes).toContain('element-plus-pro');
   });
 });

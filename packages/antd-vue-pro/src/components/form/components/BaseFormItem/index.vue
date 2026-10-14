@@ -53,7 +53,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const validFields = computed(() =>
-  // hidden 支持 Ref/ComputedRef/getter 等响应式形态（统一使用 toValue 取值）
+  // hidden 支持 Ref / ComputedRef 响应式形态（统一使用 toValue 取值）
   (props.fields ?? []).filter(
     field => isObjectItem(field) && !toValue((field as any).hidden)
   )

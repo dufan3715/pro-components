@@ -115,6 +115,8 @@ useForm(true | false)                          // 重载二：仅拿实例（roo
 | `form.deleteField` / `form.appendField` / `form.prependField` / `form.getParentField` | 字段增删查；均支持 `{all:true}`；`appendField(undefined, f)` 末尾追加、`prependField(undefined, f)` 开头插入，入参可为数组 |
 | `form.formRef`                                                                        | 底层 ant Form 实例引用（Ref），`formRef.value?.validate()` / `.resetFields()`                                              |
 
+> `useFormData()` 在 `ProForm` 子树内承接**内部兜底实例**的数据 store；`<ProForm :form="form">` 时与 `form.formData` 非同源，需同源请用 `useForm(false)` 或直接用传入实例。
+
 ### useTable -- 表格实例
 
 ```ts
@@ -166,13 +168,15 @@ useTable({ columns, dataSource, pageParam, searchParam, searchFields });
 
 关键 prop：`table`（useTable 实例）、`search`（数据查询方法 `() => Promise`，ProTable 内部调用，非自动触发）、`addIndexColumn`、`immediateSearch`、`control`、`searchFormConfig`（含 `hidden`/`container`/`layout`/`expand`）、`tableContainer`。
 
+Provider 注入面：`columns` / `dataSource` / `loading` 不可经 `componentVars['pro-table']` 配置（分别由 `:table` 实例与组件自身查询状态驱动）；`searchFormConfig` 的 `container` / `hidden` 由 ProTable 消费，不下发 `SearchForm`。
+
 **列控制（control）**：`control` 支持布尔值或 `{ sizeControl, columnControl }` 对象；`columnControl` 可为布尔值或 `ColumnControlConfig`：`labels`（列在下拉中的显示名映射，title 为 vnode 时必用）、`excludedKeys`（不在下拉出现、始终展示）、`disabledKeys`（显示但不可取消勾选）、`disableCheckAll`（禁用全选/取消全选）。列 key 取 `dataIndex` 路径或自定义 `key`。
 
 **数据流**：搜索->重置分页到第 1 页->调 `search()`；分页/排序变化->更新 `pageParam`->调 `search()`；重置->`resetQueryParams()`->调 `search()`。
 
 ### Column -- 列配置
 
-继承 ant-design-vue `ColumnType`，所有原生列属性可用。新增：`dataIndex`（列数据路径，主用，支持 `'name'` / `'address.city'` / `['address','city']`）、`key`（辅助标识，优先级更低）、`hidden`（隐藏该列，配合列控制）。
+继承 ant-design-vue `ColumnType`，所有原生列属性可用。新增：`dataIndex`（列数据路径，主用，支持 `'name'` / `'address.city'` / `['address','city']`）、`key`（辅助标识，优先级更低）、`hidden`（隐藏该列，配合列控制；支持 `boolean` / `Ref` / `ComputedRef`，分组列子列递归生效）。
 
 ## 反模式
 

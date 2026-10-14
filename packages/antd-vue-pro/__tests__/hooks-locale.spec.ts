@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { computed, defineComponent, h, ref } from 'vue';
+import { computed, defineComponent, h, provide, ref } from 'vue';
 import { mount } from '@vue/test-utils';
-import { useLocale } from '../src/locale';
+import { LOCALE_INJECT_KEY, useLocale } from '../src/locale';
+import { useFormData } from '../src/components/form/hooks';
+import { ConfigProvider as AConfigProvider } from 'ant-design-vue';
 import { useGroupFieldAttrs } from '../src/components/form/hooks/useGroupFieldAttrs';
 import { useFields } from '../src/components/form/hooks/useFields';
 import { useFormRef } from '../src/components/form/hooks/useFormRef';
@@ -221,5 +223,139 @@ describe('Hooks 与 Locale 基础能力测试', () => {
     expect((wrapper.find('input').element as HTMLInputElement).value).toBe('');
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // LC-03 [判别]: locale 跟随宿主 a-config-provider 切换（zh-CN / zh-TW / en-US）
+  // ----------------------------------------------------
+  it('LC-03 [判别]: 语言跟随宿主 ConfigProvider 切换，繁体判定优先于 zh 前缀', async () => {
+    const Probe = defineComponent({
+      setup() {
+        const { t, lang } = useLocale();
+        return () =>
+          h(
+            'span',
+            { class: 'lc03-probe' },
+            `${lang.value}|${t('table.query')}|${t('pagination.total', { total: 3 })}`
+          );
+      },
+    });
+
+    const wrapper = mount(Probe, {
+      global: {
+        provide: {},
+      },
+    });
+    // 未提供宿主 locale：回退 zh-CN
+    expect(wrapper.find('.lc03-probe').text()).toBe('zh-CN|查询|共 3 条');
+    wrapper.unmount();
+
+    // 宿主 ConfigProvider 指定 zh-TW / en-US 时逐级切换
+    const hostLocale = ref<any>({ locale: 'zh-TW' });
+    const Host = defineComponent({
+      setup() {
+        return () =>
+          h(
+            AConfigProvider,
+            { locale: hostLocale.value },
+            { default: () => h(Probe) }
+          );
+      },
+    });
+    const hostWrapper = mount(Host);
+    await flushPromises();
+    expect(hostWrapper.find('.lc03-probe').text()).toContain('zh-TW');
+
+    hostLocale.value = { locale: 'en-US' };
+    await flushPromises();
+    expect(hostWrapper.find('.lc03-probe').text()).toContain('en-US');
+
+    // zh-HK 归入繁体（zh-tw / zh-hk 判定须先于 zh 前缀判定）
+    hostLocale.value = { locale: 'zh-HK' };
+    await flushPromises();
+    expect(hostWrapper.find('.lc03-probe').text()).toContain('zh-TW');
+    hostWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // LC-04 [判别]: LOCALE_INJECT_KEY 注入的局部覆盖优先于语言包，且随 ref 响应式更新
+  // ----------------------------------------------------
+  it('LC-04 [判别]: LOCALE_INJECT_KEY 覆盖文案优先于语言包并响应式生效', async () => {
+    const override = ref<Record<string, string> | undefined>({
+      'table.query': '局部查询',
+    });
+    const Probe = defineComponent({
+      setup() {
+        const { t } = useLocale();
+        return () => h('span', { class: 'lc04-probe' }, t('table.query'));
+      },
+    });
+    const Host = defineComponent({
+      setup() {
+        provide(LOCALE_INJECT_KEY, override);
+        return () => h(Probe);
+      },
+    });
+
+    const wrapper = mount(Host);
+    expect(wrapper.find('.lc04-probe').text()).toBe('局部查询');
+
+    // 覆盖集合移除该键时回落到语言包
+    override.value = undefined;
+    await flushPromises();
+    expect(wrapper.find('.lc04-probe').text()).toBe('查询');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // HK-05 [判别]: 注入的表单代理路由到 :form 实例，useFormData() 取内部兜底 store
+  // ----------------------------------------------------
+  it('HK-05 [判别]: useForm(false) 路由到传入实例，useFormData() 取内部兜底 store', async () => {
+    const form = useForm({ name: '甲' }, [
+      { path: 'name', label: '姓名', component: 'input' },
+    ]);
+    let injectedForm: any;
+    let injectedStore: any;
+
+    const Probe = defineComponent({
+      setup() {
+        injectedForm = useForm(false) as any;
+        injectedStore = useFormData();
+        return () => h('span', { class: 'hk05-probe' });
+      },
+    });
+
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      slots: { default: () => h(Probe) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 注入代理按 currentForm 路由：useForm(false) 拿到的是传入实例本体
+    expect(injectedForm.formData).toBe(form.formData);
+    expect(injectedForm.getFormData('name')).toBe('甲');
+
+    // useFormData() 承接的是 ProForm 内部兜底实例的 store，与传入实例数据互不相通
+    expect(injectedStore.formData).not.toBe(form.formData);
+    expect(injectedStore.getFormData('name')).toBeUndefined();
+
+    // 兜底 store 的写入不穿透到传入实例，也不影响表单渲染
+    injectedStore.setFormData('name', '兜底');
+    await flushPromises();
+    expect(form.getFormData('name')).toBe('甲');
+    expect((wrapper.find('input').element as HTMLInputElement).value).toBe(
+      '甲'
+    );
+    wrapper.unmount();
+
+    // 未传 :form 时两条通路指向同一实例
+    const localWrapper = mount(ProForm as any, {
+      global: { stubs: { transition: false } },
+      slots: { default: () => h(Probe) },
+    });
+    await flushPromises();
+    expect(injectedStore.formData).toBe(injectedForm.formData);
+    localWrapper.unmount();
   });
 });

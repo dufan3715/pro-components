@@ -24,8 +24,10 @@ import type { FormItemInstance } from '../../../shared/ui';
 
 export type { FormInstance };
 
+/** 带 `path` 的组件属性：容器与插槽组件按该路径关联字段 */
 export type PathProps = { path?: string } & Data;
 
+/** `value` / `onUpdate:value` 形态的 v-model 属性 */
 export type VModelProps<T = any> = {
   value?: T;
   'onUpdate:value'?: (val: T) => void;
@@ -90,21 +92,30 @@ export type Slots = {
   [name: string]: SlotComponentType;
 };
 
+/** 选项项：`label` 展示文案与 `value` 取值，其余键透传控件 */
 export type Option = { label: string; value: any; [x: string]: any };
+/** 选项数组 */
 export type Options = Array<Option>;
 
+/** 表单栅格开关：`true` 启用默认栅格，或传 `GridProps` 自定义 */
 export type Grid = boolean | (GridProps & {});
 
+/** FormItem 自身的插槽集合（label / extra / help / tooltip 等） */
 export type FormItemSlots = ComponentSlots<typeof FormItem>;
 
 type BaseCommon<D extends Data = Data> = {
   /**
    * @description 字段标识namePath, 同name
+   *
+   * 字段标识按 `name`、`path` 的顺序取首个非 `null` / `undefined` 的值（`name` 优先），
+   * 结果经 `normalizePathKey` 归一化，供渲染标识与 core 字段查找 API（`getField` / `setField` 等）共用；
+   * `name` 仅参与标识解析，不落入控件属性透传。与 `element-plus-pro` 口径不同（该包宿主标识键为 `prop`，`name` 仅透传控件）。
+   *
    * @example 'name' | 'age' | 'sex' | ...
    */
   path?: Path<D>;
   /**
-   * @description 字段是否隐藏；支持布尔、Ref 与 getter 形式，渲染期统一按 `toValue` 取值。
+   * @description 字段是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期统一按 `toValue` 取值。
    * 嵌套字段的 `path` 使用各自独立的完整路径（不与父级路径拼接），重复路径需自行保证唯一。
    */
   hidden?: boolean;

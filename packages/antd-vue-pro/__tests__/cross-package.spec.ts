@@ -2,7 +2,7 @@
  * 跨包行为一致性回归用例 —— 覆盖四包同构行为点，防移植漂移
  * 四个 UI 包使用同名规格文件；本文件覆盖 antd-vue-pro 的适用子集。
  */
-import { describe, expect, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { defineComponent, h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import { flushPromises, mountProTable } from './helpers/mount';
@@ -14,10 +14,6 @@ import SearchForm from '../src/components/table/components/SearchForm.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 
 import { INJECT_CONFIG } from '../src/components/component-provider/constants';
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
 
 describe('跨包一致性 · antd-vue-pro', () => {
   it('5.4 input-number 默认配置 min/max 保持对称', () => {

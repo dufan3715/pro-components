@@ -56,6 +56,7 @@ export { formItemProps } from 'ant-design-vue/es/form';
 export { type NamePath } from 'ant-design-vue/es/form/interface';
 export { type MenuItemType } from 'ant-design-vue/es/menu/src/interface';
 
+/** 宿主 Form 属性面；`scrollToFirstError` 放宽为布尔或滚动配置对象 */
 export type FormProps = Omit<_FormProps, 'scrollToFirstError'> & {
   scrollToFirstError?: boolean | Options<any>;
 };

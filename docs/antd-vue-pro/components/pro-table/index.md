@@ -91,11 +91,12 @@ const search = async () => {
 
 `Column` 基于 Ant Design Vue `ColumnType` 扩展而来，常用字段如下：
 
-| 字段        | 说明                                                              |
-| ----------- | ----------------------------------------------------------------- |
-| `dataIndex` | 列字段，支持路径数组                                              |
-| `key`       | 列标识，默认由 `dataIndex` 推导                                   |
-| `hidden`    | 是否隐藏该列（支持 `boolean` / `Ref` / getter，分组子列递归生效） |
+| 字段        | 说明                                                                     |
+| ----------- | ------------------------------------------------------------------------ |
+| `dataIndex` | 列字段，支持路径数组                                                     |
+| `key`       | 列标识，默认由 `dataIndex` 推导                                          |
+| `hidden`    | 是否隐藏该列（支持 `boolean` / `Ref` / `ComputedRef`，分组子列递归生效） |
+| `children`  | 分组子列，提供时该列作为分组表头渲染，子列沿用同一配置类型               |
 
 其余字段均继承 Ant Design Vue `ColumnType`。
 
@@ -155,14 +156,14 @@ const table = useTable<Row>({
 库本身不负责存储，使用方可通过 `table.columns` 与 `table.setColumn` 自行实现持久化（如按用户保存到数据库）：
 
 ```ts
-// 保存：监听列 hidden 变化
+// 保存：监听列 hidden 变化（hidden 为 Ref / ComputedRef 时按 toValue 取值）
 watch(
-  () => table.columns.value.map(c => c.hidden),
+  () => table.columns.value.map(c => toValue(c.hidden)),
   () => {
     const state: Record<string, { hidden?: boolean }> = {};
     table.columns.value.forEach(column => {
       const key = column.key ?? column.dataIndex;
-      if (key) state[String(key)] = { hidden: !!column.hidden };
+      if (key) state[String(key)] = { hidden: !!toValue(column.hidden) };
     });
     api.saveUserColumnState(state); // 后端按 userId 存储
   },
@@ -263,4 +264,4 @@ Object.entries(state).forEach(([key, { hidden }]) => {
 
 - 搜索表单复用 `Field` 配置，复杂联动请参考 ProForm 的字段策略
 - 使用 `control` 开启列控制与尺寸切换
-- 如果需要统一默认配置，可使用 `ProComponentProvider` 注入 `pro-table`
+- 如果需要统一默认配置，可使用 `ProComponentProvider` 注入 `pro-table`；`columns` / `dataSource` / `loading` 不参与注入，分别由 `:table` 实例与组件自身查询状态驱动

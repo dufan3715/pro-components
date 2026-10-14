@@ -44,9 +44,13 @@ type FP<T extends Record<string, any>> = Partial<
  * ```
  */
 export type RequiredComponentVars = {
-  /** ProTable 全局默认属性 */
+  /**
+   * ProTable 全局默认属性
+   *
+   * @description `columns` / `dataSource` / `loading` 不参与全局注入：三者分别由 `:table` 实例（`useTable`）与组件自身查询状态驱动。
+   */
   'pro-table': PP<
-    Omit<TableProps, 'loading'> &
+    Omit<TableProps, 'loading' | 'columns' | 'dataSource'> &
       Pick<
         ProTableProps,
         | 'control'

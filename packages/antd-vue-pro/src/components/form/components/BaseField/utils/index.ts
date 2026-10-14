@@ -28,6 +28,17 @@ const getPlaceholderProps = (
   return { placeholder: t(placeholderKey) };
 };
 
+/**
+ * 解析字段的 Provider 默认属性
+ *
+ * @description 仅字符串组件名取注入值（含 `date-picker` 子类型段）；组件对象无注入配置，返回空对象。
+ * `date-picker` 不拼接 `picker` 段，其子类型预设由注入 key 在 BaseField 内单独解析
+ *
+ * @param field - 字段配置项
+ * @param injectProps - 该组件名对应的 Provider 注入默认值
+ * @param t - 翻译函数，用于兜底占位符文案
+ * @returns 合并占位符兜底后的初始属性
+ */
 export const getInitProps = (
   field: Field,
   injectProps: Record<string, any> = {},
@@ -45,6 +56,13 @@ export const getInitProps = (
 /** 已告警过的未知组件名（模块级去重集合） */
 const warnedUnknownComponents = new Set<string>();
 
+/**
+ * 输出未识别组件名的告警
+ *
+ * @description 按组件名去重，同一名称仅告警一次
+ *
+ * @param name - 未识别的组件名
+ */
 export function warnUnknownComponent(name: string) {
   if (warnedUnknownComponents.has(name)) return;
   warnedUnknownComponents.add(name);

@@ -509,8 +509,9 @@ describe('BaseFormItem 组件测试', () => {
         .element.closest('.ant-col') as HTMLElement;
 
     // 显式 span 6：整体接管栅格，注入的断点类不出现
+    expect(wrapper.find('[path="explicit"]').exists()).toBe(true);
     const explicitCol = colOf('explicit');
-    expect(explicitCol).toBeTruthy();
+    expect(explicitCol).toBeInstanceOf(HTMLElement);
     expect(explicitCol.className).toContain('ant-col-6');
     expect(explicitCol.className).not.toContain('ant-col-xs-24');
     expect(explicitCol.className).not.toContain('ant-col-sm-12');
@@ -520,6 +521,48 @@ describe('BaseFormItem 组件测试', () => {
     expect(injectedCol.className).toContain('ant-col-xs-24');
     expect(injectedCol.className).toContain('ant-col-sm-12');
 
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A22 [判别]: label 同时来自字段属性与 slots 时 slot 胜出
+  // ----------------------------------------------------
+  it('BI-A22 [判别]: label 同时来自字段属性与 slots 时 slot 胜出', async () => {
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '属性标签',
+        component: 'input',
+        slots: { label: () => h('span', { class: 'slot-label' }, '插槽标签') },
+      },
+    ] as any);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('.slot-label').text()).toBe('插槽标签');
+    expect(wrapper.find('.ant-form-item-label').text()).not.toContain(
+      '属性标签'
+    );
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A23 [判别]: 仅字段 label 时按属性渲染（无 label 插槽时不丢失标签）
+  // ----------------------------------------------------
+  it('BI-A23 [判别]: 仅配置字段 label 时标签正常渲染', async () => {
+    const form = useForm({ name: '' }, [
+      { path: 'name', label: '属性标签', component: 'input' },
+    ] as any);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('.ant-form-item-label').text()).toContain('属性标签');
     wrapper.unmount();
   });
 });
