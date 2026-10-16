@@ -21,17 +21,26 @@ type _FormProps = Pick<
 type ButtonProps = { onClick: () => void };
 type ExpandButtonProps = ButtonProps & { expandStatus: boolean };
 
+/** ProTable 搜索表单的属性面：表单实例、布局、展开与按钮自定义 */
 export type SearchFormProps = {
+  /** 搜索表单实例，由 table.searchForm 提供 */
   form: Form;
+  /** 布局形态，默认 'grid' */
   layout?: 'grid' | 'inline';
+  /** 展开配置，默认 true */
   expand?: boolean | Expand;
+  /** 自定义搜索按钮，false 时不渲染 */
   searchButton?: Component<ButtonProps> | DefineComponent<ButtonProps> | false;
+  /** 自定义重置按钮，false 时不渲染 */
   resetButton?: Component<ButtonProps> | DefineComponent<ButtonProps> | false;
+  /** 自定义展开/折叠按钮，false 时不渲染 */
   expandButton?:
     | Component<ExpandButtonProps>
     | DefineComponent<ExpandButtonProps>
     | false;
+  /** 行间距，默认 16 */
   rowGap?: number;
+  /** 列间距，默认 24 */
   columnGap?: number;
 } & /* @vue-ignore */ _FormProps &
   AllowedComponentProps;
@@ -39,8 +48,9 @@ export type SearchFormProps = {
 
 <script lang="ts" setup>
 /**
+ * ProTable 的搜索表单子组件
+ *
  * @component SearchForm
- * @description ProTable 的搜索表单子组件
  *
  * ## 核心功能
  *

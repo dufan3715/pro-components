@@ -1,7 +1,8 @@
 <script lang="ts" setup generic="F extends Form<any> = Form">
 /**
+ * 配置驱动表单组件
+ *
  * @component ProForm
- * @description @qin-ui/antd-vue-pro 配置驱动表单组件
  *
  * 架构设计说明 (Architecture Overview)
  *

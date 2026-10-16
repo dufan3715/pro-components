@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, ref, toRaw } from 'vue';
+import { defineComponent, h, inject, ref, toRaw } from 'vue';
 import type { TableProps } from '../src/shared/ui';
 import type { Column } from '../src/components/table/types';
 import { tableProps as hostTableProps } from '../src/shared/ui';
@@ -11,6 +11,7 @@ import type { ComponentVars } from '../src/components/component-provider';
 import { flushPromises, mountProTable, expectWarn } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
 import { Pagination } from 'ant-design-vue';
+import { INJECT_CONFIG } from '../src/components/component-provider/constants';
 
 describe('ProTable 组件测试', () => {
   // ----------------------------------------------------
@@ -694,6 +695,7 @@ describe('ProTable 组件测试', () => {
       dataSource: [],
     });
 
+    // 不可注入键：注入层静默剔除
     const injectedWrapper = mount(ProComponentProvider, {
       props: {
         componentVars: {
@@ -1253,6 +1255,7 @@ describe('ProTable 组件测试', () => {
       columns: [{ dataIndex: 'name', title: '实例列', key: 'name' }],
       dataSource: [{ name: '实例数据' }],
     });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const wrapper = mount(ProComponentProvider, {
       props: {
         componentVars: {
@@ -1283,7 +1286,10 @@ describe('ProTable 组件测试', () => {
     const hostElement = hostTable.element as HTMLElement;
     expect(hostElement.getAttribute('columns')).toBeNull();
     expect(hostElement.getAttribute('data-source')).toBeNull();
+    // 两个不可注入键均在注入层静默剔除，不产生告警
+    expect(warnSpy).not.toHaveBeenCalled();
     wrapper.unmount();
+    warnSpy.mockRestore();
 
     // 类型面契约：注入面不含 columns / dataSource
     const providerVars: ComponentVars = {
@@ -1510,5 +1516,137 @@ describe('ProTable 组件测试', () => {
     expect(hostAttrs).not.toContain('onUpdate:size');
     expect(hostAttrs).not.toContain('onUpdate:loading');
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A37 [判别]: 模板中以 kebab-case 绑定 :data-source / :columns 时按显式绑定取值
+  // ----------------------------------------------------
+  it('PT-A37 [判别]: kebab-case 绑定的 :data-source / :columns 覆盖 table 实例同名数据', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '实例列', key: 'name' }],
+      dataSource: [{ name: '实例数据' }],
+    });
+    const rows = [{ age: 18 }];
+    const columns = [{ dataIndex: 'age', title: '显式列', key: 'age' }];
+    const Parent = defineComponent({
+      components: { ProTable },
+      setup: () => ({ table, rows, columns }),
+      template: `
+        <ProTable :table="table" :columns="columns" :data-source="rows" :add-index-column="false" />
+      `,
+    });
+    const wrapper = mount(Parent, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    const hostTable = wrapper.findComponent({ name: 'ATable' });
+    // 显式绑定优先于 table 实例：列与数据源均按调用方传入值渲染
+    expect(hostTable.props('dataSource')).toEqual(rows);
+    expect(
+      hostTable.props('columns').map((column: any) => column.title)
+    ).toEqual(['显式列']);
+    expect(wrapper.text()).toContain('18');
+    expect(wrapper.text()).not.toContain('实例数据');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A38 [判别]: 不可注入键在注入层静默剔除，运行期新增同样被剔除
+  // ----------------------------------------------------
+  it('PT-A38 [判别]: 不可注入键经注入层静默剔除，运行期新增同样被剔除且不产生告警', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '实例列', key: 'name' }],
+      dataSource: [{ name: '实例数据' }],
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // 注入面探针：直接读取 Provider 下发的注入配置引用，判别不可注入键是否已剔除
+    let injectedConfig: any;
+    const Probe = defineComponent({
+      setup() {
+        injectedConfig = inject(INJECT_CONFIG['pro-table'].injectionKey, null);
+        return () => h('div');
+      },
+    });
+    const componentVars = ref<any>({ 'pro-table': { size: 'small' } });
+
+    const Host = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProComponentProvider,
+            { componentVars: componentVars.value },
+            {
+              default: () => [
+                h(ProTable, { table, addIndexColumn: false }),
+                h(Probe),
+              ],
+            }
+          );
+      },
+    });
+    const wrapper = mount(Host, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    // 未配置不可注入键：Provider 注入的 size 正常生效
+    expect(wrapper.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'small'
+    );
+    expect(injectedConfig.value).not.toHaveProperty('columns');
+    expect(injectedConfig.value).not.toHaveProperty('dataSource');
+    expect(injectedConfig.value).not.toHaveProperty('loading');
+
+    // 运行期新增不可注入键：注入被静默剔除（既有列/数据源不受影响）
+    componentVars.value = {
+      'pro-table': {
+        size: 'small',
+        columns: [{ dataIndex: 'injected', title: '注入列' }],
+        dataSource: [{ name: '注入数据' }],
+        loading: true,
+      },
+    };
+    await flushPromises();
+    const hostTable = wrapper.findComponent({ name: 'ATable' });
+    expect(
+      hostTable.props('columns').map((column: any) => column.title)
+    ).toEqual(['实例列']);
+    expect(hostTable.props('dataSource')).toEqual([{ name: '实例数据' }]);
+    expect(hostTable.props('loading')).toBe(false);
+    // 注入面已剔除三个不可注入键，其余键（size）照常下发
+    expect(injectedConfig.value).not.toHaveProperty('columns');
+    expect(injectedConfig.value).not.toHaveProperty('dataSource');
+    expect(injectedConfig.value).not.toHaveProperty('loading');
+    expect(injectedConfig.value?.size).toBe('small');
+
+    // 静默：不可注入键不产生任何告警
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    // 运行期再次变更：同样静默剔除
+    componentVars.value = {
+      'pro-table': {
+        size: 'middle',
+        columns: [{ dataIndex: 'injected-2', title: '注入列2' }],
+      },
+    };
+    await flushPromises();
+    expect(injectedConfig.value).not.toHaveProperty('columns');
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(wrapper.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'middle'
+    );
+    wrapper.unmount();
+    warnSpy.mockRestore();
+
+    // 默认值不含不可注入键（未挂 Provider 时消费侧取 default 也不会拿到失效配置）
+    expect(Object.keys(INJECT_CONFIG['pro-table'].default)).not.toContain(
+      'columns'
+    );
+    expect(Object.keys(INJECT_CONFIG['pro-table'].default)).not.toContain(
+      'dataSource'
+    );
+    expect(Object.keys(INJECT_CONFIG['pro-table'].default)).not.toContain(
+      'loading'
+    );
+    expect(Object.keys(INJECT_CONFIG['pro-form'].default)).not.toContain(
+      'form'
+    );
   });
 });

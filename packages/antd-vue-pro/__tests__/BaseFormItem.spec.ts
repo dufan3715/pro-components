@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h } from 'vue';
+import { computed, defineComponent, h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
@@ -563,6 +563,46 @@ describe('BaseFormItem 组件测试', () => {
     await flushPromises();
 
     expect(wrapper.find('.ant-form-item-label').text()).toContain('属性标签');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A24 [判别]: 字段 hidden 的类型面为 Ref / ComputedRef，渲染期按 toValue 过滤
+  // ----------------------------------------------------
+  it('BI-A24 [判别]: 字段 hidden 支持 Ref / ComputedRef 形态，翻转驱动字段显隐', async () => {
+    const hiddenRef = ref(true);
+    const hiddenComputed = computed(() => hiddenRef.value);
+    const fields: Field[] = [
+      { path: 'a', label: '甲', component: 'input' },
+      { path: 'b', label: '乙', component: 'input', hidden: hiddenRef },
+      { path: 'c', label: '丙', component: 'input', hidden: hiddenComputed },
+      // 类型面：getter 形态不属于 hidden 契约（四包统一为 Ref / ComputedRef）
+      // @ts-expect-error hidden 不接受 getter 形式
+      { path: 'd', label: '丁', component: 'input', hidden: () => true },
+    ];
+    const form = useForm({ a: '', b: '', c: '', d: '' }, fields);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const labels = () =>
+      wrapper.findAll('.ant-form-item-label').map(item => item.text());
+    // Ref(true) 与 ComputedRef(true) 的字段均不渲染；getter 项运行期经 toValue 同样被过滤
+    expect(labels()).toContain('甲');
+    expect(labels()).not.toContain('乙');
+    expect(labels()).not.toContain('丙');
+
+    hiddenRef.value = false;
+    await flushPromises();
+
+    // 翻转外部 ref：两个响应式形态同时随取值出现，getter 项仍不进入渲染
+    expect(labels()).toContain('乙');
+    expect(labels()).toContain('丙');
+    expect(labels()).not.toContain('丁');
+
     wrapper.unmount();
   });
 });

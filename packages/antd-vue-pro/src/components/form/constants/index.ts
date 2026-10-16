@@ -45,14 +45,13 @@ export const FORM_ITEM_SLOT_KEYS = [
  * }
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ComponentMap {}
+export interface ComponentMap {} // eslint-disable-line @typescript-eslint/no-empty-object-type
 
+// prettier-ignore
 /**
  * 内置组件映射表
  * @description Ant Design Vue 内置支持的组件类型映射
  */
-// prettier-ignore
 export type BaseComponentMap = {
   'input': typeof Input;
   'textarea': typeof Textarea;
@@ -102,10 +101,10 @@ export type GetComponentType<K extends ComponentName> =
       ? BaseComponentMap[K]
       : never;
 
+// prettier-ignore
 /**
  * 组件名称到 Ant Design Vue 组件的映射
  */
-// prettier-ignore
 export const componentMap: BaseComponentMap = {
   'input': Input,
   'textarea': Textarea,

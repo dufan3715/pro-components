@@ -20,7 +20,7 @@ type FP<T extends Record<string, any>> = Partial<
 >;
 
 /**
- * @qin-ui/antd-vue-pro 全局配置变量类型
+ * 全局配置变量类型
  *
  * @description 定义可通过 ProComponentProvider 配置的所有组件默认属性。
  * 支持配置表单、表格、表单项以及所有内置组件的默认属性。

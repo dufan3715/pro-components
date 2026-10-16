@@ -12,21 +12,24 @@ export const INJECT_COMPONENTS: InjectionKey<
   | Partial<Record<string, Component>>
 > = Symbol('INJECT_COMPONENTS');
 
-/** 单个组件名的注入配置：注入 key 与其默认值 */
+/** 单个组件名的注入配置：注入 key、默认值与不接受 Provider 注入的键 */
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;
   default: T;
+  /** 不接受 Provider 注入的键，注入层静默剔除 */
+  ignoreProps?: readonly string[];
 };
 
 /** 内置组件名的注入配置表：每个组件名对应一份默认值，Provider 注入值与之合并 */
 export const INJECT_CONFIG: {
-  [key in keyof RequiredComponentVars]: {
-    injectionKey: InjectionKey<RequiredComponentVars[key]>;
-    default: RequiredComponentVars[key];
-  };
+  [key in keyof RequiredComponentVars]: InjectConfigEntry<
+    RequiredComponentVars[key]
+  >;
 } = {
   'pro-table': {
     injectionKey: Symbol(''),
+    // 列 / 数据源取自组件绑定或 `:table` 实例，加载态由组件自身状态驱动
+    ignoreProps: ['loading', 'columns', 'dataSource'],
     default: {
       pagination: {
         showSizeChanger: true,
@@ -43,6 +46,8 @@ export const INJECT_CONFIG: {
   },
   'pro-form': {
     injectionKey: Symbol(''),
+    // 表单实例由 `:form` 显式传入
+    ignoreProps: ['form'],
     default: { grid: { gutter: { xs: 8, sm: 16, md: 16, lg: 24 } } },
   },
   'pro-form-item': {

@@ -5,7 +5,7 @@ import type { ComputedRef, MaybeRef } from 'vue';
 type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
 
 /**
- * @qin-ui/antd-vue-pro 表格列配置类型
+ * 表格列配置类型
  *
  * @description 继承 Ant Design Vue 的 ColumnType 列类型，并添加：
  * - 类型安全的 dataIndex（基于泛型 D 推导路径），优先使用
@@ -40,7 +40,7 @@ export type Column<D extends Data = Data> = Omit<
   'dataIndex' | 'key'
 > & {
   /**
-   * @description 列数据路径（主要字段）
+   * 列数据路径（主要字段）
    * 关联数据源中对应字段的路径，支持点号分隔的深层路径和数组路径。
    * 优先使用 dataIndex 进行字段匹配。
    *
@@ -48,25 +48,25 @@ export type Column<D extends Data = Data> = Omit<
    */
   dataIndex?: KeyExpandString<Extract<keyof D, string>> | Paths<D>;
   /**
-   * @description 列字段标识（辅助字段）
+   * 列字段标识（辅助字段）
    * 仅当 dataIndex 无法满足需求时使用，例如需要在自定义渲染中标识列时。
    * 在字段匹配时的优先级低于 dataIndex。
    */
   key?: Path<D>;
   /**
-   * @description 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值。
+   * 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值。
    * 分组列的子列同样参与过滤（递归生效）。
    * @default false
    */
   hidden?: MaybeRefOrComputedRef<boolean>;
   /**
-   * @description 分组子列；提供时该列作为分组表头渲染，子列沿用同一配置类型
+   * 分组子列；提供时该列作为分组表头渲染，子列沿用同一配置类型
    */
   children?: Column<D>[];
 };
 
 /**
- * @qin-ui/antd-vue-pro 表格列配置数组类型
+ * 表格列配置数组类型
  *
  * @template D - 表格行数据类型
  * @public

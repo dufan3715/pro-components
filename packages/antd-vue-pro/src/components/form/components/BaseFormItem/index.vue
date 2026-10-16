@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 /**
+ * 表单字段渲染引擎
+ *
  * @component BaseFormItem
- * @description 表单字段渲染引擎
  *
  * 负责将字段配置数组渲染为实际的表单项，支持：
  * - 字段分组（嵌套 fields 递归渲染）
@@ -17,7 +18,7 @@
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
  * 4. 渲染后字段对象上可读取 FormItem 与组件实例
  *
- * @param {Fields<D>} [fields] - 字段配置数组
+ * @param {Fields} [fields] - 字段配置数组
  * @param {boolean | GridProps} [grid] - 是否启用网格布局
  * @param {boolean} [disabled] - 是否禁用所有子字段
  *
@@ -42,8 +43,11 @@ import { INJECT_CONFIG } from '../../../component-provider/constants';
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
 type Props = {
+  /** 是否启用网格布局 */
   grid?: Grid;
+  /** 字段配置数组 */
   fields?: Fields;
+  /** 是否禁用所有子字段 */
   disabled?: boolean;
 };
 const props = withDefaults(defineProps<Props>(), {

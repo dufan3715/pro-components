@@ -37,6 +37,9 @@ const formTypes = read('../src/components/form/types/index.ts');
 const providerTypes = read(
   '../src/components/component-provider/types/index.ts'
 );
+const providerConstants = read(
+  '../src/components/component-provider/constants/index.ts'
+);
 
 describe('注释规范契约 · antd-vue-pro', () => {
   // ----------------------------------------------------
@@ -108,10 +111,22 @@ describe('注释规范契约 · antd-vue-pro', () => {
   // DOC-05 [判别]: Provider 注入面边界（columns / dataSource / loading 不可注入）在类型与文档同句
   // ----------------------------------------------------
   it('DOC-05 [判别]: ProTable 注入面边界在类型面与文档面同步', () => {
+    // 类型面在 RequiredComponentVars 内直接剔除不可注入键
     expect(providerTypes).toContain(
       "Omit<TableProps, 'loading' | 'columns' | 'dataSource'>"
     );
+    expect(providerTypes).toContain("Omit<ProFormProps, 'form' | 'grid'>");
+    expect(providerTypes).toContain(
+      'ComponentVars = Partial<RequiredComponentVars>'
+    );
     expect(providerTypes).toContain('不参与全局注入');
+    // 运行期清单直接声明在注入项内，与类型面同键（两处分别锁定）
+    expect(providerConstants).toContain(
+      "ignoreProps: ['loading', 'columns', 'dataSource'],"
+    );
+    expect(providerConstants).toContain("ignoreProps: ['form'],");
+    expect(providerConstants).not.toContain('IGNORE_PROPS');
+    expect(providerConstants).toContain('不接受 Provider 注入的键');
     expect(aiContext).toContain(
       '`columns` / `dataSource` / `loading` 不可经 `componentVars'
     );

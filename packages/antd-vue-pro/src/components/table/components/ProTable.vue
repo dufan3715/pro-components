@@ -1,7 +1,8 @@
 <script lang="ts" setup generic="T extends Table<any> = Table">
 /**
+ * 配置驱动的表格组件
+ *
  * @component ProTable
- * @description 配置驱动的表格组件
  *
  * ## 架构概览
  *
@@ -102,19 +103,19 @@ type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
 };
 
 type Props = {
-  // 列表表格对象，returns from useTable
+  /** 列表表格对象，来自 `useTable` */
   table?: T;
-  // 列表数据查询方法
+  /** 列表数据查询方法 */
   search?: () => Promise<unknown>;
-  // 是否在首列插入index列
+  /** 是否在首列插入序号列 */
   addIndexColumn?: boolean;
-  // onMounted 时立即触发一次search事件
+  /** 挂载后是否立即触发一次查询 */
   immediateSearch?: boolean;
-  // 是否展示表格 size 和 column 控制按钮
+  /** 是否展示尺寸与列控制按钮 */
   control?: boolean | Partial<Control>;
-  // 搜索栏查询字段表单配置
+  /** 搜索栏查询字段表单配置 */
   searchFormConfig?: SearchFormConfig;
-  // 表格区域包裹容器
+  /** 表格区域包裹容器 */
   tableContainer?: ContainerComponent | false;
 } & /* @vue-ignore */ TableProps;
 
@@ -134,21 +135,10 @@ const config = INJECT_CONFIG['pro-table'];
 const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
-/*
- * 表格级键由各自来源收口：columns / dataSource 取自组件绑定或 `:table` 实例，Provider 注入不参与透传；
- * pagination 由 computedPagination 统一求优先级，Provider 值经 injectAttrs 兜底
- */
-const TABLE_LEVEL_PROP_KEYS = new Set(['columns', 'dataSource']);
-
-const injectAttrs = computed<TableProps>(() => {
-  const config: Record<string, any> = {};
-  for (const [key, value] of Object.entries(injectProps.value)) {
-    if (!TABLE_LEVEL_PROP_KEYS.has(key)) {
-      config[key] = value;
-    }
-  }
-  return pick(config, tableProperties) as TableProps;
-});
+/* Provider 注入的不可注入键（columns / dataSource / loading）已在注入层剔除，此处直接取用其注入属性 */
+const injectAttrs = computed<TableProps>(
+  () => pick(injectProps.value, tableProperties) as TableProps
+);
 
 const computedSearchFormConfig = computed(() => {
   const container =
@@ -179,7 +169,7 @@ const loading = defineModel<boolean>('loading', { default: false });
 
 // 递增序号做请求竞态守卫，仅最新一次请求可变更 loading
 let searchSequence = 0;
-/** 告警文案按原因分键，各原因独立去重 */
+// 告警文案按原因分键，各原因独立去重
 const SEARCH_WARN_MESSAGES = {
   duplicate:
     '同时配置了 :search prop 与 @search 监听，@search 监听不会被执行，请仅保留其一。',
@@ -292,13 +282,18 @@ const isBoundProp = (name: string) => {
   );
 };
 
+/** attrs 的驼峰视图：模板中以 kebab-case 写法的绑定键在此归一 */
+const camelAttrs = computed<Record<string, any>>(() =>
+  camelizeProperties(attrs)
+);
+
 /*
- * 组件自有键取值：`Props` 中声明的键取 prop，其余宿主键取 attrs；
+ * 组件自有键取值：`Props` 中声明的键取 prop，其余宿主键取 attrs（模板 kebab-case 绑定经归一后同键）；
  * 均以调用方显式绑定为唯一来源，未绑定时不取值（留给 Provider 注入兜底）
  */
 const resolveOwnedProp = (name: string) =>
   isBoundProp(name)
-    ? ((props as Record<string, any>)[name] ?? attrs[name])
+    ? ((props as Record<string, any>)[name] ?? camelAttrs.value[name])
     : undefined;
 
 /*
@@ -312,19 +307,16 @@ const effectiveSize = computed<TableProps['size']>(() => {
 });
 
 /*
- * 下发给宿主表格的属性：Provider 注入为底，调用方绑定与 v-model 透传值覆盖同键。
+ * 下发给宿主表格的属性：Provider 注入为底（其不可注入键已在注入层剔除），调用方绑定与 v-model 透传值覆盖同键。
  * size / loading 为声明模型，其 onUpdate:* 回写通道不进入 attrs，无需另行剔除
  */
 const forwardedTableAttrs = computed<TableProps>(() => {
   const merged = {
     ...injectAttrs.value,
-    ...pick(camelizeProperties(attrs), tableProperties),
+    ...pick(camelAttrs.value, tableProperties),
   } as Record<string, any>;
   // onChange 由模板监听器收口，散落 attrs 中的同名监听器并入会形成重复回调
   delete merged.onChange;
-  for (const key of TABLE_LEVEL_PROP_KEYS) {
-    delete merged[key];
-  }
   merged.size = effectiveSize.value;
   merged.loading = undefined;
   return merged as TableProps;

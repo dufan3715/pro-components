@@ -190,7 +190,7 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 
 > `modelProp` 控制 v-model 绑定的属性名，默认 `'value'`（即 `v-model:value`）。`switch` 经预设绑定为 `checked`，通常无需手动设置。
 > `showTotal`（分页总计）与 `placeholder` 不在 INJECT_CONFIG 预设内，由 locale 体系提供，可在 Field / ProTable 配置中显式覆盖。
-> `pro-table` 的 `columns` / `dataSource` / `loading` 不参与 `componentVars` 注入：三者分别由 `:table` 实例（`useTable`）与组件自身查询状态驱动。
+> `pro-table` 的 `columns` / `dataSource` / `loading` 与 `pro-form` 的 `form` 不参与 `componentVars` 注入：分别由 `:table` 实例（`useTable`）、组件自身查询状态与显式 `:form` 实例驱动；传入时在注入层静默忽略（类型面已限制，不输出告警）。
 
 #### 与 AI 编码工具协作
 
