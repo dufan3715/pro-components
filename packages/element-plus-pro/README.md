@@ -265,12 +265,13 @@ ProComponentProvider 内置了一套默认属性预设，**即使不配置 `comp
 
 #### Slots
 
-| 插槽名        | 说明                                               |
-| :------------ | :------------------------------------------------- |
-| `search-form` | 自定义搜索栏表单内容                               |
-| `button-bar`  | 自定义操作按钮组区域（位于搜索栏下方，表格左上方） |
-| `toolbar`     | 自定义工具栏区域（位于表格右上方控制按钮旁）       |
-| `table`       | 完全自定义渲染表格区域                             |
+| 插槽名        | 说明                                                               |
+| :------------ | :----------------------------------------------------------------- |
+| `default`     | 保留给列渲染器，传入内容不参与渲染（自定义区域请使用下列具名插槽） |
+| `search-form` | 自定义搜索栏表单内容                                               |
+| `button-bar`  | 自定义操作按钮组区域（位于搜索栏下方，表格左上方）                 |
+| `toolbar`     | 自定义工具栏区域（位于表格右上方控制按钮旁）                       |
+| `table`       | 完全自定义渲染表格区域                                             |
 
 #### 数据流
 
@@ -329,6 +330,8 @@ const form = useForm<D>(initFormData?, initFields?, root?)
 | `appendField(path, field, opts?)`  | 在指定字段后追加新字段（入参可为数组）；`undefined` 在末尾追加；`{all:true}` 所有匹配后追加                                    | `(path, field, opts?) => void`   |
 | `prependField(path, field, opts?)` | 在指定字段前插入新字段（入参可为数组）；`undefined` 在开头插入；`{all:true}` 所有匹配前插入                                    | `(path, field, opts?) => void`   |
 | `getParentField(path, opts?)`      | 查找父级字段配置；`{all:true}` 返回所有匹配的父级字段                                                                          | `(path, opts?) => Field`         |
+
+> **`useFormData()` 的取值边界**：`ProForm` 在 setup 期会创建一个内部兜底表单实例，`useFormData()`（在 `ProForm` 子树内不传参调用）承接的是**该兜底实例**的数据 store；因此 `<ProForm :form="form">` 场景下 `useFormData().formData` 与 `form.formData` **不是同一对象**，两处写入互不相通。需要与传入实例同源时，请改用 `useForm(false)`（复用注入的表单代理）或直接使用传入的 `form` 实例。未传 `:form` 时两条通路指向同一实例。
 
 ---
 

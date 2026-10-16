@@ -121,6 +121,8 @@ useForm(true | false)                          // 重载二：仅拿实例（roo
 | `form.deleteField` / `form.appendField` / `form.prependField` / `form.getParentField` | 字段增删查；均支持 `{all:true}`；`appendField(undefined, f)` 末尾追加、`prependField(undefined, f)` 开头插入，入参可为数组 |
 | `form.formRef`                                                                        | 底层 element-plus Form 实例引用（Ref），`formRef.value?.validate()` / `.resetFields()`                                     |
 
+> `useFormData()` 在 `ProForm` 子树内承接**内部兜底实例**的数据 store；`<ProForm :form="form">` 时与 `form.formData` 非同源，需同源请用 `useForm(false)` 或直接用传入实例。
+
 ### useTable -- 表格实例
 
 ```ts

@@ -96,9 +96,8 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         });
 
         // 字段标识经统一解析（prop 优先，path 兜底）；name 作为控件自身属性经 rest 透传
-        const raw = resolveFieldIdentity(field, ELEMENT_FIELD_IDENTITY_KEYS);
         return {
-          path: Array.isArray(raw) ? raw.join('.') : (raw as string) || '',
+          path: resolveFieldIdentity(field, ELEMENT_FIELD_IDENTITY_KEYS),
           gridItemProps: gridItemProps as GridItemProps,
           formItemProps: formItemProps as any,
           formItemSlots,
@@ -109,9 +108,8 @@ export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
         };
       }
 
-      const raw = resolveFieldIdentity(field, ELEMENT_FIELD_IDENTITY_KEYS);
       return {
-        path: Array.isArray(raw) ? raw.join('.') : (raw as string) || '',
+        path: resolveFieldIdentity(field, ELEMENT_FIELD_IDENTITY_KEYS),
         gridItemProps: gridItemProps as GridItemProps,
         formItemProps: formItemProps as any,
         formItemSlots,

@@ -77,25 +77,27 @@ const form = useForm<FormData>({ name: '' }, [
 
 去向：公共属性会被 `BaseFormItem`/`BaseField` 解析并分发到对应层级。
 
-| 字段                 | 说明                                                                                    |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| `path`               | 字段标识，同 Element Plus FormItem 的 `prop`                                            |
-| `hidden`             | 字段是否隐藏（支持 `boolean` / `Ref` / `ComputedRef`，渲染期按 `toValue` 取值）         |
-| `disabled`           | 字段是否禁用                                                                            |
-| `label`              | 字段标题，支持字符串或 VNode/渲染函数                                                   |
-| `component`          | 指定渲染组件名称或组件对象                                                              |
-| `slots`              | 字段插槽配置（FormItem 与组件插槽）                                                     |
-| `formItemStyle`      | FormItem 样式                                                                           |
-| `formItemClass`      | FormItem 类名                                                                           |
-| `formItemContainer`  | FormItem 外层包裹组件                                                                   |
-| `formItemDataAttrs`  | 附加到 FormItem DOM 的属性                                                              |
-| `componentStyle`     | 组件样式（仅非嵌套字段有效）                                                            |
-| `componentClass`     | 组件类名（仅非嵌套字段有效）                                                            |
-| `componentContainer` | 组件外层包裹组件（仅非嵌套字段有效）                                                    |
-| `componentDataAttrs` | 附加到组件 DOM 的属性（仅非嵌套字段有效）                                               |
-| `valueFormatter`     | 值格式化（get/set 或单函数，仅非嵌套字段有效）；双参 `(val, oldVal)` 声明才注入旧值快照 |
-| `modelProp`          | v-model 属性名，默认 `modelValue`（仅非嵌套字段有效）                                   |
-| `extraProps`         | 不参与渲染，仅用于业务侧自定义标识                                                      |
+| 字段                 | 说明                                                                                         |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| `path`               | 字段标识，需对应数据对象 `formData` 的 key，支持多级嵌套；与 `prop` 同时配置时以 `prop` 为准 |
+| `prop`               | 字段标识（对应 `el-form-item` 的 `prop`），优先于 `path`；校验与取值均以它为准               |
+| `name`               | 透传给字段控件作为其原生 `name` 属性，不作为字段标识                                         |
+| `hidden`             | 字段是否隐藏（支持 `boolean` / `Ref` / `ComputedRef`，渲染期按 `toValue` 取值）              |
+| `disabled`           | 字段是否禁用；未显式指定时继承上层（表单或 `ProComponentProvider`）的禁用上下文              |
+| `label`              | 字段标题，支持字符串或 VNode/渲染函数                                                        |
+| `component`          | 指定渲染组件名称或组件对象                                                                   |
+| `slots`              | 字段插槽配置（FormItem 与组件插槽）                                                          |
+| `formItemStyle`      | FormItem 样式                                                                                |
+| `formItemClass`      | FormItem 类名                                                                                |
+| `formItemContainer`  | FormItem 外层包裹组件                                                                        |
+| `formItemDataAttrs`  | 附加到 FormItem DOM 的属性                                                                   |
+| `componentStyle`     | 组件样式（仅非嵌套字段有效）                                                                 |
+| `componentClass`     | 组件类名（仅非嵌套字段有效）                                                                 |
+| `componentContainer` | 组件外层包裹组件（仅非嵌套字段有效）                                                         |
+| `componentDataAttrs` | 附加到组件 DOM 的属性（仅非嵌套字段有效）                                                    |
+| `valueFormatter`     | 值格式化（get/set 或单函数，仅非嵌套字段有效）；双参 `(val, oldVal)` 声明才注入旧值快照      |
+| `modelProp`          | v-model 属性名，默认 `modelValue`（仅非嵌套字段有效）                                        |
+| `extraProps`         | 不参与渲染，仅用于业务侧自定义标识                                                           |
 
 > **注意**：`componentStyle` / `componentClass` / `componentContainer` / `valueFormatter` / `modelProp` / `componentDataAttrs` 仅对非嵌套字段（即不含 `fields` 子字段的字段）有效。嵌套字段使用 `grid` 控制布局。
 

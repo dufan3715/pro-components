@@ -13,6 +13,9 @@ const read = (path: string) => readFileSync(resolve(__dirname, path), 'utf-8');
 
 const readme = read('../README.md');
 const aiContext = read('../AI-CONTEXT.md');
+const docsProTable = read(
+  '../../../docs/element-plus-pro/components/pro-table/index.md'
+);
 const providerTypes = read(
   '../src/components/component-provider/types/index.ts'
 );
@@ -34,6 +37,9 @@ const sources = {
   ),
   searchForm: read('../src/components/table/components/SearchForm.vue'),
   proTable: read('../src/components/table/components/ProTable.vue'),
+  tableColumnRenderer: read(
+    '../src/components/table/components/TableColumnRenderer.vue'
+  ),
 };
 
 const antd = {
@@ -104,6 +110,7 @@ describe('注释规范契约 · element-plus-pro', () => {
     );
     expect(sources.proTable).toContain('## 搜索行为');
     expect(sources.searchForm).toContain('## 展开/折叠行为');
+    expect(sources.tableColumnRenderer).toContain('渲染 key 与列对象身份绑定');
   });
 
   // ----------------------------------------------------
@@ -230,5 +237,32 @@ describe('注释规范契约 · element-plus-pro', () => {
     );
     expect(aiContext).toContain('在注入层静默忽略（类型面已限制，不输出告警）');
     expect(readme).toContain('不参与 `componentVars` 注入');
+  });
+
+  // ----------------------------------------------------
+  // DOC-06 [判别]: useFormData 的兜底 store 边界在 README 与 AI 上下文同步声明
+  // ----------------------------------------------------
+  it('DOC-06 [判别]: useFormData 取值边界在 README 与 AI 上下文中同句声明', () => {
+    expect(readme).toContain('**`useFormData()` 的取值边界**');
+    expect(readme).toContain('**不是同一对象**');
+    expect(aiContext).toContain('承接**内部兜底实例**的数据 store');
+    expect(aiContext).toContain('useForm(false)');
+  });
+
+  // ----------------------------------------------------
+  // DOC-07 [判别]: default 插槽保留语义在 JSDoc / README / docs 三处声明
+  // ----------------------------------------------------
+  it('DOC-07 [判别]: default 插槽保留给列渲染器在 JSDoc、README 与 docs 同步声明', () => {
+    expect(sources.proTable).toContain(
+      ' * @slot default - 保留给列渲染器，传入内容不参与渲染'
+    );
+    expect(readme).toContain(
+      '| `default`     | 保留给列渲染器，传入内容不参与渲染'
+    );
+    expect(docsProTable).toContain('保留给列渲染器');
+    // 列插槽透传说明不再把 default 计入透传面
+    expect(docsProTable).not.toContain(
+      '其余 el-table 列插槽（如 `el-table-column` 的 `default`、`header` 等）'
+    );
   });
 });

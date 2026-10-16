@@ -118,9 +118,9 @@ Object.entries(state).forEach(([key, { hidden }]) => {
 | ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
 | table            | useTable 返回对象                                          | Table                                                                                | -      |
 | search           | 表格数据查询获取方法                                       | `() => Promise<unknown>`                                                             | -      |
-| addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | -      |
+| addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | `true` |
 | immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                              | -      |
-| control          | 是否展示表格 size 和 column 控制按钮，支持分别控制         | boolean \| `{ sizeControl: boolean; columnControl: boolean \| ColumnControlConfig }` | -      |
+| control          | 是否展示表格 size 和 column 控制按钮，支持分别控制         | boolean \| `{ sizeControl: boolean; columnControl: boolean \| ColumnControlConfig }` | `true` |
 | searchFormConfig | 搜索表单配置                                               | SearchFormConfig                                                                     | -      |
 | tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component \| false                                                                   | -      |
 | columns          | 直接传入列配置（覆盖 useTable 的 columns）                 | Columns                                                                              | -      |
@@ -132,14 +132,15 @@ Object.entries(state).forEach(([key, { hidden }]) => {
 
 ### ProTable Slots
 
-| 插槽名      | 说明           | 作用域参数 |
-| ----------- | -------------- | ---------- |
-| search-form | 自定义搜索表单 | 无         |
-| button-bar  | 自定义按钮组   | 无         |
-| toolbar     | 自定义工具栏   | 无         |
-| table       | 自定义表格     | 无         |
+| 插槽名      | 说明                               | 作用域参数 |
+| ----------- | ---------------------------------- | ---------- |
+| default     | 保留给列渲染器，传入内容不参与渲染 | 无         |
+| search-form | 自定义搜索表单                     | 无         |
+| button-bar  | 自定义按钮组                       | 无         |
+| toolbar     | 自定义工具栏                       | 无         |
+| table       | 自定义表格                         | 无         |
 
-其余 el-table 列插槽（如 `el-table-column` 的 `default`、`header` 等）也会透传到内部 Table 组件。
+其余 el-table 列插槽（如 `el-table-column` 的 `header` 等）也会透传到内部 Table 组件；`default` 已保留给列渲染器，不在此列。
 
 ## 搜索表单
 

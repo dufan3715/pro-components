@@ -41,6 +41,7 @@
  * @param {SearchFormConfig} [searchFormConfig] - 搜索栏查询字段表单配置
  * @param {ContainerComponent | false} [tableContainer] - 表格区域包裹容器
  *
+ * @slot default - 保留给列渲染器，传入内容不参与渲染，自定义区域请使用下列具名插槽
  * @slot search-form - 搜索区域插槽（无作用域）
  * @slot button-bar - 表格头部按钮区插槽
  * @slot toolbar - 工具栏插槽
@@ -57,6 +58,9 @@ import {
 } from '../../../shared/ui';
 import { ElLoading } from 'element-plus';
 import {
+  Comment,
+  Fragment,
+  Text,
   computed,
   nextTick,
   useAttrs,
@@ -262,20 +266,44 @@ type CustomSlots = Readonly<
 type Slots = CustomSlots & Readonly<Record<string, Slot>>;
 
 const slots = useSlots() as Slots;
+
+/** 插槽产出是否含可渲染内容：注释节点与空白文本不计 */
+const hasRenderableContent = (nodes: unknown): boolean => {
+  if (nodes === null || nodes === undefined || nodes === false) return false;
+  if (typeof nodes === 'string') return nodes.trim() !== '';
+  if (typeof nodes === 'number') return true;
+  if (Array.isArray(nodes)) return nodes.some(hasRenderableContent);
+  const vnode = nodes as { type?: unknown; children?: unknown };
+  if (vnode.type === Comment) return false;
+  if (vnode.type === Text) return String(vnode.children ?? '').trim() !== '';
+  if (vnode.type === Fragment) return hasRenderableContent(vnode.children);
+  return true;
+};
+
 // default 插槽保留给列渲染器，同名用户插槽不透传宿主表格
-let warnedDefaultSlot = false;
+let defaultSlotChecked = false;
 const forwardedSlotNames = () => {
   const names = Object.keys(slots).filter(
     name => name !== 'default' && !customSlotNames.includes(name as any)
   );
+  // 首次渲染按实际产出判定一次：包装组件透传的空插槽（仅注释 / 空白）不提示
   if (
-    !warnedDefaultSlot &&
+    !defaultSlotChecked &&
     Object.prototype.hasOwnProperty.call(slots, 'default')
   ) {
-    warnedDefaultSlot = true;
-    console.warn(
-      '[pro-components] ProTable 的 default 插槽保留用于列渲染，已忽略传入的 default 插槽内容；自定义区域请使用 search-form / button-bar / toolbar / table 具名插槽。'
-    );
+    defaultSlotChecked = true;
+    let hasContent = false;
+    try {
+      hasContent = hasRenderableContent(slots.default?.());
+    } catch {
+      // 产出无法求值时按有内容处理，照常提示 default 插槽被保留
+      hasContent = true;
+    }
+    if (hasContent) {
+      console.warn(
+        '[pro-components] ProTable 的 default 插槽保留用于列渲染，已忽略传入的 default 插槽内容；自定义区域请使用 search-form / button-bar / toolbar / table 具名插槽。'
+      );
+    }
   }
   return names;
 };
@@ -411,7 +439,7 @@ const searchFormVisible = computed(() => {
     (computedSearchFormConfig.value as any)?.hidden !== true &&
     props.table?.searchForm &&
     fieldList.filter((item: any) => isObjectItem(item) && !toValue(item.hidden))
-      ?.length > 0
+      .length > 0
   );
 });
 

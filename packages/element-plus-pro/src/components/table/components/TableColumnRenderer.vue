@@ -14,8 +14,8 @@ import SlotComponent from '../../form/components/SlotComponent/index.vue';
 import type { Column, Columns } from '../types';
 
 /*
- * 无 key/prop 列的稳定渲染 key：以列原始对象为 key 分配自增 id，
- * 列插删/重排/过滤时保持 key 与对象绑定，不随数组位置漂移
+ * 无 key/prop 列的渲染 key 与列对象身份绑定：
+ * 列增删、重排与过滤后 key 不随数组位置漂移
  */
 let columnKeySeed = 0;
 const columnKeyMap = new WeakMap<object, number>();
@@ -32,9 +32,9 @@ const getStableColumnKey = (column: unknown): string | number => {
 };
 
 const getColumnKey = (column: Column) => {
-  const rawKey = column.key ?? column.prop;
-  if (rawKey === undefined || rawKey === null)
-    return getStableColumnKey(column);
+  // 空字符串 key 视为未提供，与 getColumnProps 的 columnKey 取值一致
+  const rawKey = column.key || column.prop;
+  if (!rawKey) return getStableColumnKey(column);
   return normalizePathKey(rawKey);
 };
 

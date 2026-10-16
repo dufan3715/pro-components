@@ -229,6 +229,33 @@ describe('TableColumnRenderer 列渲染器测试', () => {
   });
 
   // ----------------------------------------------------
+  // PT-A40 [判别]: 空字符串 key 视为未提供，回退 prop / 列对象身份
+  // ----------------------------------------------------
+  it('PT-A40 [判别]: key 为空字符串时回退 prop 与列对象身份，同名空 key 列不共用渲染 key', async () => {
+    const anonymous = { key: '', label: '匿名列' };
+    const namedByProp = { key: '', prop: 'name', label: '姓名' };
+    const columns = [anonymous, namedByProp];
+
+    const wrapper = mountRenderer(columns, [{ name: '甲' }]);
+    await flushPromises();
+
+    // key 为空字符串时以 prop 作为 columnKey，无 prop 列不下发 columnKey
+    const rendered = findColumns(wrapper);
+    expect(rendered[0].props('columnKey')).toBeUndefined();
+    expect(rendered[1].props('columnKey')).toBe('name');
+    expect(headerTexts(wrapper)).toEqual(['匿名列', '姓名']);
+    expect(wrapper.find('.el-table__body').text()).toContain('甲');
+
+    // 两列的渲染 key 均非空且互不相同
+    const keys = rendered.map((col: any) => col.vm.$.vnode.key);
+    expect(keys[0]).toBeDefined();
+    expect(keys[0]).not.toBe('');
+    expect(keys[0]).not.toBe(keys[1]);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // PT-A27 [判别]: 分组子列 hidden 递归过滤（布尔与响应式）
   // ----------------------------------------------------
   it('PT-A27 [判别]: 分组列的子列 hidden 参与过滤（含嵌套与响应式）', async () => {

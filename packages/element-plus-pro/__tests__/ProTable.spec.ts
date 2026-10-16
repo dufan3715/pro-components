@@ -1325,6 +1325,134 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // PT-A36 [判别]: Provider 注入的 pagination 只经分页器消费，不落表格 DOM 原生属性
+  // ----------------------------------------------------
+  it('PT-A36 [判别]: Provider 注入的 pagination 驱动分页且不落表格 DOM，未知注入键仍照常透传', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [{ id: 1, name: '实例数据', status: 'normal' }],
+      pageParam: { current: 1, pageSize: 10, total: 20 },
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': {
+            pagination: { layout: 'prev, next', background: true },
+            data: [{ id: 9, name: '注入数据', status: 'normal' }],
+            'data-probe': 'passthrough',
+          },
+        } as any,
+      },
+      slots: { default: () => h(ProTable as any, { table }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // Provider 的 pagination 作为全局基础配置参与分页
+    const pagination = wrapper.findComponent(ElPagination);
+    expect(pagination.props('layout')).toBe('prev, next');
+    expect(pagination.props('background')).toBe(true);
+    expect(pagination.props('total')).toBe(20);
+
+    const elTableElement = wrapper.findComponent({ name: 'ElTable' })
+      .element as HTMLElement;
+    // 透传通道在场：未知注入键照常落到表格根元素
+    expect(elTableElement.getAttribute('data-probe')).toBe('passthrough');
+    // pagination 为组件自身声明的 prop，Provider 注入不落表格 DOM 原生属性
+    expect(elTableElement.getAttribute('pagination')).toBeNull();
+
+    // 数据源仍取 table 实例，Provider 注入的 data 不参与渲染
+    expect(wrapper.text()).toContain('实例数据');
+    expect(wrapper.text()).not.toContain('注入数据');
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    wrapper.unmount();
+    warnSpy.mockRestore();
+  });
+
+  // ----------------------------------------------------
+  // PT-A37 [判别]: default 插槽按实际产出判定，包装组件透传的空插槽不误报
+  // ----------------------------------------------------
+  it('PT-A37 [判别]: default 插槽仅在确有内容时提示一次，透传空插槽的包装组件零告警', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [{ id: 1, name: '甲', status: 'normal' }],
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // 序号列缺省开启，表头数量为列配置数 + 1
+    const expectedHeaderCount = createBasicColumns().length + 1;
+    // 包装组件把外层 default 插槽原样透传：外层无内容时仅产出注释节点
+    const Wrapper = defineComponent({
+      components: { ProTable },
+      props: { table: { type: Object, required: true } },
+      template: '<ProTable :table="table"><slot /></ProTable>',
+    });
+
+    try {
+      const empty = mount(Wrapper as any, {
+        props: { table },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      // 空插槽不提示：告警不得按「slot 键存在」触发
+      expect(warnSpy).not.toHaveBeenCalled();
+      expect(empty.findAll('.el-table__header th')).toHaveLength(
+        expectedHeaderCount
+      );
+      empty.unmount();
+
+      // 函数式插槽产出空数组同样不提示
+      const emptyArray = mount(ProTable as any, {
+        props: { table, addIndexColumn: false },
+        slots: { default: () => [] },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      expect(warnSpy).not.toHaveBeenCalled();
+      emptyArray.unmount();
+
+      // 插槽产出求值失败时不中断表格渲染，仍按保留语义提示
+      const throwing = mount(ProTable as any, {
+        props: { table, addIndexColumn: false },
+        slots: {
+          default: () => {
+            throw new Error('pt-a37-slot-error');
+          },
+        },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expectWarn(warnSpy, 'default 插槽保留');
+      expect(throwing.findAll('.el-table__header th')).toHaveLength(
+        createBasicColumns().length
+      );
+      throwing.unmount();
+      warnSpy.mockClear();
+
+      const filled = mount(Wrapper as any, {
+        props: { table },
+        slots: {
+          default: () => h('span', { class: 'pt-a37-content' }, '内容'),
+        },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      // 确有内容时提示一次，且该提示是唯一输出
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expectWarn(warnSpy, 'default 插槽保留');
+      expect(filled.find('.pt-a37-content').exists()).toBe(false);
+      expect(filled.findAll('.el-table__header th')).toHaveLength(
+        expectedHeaderCount
+      );
+      filled.unmount();
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  // ----------------------------------------------------
   // PT-A35 [判别]: Provider 注入的 data 在注入层静默剔除，运行期新增同样被剔除
   // ----------------------------------------------------
   it('PT-A35 [判别]: 不可注入键 data 经注入层静默剔除，运行期新增同样被剔除且不产生告警', async () => {
