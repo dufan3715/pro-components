@@ -1478,7 +1478,7 @@ describe('ProTable 组件测试', () => {
   // ----------------------------------------------------
   // PT-A36 [判别]: 下发宿主的属性面只放行调用方的 v-model 通道，声明模型的回写通道不外泄
   // ----------------------------------------------------
-  it('PT-A36 [判别]: forwardedTableAttrs 仅含调用方 v-model 通道，声明模型的回写通道不外泄', async () => {
+  it('PT-A36 [判别]: computedTableProps 仅含调用方 v-model 通道，声明模型的回写通道不外泄', async () => {
     const table = useTable({
       columns: [{ dataIndex: 'id', title: 'ID' }],
       dataSource: [{ id: 1 }],
@@ -1496,7 +1496,7 @@ describe('ProTable 组件测试', () => {
     await flushPromises();
 
     const forwarded = (wrapper.findComponent(ProTable as any).vm as any)
-      .forwardedTableAttrs;
+      .computedTableProps;
     const updateKeys = Object.keys(forwarded)
       .filter(key => key.startsWith('onUpdate:'))
       .sort();

@@ -310,7 +310,7 @@ const effectiveSize = computed<TableProps['size']>(() => {
  * 下发给宿主表格的属性：Provider 注入为底（其不可注入键已在注入层剔除），调用方绑定与 v-model 透传值覆盖同键。
  * size / loading 为声明模型，其 onUpdate:* 回写通道不进入 attrs，无需另行剔除
  */
-const forwardedTableAttrs = computed<TableProps>(() => {
+const computedTableProps = computed<TableProps>(() => {
   const merged = {
     ...injectAttrs.value,
     ...pick(camelAttrs.value, tableProperties),
@@ -551,7 +551,7 @@ defineExpose({
       >
         <ATable
           class="pro-table_content"
-          v-bind="forwardedTableAttrs"
+          v-bind="computedTableProps"
           :loading="loading"
           :columns="visibleComputedColumns"
           :data-source="computedDataSource"
