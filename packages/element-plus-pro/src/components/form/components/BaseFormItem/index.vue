@@ -17,7 +17,7 @@
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
  * 4. 通过 ref 回调收集 FormItem 和 Component 实例，注入到 field 对象上
  *
- * @param {Fields<D>} [fields] - 字段配置数组
+ * @param {Fields} [fields] - 字段配置数组
  * @param {boolean | GridProps} [grid] - 是否启用网格布局
  * @param {boolean} [disabled] - 是否禁用所有子字段
  *
@@ -60,7 +60,7 @@ const props = withDefaults(defineProps<Props>(), {
 useProviderDisabled(computed(() => props.disabled));
 
 const validFields = computed(() =>
-  // hidden 支持 Ref/ComputedRef/getter 等响应式形态（统一使用 toValue 取值）
+  // hidden 支持 Ref / ComputedRef 响应式形态（统一使用 toValue 取值）
   (props.fields ?? []).filter(
     field => isObjectItem(field) && !toValue((field as any).hidden)
   )

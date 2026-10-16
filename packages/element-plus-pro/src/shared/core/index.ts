@@ -29,6 +29,7 @@ export {
   camelizeProperties,
   cloneDeep,
   pick,
+  omit,
   isPlainObject,
   isObjectItem,
   isPromise,

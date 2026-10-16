@@ -99,13 +99,17 @@ export type FormItemSlots = ComponentSlots<typeof FormItem>;
 
 type BaseCommon<D extends Data = Data> = {
   /**
-   * @description 字段标识namePath, 同prop；与 prop 同时配置时以 prop 为准，name 作为控件自身属性向下透传
+   * @description 字段标识namePath, 同prop；与 prop 同时配置时以 prop 为准，name 作为控件自身属性向下透传；
+   * 嵌套字段的 `path` 使用各自独立的完整路径（不与父级路径拼接），重复路径需自行保证唯一。
    * @example 'name' | 'age' | 'sex' | ...
    */
   path?: Path<D>;
   /**
    * @description 字段是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期统一按 `toValue` 取值。
-   * 嵌套字段的 `path` 使用各自独立的完整路径（不与父级路径拼接），重复路径需自行保证唯一。
+   */
+  /*
+   * hidden 与 disabled 声明原始值类型，类型面与渲染期的响应式形态（Ref / ComputedRef）由 WithRef 统一派生；
+   * 此处再写 MaybeRefOrComputedRef 会形成二次包装
    */
   hidden?: boolean;
   /**

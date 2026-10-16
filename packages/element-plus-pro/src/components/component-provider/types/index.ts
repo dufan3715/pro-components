@@ -31,8 +31,13 @@ type FP<T extends Record<string, any>> = Partial<
 type DatePickerType = NonNullable<ComponentProps<typeof DatePicker>['type']>;
 
 export type RequiredComponentVars = {
+  /**
+   * ProTable 全局默认属性
+   *
+   * @description `data` 不参与全局注入：由 `:table` 实例（`useTable`）或显式 `:data` 驱动；`columns` / `loading` 非本注入项的类型面成员，传入时在注入层忽略。
+   */
   'pro-table': PP<
-    TableProps & {
+    Omit<TableProps, 'data'> & {
       pagination?: false | Partial<PaginationProps>;
       control?:
         | boolean
@@ -49,6 +54,7 @@ export type RequiredComponentVars = {
       tableContainer?: ContainerComponent | false;
     }
   >;
+  /** ProForm 全局默认属性，grid 必须为 GridProps 对象而非 boolean */
   'pro-form': PP<
     Omit<ProFormProps, 'form' | 'grid'> & {
       grid?: Exclude<Grid, undefined | boolean>;
@@ -71,4 +77,9 @@ export type RequiredComponentVars = {
   >;
 };
 
+/**
+ * 组件全局配置
+ * @description RequiredComponentVars 的 Partial 版本，用于 ProComponentProvider 的 props
+ * @public
+ */
 export type ComponentVars = Partial<RequiredComponentVars>;

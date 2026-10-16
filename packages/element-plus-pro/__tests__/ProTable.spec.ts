@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, ref } from 'vue';
+import { defineComponent, h, inject, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
@@ -10,6 +10,8 @@ import { ElPagination, ElTable } from 'element-plus';
 import SearchForm from '../src/components/table/components/SearchForm.vue';
 import SizeControl from '../src/components/table/components/SizeControl.vue';
 import type { Column } from '../src/components/table/types';
+import type { ComponentVars } from '../src/components/component-provider';
+import { INJECT_CONFIG } from '../src/components/component-provider/constants';
 
 describe('ProTable 组件测试', () => {
   // ----------------------------------------------------
@@ -909,6 +911,7 @@ describe('ProTable 组件测试', () => {
       columns: createBasicColumns(),
       data: [{ id: 1, name: 'a', status: 'normal' }],
     });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const wrapper = mount(ProComponentProvider, {
       props: {
         componentVars: {
@@ -927,10 +930,12 @@ describe('ProTable 组件测试', () => {
     const elTable = wrapper.findComponent({ name: 'ElTable' });
     expect(elTable.props('size')).toBe('small');
     expect(elTable.props('stripe')).toBe(true);
-    // columns 非宿主表格 prop，不得落为原生属性
     expect((elTable.element as HTMLElement).getAttribute('columns')).toBeNull();
+    // columns 非宿主表格 prop，注入层静默剔除且不产生告警
+    expect(warnSpy).not.toHaveBeenCalled();
 
     wrapper.unmount();
+    warnSpy.mockRestore();
   });
 
   // ----------------------------------------------------
@@ -1317,5 +1322,97 @@ describe('ProTable 组件测试', () => {
     } finally {
       wrapper.unmount();
     }
+  });
+
+  // ----------------------------------------------------
+  // PT-A35 [判别]: Provider 注入的 data 在注入层静默剔除，运行期新增同样被剔除
+  // ----------------------------------------------------
+  it('PT-A35 [判别]: 不可注入键 data 经注入层静默剔除，运行期新增同样被剔除且不产生告警', async () => {
+    const table = useTable({
+      columns: [{ prop: 'name', label: '实例列' }],
+      data: [{ name: '实例数据' }],
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // 注入面探针：直接读取 Provider 下发的注入配置引用，判别不可注入键是否已剔除
+    let injectedConfig: any;
+    const Probe = defineComponent({
+      setup() {
+        injectedConfig = inject(INJECT_CONFIG['pro-table'].injectionKey, null);
+        return () => h('div');
+      },
+    });
+    const componentVars = ref<any>({ 'pro-table': { size: 'small' } });
+
+    const Host = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProComponentProvider,
+            { componentVars: componentVars.value },
+            {
+              default: () => [
+                h(ProTable as any, { table, control: false }),
+                h(Probe),
+              ],
+            }
+          );
+      },
+    });
+    const wrapper = mount(Host, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    // 未配置不可注入键：Provider 注入的 size 正常生效
+    expect(wrapper.findComponent({ name: 'ElTable' }).props('size')).toBe(
+      'small'
+    );
+    expect(injectedConfig.value).not.toHaveProperty('data');
+    expect(injectedConfig.value).not.toHaveProperty('columns');
+    expect(injectedConfig.value).not.toHaveProperty('loading');
+
+    // 运行期新增 data：注入被静默剔除（数据源仍取 table 实例）
+    componentVars.value = {
+      'pro-table': {
+        size: 'small',
+        data: [{ name: '注入数据' }],
+        columns: [{ prop: 'injected', label: '注入列' }],
+        loading: true,
+      },
+    };
+    await flushPromises();
+    expect(wrapper.text()).toContain('实例数据');
+    expect(wrapper.text()).not.toContain('注入数据');
+    // 注入面已剔除三个不可注入键，其余键（size）照常下发
+    expect(injectedConfig.value?.size).toBe('small');
+    expect(injectedConfig.value).not.toHaveProperty('columns');
+    expect(injectedConfig.value).not.toHaveProperty('loading');
+
+    // 静默：不可注入键不产生任何告警
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    // 运行期再次变更：同样静默剔除
+    componentVars.value = {
+      'pro-table': { size: 'large', data: [{ name: '注入数据2' }] },
+    };
+    await flushPromises();
+    expect(injectedConfig.value).not.toHaveProperty('data');
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(wrapper.findComponent({ name: 'ElTable' }).props('size')).toBe(
+      'large'
+    );
+    wrapper.unmount();
+    warnSpy.mockRestore();
+
+    // 类型面契约：data 不在 componentVars.pro-table 的可配置面内
+    // @ts-expect-error data 不参与 ProTable 全局注入
+    const providerVars: ComponentVars = { 'pro-table': { data: [] } };
+    expect(Object.keys(providerVars['pro-table'] ?? {})).toEqual(['data']);
+
+    // 默认值不含不可注入键
+    expect(Object.keys(INJECT_CONFIG['pro-table'].default)).not.toContain(
+      'data'
+    );
+    expect(Object.keys(INJECT_CONFIG['pro-form'].default)).not.toContain(
+      'form'
+    );
   });
 });

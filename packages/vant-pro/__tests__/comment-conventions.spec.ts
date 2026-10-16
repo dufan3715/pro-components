@@ -11,6 +11,15 @@ import { resolve } from 'node:path';
 
 const read = (path: string) => readFileSync(resolve(__dirname, path), 'utf-8');
 
+const readme = read('../README.md');
+const aiContext = read('../AI-CONTEXT.md');
+const providerTypes = read(
+  '../src/components/component-provider/types/index.ts'
+);
+const providerConstants = read(
+  '../src/components/component-provider/constants/index.ts'
+);
+
 const sources = {
   slotComponent: read(
     '../src/components/form/components/SlotComponent/index.vue'
@@ -77,5 +86,26 @@ describe('注释规范契约 · vant-pro', () => {
     expect(readme).toContain('打开指定路径字段的弹层');
     expect(readme).toContain('`customProps` 仅对本次打开生效');
     expect(readme).toContain('更新 Popup 基础属性，此后每次打开均沿用');
+  });
+
+  // ----------------------------------------------------
+  // DOC-04 [判别]: Provider 注入面边界（form 不可注入）在类型与文档同句
+  // ----------------------------------------------------
+  it('DOC-04 [判别]: Provider 注入面边界在类型面与文档面同步', () => {
+    // 类型面在 RequiredComponentVars 内直接剔除不可注入键
+    expect(providerTypes).toContain("Omit<ProFormProps & FormProps, 'form'>");
+    expect(providerTypes).toContain(
+      'ComponentVars = Partial<RequiredComponentVars>'
+    );
+    expect(providerTypes).toContain('不参与全局注入');
+    // 运行期清单直接声明在注入项内，与类型面同键（两处分别锁定）
+    expect(providerConstants).toContain("ignoreProps: ['form'],");
+    expect(providerConstants).not.toContain('IGNORE_PROPS');
+    expect(providerConstants).toContain('不接受 Provider 注入的键');
+    expect(aiContext).toContain(
+      "`form` 不可经 `componentVars['pro-form']` 配置"
+    );
+    expect(aiContext).toContain('在注入层静默忽略（类型面已限制，不输出告警）');
+    expect(readme).toContain('不参与 `componentVars` 注入');
   });
 });

@@ -77,18 +77,22 @@ export type FieldSlots = ComponentSlots<typeof VanField>;
 
 type BaseCommon<D extends Data = Data> = {
   /**
-   * @description 字段标识namePath, 同name；嵌套字段的 path 使用各自独立的完整路径（不与父级路径拼接），
-   * 重复路径需自行保证唯一。
+   * @description 字段标识namePath, 同name；
+   * 嵌套字段的 `path` 使用各自独立的完整路径（不与父级路径拼接），重复路径需自行保证唯一。
    */
   path?: Path<D>;
   /**
    * @description 字段是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期统一按 `toValue` 取值。
    */
-  hidden?: MaybeRefOrComputedRef<boolean>;
+  /*
+   * hidden 与 disabled 声明原始值类型，类型面与渲染期的响应式形态（Ref / ComputedRef）由 WithRef 统一派生；
+   * 此处再写 MaybeRefOrComputedRef 会形成二次包装
+   */
+  hidden?: boolean;
   /**
    * @description 字段是否禁用；字段级取值优先，未显式指定时继承上层（表单或宿主 Provider）的禁用上下文。
    */
-  disabled?: MaybeRef<boolean>;
+  disabled?: boolean;
   /**
    * @description 字段中文名称，支持字符串或组件
    */

@@ -11,6 +11,15 @@ import { resolve } from 'node:path';
 
 const read = (path: string) => readFileSync(resolve(__dirname, path), 'utf-8');
 
+const readme = read('../README.md');
+const aiContext = read('../AI-CONTEXT.md');
+const providerTypes = read(
+  '../src/components/component-provider/types/index.ts'
+);
+const providerConstants = read(
+  '../src/components/component-provider/constants/index.ts'
+);
+
 const sources = {
   useGroupFieldAttrs: read(
     '../src/components/form/hooks/useGroupFieldAttrs.ts'
@@ -156,13 +165,13 @@ describe('注释规范契约 · element-plus-pro', () => {
       jsdocTagSequence(sources.componentProvider, 'ProComponentProvider')
     ).toEqual(jsdocTagSequence(antd.componentProvider, 'ProComponentProvider'));
 
-    // @public 紧随 @description，其后才是功能清单
+    // 摘要居首，@component / @public 依次随后，其后才是功能清单
     expect(sources.proForm).toContain(
-      ' * @description @qin-ui/element-plus-pro 配置驱动表单组件\n *\n * 架构设计说明'
+      ' * 配置驱动表单组件\n *\n * @component ProForm\n *\n * 架构设计说明'
     );
     expect(sources.proForm).toContain(' * @public\n *\n * 通过配置驱动的方式');
     expect(sources.componentProvider).toContain(
-      ' * @description @qin-ui/element-plus-pro 全局配置提供者组件\n * @public'
+      ' * 全局配置提供者组件\n *\n * @component ProComponentProvider\n * @public'
     );
 
     // 宿主组件属性与完整示例按同一结构落地
@@ -187,7 +196,7 @@ describe('注释规范契约 · element-plus-pro', () => {
 
     // BaseFormItem 的 @param 清单与 @internal 位置同构
     const baseFormItemLines = [
-      ' * @param {Fields<D>} [fields] - 字段配置数组',
+      ' * @param {Fields} [fields] - 字段配置数组',
       ' * @param {boolean | GridProps} [grid] - 是否启用网格布局',
       ' * @param {boolean} [disabled] - 是否禁用所有子字段',
       ' * @internal',
@@ -196,5 +205,30 @@ describe('注释规范契约 · element-plus-pro', () => {
       expect(antd.baseFormItem, `antd 缺同构行：${line}`).toContain(line);
       expect(sources.baseFormItem, `element 缺同构行：${line}`).toContain(line);
     }
+  });
+
+  // ----------------------------------------------------
+  // DOC-04 [判别]: Provider 注入面边界（data / form 不可注入）在类型与文档同句
+  // ----------------------------------------------------
+  it('DOC-04 [判别]: Provider 注入面边界在类型面与文档面同步', () => {
+    // 类型面在 RequiredComponentVars 内直接剔除不可注入键
+    expect(providerTypes).toContain("Omit<TableProps, 'data'>");
+    expect(providerTypes).toContain("Omit<ProFormProps, 'form' | 'grid'>");
+    expect(providerTypes).toContain(
+      'ComponentVars = Partial<RequiredComponentVars>'
+    );
+    expect(providerTypes).toContain('不参与全局注入');
+    // 运行期清单直接声明在注入项内（`columns` / `loading` 非类型面成员，同样在注入层忽略）
+    expect(providerConstants).toContain(
+      "ignoreProps: ['loading', 'columns', 'data'],"
+    );
+    expect(providerConstants).toContain("ignoreProps: ['form'],");
+    expect(providerConstants).not.toContain('IGNORE_PROPS');
+    expect(providerConstants).toContain('不接受 Provider 注入的键');
+    expect(aiContext).toContain(
+      "`data` / `columns` / `loading` 不可经 `componentVars['pro-table']` 配置"
+    );
+    expect(aiContext).toContain('在注入层静默忽略（类型面已限制，不输出告警）');
+    expect(readme).toContain('不参与 `componentVars` 注入');
   });
 });

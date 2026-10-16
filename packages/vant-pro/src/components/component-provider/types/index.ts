@@ -21,6 +21,11 @@ type FP<T extends Record<string, any>> = Partial<
 >;
 
 export type RequiredComponentVars = {
+  /**
+   * ProForm 全局默认属性
+   *
+   * @description `form` 不参与全局注入：由显式 `:form` 实例驱动。
+   */
   'pro-form': PP<Omit<ProFormProps & FormProps, 'form'>>;
 } & {
   [K in Exclude<ComponentName, 'custom'>]: FP<
@@ -28,4 +33,9 @@ export type RequiredComponentVars = {
   >;
 };
 
+/**
+ * 组件全局配置
+ * @description RequiredComponentVars 的 Partial 版本，用于 ProComponentProvider 的 props
+ * @public
+ */
 export type ComponentVars = Partial<RequiredComponentVars>;

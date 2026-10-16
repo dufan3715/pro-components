@@ -5,16 +5,19 @@ import { type ComputedRef } from 'vue';
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;
   default: T;
+  /** 不接受 Provider 注入的键，注入层静默剔除 */
+  ignoreProps?: readonly string[];
 };
 
 export const INJECT_CONFIG: {
-  [key in keyof RequiredComponentVars]: {
-    injectionKey: InjectionKey<RequiredComponentVars[key]>;
-    default: RequiredComponentVars[key];
-  };
+  [key in keyof RequiredComponentVars]: InjectConfigEntry<
+    RequiredComponentVars[key]
+  >;
 } = {
   'pro-form': {
     injectionKey: Symbol(''),
+    // 表单实例由 `:form` 显式传入
+    ignoreProps: ['form'],
     default: {
       inputAlign: 'right',
       errorMessageAlign: 'right',

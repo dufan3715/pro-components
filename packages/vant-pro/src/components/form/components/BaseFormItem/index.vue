@@ -41,6 +41,7 @@ const props = withDefaults(defineProps<Props>(), {
 const validFields = computed(() => {
   const f = toValue(props.fields);
   if (!Array.isArray(f)) return [];
+  // hidden 支持 Ref / ComputedRef 响应式形态（统一使用 toValue 取值）
   return f.filter(field => isObjectItem(field) && !toValue(field.hidden));
 });
 

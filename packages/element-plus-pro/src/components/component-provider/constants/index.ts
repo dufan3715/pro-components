@@ -5,16 +5,19 @@ import { type ComputedRef } from 'vue';
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;
   default: T;
+  /** 不接受 Provider 注入的键，注入层静默剔除 */
+  ignoreProps?: readonly string[];
 };
 
 export const INJECT_CONFIG: {
-  [key in keyof RequiredComponentVars]: {
-    injectionKey: InjectionKey<RequiredComponentVars[key]>;
-    default: RequiredComponentVars[key];
-  };
+  [key in keyof RequiredComponentVars]: InjectConfigEntry<
+    RequiredComponentVars[key]
+  >;
 } = {
   'pro-table': {
     injectionKey: Symbol(''),
+    // 数据取自 `:table` 实例或显式 `:data`；列与加载态非类型面成员，同样在注入层忽略
+    ignoreProps: ['loading', 'columns', 'data'],
     default: {
       pagination: {
         layout: 'total, sizes, prev, pager, next, jumper',
@@ -31,6 +34,8 @@ export const INJECT_CONFIG: {
   },
   'pro-form': {
     injectionKey: Symbol(''),
+    // 表单实例由 `:form` 显式传入
+    ignoreProps: ['form'],
     default: { grid: { gutter: 24 } },
   },
   'pro-form-item': {

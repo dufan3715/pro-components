@@ -22,14 +22,14 @@
  
  * @public
  */
-import type { ComponentVars } from '../types';
 import {
   INJECT_CONFIG,
   INJECT_COMPONENTS,
   ensureInjectConfig,
 } from '../constants';
+import type { ComponentVars } from '../types';
 import { computed, provide, toValue } from 'vue';
-import { getObject } from '../../../shared/core';
+import { getObject, omit } from '../../../shared/core';
 import type { ComponentName } from '../../form/constants';
 import { LOCALE_INJECT_KEY, type ProLocale } from '../../../locale';
 
@@ -56,20 +56,26 @@ const props = defineProps<Props>();
 
 /*
  * 遍历 componentVars 的每个 key，获取或创建对应的 inject 配置
- * 将用户提供的值合并到默认值上，通过 provide 响应式注入到子组件树
+ * 将用户提供的值合并到默认值上，剔除该注入项的不可注入键后通过 provide 响应式注入到子组件树
  * 子组件通过 inject(config.injectionKey) 获取合并后的计算属性配置
  */
 (Object.keys(INJECT_CONFIG) as Array<keyof typeof INJECT_CONFIG>).forEach(
   key => {
     const config = INJECT_CONFIG[key];
+    const ignored = config.ignoreProps;
     provide(
       config.injectionKey as any,
-      computed(() => ({
-        ...config.default,
-        ...getObject(
-          toValue(props.componentVars)?.[key as keyof ComponentVars]
-        ),
-      }))
+      computed(() =>
+        omit(
+          {
+            ...config.default,
+            ...getObject(
+              toValue(props.componentVars)?.[key as keyof ComponentVars]
+            ),
+          },
+          ignored ?? []
+        )
+      )
     );
   }
 );

@@ -74,6 +74,8 @@ import { ProForm, ProTable, useForm, useTable } from '@qin-ui/element-plus-pro';
 
 ```
 搜索: <ProComponentProvider   挂载点（通常在 App.vue / 布局 / Provider 包装组件）
+Provider 注入面：`data` / `columns` / `loading` 不可经 `componentVars['pro-table']` 配置（由 `:table` 实例、显式 `:data` 与组件自身状态驱动），`form` 不可经 `componentVars['pro-form']` 配置（由显式 `:form` 实例驱动）；传入不可注入键时在注入层静默忽略（类型面已限制，不输出告警）。
+
 搜索: componentVars            项目覆盖的默认属性（input maxlength、select 配置等）
 搜索: componentMap             注册的自定义组件 / 接管的内置组件
 搜索: :locale=                 覆盖的内置文案（查询/重置/展开/占位符等）

@@ -206,7 +206,7 @@ const loading = defineModel<boolean>('loading', { default: false });
 
 // 递增序号做请求竞态守卫，仅最新一次请求可变更 loading
 let searchSequence = 0;
-/** 告警文案按原因分键，各原因独立去重 */
+// 告警文案按原因分键，各原因独立去重
 const SEARCH_WARN_MESSAGES = {
   duplicate:
     '同时配置了 :search prop 与 @search 监听，@search 监听不会被执行，请仅保留其一。',
