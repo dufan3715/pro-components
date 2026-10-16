@@ -105,6 +105,50 @@ export function pick<T extends object, K extends PropertyKey>(
   return result;
 }
 
+/** 自身与原型链上的可枚举 Symbol 键（对齐 lodash 浅拷贝分支的取值面） */
+const enumerableSymbolsIn = (object: object): symbol[] => {
+  const symbols: symbol[] = [];
+  for (let current: any = object; current; current = getProto(current)) {
+    for (const symbol of Object.getOwnPropertySymbols(current)) {
+      if (Object.prototype.propertyIsEnumerable.call(current, symbol)) {
+        symbols.push(symbol);
+      }
+    }
+  }
+  return symbols;
+};
+
+/**
+ * 与 lodash omit 语义对齐：返回新对象，含对象（含继承）的可枚举属性并剔除 keys 中的属性
+ *
+ * @description 仅处理顶层键（不解析 `a.b` 深层路径）；危险键（`__proto__` / `constructor` / `prototype`）不参与拷贝；
+ * Symbol 键与可枚举继承属性照常拷贝（数组入参不拷贝 Symbol 键，对齐 lodash）；`null` / `undefined` 入参返回空对象；
+ * 不修改源对象。
+ *
+ * @template T - 源对象类型
+ * @template K - 待剔除的键类型
+ * @param {T} object - 源对象
+ * @param {readonly K[]} keys - 待剔除的顶层键集合
+ * @returns {Omit<T, Extract<K, keyof T>>} 剔除后的新对象
+ */
+export function omit<T extends object, K extends PropertyKey>(
+  object: T,
+  keys: readonly K[]
+): Omit<T, Extract<K, keyof T>> {
+  const result = {} as Omit<T, Extract<K, keyof T>>;
+  const excluded = new Set<PropertyKey>(keys);
+  if (object == null) return result;
+  const copy = (key: PropertyKey) => {
+    if (excluded.has(key) || isDangerousKey(key as string)) return;
+    (result as any)[key] = (object as any)[key];
+  };
+  for (const key in object) copy(key);
+  if (!Array.isArray(object)) {
+    for (const symbol of enumerableSymbolsIn(object)) copy(symbol);
+  }
+  return result;
+}
+
 /**
  * 将任意值安全转为对象
  *

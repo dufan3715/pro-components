@@ -6,12 +6,14 @@ import {
   isPlainObject,
   isObjectItem,
   pick,
+  omit,
   cloneDeep,
   isPromise,
 } from '../src/shared/utils';
 import {
   isPlainObject as lodashIsPlainObject,
   pick as lodashPick,
+  omit as lodashOmit,
   cloneDeep as lodashCloneDeep,
 } from 'lodash-es';
 
@@ -102,6 +104,83 @@ describe('utils', () => {
     it('pick 空 keys 返回空对象', () => {
       const obj = { a: 1, b: 2 };
       expect(pick(obj, [])).toEqual(lodashPick(obj, []));
+    });
+  });
+
+  describe('omit 与 lodash 差分对拍', () => {
+    it('omit 剔除自有属性并保留其余键', () => {
+      const obj = { a: 1, b: 2, c: 3 };
+      expect(omit(obj, ['b'])).toEqual(lodashOmit(obj, ['b']));
+    });
+
+    it('omit 保留继承属性，仅剔除自有属性', () => {
+      const parent = { inherited: 'from_parent' };
+      const child = Object.create(parent);
+      child.own = 'own_val';
+      child.other = 123;
+
+      expect(omit(child, ['own'])).toEqual(lodashOmit(child, ['own']));
+    });
+
+    it('omit 空 keys 返回浅拷贝而非原引用', () => {
+      const obj = { a: 1, b: 2 };
+      const actual = omit(obj, []);
+      expect(actual).toEqual(lodashOmit(obj, []));
+      expect(actual).not.toBe(obj);
+    });
+
+    it('omit 不存在的键与 null / undefined 入参', () => {
+      const obj = { a: 1 };
+      expect(omit(obj, ['nope'] as any)).toEqual(
+        lodashOmit(obj, ['nope'] as any)
+      );
+      expect(omit(null as any, ['a'])).toEqual(lodashOmit(null as any, ['a']));
+      expect(omit(undefined as any, ['a'])).toEqual(
+        lodashOmit(undefined as any, ['a'])
+      );
+    });
+
+    it('omit 数组入参按索引键剔除并返回普通对象', () => {
+      const arr = [1, 2, 3];
+      const actual = omit(arr, ['1']);
+      expect(actual).toEqual(lodashOmit(arr, ['1']));
+      expect(Array.isArray(actual)).toBe(false);
+    });
+
+    it('omit 拷贝可枚举 Symbol 键，且支持按 Symbol 键剔除', () => {
+      const kept = Symbol('kept');
+      const dropped = Symbol('dropped');
+      const obj = { a: 1, [kept]: 'kept_val', [dropped]: 'dropped_val' };
+
+      expect(omit(obj, [dropped])).toEqual(lodashOmit(obj, [dropped]));
+      expect(Reflect.ownKeys(omit(obj, [])).length).toBe(
+        Reflect.ownKeys(lodashOmit(obj, [])).length
+      );
+    });
+
+    it('omit 不修改源对象', () => {
+      const obj = { a: { deep: 1 }, b: 2 };
+      const actual = omit(obj, ['b']);
+      expect(actual).not.toBe(obj);
+      expect(obj).toEqual({ a: { deep: 1 }, b: 2 });
+      expect(actual.a).toBe(obj.a);
+    });
+
+    it('SU-07 [判别]: omit 不拷贝危险键（__proto__ 不替换结果对象原型）', () => {
+      const polluted = JSON.parse('{"__proto__": {"pwned": true}, "safe": 1}');
+      const actual = omit(polluted, [] as any);
+      expect(Object.getPrototypeOf(actual)).toBe(Object.prototype);
+      expect((actual as any).pwned).toBeUndefined();
+      expect((actual as any).safe).toBe(1);
+      expect(Object.prototype.hasOwnProperty.call(actual, '__proto__')).toBe(
+        false
+      );
+    });
+
+    it('SU-12 [判别]: omit 仅剔除顶层键，不解析 a.b 深层路径', () => {
+      const obj = { a: { b: 1, c: 2 } };
+      expect(omit(obj, ['a.b'] as any)).toEqual({ a: { b: 1, c: 2 } });
+      expect(omit(obj, ['a'] as any)).toEqual({});
     });
   });
 

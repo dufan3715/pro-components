@@ -19,6 +19,7 @@ const declaredApis = [
   'normalizeColumn',
   'normalizeColumns',
   'normalizePathKey',
+  'omit',
   'pick',
   'resolveFieldIdentity',
   'resolveLocaleName',
@@ -50,6 +51,7 @@ describe('index', () => {
       'normalizeColumn',
       'normalizeColumns',
       'normalizePathKey',
+      'omit',
       'pick',
       'resolveFieldIdentity',
       'resolveLocaleName',
@@ -81,8 +83,8 @@ describe('index', () => {
     expect(core.localePacks['zh-TW']).toBe(core.zhTW);
     expect(core.localePacks['en-US']).toBe(core.enUS);
 
-    // lodash 同名 API 不在导出面
-    expect((core as any).omit).toBeUndefined();
+    // lodash 同名 API 按对齐语义导出（pick / omit）
+    expect((core as any).omit).toBe(core.omit);
   });
 
   // ----------------------------------------------------
