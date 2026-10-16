@@ -405,6 +405,28 @@ describe('BaseFormItem 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // BI-A21 [判别]: 运行期注入原始值项时由组件自身过滤（core 初始规整不覆盖该路径）
+  // ----------------------------------------------------
+  it('BI-A21 [判别]: 运行期向字段数组注入原始值项时被过滤，仅渲染合法字段', async () => {
+    const form = useForm({ a: '' }, [
+      { path: 'a', label: 'A', component: 'input' },
+    ]);
+    // 绕过 core 的初始规整，直接在运行期字段数组中插入原始值项
+    (form.fields.value as any).unshift('not-a-field');
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(wrapper.findAll('.ant-form-item')).toHaveLength(1);
+    expect(wrapper.findAll('input')).toHaveLength(1);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // BI-A16 [判别]: 字段实例访问器经公开类型可直接访问（无需 as any）
   // ----------------------------------------------------
   it('BI-A16 [判别]: 字段实例访问器在公开类型面可直接访问且运行时可用', async () => {

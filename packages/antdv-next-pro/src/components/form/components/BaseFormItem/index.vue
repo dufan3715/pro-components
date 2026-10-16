@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 /**
+ * 表单字段渲染引擎
+ *
  * @component BaseFormItem
- * @description 表单字段渲染引擎
  *
  * 负责将字段配置数组渲染为实际的表单项，支持：
  * - 字段分组（嵌套 fields 递归渲染）
@@ -17,7 +18,7 @@
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
  * 4. 通过 ref 回调收集 FormItem 和 Component 实例，注入到 field 对象上
  *
- * @param {Fields<D>} [fields] - 字段配置数组
+ * @param {Fields} [fields] - 字段配置数组
  * @param {boolean | GridProps} [grid] - 是否启用网格布局
  * @param {boolean} [disabled] - 是否禁用所有子字段
  *
@@ -44,8 +45,11 @@ import { INJECT_CONFIG } from '../../../component-provider/constants';
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
 type Props = {
+  /** 是否启用网格布局 */
   grid?: Grid;
+  /** 字段配置数组 */
   fields?: Fields;
+  /** 是否禁用所有子字段 */
   disabled?: boolean;
 };
 const props = withDefaults(defineProps<Props>(), {
@@ -54,8 +58,8 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: undefined,
 });
 
-// 过滤掉 hidden 字段；hidden 支持 Ref/ComputedRef/getter 等响应式形态（统一使用 toValue 取值）
 const validFields = computed(() =>
+  // hidden 支持 Ref / ComputedRef 响应式形态（统一使用 toValue 取值）
   (props.fields ?? []).filter(
     field => isObjectItem(field) && !toValue((field as any).hidden)
   )

@@ -20,14 +20,23 @@ const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
 const formItemPropKeySet = new Set<string>(formItemPropKeys);
 const formItemSlotKeySet = new Set<string>(FORM_ITEM_SLOT_KEYS);
 
+/** 单个字段拆解后的渲染分组 */
 export interface GroupedField {
+  /** 解析后的字段标识（`name` 优先于 `path`） */
   path: string;
+  /** 透传给栅格容器（GridItem）的属性 */
   gridItemProps: GridItemProps;
+  /** 透传给 FormItem 的属性 */
   formItemProps: FormItemProps;
+  /** 归属 FormItem 的插槽 */
   formItemSlots: Record<(typeof FORM_ITEM_SLOT_KEYS)[number], any>;
+  /** 透传给输入组件的属性（含组件插槽） */
   componentProps: Record<string, any>;
+  /** 该字段的外层包裹容器 */
   formItemContainer?: Base['formItemContainer'];
+  /** 字段原始对象，供实例登记与访问器挂载使用 */
   rawField: Field;
+  /** 渲染 key，取自字段对象身份 */
   renderKey: string | number;
 }
 

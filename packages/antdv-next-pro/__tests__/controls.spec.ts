@@ -3,6 +3,7 @@ import { defineComponent, h, markRaw, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import SizeControl from '../src/components/table/components/SizeControl.vue';
 import ColumnControl from '../src/components/table/components/ColumnControl.vue';
+import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useTable } from '../src/components/table/hooks/useTable';
@@ -123,6 +124,43 @@ describe('控制组件与全局 Provider 测试', () => {
 
     expect(table.columns.value.find(c => c.key === 'name')?.hidden).toBe(true);
     expect(table.columns.value.find(c => c.key === 'id')?.hidden).toBeFalsy();
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
+  });
+
+  // ----------------------------------------------------
+  // CC-04 [判别]: columns 含 null / 原始值项时被过滤，面板项与合法列一一对应且不抛错
+  // ----------------------------------------------------
+  it('CC-04 [判别]: columns 含 null/原始值项时被过滤，面板项与合法列一一对应', async () => {
+    const table = useTable({ columns: createBasicColumns(), dataSource: [] });
+
+    const wrapper = mount(ColumnControl, {
+      props: {
+        // 运行期注入非对象列项：核心的列规整不覆盖该路径
+        columns: [...table.columns.value, null, 'not-a-column'] as any,
+        table,
+        columnControl: { disableCheckAll: true },
+      },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+
+    await flushPromises();
+    await wrapper
+      .find('.pro-table_column-control_button')
+      .trigger('mouseenter');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+
+    const menuItems = Array.from(
+      document.querySelectorAll<HTMLElement>('.ant-dropdown-menu-item')
+    );
+    expect(menuItems.map(item => item.textContent)).toEqual([
+      'ID',
+      '姓名',
+      '状态',
+    ]);
 
     wrapper.unmount();
     document.body.innerHTML = '';
@@ -381,5 +419,80 @@ describe('控制组件与全局 Provider 测试', () => {
     expect(setColumnCalls).toEqual([]);
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SC-A15 [判别]: 高亮项与表格实际使用的尺寸一致（Provider 注入 / 控件回写 / 显式绑定）
+  // ----------------------------------------------------
+  it('SC-A15 [判别]: Provider 注入 size 时高亮项跟随注入值，控件回写优先于注入', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [],
+    });
+    const mountWithProvider = () =>
+      mount(ProComponentProvider, {
+        props: {
+          componentVars: {
+            'pro-table': { size: 'small', control: { sizeControl: true } },
+          },
+        },
+        slots: { default: () => h(ProTable, { table }) },
+        global: { stubs: { transition: false } },
+      });
+
+    // ① Provider 注入 size：表格与高亮同步为注入值，本地模型未被静默拉回默认
+    const injected = mountWithProvider();
+    await flushPromises();
+    let sizeControl = injected.findComponent(SizeControl);
+    expect(injected.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'small'
+    );
+    expect((sizeControl.vm as any).currentSize).toBe('small');
+
+    // 渲染层：展开菜单，被选中项与表格有效尺寸一致
+    await injected.find('.pro-table_size-control_button').trigger('mouseenter');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+    const selected = document.querySelector<HTMLElement>(
+      '.ant-dropdown-menu-item-selected'
+    );
+    expect(selected?.dataset.menuId?.endsWith('-small')).toBe(true);
+    injected.unmount();
+    document.body.innerHTML = '';
+
+    // ② 用户经控件改尺寸：回写值优先于 Provider 注入，表格与高亮同步跟随
+    const clicked = mountWithProvider();
+    await flushPromises();
+    sizeControl = clicked.findComponent(SizeControl);
+    await clicked.find('.pro-table_size-control_button').trigger('mouseenter');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+    const middleItem = Array.from(
+      document.querySelectorAll<HTMLElement>('.ant-dropdown-menu-item')
+    ).find(item => item.dataset.menuId?.endsWith('-middle'));
+    expect(middleItem).toBeTruthy();
+    middleItem!.click();
+    await flushPromises();
+
+    expect(clicked.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'middle'
+    );
+    expect((sizeControl.vm as any).currentSize).toBe('middle');
+    clicked.unmount();
+    document.body.innerHTML = '';
+
+    // ③ 显式绑定 size：表格与高亮跟随显式值
+    const explicit = mount(ProTable, {
+      props: { table, size: 'middle', control: { sizeControl: true } },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(explicit.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'middle'
+    );
+    expect((explicit.findComponent(SizeControl).vm as any).currentSize).toBe(
+      'middle'
+    );
+    explicit.unmount();
   });
 });

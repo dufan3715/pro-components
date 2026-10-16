@@ -1,4 +1,12 @@
 <script lang="ts" setup>
+/**
+ * 表格尺寸切换控件，以图标按钮 + 下拉菜单呈现
+ *
+ * @component SizeControl
+ *
+ * @param {Size} [size] - 表格尺寸（`v-model:size`），仅用于回写选中结果
+ * @param {Size} [effectiveSize] - 表格实际使用的尺寸，用于高亮选中项；未提供时依次回退 `size`、宿主 ConfigProvider 的 componentSize
+ */
 import {
   Dropdown,
   Menu,
@@ -16,10 +24,22 @@ const { t } = useLocale();
 
 const hostConfig = useHostConfig();
 
+const props = withDefaults(
+  defineProps<{
+    effectiveSize?: Size;
+  }>(),
+  { effectiveSize: undefined }
+);
+
 const size = defineModel<Size>('size');
 
+// 高亮项：表格有效尺寸 > 本地绑定 > 宿主 ConfigProvider 的 componentSize
 const currentSize = computed(
-  () => size.value ?? hostConfig.componentSize?.value ?? 'large'
+  () =>
+    props.effectiveSize ??
+    size.value ??
+    hostConfig.componentSize?.value ??
+    'large'
 );
 
 const items = computed(() => [

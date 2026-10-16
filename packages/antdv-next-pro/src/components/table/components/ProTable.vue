@@ -1,7 +1,8 @@
 <script lang="ts" setup generic="T extends Table<any> = Table">
 /**
+ * 配置驱动的表格组件
+ *
  * @component ProTable
- * @description 配置驱动的表格组件
  *
  * ## 架构概览
  *
@@ -121,13 +122,19 @@ type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
 };
 
 type Props = {
+  /** 列表表格对象，来自 `useTable` */
   table?: T;
+  /** 列表数据查询方法 */
   search?: () => Promise<unknown>;
+  /** 是否在首列插入序号列 */
   addIndexColumn?: boolean;
+  /** 是否展示尺寸与列控制按钮 */
   control?: boolean | Partial<Control>;
+  /** 挂载后是否立即触发一次查询 */
   immediateSearch?: boolean;
+  /** 搜索栏查询字段表单配置 */
   searchFormConfig?: SearchFormConfig;
-  // 表格区域包裹容器
+  /** 表格区域包裹容器 */
   tableContainer?: ContainerComponent | false;
 } & /* @vue-ignore */ TableProps;
 
@@ -147,6 +154,7 @@ const config = INJECT_CONFIG['pro-table'];
 const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
+/* Provider 注入的不可注入键（columns / dataSource / loading）已在注入层剔除，此处直接取用其注入属性 */
 const injectAttrs = computed<TableProps>(
   () => pickTableProps(injectProps.value) as TableProps
 );
@@ -163,7 +171,18 @@ const computedSearchFormConfig = computed(() => {
   };
 });
 
+/** SearchForm 属性面：容器与显隐由 ProTable 自身消费，不下发 SearchForm */
+const searchFormProps = computed(() => {
+  const {
+    container: _container,
+    hidden: _hidden,
+    ...rest
+  } = computedSearchFormConfig.value;
+  return rest;
+});
+
 const attrs: Record<string, any> = useAttrs();
+/** attrs 的驼峰视图：模板中以 kebab-case 写法的绑定键在此归一 */
 const tableAttrs = computed<TableProps>(() => {
   return pickTableProps(camelizeProperties(attrs)) as TableProps;
 });
@@ -173,7 +192,7 @@ const loading = defineModel<boolean>('loading', { default: false });
 
 // 递增序号做请求竞态守卫，仅最新一次请求可变更 loading
 let searchSequence = 0;
-/** 告警文案按原因分键，各原因独立去重 */
+// 告警文案按原因分键，各原因独立去重
 const SEARCH_WARN_MESSAGES = {
   duplicate:
     '同时配置了 :search prop 与 @search 监听，@search 监听不会被执行，请仅保留其一。',
@@ -251,7 +270,7 @@ const columnRequiredSlotNames = new Set([
 ]);
 
 /**
- * 判定插槽是否具备渲染条件（守卫过渡状态或空列下 column 为 undefined 的情况）
+ * 判定插槽在当前渲染状态下是否可渲染。
  * 当列被动态隐藏或所有列均隐藏时，旧单元格销毁过渡帧或空占位中 column 可能为 undefined，
  * 此时阻断依赖 column 的业务插槽调用；
  * 非列依赖的表格级插槽（如 emptyText、footer、summary 等）始终正常渲染。
@@ -270,27 +289,40 @@ const searchPage1st = () => {
 
 const instance = getCurrentInstance();
 
-/** 调用方是否显式绑定该 prop（含 v-model 写法） */
+/** 调用方是否显式绑定该 prop（含 kebab-case 与 v-model 写法） */
 const isBoundProp = (name: string) => {
   const vnodeProps = instance?.vnode.props || {};
-  return name in vnodeProps || `onUpdate:${name}` in vnodeProps;
+  const kebab = name.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`);
+  return (
+    name in vnodeProps ||
+    kebab in vnodeProps ||
+    `onUpdate:${name}` in vnodeProps
+  );
 };
 
+/*
+ * 表格尺寸单一来源：显式绑定 > SizeControl 回写 > Provider 注入；
+ * 本地模型已写入时即视为已选定，未绑定的 Provider 注入不再回压
+ */
+const effectiveSize = computed<TableProps['size']>(() => {
+  return isBoundProp('size') || size.value !== undefined
+    ? size.value
+    : injectAttrs.value.size;
+});
+
+/*
+ * 下发给宿主表格的属性：Provider 注入为底（其不可注入键已在注入层剔除），调用方绑定覆盖同键；
+ * pagination / onChange 由模板显式绑定收口
+ */
 const computedTableProps = computed<TableProps>(() => {
   const merged = {
     ...injectAttrs.value,
     ...tableAttrs.value,
-    // loading 由组件自身状态驱动，不从注入与散落 attrs 取值
-    loading: undefined,
-    pagination: undefined,
-    onChange: undefined,
-  } as TableProps;
-  // 始终读取本地模型以建立依赖；本地显式绑定或已由 SizeControl 写入时覆盖注入值
-  const localSize = size.value;
-  if (isBoundProp('size') || localSize !== undefined) {
-    merged.size = localSize;
-  }
-  return merged;
+  } as Record<string, any>;
+  delete merged.pagination;
+  delete merged.onChange;
+  merged.size = effectiveSize.value;
+  return merged as TableProps;
 });
 
 const computedTableContainer = computed(() => {
@@ -471,7 +503,7 @@ defineExpose({
         <SearchForm
           v-if="props.table?.searchForm"
           :form="props.table.searchForm"
-          v-bind="computedSearchFormConfig"
+          v-bind="searchFormProps"
           @search="searchPage1st"
           @reset="reset"
         />
@@ -496,7 +528,7 @@ defineExpose({
           v-if="computedControl.sizeControl"
           class="pro-table_header_size-control"
         >
-          <SizeControl v-model:size="size" />
+          <SizeControl v-model:size="size" :effective-size="effectiveSize" />
         </div>
 
         <!-- 列显示/隐藏控制 -->
@@ -520,7 +552,7 @@ defineExpose({
           dataSource: computedDataSource,
           pagination: computedPagination,
           loading: loading,
-          size: size,
+          size: effectiveSize,
           onChange: onTableChange,
         }"
       >

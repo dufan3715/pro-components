@@ -23,8 +23,10 @@ import {
 } from '../shared/core';
 import { useConfig as useConfigContext } from 'antdv-next/dist/config-provider/context';
 
+/** 内置语言包：简体中文 / 繁体中文 / 英文 */
 export { zhCN, zhTW, enUS };
 
+/** 文案表类型：键为内置文案 key，值为任意字符串 */
 export type { ProLocale };
 
 /** ProComponentProvider 通过该 key 注入局部覆盖文案 */

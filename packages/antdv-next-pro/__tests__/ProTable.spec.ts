@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, markRaw, ref, toRaw } from 'vue';
+import { defineComponent, h, inject, markRaw, ref, toRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import { Pagination } from 'antdv-next';
 import ProTable from '../src/components/table/components/ProTable.vue';
@@ -7,6 +7,7 @@ import ProComponentProvider from '../src/components/component-provider/component
 import SizeControl from '../src/components/table/components/SizeControl.vue';
 import { useTable } from '../src/components/table/hooks/useTable';
 import { tableProps } from '../src/shared/ui';
+import { INJECT_CONFIG } from '../src/components/component-provider/constants';
 import type { ComponentVars } from '../src/components/component-provider';
 import { expectWarn, flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
@@ -758,6 +759,7 @@ describe('ProTable 组件测试', () => {
       dataSource: [],
     });
 
+    // 不可注入键：注入层静默剔除
     const injectedWrapper = mount(ProComponentProvider, {
       props: {
         componentVars: {
@@ -1525,5 +1527,271 @@ describe('ProTable 组件测试', () => {
     expect(headers()).not.toContain('姓名');
     expect(headers()).toContain('年龄');
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A36 [判别]: searchFormConfig 的 container / hidden 由 ProTable 自身消费，不下发 SearchForm
+  // ----------------------------------------------------
+  it('PT-A36 [判别]: searchFormConfig 的 container / hidden 不落 SearchForm 根 DOM，隐藏语义仍生效', async () => {
+    const ContainerProbe = markRaw(
+      defineComponent({
+        name: 'ContainerProbe',
+        setup(_, { slots }) {
+          return () =>
+            h(
+              'div',
+              { class: 'search-form-container-probe' },
+              slots.default?.()
+            );
+        },
+      })
+    );
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '甲' }],
+      searchFields: [{ path: 'kw', label: '关键词', component: 'input' }],
+    });
+
+    const wrapper = mount(ProTable, {
+      props: {
+        table,
+        addIndexColumn: false,
+        searchFormConfig: { container: ContainerProbe, hidden: false },
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 自定义容器接管包裹，SearchForm 经由容器 default 插槽渲染
+    const container = wrapper.find('.search-form-container-probe');
+    expect(container.exists()).toBe(true);
+    const form = container.find('form');
+    expect(form.exists()).toBe(true);
+    // 判别点：两个键均为 ProTable 自身消费，不落为原生 form 的 DOM 属性
+    expect(form.attributes('container')).toBeUndefined();
+    expect(form.attributes('hidden')).toBeUndefined();
+    expect(wrapper.find('[container]').exists()).toBe(false);
+    wrapper.unmount();
+
+    // hidden: true 仍隐藏搜索区域
+    const hiddenTable = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '甲' }],
+      searchFields: [{ path: 'kw', label: '关键词', component: 'input' }],
+    });
+    const hiddenWrapper = mount(ProTable, {
+      props: {
+        table: hiddenTable,
+        addIndexColumn: false,
+        searchFormConfig: { hidden: true },
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(hiddenWrapper.find('form').exists()).toBe(false);
+    expect(
+      hiddenWrapper.find('.pro-table_search-form-container').exists()
+    ).toBe(false);
+    hiddenWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A37 [判别]: Provider 注入的 columns / dataSource 不参与表格渲染（来源为 table 实例）
+  // ----------------------------------------------------
+  it('PT-A37 [判别]: Provider 注入的 columns / dataSource 不生效，列与数据源取自 table 实例', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '实例列', key: 'name' }],
+      dataSource: [{ name: '实例数据' }],
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'pro-table': {
+            columns: [
+              { dataIndex: 'injected', title: '注入列', key: 'injected' },
+            ],
+            dataSource: [{ name: '注入数据' }],
+          },
+        } as any,
+      },
+      slots: { default: () => h(ProTable, { table, addIndexColumn: false }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 列与数据源均取自 table 实例，注入值既不渲染也不落为宿主表格元素属性
+    expect(wrapper.text()).toContain('实例列');
+    expect(wrapper.text()).toContain('实例数据');
+    expect(wrapper.text()).not.toContain('注入列');
+    expect(wrapper.text()).not.toContain('注入数据');
+
+    const hostTable = wrapper.findComponent({ name: 'ATable' });
+    expect(
+      hostTable.props('columns').map((column: any) => column.title)
+    ).toEqual(['实例列']);
+    expect(hostTable.props('dataSource')).toEqual([{ name: '实例数据' }]);
+    const hostElement = hostTable.element as HTMLElement;
+    expect(hostElement.getAttribute('columns')).toBeNull();
+    expect(hostElement.getAttribute('data-source')).toBeNull();
+    // 两个不可注入键均在注入层静默剔除，不产生告警
+    expect(warnSpy).not.toHaveBeenCalled();
+    wrapper.unmount();
+    warnSpy.mockRestore();
+
+    // 类型面契约：注入面不含 columns / dataSource
+    const providerVars: ComponentVars = {
+      'pro-table': {
+        size: 'small',
+        // @ts-expect-error columns 不参与 ProTable 全局注入
+        columns: [{ dataIndex: 'injected' }],
+        dataSource: [],
+      },
+    };
+    // 运行期仍可携带被类型面排除的键，故以键集合对照锁定类型面收口
+    expect(Object.keys(providerVars['pro-table'] ?? {})).toEqual([
+      'size',
+      'columns',
+      'dataSource',
+    ]);
+  });
+
+  // ----------------------------------------------------
+  // PT-A38 [判别]: table 插槽作用域 size 与表格实际使用的尺寸一致
+  // ----------------------------------------------------
+  it('PT-A38 [判别]: table 插槽作用域 size 下发有效值（Provider 注入优先于未绑定的本地模型）', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '甲' }],
+    });
+    const slotScope: Record<string, any> = {};
+    const tableSlot = (scope: any) => {
+      Object.assign(slotScope, scope);
+      return h('div', { class: 'scope-marker' });
+    };
+
+    const injected = mount(ProComponentProvider, {
+      props: { componentVars: { 'pro-table': { size: 'small' } } },
+      slots: {
+        default: () =>
+          h(ProTable, { table, addIndexColumn: false }, { table: tableSlot }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(slotScope.size).toBe('small');
+    injected.unmount();
+
+    // 显式绑定 size 时插槽收到本地绑定值
+    const local = mount(ProTable, {
+      props: { table, size: 'large', addIndexColumn: false },
+      slots: { table: tableSlot },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(slotScope.size).toBe('large');
+    local.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A39 [判别]: 不可注入键在注入层静默剔除，运行期新增同样被剔除
+  // ----------------------------------------------------
+  it('PT-A39 [判别]: 不可注入键经注入层静默剔除，运行期新增同样被剔除且不产生告警', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: '实例列', key: 'name' }],
+      dataSource: [{ name: '实例数据' }],
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // 注入面探针：直接读取 Provider 下发的注入配置引用，判别不可注入键是否已剔除
+    let injectedConfig: any;
+    const Probe = defineComponent({
+      setup() {
+        injectedConfig = inject(INJECT_CONFIG['pro-table'].injectionKey, null);
+        return () => h('div');
+      },
+    });
+    const componentVars = ref<any>({ 'pro-table': { size: 'small' } });
+
+    const Host = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProComponentProvider,
+            { componentVars: componentVars.value },
+            {
+              default: () => [
+                h(ProTable, { table, addIndexColumn: false }),
+                h(Probe),
+              ],
+            }
+          );
+      },
+    });
+    const wrapper = mount(Host, { global: { stubs: { transition: false } } });
+    await flushPromises();
+
+    // 未配置不可注入键：Provider 注入的 size 正常生效
+    expect(wrapper.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'small'
+    );
+    expect(injectedConfig.value).not.toHaveProperty('columns');
+    expect(injectedConfig.value).not.toHaveProperty('dataSource');
+    expect(injectedConfig.value).not.toHaveProperty('loading');
+
+    // 运行期新增不可注入键：注入被静默剔除（既有列/数据源不受影响）
+    componentVars.value = {
+      'pro-table': {
+        size: 'small',
+        columns: [{ dataIndex: 'injected', title: '注入列' }],
+        dataSource: [{ name: '注入数据' }],
+        loading: true,
+      },
+    };
+    await flushPromises();
+    const hostTable = wrapper.findComponent({ name: 'ATable' });
+    expect(
+      hostTable.props('columns').map((column: any) => column.title)
+    ).toEqual(['实例列']);
+    expect(hostTable.props('dataSource')).toEqual([{ name: '实例数据' }]);
+    expect(hostTable.props('loading')).toBe(false);
+    // 注入面已剔除三个不可注入键，其余键（size）照常下发
+    expect(injectedConfig.value).not.toHaveProperty('columns');
+    expect(injectedConfig.value).not.toHaveProperty('dataSource');
+    expect(injectedConfig.value).not.toHaveProperty('loading');
+    expect(injectedConfig.value?.size).toBe('small');
+
+    // 静默：不可注入键不产生任何告警
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    // 运行期再次变更：同样静默剔除
+    componentVars.value = {
+      'pro-table': {
+        size: 'middle',
+        columns: [{ dataIndex: 'injected-2', title: '注入列2' }],
+      },
+    };
+    await flushPromises();
+    expect(injectedConfig.value).not.toHaveProperty('columns');
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(wrapper.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'middle'
+    );
+
+    wrapper.unmount();
+    warnSpy.mockRestore();
+
+    // 默认值不含不可注入键（未挂 Provider 时 consumer 取 default 也不会拿到失效配置）
+    expect(Object.keys(INJECT_CONFIG['pro-table'].default)).not.toContain(
+      'columns'
+    );
+    expect(Object.keys(INJECT_CONFIG['pro-table'].default)).not.toContain(
+      'dataSource'
+    );
+    expect(Object.keys(INJECT_CONFIG['pro-table'].default)).not.toContain(
+      'loading'
+    );
+    expect(Object.keys(INJECT_CONFIG['pro-form'].default)).not.toContain(
+      'form'
+    );
   });
 });

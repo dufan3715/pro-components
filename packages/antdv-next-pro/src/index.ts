@@ -65,7 +65,7 @@ export { ProComponentProvider };
 
 export default {
   /**
-   * @qin-ui/antdv-next-pro 安装方法
+   * 安装方法
    * @description 全局注册所有组件（ProForm、ProTable、ProComponentProvider）
    *
    * @param {App} app - Vue 应用实例

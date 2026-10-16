@@ -67,7 +67,7 @@ const search = async () => {
 | 参数名           | 说明                                                       | 类型                                                                                 | 默认值 |
 | ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
 | table            | useTable 返回对象                                          | Object                                                                               | -      |
-| search           | 表格数据查询获取方法                                       | Function                                                                             | -      |
+| search           | 表格数据查询获取方法                                       | () => Promise<unknown>                                                               | -      |
 | addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | true   |
 | immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                              | -      |
 | control          | 是否展示表格 size 和 column 控制按钮                       | boolean \| { sizeControl?: boolean; columnControl?: boolean \| ColumnControlConfig } | true   |
@@ -263,4 +263,4 @@ Object.entries(state).forEach(([key, { hidden }]) => {
 
 - 搜索表单复用 `Field` 配置，复杂联动请参考 ProForm 的字段策略
 - 使用 `control` 开启列控制与尺寸切换
-- 如需统一默认配置，可使用 `ProComponentProvider` 注入 `pro-table`
+- 如果需要统一默认配置，可使用 `ProComponentProvider` 注入 `pro-table`；`columns` / `dataSource` / `loading` 不参与注入，分别由 `:table` 实例与组件自身查询状态驱动

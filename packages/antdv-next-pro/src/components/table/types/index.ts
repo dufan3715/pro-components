@@ -4,12 +4,12 @@ import type { ComputedRef, MaybeRef } from 'vue';
 type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
 
 /**
- * @qin-ui/antdv-next-pro 表格列配置类型
+ * 表格列配置类型
  *
  * @description 继承 antdv-next 的 ColumnType 列类型，并添加：
  * - 类型安全的 dataIndex（基于泛型 D 推导路径），优先使用
  * - key 作为辅助标识
- * - hidden 属性用于控制列显隐
+ * - hidden 用于控制列显隐，按 `MaybeRefOrComputedRef<boolean>` 重声明（宿主列类型的 boolean 形态先剔除）
  *
  * @template D - 表格行数据类型
  *
@@ -22,42 +22,39 @@ type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
  *   { dataIndex: 'age', title: '年龄', width: 80 },
  * ]
  * ```
- 
+ *
  * @public
- */
-/*
- * 宿主 @v-c/table 的 ColumnSharedType 自带 `hidden?: boolean`，须先剔除再重声明，
- * 否则与下方 `MaybeRefOrComputedRef<boolean>` 交叉为交集类型而拒绝 Ref
  */
 export type Column<D extends Data = Data> = Omit<
   ColumnType,
   'dataIndex' | 'key' | 'hidden'
 > & {
   /**
-   * @description 列数据路径（主要字段），优先使用 dataIndex 进行字段匹配
+   * 列数据路径（主要字段）
+   *
    * @example 'name' | 'address.city' | ['address', 'city']
    */
   dataIndex?: KeyExpandString<Extract<keyof D, string>> | Paths<D>;
   /**
-   * @description 列字段标识（辅助字段），当 dataIndex 不满足需求时使用
+   * 列字段标识（辅助字段）
    */
   key?: Path<D>;
   /**
-   * @description 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值。
+   * 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值。
    * 分组列的子列同样参与过滤（递归生效）。
    * @default false
    */
   hidden?: MaybeRefOrComputedRef<boolean>;
   /**
-   * @description 分组子列；提供时该列作为分组表头渲染，子列沿用同一配置类型
+   * 分组子列；提供时该列作为分组表头渲染，子列沿用同一配置类型
    */
   children?: Column<D>[];
 };
 
 /**
- * @qin-ui/antdv-next-pro 表格列配置数组类型
+ * 表格列配置数组类型
  * @template D - 表格行数据类型
- 
+ *
  * @public
  */
 export type Columns<D extends Data = Data> = Array<Column<D>>;

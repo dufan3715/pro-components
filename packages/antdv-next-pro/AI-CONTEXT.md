@@ -166,6 +166,8 @@ useTable({ columns, dataSource, pageParam, searchParam, searchFields });
 
 关键 prop：`table`（useTable 实例）、`search`（数据查询方法 `() => Promise`，ProTable 内部调用，非自动触发）、`addIndexColumn`、`immediateSearch`、`control`、`searchFormConfig`（含 `hidden`/`container`/`layout`/`expand`）、`tableContainer`。
 
+Provider 注入面：`columns` / `dataSource` / `loading` 不可经 `componentVars['pro-table']` 配置（分别由 `:table` 实例与组件自身查询状态驱动），`form` 不可经 `componentVars['pro-form']` 配置（由显式 `:form` 实例驱动）；传入不可注入键时在注入层静默忽略（类型面已限制，不输出告警）。`searchFormConfig` 的 `container` / `hidden` 由 ProTable 消费，不下发 `SearchForm`。
+
 **列控制（control）**：`control` 支持布尔值或 `{ sizeControl, columnControl }` 对象；`columnControl` 可为布尔值或 `ColumnControlConfig`：`labels`（列在下拉中的显示名映射，title 为 vnode 时必用）、`excludedKeys`（不在下拉出现、始终展示）、`disabledKeys`（显示但不可取消勾选）、`disableCheckAll`（禁用全选/取消全选）。列 key 取 `dataIndex` 路径或自定义 `key`。
 
 **数据流**：搜索->重置分页到第 1 页->调 `search()`；分页/排序变化->更新 `pageParam`->调 `search()`；重置->`resetQueryParams()`->调 `search()`。

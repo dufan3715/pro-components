@@ -20,13 +20,14 @@ import {
   InputOTP,
 } from '../../../shared/ui';
 
+// prettier-ignore
 /**
  * FormItem 插槽名称列表
  * @description 用于在字段配置中透传 FormItem 的插槽
  */
-// prettier-ignore
 export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help', 'tooltip'] as const;
 
+// prettier-ignore
 /**
  * 内置组件映射表
  * @description antdv-next 内置支持的组件类型映射。
@@ -35,7 +36,6 @@ export const FORM_ITEM_SLOT_KEYS = ['label', 'extra', 'help', 'tooltip'] as cons
  *
  * @public
  */
-// prettier-ignore
 export type BaseComponentMap = {
   'input': typeof Input;
   'textarea': typeof TextArea;
@@ -72,16 +72,15 @@ export type BaseComponentMap = {
  *   }
  * }
  * ```
- 
+ *
  * @public
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ComponentMap {}
+export interface ComponentMap {} // eslint-disable-line @typescript-eslint/no-empty-object-type
 
 /**
  * 组件名称联合类型
  * @description 所有支持的组件名称
- 
+ *
  * @public
  */
 export type ComponentName =
@@ -100,14 +99,14 @@ export type GetComponentType<K extends ComponentName> =
       ? BaseComponentMap[K]
       : never;
 
+// prettier-ignore
 /**
- * 组件名称到 antdv-next 组件的运行时映射
+ * 组件名称到 antdv-next 组件的映射
  * @description ProForm 通过此映射将 Field 配置中的 component 字符串解析为实际 Vue 组件。
  * 例如 `component: 'input'` → `Input`, `component: 'select'` → `Select`。
  *
  * @public
  */
-// prettier-ignore
 export const componentMap: BaseComponentMap = {
   'input': Input,
   'textarea': TextArea,

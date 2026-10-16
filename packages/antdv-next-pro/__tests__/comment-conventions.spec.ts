@@ -2,8 +2,9 @@
  * 注释规范契约回归 —— 锁定适配层注释与公开 JSDoc 的行为陈述口径
  *
  * @description
- * 断言两类事实：CR-090 余项涉及的适配层注释已改为行为陈述，实现手段与动机表述不再回流；
- * ProTable / SearchForm 的公开 JSDoc 与同构包 antd-vue-pro 保持同句。
+ * 断言三类事实：CR-090 余项涉及的适配层注释已改为行为陈述，实现手段与动机表述不再回流；
+ * ProTable / SearchForm 的公开 JSDoc 与同构包 antd-vue-pro 保持同句；
+ * 字段 hidden 口径与 ProTable 注入面边界在四包类型面与文档面同句。
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -32,6 +33,38 @@ const antd = {
     '../../antd-vue-pro/src/components/table/components/ProTable.vue'
   ),
 };
+
+const readme = read('../README.md');
+const aiContext = read('../AI-CONTEXT.md');
+const proTableDoc = read(
+  '../../../docs/antdv-next-pro/components/pro-table/index.md'
+);
+const providerTypes = read(
+  '../src/components/component-provider/types/index.ts'
+);
+const providerConstants = read(
+  '../src/components/component-provider/constants/index.ts'
+);
+
+/*
+ * 字段 hidden 口径的四包同构来源：类型面声明、渲染过滤注释、组件文档行
+ */
+const hiddenSources = [
+  'antd-vue-pro',
+  'antdv-next-pro',
+  'element-plus-pro',
+  'vant-pro',
+].map(
+  pkg =>
+    [
+      pkg,
+      read(`../../${pkg}/src/components/form/types/index.ts`),
+      read(
+        `../../${pkg}/src/components/form/components/BaseFormItem/index.vue`
+      ),
+      read(`../../../docs/${pkg}/components/pro-form/index.md`),
+    ] as const
+);
 
 describe('注释规范契约 · antdv-next-pro', () => {
   // ----------------------------------------------------
@@ -115,5 +148,78 @@ describe('注释规范契约 · antdv-next-pro', () => {
         `antdv-next SearchForm 缺同构行：${line}`
       ).toContain(line);
     }
+  });
+
+  // ----------------------------------------------------
+  // DOC-03 [判别]: 字段 hidden 的口径在四包类型面 / 注释 / 文档三处同句（Ref / ComputedRef，不含 getter）
+  // ----------------------------------------------------
+  it('DOC-03 [判别]: 字段 hidden 的类型面、渲染注释与组件文档口径四包一致', () => {
+    for (const [pkg, types, baseFormItem, proFormDoc] of hiddenSources) {
+      // 声明处保持原始值类型：响应式形态由 WithRef 统一派生，声明处再包装会形成二次包装
+      expect(
+        types,
+        `${pkg} 字段 hidden 未声明为原始值类型（响应式形态应由 WithRef 派生）`
+      ).toContain('hidden?: boolean;');
+      expect(
+        types,
+        `${pkg} 的 WithRef 未派生响应式形态，类型面 JSDoc 与实际能力不符`
+      ).toContain('MaybeRefOrComputedRef<T[P]>');
+      expect(
+        types,
+        `${pkg} 字段 hidden 的类型面 JSDoc 未声明有效形态`
+      ).toContain('支持布尔、Ref 与 ComputedRef 形式');
+      expect(baseFormItem, `${pkg} 过滤注释未声明 hidden 的有效形态`).toContain(
+        'hidden 支持 Ref / ComputedRef 响应式形态（统一使用 toValue 取值）'
+      );
+      expect(baseFormItem, `${pkg} 过滤注释仍宣称 getter 形态`).not.toContain(
+        'getter 等响应式形态'
+      );
+      expect(
+        proFormDoc,
+        `${pkg} 组件文档的字段 hidden 说明未同步有效形态`
+      ).toContain('`boolean` / `Ref` / `ComputedRef`');
+      expect(proFormDoc, `${pkg} 组件文档仍宣称 getter 形态`).not.toContain(
+        'getter'
+      );
+      // 嵌套路径说明归属字段 path 的注释，不落在 hidden 注释块内
+      const hiddenCommentStart = types.indexOf('字段是否隐藏');
+      expect(
+        types.slice(0, hiddenCommentStart),
+        `${pkg} 字段 path 的嵌套路径说明缺失`
+      ).toContain('嵌套字段的 `path` 使用各自独立的完整路径');
+      expect(
+        types.slice(hiddenCommentStart, types.indexOf('hidden?: boolean;')),
+        `${pkg} 的 hidden 注释混入了字段 path 的说明`
+      ).not.toContain('嵌套字段的 `path`');
+    }
+  });
+
+  // ----------------------------------------------------
+  // DOC-04 [判别]: ProTable 注入面边界（columns / dataSource / loading 不可注入）在类型与文档同句
+  // ----------------------------------------------------
+  it('DOC-04 [判别]: ProTable 注入面边界在类型面与文档面同步', () => {
+    // 类型面在 RequiredComponentVars 内直接剔除不可注入键
+    expect(providerTypes).toContain(
+      "Omit<TableProps, 'loading' | 'columns' | 'dataSource'>"
+    );
+    expect(providerTypes).toContain("Omit<ProFormProps, 'form' | 'grid'>");
+    expect(providerTypes).toContain(
+      'ComponentVars = Partial<RequiredComponentVars>'
+    );
+    expect(providerTypes).toContain('不参与全局注入');
+    // 运行期清单直接声明在注入项内，与类型面同键（两处分别锁定）
+    expect(providerConstants).toContain(
+      "ignoreProps: ['loading', 'columns', 'dataSource'],"
+    );
+    expect(providerConstants).toContain("ignoreProps: ['form'],");
+    expect(providerConstants).not.toContain('IGNORE_PROPS');
+    expect(providerConstants).toContain('不接受 Provider 注入的键');
+    expect(aiContext).toContain(
+      '`columns` / `dataSource` / `loading` 不可经 `componentVars'
+    );
+    // searchFormConfig 的下发边界：容器与显隐由 ProTable 消费
+    expect(aiContext).toContain('由 ProTable 消费，不下发 `SearchForm`');
+    expect(readme).toContain('不参与 `componentVars` 注入');
+    expect(proTableDoc).toContain('不参与注入');
   });
 });

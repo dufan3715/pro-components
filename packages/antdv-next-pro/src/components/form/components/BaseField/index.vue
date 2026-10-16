@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 /**
+ * 字段级渲染组件，负责将 field 配置渲染为实际的输入组件
+ *
  * @component BaseField
- * @description 字段级渲染组件，负责将 field 配置渲染为实际的输入组件
  *
  * ## 核心职责
  *
@@ -53,7 +54,9 @@ const cloneDeepIfObject = (val: unknown) =>
 defineOptions({ name: 'BaseField', inheritAttrs: false });
 
 type Props = {
+  /** 组件名或组件对象 */
   component?: string | Component;
+  /** 字段路径，用于绑定表单数据 */
   path?: string;
 };
 const props = withDefaults(defineProps<Props>(), {

@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * 搜索区域默认包裹容器，提供统一的背景色与间距
+ *
+ * @component DefaultSearchFormContainer
+ */
 import { computed } from 'vue';
 import { theme } from '../../../shared/ui';
 const { token } = theme.useToken();

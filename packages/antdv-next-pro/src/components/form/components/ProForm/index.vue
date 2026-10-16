@@ -1,7 +1,8 @@
 <script lang="ts" setup generic="F extends Form<any> = Form">
 /**
+ * 配置驱动表单组件
+ *
  * @component ProForm
- * @description @qin-ui/antdv-next-pro 配置驱动表单组件
  *
  * 架构设计说明 (Architecture Overview)
  *
@@ -131,7 +132,7 @@ const formKey = computed(() => getFormKey(currentForm.value as any));
 const config = INJECT_CONFIG['pro-form'];
 const injectFormConfig = inject(config.injectionKey, config.default);
 
-// 从 ProComponentProvider 获取全局配置，与传入的 props 合并
+/** 从 ProComponentProvider 获取全局配置，响应式派生以支持动态配置变更 */
 const injectAttrs = computed(() => {
   const { grid: _injectGrid, ...rest } = toValue(injectFormConfig) || {};
   return rest;

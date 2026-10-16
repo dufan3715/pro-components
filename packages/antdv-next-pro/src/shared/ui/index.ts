@@ -41,6 +41,7 @@ export {
   type TableColumnType as ColumnType,
 } from 'antdv-next';
 
+/** 宿主 FormItem 的实例类型 */
 export type FormItemInstance = InstanceType<typeof FormItem>;
 
 /**
@@ -54,7 +55,9 @@ export { useConfig as useHostConfig } from 'antdv-next';
 const _gridItemProps = (Col as any).props || {};
 const _formItemProps = (FormItem as any).props || {};
 
+/** 宿主 Col 的静态 props 快照（透传键名白名单用） */
 export const gridItemProps = () => _gridItemProps;
+/** 宿主 FormItem 的静态 props 快照（透传键名白名单用） */
 export const formItemProps = () => _formItemProps;
 
 /*
@@ -112,4 +115,5 @@ export {
   useDisabledContextProvider,
 } from 'antdv-next/dist/config-provider/DisabledContext';
 
+/** 字段路径：字符串、数字或分段数组 */
 export type NamePath = string | number | (string | number)[];
