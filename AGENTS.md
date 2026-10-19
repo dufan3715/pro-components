@@ -99,6 +99,14 @@ packages/
 - 优先使用平台原生 `structuredClone`；
 - 遇到不可结构化克隆的数据时降级为 JSON 序列化/反序列化，并在 dev 环境输出规范说明告警。
 
+### 3.7 包装组件与宿主属性 (`@vue-ignore` 透传边界)
+
+- 包装组件（`ProForm` / `ProTable` / `SearchForm` 等）以 `inheritAttrs: false` + `mergeProps(注入属性, camelizeProperties(attrs))` 将宿主 UI 组件属性**整体透传**；布尔转换、默认值与类型校验一律由宿主组件在接收端完成；
+- `/* @vue-ignore */` 交叉的类型成员**只提供类型提示，不产生运行时 props**（SFC 编译器无法解析第三方宿主类型），其值只能以 `attrs` 形态读取，因而**未经宿主 Boolean prop 转换**；
+- 包装组件需要**读取/判定**某个宿主属性时，必须从 `@vue-ignore` 交叉类型中 `Omit` 出来显式声明为 prop（由 Vue 完成转换与默认值），并在 `mergeProps` 中把显式值转发回宿主；未显式指定时**不得下发该键**，避免冲掉 Provider 注入值（`mergeProps` 对普通键不保留 `undefined` 短路）；
+- 坚持在包装层自行归一布尔属性时，归一结果必须与宿主接收端的**解析真值逐形态一致**：`''` 与同名属性形态（`hyphenate(key)`）为 `true`，其余取真值（`disabled="false"`、`disabled="0"` 等字符串与宿主一致地视为真），禁止按形态白名单收窄；
+- 反向约束：`@vue-ignore` 交叉内的宿主属性**只允许出现在透传路径**，不得作为业务判定依据直接读取。
+
 ---
 
 ## 四、多包同构防漂移纪律 (Anti-drift Protocols)
