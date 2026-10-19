@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { getInitProps } from '../src/components/form/components/BaseField/utils';
 import { useGroupFieldAttrs } from '../src/components/form/hooks/useGroupFieldAttrs';
 import { getFieldKey } from '../src/components/form/utils/fieldKey';
+import { dispatchListeners } from '../src/components/form/utils/listeners';
 
 describe('BaseField utils 与字段属性分组测试 (vant-pro)', () => {
   // ----------------------------------------------------
@@ -92,5 +93,29 @@ describe('BaseField utils 与字段属性分组测试 (vant-pro)', () => {
     expect(grouped[0].renderKey).toBe(getFieldKey(firstField));
     expect(typeof grouped[0].renderKey).toBe('number');
     expect(grouped[0].renderKey).not.toBe(grouped[1].renderKey);
+  });
+
+  // ----------------------------------------------------
+  // VP-F20 [判别]: dispatchListeners 三种入参形态
+  // ----------------------------------------------------
+  it('VP-F20 [判别]: dispatchListeners 按函数 / 数组派发，数组跳过非函数项，其余形态不调用不抛错', () => {
+    const calls: string[] = [];
+    const first = (val: string) => calls.push(`first:${val}`);
+    const second = (val: string) => calls.push(`second:${val}`);
+
+    // 单函数直接调用，参数原样透传
+    dispatchListeners(first, 'a');
+    expect(calls).toEqual(['first:a']);
+
+    // 数组合并按声明顺序派发，非函数项跳过
+    dispatchListeners([first, 'not-a-function' as any, second, {} as any], 'b');
+    expect(calls.slice(1)).toEqual(['first:b', 'second:b']);
+
+    // 其余形态（字符串 / 普通对象 / 未提供）不调用且不抛错
+    const callsBefore = calls.length;
+    expect(() => dispatchListeners('x' as any, 'c')).not.toThrow();
+    expect(() => dispatchListeners({} as any, 'c')).not.toThrow();
+    expect(() => dispatchListeners(undefined, 'c')).not.toThrow();
+    expect(calls.length).toBe(callsBefore);
   });
 });

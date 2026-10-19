@@ -2,20 +2,19 @@
  * 统一 re-export @qin-ui/pro-components-core，包内所有文件通过此文件引入 core 内容。
  */
 export {
-  // types
-  type AdditionalMethods,
-  localePacks,
-  normalizeColumn,
-  normalizeColumns,
   // hooks
   useForm,
   createFormProxy,
   useTable,
   useFields,
-  resolveFieldIdentity,
-  DEFAULT_FIELD_IDENTITY_KEYS,
   useFormData,
   useFormRef,
+  // 字段标识
+  resolveFieldIdentity,
+  DEFAULT_FIELD_IDENTITY_KEYS,
+  // 表格列归一
+  normalizeColumn,
+  normalizeColumns,
   // injection keys
   InjectionFormKey,
   InjectionFormSlotsKey,
@@ -33,6 +32,7 @@ export {
   isObjectItem,
   isPromise,
   // locale
+  localePacks,
   zhCN,
   zhTW,
   enUS,
@@ -42,6 +42,7 @@ export {
   type ProLocaleName,
   type ProLocaleKey,
   // types
+  type AdditionalMethods,
   type Data,
   type Path,
   type Paths,
