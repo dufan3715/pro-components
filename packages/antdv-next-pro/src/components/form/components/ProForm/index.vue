@@ -122,7 +122,7 @@ const formKey = computed(() => getFormKey(currentForm.value as any));
 const config = INJECT_CONFIG['pro-form'];
 const injectFormConfig = inject(config.injectionKey, config.default);
 
-/** 从 ProComponentProvider 获取全局配置，响应式派生以支持动态配置变更 */
+/** 从 ProComponentProvider 注入的表单全局配置（剔除 `grid`），随注入值变更响应式更新 */
 const injectAttrs = computed(() => {
   const { grid: _injectGrid, ...rest } = toValue(injectFormConfig) || {};
   return rest;

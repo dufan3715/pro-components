@@ -47,8 +47,8 @@ export type FormItemInstance = InstanceType<typeof FormItem>;
 /**
  * 读取宿主组件上下文（禁用 / 尺寸）
  *
- * @description 返回宿主 antdv-next 组件上下文中的 `componentDisabled` 与 `componentSize`
- * 响应式引用；与 locale 模块读取 ConfigProvider locale 的宿主配置读取函数语义不同。
+ * @description 宿主 `useConfig` 的别名，返回 ConfigProvider 上下文的响应式引用；
+ * 包内取用其中的 `componentDisabled` 与 `componentSize`，locale 文案读取见 `useLocale`。
  */
 export { useConfig as useHostConfig } from 'antdv-next';
 

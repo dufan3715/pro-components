@@ -15,7 +15,6 @@ const formItemPropKeys = Object.keys(formItemProps()).concat([
   'formItemContainer',
 ]);
 const gridItemPropKeys = Object.keys(gridItemProps());
-// 字段属性键集合：字段循环内按键名 O(1) 命中分类
 const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
 const formItemPropKeySet = new Set<string>(formItemPropKeys);
 const formItemSlotKeySet = new Set<string>(FORM_ITEM_SLOT_KEYS);

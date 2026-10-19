@@ -41,7 +41,7 @@ export const LOCALE_INJECT_KEY: InjectionKey<
  * `t` 在 computed / 模板中调用时会随宿主语言切换自动更新。
  *
  * @returns
- * - `t(key, params?)` - 翻译函数，支持 `{placeholder}` 参数
+ * - `t(key, params?)` - 翻译函数，支持 `{placeholder}` 参数；文案未被覆盖时回退内置语言包，仍未命中时原样返回 key
  * - `lang` - 当前解析出的语言名（'zh-CN' | 'zh-TW' | 'en-US'）
  *
  * @example

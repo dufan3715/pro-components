@@ -21,17 +21,19 @@ import type { ComponentName } from '../constants';
  * - 字段的添加、插入、删除
  * - 父级字段查找
  *
+ * 字段标识按 `name`、`path` 的顺序取首个非 `null` / `undefined` 的值。
+ *
  * @template D - 表单数据类型
  * @param {Fields<D>} [initFields] - 初始字段配置数组
  *
  * @returns 字段操作对象，包含以下属性：
- * - `fields` — 字段配置数组（响应式 Ref\<F[]\>）
- * - `getField(path)` — 获取字段配置，支持路径字符串或查找函数
- * - `setField(path, field, options?)` — 更新字段配置，默认合并模式
- * - `deleteField(path, options?)` — 删除字段配置
- * - `appendField(path, field, options?)` — 在指定字段后追加
- * - `prependField(path, field, options?)` — 在指定字段前插入
- * - `getParentField(path, options?)` — 获取父级字段配置
+ * - `fields` - 字段配置数组（响应式 Ref\<F[]\>）
+ * - `getField(path)` - 获取字段配置，支持路径字符串或查找函数
+ * - `setField(path, field, options?)` - 更新字段配置，默认合并模式
+ * - `deleteField(path, options?)` - 删除字段配置
+ * - `appendField(path, field, options?)` - 在指定字段后追加
+ * - `prependField(path, field, options?)` - 在指定字段前插入
+ * - `getParentField(path, options?)` - 获取父级字段配置
  *
  * @example
  * ```ts
@@ -61,7 +63,9 @@ export function useFields(initFields?: any) {
   return coreUseFields(initFields);
 }
 
-/** useFields 返回值类型
+/**
+ * useFields 返回值类型
+ *
  * @public
  */
 export type UseFields<D extends Data = Data> = ReturnType<typeof useFields<D>>;

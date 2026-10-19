@@ -55,11 +55,6 @@ export type RequiredComponentVars = {
    *
    * @description `columns` / `dataSource` / `loading` 不参与全局注入：三者分别由 `:table` 实例（`useTable`）与组件自身查询状态驱动。
    */
-  /**
-   * ProTable 全局默认属性
-   *
-   * @description `columns` / `dataSource` / `loading` 不参与全局注入：三者分别由 `:table` 实例（`useTable`）与组件自身查询状态驱动。
-   */
   'pro-table': PP<
     Omit<TableProps, 'loading' | 'columns' | 'dataSource'> &
       Pick<
@@ -71,7 +66,6 @@ export type RequiredComponentVars = {
         | 'tableContainer'
       >
   >;
-  /** ProForm 全局默认属性，grid 必须为 GridProps 对象而非 boolean */
   /** ProForm 全局默认属性，grid 必须为 GridProps 对象而非 boolean */
   'pro-form': PP<
     Omit<ProFormProps, 'form' | 'grid'> & {
@@ -96,7 +90,6 @@ export type RequiredComponentVars = {
   /** DatePicker quarter 模式全局默认属性 */
   'date-picker.quarter': FP<ComponentProps<GetComponentType<'date-picker'>>>;
 } & {
-  // field
   /** 其他所有内置组件的全局默认属性 */
   [K in Exclude<ComponentName, 'custom'>]: FP<
     ComponentProps<GetComponentType<K>>
@@ -105,6 +98,7 @@ export type RequiredComponentVars = {
 
 /**
  * 组件全局配置
+ *
  * @description RequiredComponentVars 的 Partial 版本，用于 ProComponentProvider 的 props
  * @public
  */

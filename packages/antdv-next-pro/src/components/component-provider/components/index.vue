@@ -76,9 +76,8 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 /*
- * 遍历 componentVars 的每个 key，获取或创建对应的 inject 配置
- * 将用户提供的值合并到默认值上，剔除该注入项的不可注入键后通过 provide 响应式注入到子组件树
- * 子组件通过 inject(config.injectionKey) 获取合并后的计算属性配置
+ * 按内置注入配置表逐个 provide：默认值与 componentVars 中的同名配置合并后，
+ * 剔除该注入项的不可注入键；子组件经 inject(config.injectionKey) 读取合并结果
  */
 (Object.keys(INJECT_CONFIG) as Array<keyof typeof INJECT_CONFIG>).forEach(
   key => {

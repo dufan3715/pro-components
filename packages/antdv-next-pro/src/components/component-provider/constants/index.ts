@@ -2,6 +2,7 @@ import type { RequiredComponentVars } from '../types';
 import type { InjectionKey, Component } from 'vue';
 import { type ComputedRef } from 'vue';
 
+// 弹层容器：优先挂载到最近的 pro 表单元素，未命中时回退 document.body（无 document 时为 undefined）
 const getPopupContainer = (triggerNode: any) =>
   triggerNode?.closest?.("form[class*='-form']") ||
   (typeof document !== 'undefined' ? document.body : undefined);

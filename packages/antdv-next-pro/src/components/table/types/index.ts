@@ -53,6 +53,7 @@ export type Column<D extends Data = Data> = Omit<
 
 /**
  * 表格列配置数组类型
+ *
  * @template D - 表格行数据类型
  *
  * @public

@@ -270,10 +270,15 @@ const columnRequiredSlotNames = new Set([
 ]);
 
 /**
- * 判定插槽在当前渲染状态下是否可渲染。
- * 当列被动态隐藏或所有列均隐藏时，旧单元格销毁过渡帧或空占位中 column 可能为 undefined，
- * 此时阻断依赖 column 的业务插槽调用；
- * 非列依赖的表格级插槽（如 emptyText、footer、summary 等）始终正常渲染。
+ * 判定插槽在当前渲染状态下是否可渲染
+ *
+ * @description 列依赖插槽（`bodyCell` / `headerCell` / `filterDropdown` / `filterIcon`）仅在存在可见列
+ * 且作用域中带有 `column` 时渲染：列被动态隐藏或全部隐藏时，旧单元格销毁过渡帧或空占位中
+ * `column` 可能为 undefined，该帧内不渲染。非列依赖的表格级插槽（`emptyText` / `footer` / `summary` 等）始终渲染。
+ *
+ * @param name - 插槽名
+ * @param scoped - 插槽作用域参数
+ * @returns 该插槽当前是否参与渲染
  */
 const isSlotRenderable = (name: string, scoped: any) => {
   if (columnRequiredSlotNames.has(name)) {
@@ -484,14 +489,13 @@ onMounted(() => {
 });
 
 defineExpose({
-  /** 手动触发一次查询（与内部搜索共用 loading 竞态守卫），便于外部刷新列表 */
+  /** 手动触发一次查询，与内部搜索共用 loading 竞态守卫 */
   search: _search,
 });
 </script>
 
 <template>
   <div class="pro-table" :class="attrs.class" :style="attrs.style">
-    <!-- 搜索表单区域 -->
     <ContainerFragment
       v-if="searchFormVisible || $slots['search-form']"
       :component="computedSearchFormConfig.container"
@@ -510,7 +514,6 @@ defineExpose({
       </slot>
     </ContainerFragment>
 
-    <!-- 表格主体容器 -->
     <ContainerFragment :component="computedTableContainer">
       <!-- 工具栏区域：操作按钮（左）+ 视图控制按钮（右） -->
       <div class="pro-table_header">
@@ -531,7 +534,6 @@ defineExpose({
           <SizeControl v-model:size="size" :effective-size="effectiveSize" />
         </div>
 
-        <!-- 列显示/隐藏控制 -->
         <div
           v-if="computedControl.columnControl"
           class="pro-table_header_column-control"
@@ -556,7 +558,6 @@ defineExpose({
           onChange: onTableChange,
         }"
       >
-        <!-- 默认 antdv-next Table -->
         <ATable
           class="pro-table_content"
           v-bind="computedTableProps"

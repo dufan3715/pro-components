@@ -22,6 +22,11 @@
  *   ↓ 未匹配
  * 原始 component 值（可能是字符串或 Vue 组件对象）
  * ```
+ *
+ * @param {string | Component} [component] - 组件名或组件对象
+ * @param {string} [path] - 字段路径，用于绑定表单数据
+ *
+ * @slot default - 默认插槽（透传给组件）
  */
 
 import {
@@ -89,11 +94,7 @@ const rawInjectComponentProps = componentInjectConfig
   ? inject(componentInjectConfig.injectionKey, componentInjectConfig.default)
   : undefined;
 
-/*
- * computed getter/setter 实现 v-model 双向绑定到 formData 的深层路径
- * getter: 从 formData 读取值，支持 valueFormatter.get 格式化
- * setter: 向 formData 写入值，支持 valueFormatter / valueFormatter.set 转换
- */
+// v-model 双向绑定到 formData 的深层路径：读取经 valueFormatter.get，写入经 valueFormatter / valueFormatter.set
 const value = computed({
   get() {
     let val = form.getFormData?.(props.path);

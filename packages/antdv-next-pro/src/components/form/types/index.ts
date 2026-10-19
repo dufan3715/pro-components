@@ -37,14 +37,13 @@ export type VModelProps<T = any> = {
 /**
  * 字段值格式化/转换处理器
  *
- * 支持两种形态：
+ * @description 支持两种形态：
  * 1. 单函数模式：写入时的 set 转换 `(val, oldVal) => any`
  * 2. 对象模式：读取时的 get 格式化与写入时的 set 转换 `{ get?: (val) => any; set?: (val, oldVal) => any }`
  *
- * @note **参数规范**：
- * - 仅当 `set` 转换函数**显式声明两个形参**（如 `(val, oldVal) => ...`）时，才会传入 `oldVal`；
- * - 请勿使用默认参数（如 `(val, oldVal = '') => ...`）或剩余参数（如 `(val, ...rest) => ...`），否则 `length` 为 1 将无法接收 `oldVal`；
- * - `oldVal` 为只读快照副本，不得依赖原地修改写回；仅当 formatter 声明双形参时才克隆旧值，单参转换零开销。
+ * ### 行为与契约说明
+ * 1. **旧值参数按需注入**：仅当 `set` 转换函数显式声明两个形参（如 `(val, oldVal) => ...`）时才传入 `oldVal`；使用默认参数（如 `(val, oldVal = '') => ...`）或剩余参数（如 `(val, ...rest) => ...`）声明时按单形参处理，`oldVal` 不注入；
+ * 2. **只读快照副本**：`oldVal` 为只读快照副本，不得依赖原地修改写回；单形参转换不读取旧值。
  */
 export type ValueFormatter =
   | { (val: any, oldVal?: any): any }
@@ -95,9 +94,11 @@ export type FormItemSlots = ComponentSlots<typeof FormItem>;
 
 type BaseCommon<D extends Data = Data> = {
   /**
-   * 字段标识namePath, 同name
+   * 字段标识 namePath，同 name
    *
+   * 字段标识按 `name`、`path` 的顺序取首个非 `null` / `undefined` 的值（`name` 优先）。
    * 嵌套字段的 `path` 使用各自独立的完整路径（不与父级路径拼接），重复路径需自行保证唯一。
+   *
    * @example 'name' | 'age' | 'sex' | ...
    */
   path?: Path<D>;
@@ -178,39 +179,11 @@ type BaseWithFields<D extends Data = Data> = BaseCommon<D> & {
    */
   grid?: Grid;
   component?: never;
-  /**
-   * 字段component样式属性
-   *
-   * @example { width: '100%', borderColor: '#d9d9d9' }
-   */
   componentStyle?: never;
-  /**
-   * 字段component样式类名
-   *
-   * @example 'custom-input' | 'error-input'
-   */
   componentClass?: never;
-  /**
-   * 字段component容器包裹组件
-   *
-   * @example (props, ctx) => h('div', { class: 'input-wrapper' }, ctx.slots.default?.())
-   */
   componentContainer?: never;
-  /**
-   * 将属性附加到表单组件的 DOM 节点
-   *
-   * @example { 'data-test': 'input-value', 'aria-label': 'name' }
-   */
   componentDataAttrs?: never;
-  /**
-   * 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值，也可设置get和set函数，用于处理字段值
-   *
-   * @example (val) => val?.trim()
-   */
   valueFormatter?: never;
-  /**
-   * 组件v-model双向绑定更新属性名，默认'value'
-   */
   modelProp?: never;
 };
 
@@ -255,6 +228,7 @@ type BaseWithoutFields<D extends Data = Data> = BaseCommon<D> & {
 
 /**
  * 基础公共字段类型
+ *
  * @description 定义了 ProForm 字段配置的**保留属性**（由 ProForm 自身消费，不会透传给底层组件）：
  * - path, label, component - 字段标识与渲染
  * - hidden, disabled, rules - 字段状态与校验
@@ -274,6 +248,7 @@ export type Base<D extends Data = Data> =
 
 /**
  * 字段类型集合
+ *
  * @description 将每个 component 字符串映射到其对应的 antdv-next 组件 Props 类型。
  * 例如 `component: 'select'` 时，Field 获得 Select 组件的所有 Props（options, mode, showSearch 等）作为类型提示。
  * `component: 'custom'` 支持通过渲染函数或直接传入 Vue 组件进行完全自定义渲染。

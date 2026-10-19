@@ -31,7 +31,8 @@ const getPlaceholderProps = (
  * 解析字段的 Provider 默认属性
  *
  * @description 仅字符串组件名取注入值（含 `date-picker` 子类型段）；组件对象无注入配置，返回空对象。
- * `date-picker` 不拼接 `picker` 段，其子类型预设由注入 key 在 BaseField 内单独解析
+ * 占位符兜底按「组件名 + picker 段」查表，未登记占位符的组件不产生 `placeholder`；
+ * 注入的默认值已含占位符时不再兜底。
  *
  * @param field - 字段配置项
  * @param injectProps - 该组件名对应的 Provider 注入默认值
