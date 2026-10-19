@@ -1,4 +1,13 @@
 <script lang="ts" setup>
+/**
+ * 列显隐控制控件，以下拉菜单列出可控列并支持全选/取消全选
+ *
+ * @component ColumnControl
+ *
+ * @param {Columns} columns - 参与控制的列配置（由 ProTable 下发）
+ * @param {Table} [table] - 表格实例，勾选结果经其 `setColumn` 写回列 `hidden`
+ * @param {ColumnControlConfig} [columnControl] - 控制项配置：labels / excludedKeys / disabledKeys / disableCheckAll
+ */
 import {
   Button,
   Dropdown,

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 /**
+ * 表单字段渲染引擎
+ *
  * @component BaseFormItem
- * @description 表单字段渲染引擎
  *
  * 负责将字段配置数组渲染为实际的表单项，支持：
  * - 字段分组（嵌套 fields 递归渲染，嵌套字段 path 须为完整点分路径）

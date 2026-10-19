@@ -1,4 +1,11 @@
 <script lang="ts" setup>
+/**
+ * 表格尺寸切换控件，以图标按钮 + 下拉菜单呈现
+ *
+ * @component SizeControl
+ *
+ * @param {Size} [size] - 表格尺寸（`v-model:size`），用于回显选中项并回写选择结果
+ */
 import {
   Dropdown,
   DropdownMenu,

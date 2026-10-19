@@ -11,8 +11,12 @@ export { default as SlotComponent } from './SlotComponent/index.vue';
 export { ProForm, BaseFormItem };
 
 // instance
+/** ProForm 组件实例 */
 export type ProFormInstance = ComponentExposed<typeof ProForm>;
+/** ProForm 组件属性 */
 export type ProFormProps = ComponentProps<typeof ProForm>;
 
+/** BaseFormItem 组件实例（字段级 FormItem） */
 export type ProFormItemInstance = ComponentExposed<typeof BaseFormItem>;
+/** BaseFormItem 组件属性（字段级 FormItem） */
 export type ProFormItemProps = ComponentProps<typeof BaseFormItem>;

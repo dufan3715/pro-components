@@ -6,7 +6,8 @@
  * ProTable / SearchForm 的公开 JSDoc 与同构包 antd-vue-pro 保持同句（插槽作用域按本包实际如实标注）。
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
+import { auditPackage } from '../../../scripts/check-jsdoc-hover';
 import { resolve } from 'node:path';
 
 const read = (path: string) => readFileSync(resolve(__dirname, path), 'utf-8');
@@ -61,6 +62,95 @@ const antd = {
   proTable: read(
     '../../antd-vue-pro/src/components/table/components/ProTable.vue'
   ),
+};
+
+/** 递归收集 src 下的源码文件（ts / vue） */
+const collectSources = (dir: string): string[] =>
+  readdirSync(resolve(__dirname, dir), { withFileTypes: true }).flatMap(
+    entry => {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) return collectSources(rel);
+      return /\.(ts|vue)$/.test(entry.name) ? [rel] : [];
+    }
+  );
+
+/** 抽取文件内全部 JSDoc 块的首个内容行（跳过 /** 与纯装饰性星号行） */
+const jsdocFirstLines = (
+  source: string
+): Array<{ line: number; first: string }> => {
+  const lines = source.split('\n');
+  const out: Array<{ line: number; first: string }> = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim().startsWith('/**')) continue;
+    const start = i;
+    const block: string[] = [lines[i]];
+    if (!lines[i].trim().endsWith('*/')) {
+      i++;
+      while (i < lines.length && !lines[i].includes('*/')) {
+        block.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) block.push(lines[i]);
+    }
+    const first = block
+      .map(raw =>
+        raw
+          .trim()
+          .replace(/^\/\*\*/, '')
+          .replace(/\*\/$/, '')
+          .replace(/^\*\s?/, '')
+          .trim()
+      )
+      .find(text => text.length > 0);
+    if (first !== undefined) out.push({ line: start + 1, first });
+  }
+  return out;
+};
+
+/** 类型字面量块内以 // 注释的成员位置 */
+const slashMemberComments = (source: string): string[] => {
+  const lines = source.split('\n');
+  const out: string[] = [];
+  let inTypeBlock = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*(export )?(type|interface)\s+\w+.*\{\s*$/.test(line)) {
+      inTypeBlock = true;
+      continue;
+    }
+    if (inTypeBlock && /^\s*\}/.test(line)) {
+      inTypeBlock = false;
+      continue;
+    }
+    if (inTypeBlock && /^\s*\/\//.test(line))
+      out.push(`:${i + 1} ${line.trim()}`);
+  }
+  return out;
+};
+
+/** 同一位置出现多个连续 JSDoc 块（前一块为死注释，编辑器只取最近一块） */
+const stackedJsdocBlocks = (source: string): string[] => {
+  const lines = source.split('\n');
+  const blocks: Array<[number, number]> = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim().startsWith('/**')) continue;
+    const start = i;
+    while (i < lines.length && !lines[i].includes('*/')) i++;
+    blocks.push([start, i]);
+  }
+  const out: string[] = [];
+  for (let k = 0; k + 1 < blocks.length; k++) {
+    const [s1, e1] = blocks[k];
+    const [s2] = blocks[k + 1];
+    const between = lines.slice(e1 + 1, s2).filter(line => line.trim() !== '');
+    if (
+      between.every(line => line.trim().startsWith('//')) &&
+      between.length <= 1
+    ) {
+      out.push(`:${s1 + 1} → :${s2 + 1}`);
+    }
+  }
+  return out;
 };
 
 /** 组件 JSDoc 块内的标签序列（按出现顺序），用于跨包比对结构 */
@@ -247,6 +337,65 @@ describe('注释规范契约 · element-plus-pro', () => {
     expect(readme).toContain('**不是同一对象**');
     expect(aiContext).toContain('承接**内部兜底实例**的数据 store');
     expect(aiContext).toContain('useForm(false)');
+  });
+
+  // ----------------------------------------------------
+  // DOC-11 [判别]: 导出符号悬浮可见性（与 vant / antdv-next 的 DOC-07 同口径）
+  // ----------------------------------------------------
+  it('DOC-11 [判别]: 导出符号 JSDoc 悬浮可见，无「仅标签」「无 JSDoc」与缺失头块的 .vue', () => {
+    const { tagOnly, missing, vue } = auditPackage('element-plus-pro', {
+      repoRoot: resolve(__dirname, '../../..'),
+    });
+    expect(
+      tagOnly,
+      `仅含标签（悬浮主体为空）：\n${tagOnly.join('\n')}`
+    ).toEqual([]);
+    expect(missing, `无 JSDoc（悬浮为空）：\n${missing.join('\n')}`).toEqual(
+      []
+    );
+    expect(vue, `无 JSDoc 头块的 .vue：\n${vue.join('\n')}`).toEqual([]);
+  });
+
+  // ----------------------------------------------------
+  // DOC-08 [判别]: 全部源码 JSDoc 首行为自由文本摘要（编辑器悬浮主体非空）
+  // ----------------------------------------------------
+  it('DOC-08 [判别]: 源码 JSDoc 首行均为自由文本摘要，无「仅标签」块', () => {
+    const offenders: string[] = [];
+    for (const rel of collectSources('../src')) {
+      const source = read(rel);
+      for (const { line, first } of jsdocFirstLines(source)) {
+        if (first.startsWith('@')) offenders.push(`${rel}:${line} ${first}`);
+      }
+    }
+    // 首行若只有标签（如 /** @description … */），悬浮主体为空、消费方取不到文档
+    expect(offenders, offenders.join('\n')).toEqual([]);
+  });
+
+  // ----------------------------------------------------
+  // DOC-10 [判别]: 同一位置不叠加多个 JSDoc 块（前一块为死注释）
+  // ----------------------------------------------------
+  it('DOC-10 [判别]: 声明前不出现两个连续 JSDoc 块', () => {
+    const offenders: string[] = [];
+    for (const rel of collectSources('../src')) {
+      const source = read(resolve(__dirname, rel));
+      for (const hit of stackedJsdocBlocks(source))
+        offenders.push(`${rel}${hit}`);
+    }
+    // TS 只把最近的前置 JSDoc 挂到声明上，被指令注释隔开的前一块成为死注释
+    expect(offenders, offenders.join('\n')).toEqual([]);
+  });
+
+  // ----------------------------------------------------
+  // DOC-09 [判别]: 组件 Props / 配置类型成员使用 JSDoc，保证悬浮可取到说明
+  // ----------------------------------------------------
+  it('DOC-09 [判别]: Props 与配置类型成员不使用行注释，均以 JSDoc 声明', () => {
+    const offenders: string[] = [];
+    for (const rel of collectSources('../src')) {
+      const source = read(rel);
+      for (const hit of slashMemberComments(source))
+        offenders.push(`${rel}${hit}`);
+    }
+    expect(offenders, offenders.join('\n')).toEqual([]);
   });
 
   // ----------------------------------------------------

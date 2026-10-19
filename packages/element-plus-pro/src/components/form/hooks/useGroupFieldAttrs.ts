@@ -17,6 +17,7 @@ const gridItemPropKeySet = new Set<string>(gridItemPropKeys);
 const formItemPropKeySet = new Set<string>(formItemPropKeys);
 const formItemSlotKeySet = new Set<string>(FORM_ITEM_SLOT_KEYS);
 
+/** 单个字段的分组结果：栅格 / FormItem / 组件属性与插槽 */
 export interface GroupedField {
   path: string;
   gridItemProps: GridItemProps;
@@ -34,6 +35,9 @@ export interface GroupedField {
  * @description
  * 1. 响应式集成 ProComponentProvider 的 `pro-form-item` 全局变量配置；
  * 2. 剥离 `extraProps`（用户自定义字段标识袋）：保留在字段原始对象上供业务层存取，渲染层经解构剥离，不落入 componentProps 透传。
+ *
+ * @param {ComputedRef<Field[]>} validFields - 已过滤的字段配置数组
+ * @returns {ComputedRef<GroupedField[]>} 分组后的字段属性数组
  */
 export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
   const config = INJECT_CONFIG['pro-form-item'];

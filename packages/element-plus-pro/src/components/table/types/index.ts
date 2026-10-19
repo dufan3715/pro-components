@@ -10,7 +10,7 @@ type BivariantRender<D extends Data = Data> = {
 /**
  * Element Plus 表格列作用域
  * @template D - 表格行数据类型
- 
+ *
  * @public
  */
 export type ColumnScope<D extends Data = Data> = {
@@ -25,16 +25,14 @@ export type ColumnScope<D extends Data = Data> = {
 };
 
 /**
- * @qin-ui/element-plus-pro 表格列配置类型
+ * 表格列配置类型，基于宿主 ColumnType 扩展
  *
- * @description 基于 Element Plus 的 ColumnType 列类型，并添加：
+ * @description 在宿主列类型之上新增：
  * - prop 作为主要字段（Element Plus 使用 prop 而非 dataIndex）
  * - key 作为辅助标识
  * - hidden 属性
  * - render 自定义渲染函数
- *
  * @template D - 表格行数据类型
- *
  * @example
  * ```ts
  * interface User { name: string; age: number }
@@ -44,7 +42,7 @@ export type ColumnScope<D extends Data = Data> = {
  *   { prop: 'age', label: '年龄', width: 80 },
  * ]
  * ```
- 
+ *
  * @public
  */
 export type Column<D extends Data = Data> = Partial<
@@ -53,13 +51,13 @@ export type Column<D extends Data = Data> = Partial<
   /** 列字段标识（辅助字段） */
   key?: Path<D>;
   /**
-   * @description 列数据路径（主要字段）
-   * Element Plus 使用 prop 而非 dataIndex
+   * 列数据路径（主要字段），Element Plus 使用 prop 而非 dataIndex
    * @example 'name' | 'address.city'
    */
   prop?: Path<D>;
   /**
-   * @description 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值。
+   * 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值
+   *
    * 分组列的子列同样参与过滤（递归生效）。
    */
   hidden?: MaybeRefOrComputedRef<boolean>;
@@ -70,9 +68,10 @@ export type Column<D extends Data = Data> = Partial<
 };
 
 /**
- * @qin-ui/element-plus-pro 表格列配置数组类型
+ * 表格列配置数组类型
+ *
  * @template D - 表格行数据类型
- 
+ *
  * @public
  */
 export type Columns<D extends Data = Data> = Array<Column<D>>;

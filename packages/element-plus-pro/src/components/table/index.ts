@@ -5,7 +5,9 @@ import type {
 import ProTable from './components/ProTable.vue';
 
 // 仅导出组件 Props 与实例类型，不导出裸组件
+/** ProTable 组件属性（由组件 Props 推导） */
 export type ProTableProps = ComponentProps<typeof ProTable>;
+/** ProTable 组件实例（`defineExpose` 暴露的能力） */
 export type ProTableInstance = ComponentExposed<typeof ProTable>;
 
 // 仅导出核心列配置类型

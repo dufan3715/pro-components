@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 /**
+ * 字段级渲染组件
+ *
  * @component BaseField
- * @description 字段级渲染组件，负责将 field 配置渲染为实际的输入组件
+ * @description 负责将 field 配置渲染为实际的输入组件
  *
  * ## 核心职责
  *

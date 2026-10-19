@@ -2,6 +2,7 @@ import type { RequiredComponentVars } from '../types';
 import type { InjectionKey, Component } from 'vue';
 import { type ComputedRef } from 'vue';
 
+/** 注入项配置：注入 key、内置默认值与不可注入键清单 */
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;
   default: T;
@@ -9,6 +10,9 @@ export type InjectConfigEntry<T = any> = {
   ignoreProps?: readonly string[];
 };
 
+/**
+ * 注入项配置表：键为内置组件名与 `pro-*` 组件名，值为注入 key、内置默认值与不可注入键清单
+ */
 export const INJECT_CONFIG: {
   [key in keyof RequiredComponentVars]: InjectConfigEntry<
     RequiredComponentVars[key]
@@ -182,6 +186,7 @@ export const INJECT_CONFIG: {
   },
 };
 
+/** componentMap 注入 key：BaseField 解析组件时优先取用 */
 export const INJECT_COMPONENTS: InjectionKey<
   | ComputedRef<Partial<Record<string, Component>> | undefined>
   | Partial<Record<string, Component>>
@@ -190,6 +195,12 @@ export const INJECT_COMPONENTS: InjectionKey<
 const DYNAMIC_INJECT_CONFIG: Record<string, InjectConfigEntry> =
   Object.create(null);
 
+/**
+ * 读取注入项配置
+ *
+ * @param {string} key - 组件名或自定义注入键
+ * @returns {InjectConfigEntry | undefined} 内置或动态注入项配置，未注册时返回 undefined
+ */
 export const getInjectConfig = (key: string): InjectConfigEntry | undefined => {
   return (
     (INJECT_CONFIG as Record<string, InjectConfigEntry>)[key] ||
@@ -197,6 +208,12 @@ export const getInjectConfig = (key: string): InjectConfigEntry | undefined => {
   );
 };
 
+/**
+ * 读取注入项配置，未注册时按组件名补建动态注入项
+ *
+ * @param {string} key - 组件名或自定义注入键
+ * @returns {InjectConfigEntry} 已存在或新建的注入项配置
+ */
 export const ensureInjectConfig = (key: string): InjectConfigEntry => {
   const existing = getInjectConfig(key);
   if (existing) return existing;

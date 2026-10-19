@@ -79,6 +79,7 @@ export {
   type TableEmits,
 };
 
+/** 宿主 Table 属性面（放宽泛型以兼容任意行数据） */
 export type TableProps = _TableProps<any>;
 
 const _tableProps = (Table as any).props || {};
@@ -86,13 +87,22 @@ const _paginationProps = (Pagination as any).props || {};
 const _gridItemProps = (GridItem as any).props || {};
 const _formItemProps = (FormItem as any).props || {};
 
+/** 宿主 Table 的静态 props 快照（透传键名白名单用） */
 export const tableProps = () => _tableProps;
+/** 宿主 Pagination 的静态 props 快照（分页配置键名白名单用） */
 export const paginationProps = () => _paginationProps;
+/** 宿主 Row/Col 的静态 props 快照 */
 export const gridItemProps = () => _gridItemProps;
+/** 宿主 FormItem 的静态 props 快照 */
 export const formItemProps = () => _formItemProps;
 
 const DisabledContextKey = Symbol.for('pro-form-disabled-context');
 
+/** 禁用上下文取值
+ *
+ * @description 字段级禁用优先，未声明时回退宿主 `el-form` 的禁用状态
+ * @returns {ComputedRef<boolean>} 当前生效的禁用状态
+ */
 export const useDisabledContext = () => {
   const formDisabled = useFormDisabled();
   const customDisabled = inject<MaybeRefOrGetter<boolean | undefined>>(
@@ -106,6 +116,11 @@ export const useDisabledContext = () => {
   });
 };
 
+/** 禁用上下文提供者
+ *
+ * @description 与父级禁用上下文合并：未声明时保持继承，声明时（含 false）覆盖
+ * @param {MaybeRefOrGetter<boolean | undefined>} disabled - 本层声明的禁用状态
+ */
 export const useDisabledContextProvider = (
   disabled: MaybeRefOrGetter<boolean | undefined>
 ) => {
@@ -117,7 +132,10 @@ export const useDisabledContextProvider = (
   );
 };
 
+/** {@link useDisabledContext} 的别名 */
 export const useInjectDisabled = useDisabledContext;
+/** {@link useDisabledContextProvider} 的别名 */
 export const useProviderDisabled = useDisabledContextProvider;
 
+/** 字段路径：字符串、数字或分段数组 */
 export type NamePath = string | number | (string | number)[];

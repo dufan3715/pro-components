@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 /**
+ * 插槽渲染辅助组件
+ *
  * @component SlotComponent
- * @description 插槽渲染辅助组件。用于在表单或表格的自定义插槽中动态渲染外部传入的 VNode、渲染函数、组件定义对象或静态字符串。
+ * @description 用于在表单或表格的自定义插槽中动态渲染外部传入的 VNode、渲染函数、组件定义对象或静态字符串
  *
  * @public
  */

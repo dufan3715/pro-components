@@ -1,7 +1,8 @@
 <script lang="ts" setup generic="T extends Table<any> = Table">
 /**
+ * 配置驱动的表格组件
+ *
  * @component ProTable
- * @description 配置驱动的表格组件
  *
  * ## 架构概览
  *
@@ -105,14 +106,17 @@ const tableProperties = Object.keys(tableProps());
 const paginationProperties = Object.keys(paginationProps());
 
 type Control = {
+  /** 是否展示表格尺寸控制 */
   sizeControl: boolean;
+  /** 是否展示列控制，传对象时作为列控面板配置 */
   columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
 };
 
+/** 搜索表单配置：SearchFormProps 去掉 form，并加上搜索区显隐与容器 */
 type SearchFormConfig = Omit<SearchFormProps, 'form'> & {
-  // 是否隐藏搜索表单
+  /** 是否隐藏搜索表单 */
   hidden?: boolean;
-  // 搜索区域包裹容器
+  /** 搜索区域包裹容器 */
   container?: ContainerComponent | false;
 };
 
@@ -120,22 +124,25 @@ type ReturnTableRecord<V> = V extends Table<any, infer R> ? R : any;
 type RecordType = ReturnTableRecord<T>;
 
 type Props = {
-  // 列表表格对象，returns from useTable
+  /** 列表表格对象，来自 useTable */
   table?: T;
-  // 列表数据查询方法
+  /** 列表数据查询方法 */
   search?: () => Promise<unknown>;
-  // 是否在首列插入index列
+  /** 是否在首列插入序号列 */
   addIndexColumn?: boolean;
-  // onMounted 时立即触发一次 search 事件
+  /** 挂载后是否立即触发一次查询 */
   immediateSearch?: boolean;
-  // 是否展示表格 size 和 column 控制按钮
+  /** 是否展示尺寸与列控制按钮，支持分别控制 */
   control?: boolean | Partial<Control>;
-  // 搜索栏查询字段表单配置
+  /** 搜索栏查询字段表单配置 */
   searchFormConfig?: SearchFormConfig;
-  // 表格区域包裹容器
+  /** 表格区域包裹容器 */
   tableContainer?: ContainerComponent | false;
+  /** 直接传入列配置（覆盖 :table 实例的 columns） */
   columns?: Columns<RecordType>;
+  /** 直接传入数据源（覆盖 :table 实例的 data） */
   data?: RecordType[];
+  /** 分页配置，传 false 禁用 */
   pagination?: false | Partial<PaginationProps>;
 } & /* @vue-ignore */ Omit<TableProps, 'data'>;
 

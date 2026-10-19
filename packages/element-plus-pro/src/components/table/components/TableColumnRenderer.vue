@@ -1,7 +1,9 @@
 <script lang="ts">
 /**
+ * 列配置渲染器
+ *
  * @component TableColumnRenderer
- * @description 列配置渲染器：把列数组渲染为 el-table-column 树，支持分组列（children）、自定义 render 列与深层路径取值。
+ * @description 把列数组渲染为 el-table-column 树，支持分组列（children）、自定义 render 列与深层路径取值
  *
  * @param {Columns} [columns] - 列配置数组
  *
@@ -57,8 +59,7 @@ const getColumnProps = (column: Column) => {
 };
 
 /*
- * 递归渲染列树：element-plus 仅在父列默认插槽中收集 ElTableColumn 直系 vnode 或函数式组件，
- * 因此子列以同层 vnode 数组展开（而非再包一层状态组件），深层分组同样成立
+ * 递归渲染列树：子列以同层 vnode 数组展开，深层分组同样成立
  */
 const renderColumn = (column: Column): any => {
   const hasChildren =

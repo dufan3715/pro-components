@@ -65,11 +65,10 @@ export { ProComponentProvider };
 
 export default {
   /**
-   * @qin-ui/element-plus-pro 安装方法
-   * @description 全局注册所有组件（ProForm、ProTable、ProComponentProvider）
+   * 安装方法：全局注册 ProForm / ProTable / ProComponentProvider
    *
+   * @description 供 `app.use(ProComponents)` 调用
    * @param {App} app - Vue 应用实例
-   *
    * @example
    * ```ts
    * import { createApp } from 'vue'

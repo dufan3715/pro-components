@@ -49,20 +49,17 @@ defineOptions({
 
 type Props = {
   /**
-   * @description 组件全局配置
-   * 可配置所有内置组件和 Pro 组件的默认属性
+   * 组件全局配置，可配置所有内置组件和 Pro 组件的默认属性
    * @example { 'input': { placeholder: '请输入' }, 'pro-form': { grid: { gutter: 24 } } }
    */
   componentVars?: ComponentVars;
   /**
-   * @description 自定义组件映射
-   * 用于替换或扩展内置组件，传入的组件会覆盖默认的同名组件
+   * 自定义组件映射：用于替换或扩展内置组件，传入的组件会覆盖默认的同名组件
    * @example { 'input': MyCustomInput, 'select': MyCustomSelect }
    */
   componentMap?: ComponentMap;
   /**
-   * @description 内置文案覆盖
-   * 可覆盖任意 locale 文案（如查询/重置/序号/占位符等），
+   * 内置文案覆盖：可覆盖任意 locale 文案（如查询/重置/序号/占位符等），
    * 未覆盖的文案默认跟随宿主组件库语言自动切换
    * @example { 'table.query': '搜索' }
    */

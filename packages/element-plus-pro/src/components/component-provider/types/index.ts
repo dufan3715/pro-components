@@ -30,6 +30,9 @@ type FP<T extends Record<string, any>> = Partial<
 
 type DatePickerType = NonNullable<ComponentProps<typeof DatePicker>['type']>;
 
+/**
+ * 全局配置的完整键集合（ComponentVars 的必填形态）：键为内置组件名与 `pro-*` 组件名
+ */
 export type RequiredComponentVars = {
   /**
    * ProTable 全局默认属性

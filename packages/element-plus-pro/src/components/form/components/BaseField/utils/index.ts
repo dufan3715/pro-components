@@ -59,6 +59,15 @@ const getPlaceholderProps = (
   return { placeholder: t(placeholderKey) };
 };
 
+/**
+ * 组件初始属性：以内置默认值为底，按下发组件名补默认占位符文案
+ *
+ * @description 组件名由 `component` 与 `type` 拼接（如 `input.password`）；`component` 非字符串时返回空记录。
+ * @param {Field} field - 字段配置
+ * @param {Record<string, any>} injectProps - Provider 下发的组件默认属性
+ * @param {LocaleT} t - 取文案的翻译函数
+ * @returns {Record<string, any>} 组件初始属性（键值均来自注入配置与默认文案）
+ */
 export const getInitProps = (
   field: Field,
   injectProps: Record<string, any> = {},
@@ -75,6 +84,12 @@ export const getInitProps = (
 /** 已告警过的未知组件名（模块级去重集合） */
 const warnedUnknownComponents = new Set<string>();
 
+/**
+ * 未识别组件名的降级告警
+ *
+ * @description 同一组件名仅告警一次，提示注册 componentMap 或 ProComponentProvider。
+ * @param {string} name - 未识别的组件类型名
+ */
 export function warnUnknownComponent(name: string) {
   if (warnedUnknownComponents.has(name)) return;
   warnedUnknownComponents.add(name);

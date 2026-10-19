@@ -25,8 +25,10 @@ import type { FormItemInstance } from '../../../shared/ui';
 
 export type { FormInstance };
 
+/** 路径属性：把字段路径随 props 下发给渲染组件 */
 export type PathProps = { path?: string } & Data;
 
+/** v-model 绑定属性：模型值与更新回调 */
 export type VModelProps<T = any> = {
   modelValue?: T;
   'onUpdate:modelValue'?: (val: T) => void;
@@ -61,13 +63,13 @@ export type ValueFormatter =
   | { get?: (val: any) => any; set?: (val: any, oldVal?: any) => any };
 
 /**
- * @description 自定义组件
+ * 自定义渲染组件类型
  * @example (p, ctx) => h('div', ctx.attrs)
  */
 export type RenderComponentType = Component<VModelProps & PathProps>;
 
 /**
- * @description 插槽组件类型
+ * 插槽组件类型：VNode、组件定义、渲染函数或文本
  */
 export type SlotComponentType =
   | Component<PathProps>
@@ -80,50 +82,54 @@ export type SlotComponentType =
   | ((...args: any[]) => SlotComponentType);
 
 /**
- * @description 容器组件类型
+ * 容器组件类型
  */
 export type ContainerComponent = Component<PathProps>;
 
 /**
- * @description 插槽对象类型
+ * 插槽对象类型，键为插槽名
  */
 export type Slots = {
   [name: string]: SlotComponentType;
 };
 
+/** 选项数据：label 展示、value 取值，可携带任意扩展字段 */
 export type Option = { label: string; value: any; [x: string]: any };
+/** 选项数据数组 */
 export type Options = Array<Option>;
 
+/** 网格布局配置：布尔即启用默认布局，传对象作为 GridProps */
 export type Grid = boolean | (GridProps & {});
 
+/** FormItem 插槽集合（label / error 等） */
 export type FormItemSlots = ComponentSlots<typeof FormItem>;
 
 type BaseCommon<D extends Data = Data> = {
   /**
-   * @description 字段标识namePath, 同prop；与 prop 同时配置时以 prop 为准，name 作为控件自身属性向下透传；
+   * 字段标识（namePath），与 prop 同时配置时以 prop 为准；`name` 作为控件自身属性向下透传
+   *
    * 嵌套字段的 `path` 使用各自独立的完整路径（不与父级路径拼接），重复路径需自行保证唯一。
    * @example 'name' | 'age' | 'sex' | ...
    */
   path?: Path<D>;
   /**
-   * @description 字段是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期统一按 `toValue` 取值。
+   * 字段是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期统一按 `toValue` 取值
    */
   /*
-   * hidden 与 disabled 声明原始值类型，类型面与渲染期的响应式形态（Ref / ComputedRef）由 WithRef 统一派生；
-   * 此处再写 MaybeRefOrComputedRef 会形成二次包装
+   * hidden 与 disabled 声明原始值类型，响应式形态（Ref / ComputedRef）由 WithRef 统一派生
    */
   hidden?: boolean;
   /**
-   * @description 字段是否禁用；字段级取值优先，未显式指定时继承上层（表单或宿主 Provider）的禁用上下文。
+   * 字段是否禁用；字段级取值优先，未显式指定时继承上层（表单或宿主 Provider）的禁用上下文
    */
   disabled?: boolean;
   /**
-   * @description 字段中文名称，支持字符串或组件
+   * 字段中文名称，支持字符串或组件
    * @example '姓名' | '年龄' | '性别' | () => h('span', '自定义标签')
    */
   label?: SlotComponentType;
   /**
-   * @description 字段插槽配置，可包含formItem插槽和component插槽
+   * 字段插槽配置，可包含 FormItem 插槽与组件插槽
    * @example
    * ```js
    * slots: {
@@ -135,27 +141,27 @@ type BaseCommon<D extends Data = Data> = {
    */
   slots?: Partial<FormItemSlots>;
   /**
-   * @description 字段formItem样式属性
+   * FormItem 样式
    * @example { marginBottom: '8px', padding: '12px' }
    */
   formItemStyle?: StyleValue;
   /**
-   * @description 字段formItem样式类名
+   * FormItem 类名
    * @example 'custom-form-item' | 'required-field'
    */
   formItemClass?: ClassValue;
   /**
-   * @description 字段formItem容器包裹组件
+   * FormItem 外层包裹组件
    * @example (props, ctx) => h('div', { class: 'custom-container' }, ctx.slots.default?.())
    */
   formItemContainer?: ContainerComponent;
   /**
-   * @description 将属性附加到 FormItem 的 DOM 节点
+   * 附加到 FormItem DOM 节点上的属性
    * @example { 'data-form-item-test': 'test-value', 'aria-label': 'name' }
    */
   formItemDataAttrs?: Record<string, string>;
   /**
-   * @description 额外的自定义属性，不会被当作组件参数，仅用做给字段添加标识属性等功能
+   * 业务侧自定义标识属性，不作为组件属性透传
    * @example { group: 'group-1' }
    */
   extraProps?: Record<string, any>;
@@ -163,43 +169,45 @@ type BaseCommon<D extends Data = Data> = {
 
 type BaseWithFields<D extends Data = Data> = BaseCommon<D> & {
   /**
-   * @description 嵌套子字段配置
-   * @example [{ key: 'firstName', label: '名' }, { key: 'lastName', label: '姓' }]
+   * 嵌套子字段配置
+   * @example [{ path: 'firstName', label: '名' }, { path: 'lastName', label: '姓' }]
    */
   fields: Fields<D>;
   /**
-   * @description 网格布局属性，true表示使用默认网格布局，针对具有嵌套字段的字段
+   * 网格布局配置，true 表示使用默认网格布局
    * @example boolean | { gutter: 24 }
    */
   grid?: Grid;
   component?: never;
   /**
-   * @description 字段component样式属性
+   * 组件样式（仅非嵌套字段有效）
    * @example { width: '100%', borderColor: '#d9d9d9' }
    */
   componentStyle?: never;
   /**
-   * @description 字段component样式类名
+   * 组件类名（仅非嵌套字段有效）
    * @example 'custom-input' | 'error-input'
    */
   componentClass?: never;
   /**
-   * @description 字段component容器包裹组件
+   * 组件外层包裹组件（仅非嵌套字段有效）
    * @example (props, ctx) => h('div', { class: 'input-wrapper' }, ctx.slots.default?.())
    */
   componentContainer?: never;
   /**
-   * @description 将属性附加到表单组件的 DOM 节点
+   * 附加到组件 DOM 节点上的属性（仅非嵌套字段有效）
    * @example { 'data-test': 'input-value', 'aria-label': 'name' }
    */
   componentDataAttrs?: never;
   /**
-   * @description 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值，也可设置get和set函数，用于处理字段值
+   * 字段值处理函数，在 onUpdateValue 前执行（仅非嵌套字段有效）
+   *
+   * 函数返回值作为更新值；也可传 `{ get, set }` 对象分别处理读取与写入
    * @example (val) => val?.trim()
    */
   valueFormatter?: never;
   /**
-   * @description 组件v-model双向绑定更新属性名，默认'modelValue'
+   * v-model 绑定的属性名，默认 `modelValue`（仅非嵌套字段有效）
    */
   modelProp?: never;
 };
@@ -208,45 +216,47 @@ type BaseWithoutFields<D extends Data = Data> = BaseCommon<D> & {
   fields?: undefined;
   grid?: never;
   /**
-   * @description 字段component样式属性
+   * 组件样式（仅非嵌套字段有效）
    * @example { width: '100%', borderColor: '#d9d9d9' }
    */
   componentStyle?: StyleValue;
   /**
-   * @description 字段component样式类名
+   * 组件类名（仅非嵌套字段有效）
    * @example 'custom-input' | 'error-input'
    */
   componentClass?: ClassValue;
   /**
-   * @description 字段component容器包裹组件
+   * 组件外层包裹组件（仅非嵌套字段有效）
    * @example (props, ctx) => h('div', { class: 'input-wrapper' }, ctx.slots.default?.())
    */
   componentContainer?: ContainerComponent;
   /**
-   * @description 将属性附加到表单组件的 DOM 节点
+   * 附加到组件 DOM 节点上的属性（仅非嵌套字段有效）
    * @example { 'data-test': 'input-value', 'aria-label': 'name' }
    */
   componentDataAttrs?: Record<string, string>;
   /**
-   * @description 字段值处理函数，在onUpdateValue前执行，函数返回值将作为更新值，也可设置get和set函数，用于处理字段值
+   * 字段值处理函数，在 onUpdateValue 前执行
+   *
+   * 函数返回值作为更新值；也可传 `{ get, set }` 对象分别处理读取与写入
    * @example (val) => val?.trim()
    */
   valueFormatter?: ValueFormatter;
   /**
-   * @description 组件v-model双向绑定更新属性名，默认'modelValue'
+   * v-model 绑定的属性名，默认 `modelValue`
    */
   modelProp?: string;
 };
 
 /**
- * @type {Object} Base - 基础公共字段类型
+ * 基础公共字段类型（非嵌套字段与嵌套字段两个分支）
  */
 export type Base<D extends Data = Data> =
   | BaseWithFields<D>
   | BaseWithoutFields<D>;
 
 /**
- * @type {FieldTypeMap} 字段类型集合
+ * 内置组件名到字段配置类型的映射
  */
 export type FieldTypeMap<D extends Data = Data> = {
   [K in ComponentName]: K extends 'custom'
@@ -257,7 +267,7 @@ export type FieldTypeMap<D extends Data = Data> = {
 };
 
 /**
- * @description 不支持响应式的属性名
+ * 不支持响应式取值的字段属性名
  */
 type NotSupportedRefOrGetterProps =
   | 'component'
@@ -271,7 +281,8 @@ type NotSupportedRefOrGetterProps =
 type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
 
 /**
- * @description 为对象属性添加响应式支持的类型
+ * 为对象属性添加响应式支持的类型
+ *
  * @template T - 原始类型
  */
 export type WithRef<T> = {
@@ -295,7 +306,7 @@ type WithFields<D extends Data = Data> = WithRef<
 >;
 
 /**
- * @description 合并 FormItem 插槽与组件插槽
+ * 合并 FormItem 插槽与组件插槽
  */
 export type MergeSlots<T, CS = ComponentSlots<T>> = Partial<{
   [K in keyof FormItemSlots | keyof CS]: K extends keyof FormItemSlots
@@ -306,7 +317,8 @@ export type MergeSlots<T, CS = ComponentSlots<T>> = Partial<{
 }>;
 
 /**
- * @description 自动从 Vue 组件提取 Props 和 Slots，并加上公共表单字段属性
+ * 从 Vue 组件提取 Props 与 Slots，并叠加公共字段属性
+ *
  * @template T - Vue 组件类型
  * @template D - 数据对象类型
  */
@@ -318,9 +330,11 @@ type WithComponent<T, D extends Data = Data> = Omit<
 };
 
 /**
- * @description 字段配置类型，包含所有字段属性和响应式支持
+ * 字段配置类型，包含字段属性、响应式取值与宿主组件 Props
+ *
+ * @template C - 组件名，默认覆盖全部内置组件名
  * @template D - 数据对象类型
- 
+ *
  * @public
  */
 export type Field<
@@ -335,9 +349,10 @@ export type Field<
   AdditionalMethods<FormItemInstance>;
 
 /**
- * @description 字段数组类型
+ * 字段配置数组类型
+ *
  * @template D - 数据对象类型
- 
+ *
  * @public
  */
 export type Fields<D extends Data = Data> = Array<Field<ComponentName, D>>;
