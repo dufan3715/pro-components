@@ -174,6 +174,7 @@ useForm(true | false)                          // 重载二：仅拿实例（roo
 - ❌ 传 SFC 给 `component` 不用 `markRaw`。
 - ❌ 移动端选择类字段忘了配 `popup: true` -- 桌面端没有的弹窗模式，是 vant 表单的核心用法。
 - ❌ 不读项目 `ProComponentProvider` 实际配置就写 Field 属性 -- 默认值与组件映射可能已被项目覆盖。
+- ❌ 在字段配置顶层写 `validateTrigger` -- 校验触发时机是 Form 级配置（vant 默认 `onBlur`），字段级要写进 `rules` 的 `trigger`；顶层写不生效且会落到 `van-field` 根节点 DOM。
 
 ## 按需深查
 

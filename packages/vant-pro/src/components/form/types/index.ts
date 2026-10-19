@@ -6,11 +6,12 @@ import type {
 } from 'vue-component-type-helpers';
 import type { VNodeProps, DefineComponent, VNodeTypes, VNode } from 'vue';
 import {
-  type CSSProperties,
+  type ClassValue,
   type Component,
   type Raw,
   type MaybeRef,
   type ComputedRef,
+  type StyleValue,
 } from 'vue';
 import type { ComponentName, GetComponentType } from '../constants';
 import type { Data, Path } from '../../../shared/core';
@@ -133,19 +134,19 @@ type BaseWithoutFields<D extends Data = Data> = BaseCommon<D> & {
   /**
    * @description 表单字段component样式属性
    */
-  componentStyle?: CSSProperties;
+  componentStyle?: StyleValue;
   /**
    * @description 表单字段component样式类名
    */
-  componentClass?: any;
+  componentClass?: ClassValue;
   /**
    * @description 表单字段外层 van-field 样式属性
    */
-  fieldStyle?: CSSProperties;
+  fieldStyle?: StyleValue;
   /**
    * @description 表单字段外层 van-field 样式类名
    */
-  fieldClass?: any;
+  fieldClass?: ClassValue;
   /**
    * @description 字段component容器包裹组件
    */

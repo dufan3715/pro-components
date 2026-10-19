@@ -11,11 +11,12 @@ import type {
 } from 'vue-component-type-helpers';
 import type { VNode, VNodeProps } from 'vue';
 import {
-  type CSSProperties,
+  type ClassValue,
   type Component,
   type Raw,
   type MaybeRef,
   type ComputedRef,
+  type StyleValue,
 } from 'vue';
 import type { ComponentName, GetComponentType } from '../constants';
 import type { Data, Path } from '../../../shared/core';
@@ -152,13 +153,13 @@ type BaseCommon<D extends Data = Data> = {
    *
    * @example { marginBottom: '8px', padding: '12px' }
    */
-  formItemStyle?: CSSProperties;
+  formItemStyle?: StyleValue;
   /**
    * 字段formItem样式类名
    *
    * @example 'custom-form-item' | 'required-field'
    */
-  formItemClass?: string;
+  formItemClass?: ClassValue;
   /**
    * 字段formItem容器包裹组件
    *
@@ -209,13 +210,13 @@ type BaseWithoutFields<D extends Data = Data> = BaseCommon<D> & {
    *
    * @example { width: '100%', borderColor: '#d9d9d9' }
    */
-  componentStyle?: CSSProperties;
+  componentStyle?: StyleValue;
   /**
    * 字段component样式类名
    *
    * @example 'custom-input' | 'error-input'
    */
-  componentClass?: string;
+  componentClass?: ClassValue;
   /**
    * 字段component容器包裹组件
    *

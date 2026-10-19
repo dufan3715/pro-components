@@ -227,6 +227,8 @@ const form = useForm<FormDataType>(initialData, fields, root?)
 
 > 校验与重置通过 `formRef` 调用 vant 原生方法：`form.formRef.value?.validate()`、`form.formRef.value?.resetValidation()`。
 
+> ⚠️ **校验触发时机是 Form 级配置**（vant 默认 `onBlur`）：Form 级经 `<ProForm validateTrigger="onChange">` 或 `componentVars['pro-form'].validateTrigger` 下发；按字段控制写在 `rules` 的 `trigger`（如 `{ required: true, trigger: 'onChange' }`）。字段配置顶层写 `validateTrigger` 不生效（vant 的 `Field` 没有该 prop），并会作为 DOM 属性落到 `van-field` 根节点。
+
 #### useFormPopup
 
 `useForm` 内部已集成 `useFormPopup`（即 `form.formPopup`），用于控制 Popup 弹窗的开关与配置。也可独立使用：
@@ -286,10 +288,10 @@ formPopup.updateProps({ position: 'top' }); // 更新弹窗属性
 | `displayFormatter`   | 展示格式化器（Popup 字段回显文字） | `DisplayFormatter`               | -         |
 | `componentContainer` | 字段组件外层包裹容器               | `ContainerComponent`             | -         |
 | `fieldContainer`     | 嵌套字段的外层包裹容器             | `ContainerComponent`             | -         |
-| `componentStyle`     | 字段组件样式                       | `CSSProperties`                  | -         |
-| `componentClass`     | 字段组件类名                       | `any`                            | -         |
-| `fieldStyle`         | 字段外层样式                       | `CSSProperties`                  | -         |
-| `fieldClass`         | 字段外层类名                       | `any`                            | -         |
+| `componentStyle`     | 字段组件样式                       | `StyleValue`                     | -         |
+| `componentClass`     | 字段组件类名                       | `ClassValue`                     | -         |
+| `fieldStyle`         | 字段外层样式                       | `StyleValue`                     | -         |
+| `fieldClass`         | 字段外层类名                       | `ClassValue`                     | -         |
 | `modelProp`          | 自定义组件 v-model 绑定的属性名    | `string`                         | -         |
 | `popup`              | 是否以 Popup 弹窗形式展示该字段    | `boolean \| Partial<PopupProps>` | `false`   |
 | `slots`              | 字段插槽配置                       | `Slots`                          | -         |

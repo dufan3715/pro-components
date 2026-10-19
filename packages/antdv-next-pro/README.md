@@ -157,12 +157,12 @@ ProForm/ProTable 是渲染引擎，所有真实 UI 来自 antdv-next。**Field �
 | `slots`              | `Partial<ComponentSlots<FormItem>>` | FormItem 插槽（包含 `label`/`extra`/`help`/`tooltip` 等）                                                           |
 | `grid`               | `boolean \| GridProps`              | 嵌套子字段的 Grid 配置                                                                                              |
 | `fields`             | `Fields<D>`                         | 嵌套子字段配置数组（用于复杂分组）                                                                                  |
-| `formItemStyle`      | `CSSProperties`                     | FormItem 样式属性                                                                                                   |
-| `formItemClass`      | `string`                            | FormItem 自定义类名                                                                                                 |
+| `formItemStyle`      | `StyleValue`                        | FormItem 样式属性                                                                                                   |
+| `formItemClass`      | `ClassValue`                        | FormItem 自定义类名                                                                                                 |
 | `formItemContainer`  | `Component`                         | FormItem 外层包裹容器组件                                                                                           |
 | `formItemDataAttrs`  | `Record<string, string>`            | 附加到 FormItem DOM 节点上的自定义 data 属性                                                                        |
-| `componentStyle`     | `CSSProperties`                     | 表单输入组件的样式属性                                                                                              |
-| `componentClass`     | `string`                            | 表单输入组件的自定义类名                                                                                            |
+| `componentStyle`     | `StyleValue`                        | 表单输入组件的样式属性                                                                                              |
+| `componentClass`     | `ClassValue`                        | 表单输入组件的自定义类名                                                                                            |
 | `componentContainer` | `Component`                         | 表单输入组件的外层包裹容器组件                                                                                      |
 | `componentDataAttrs` | `Record<string, string>`            | 附加到输入组件 DOM 节点上的自定义 data 属性                                                                         |
 | `valueFormatter`     | `ValueFormatter`                    | 字段值格式化与转换器（支持 get/set 双向处理器）                                                                     |

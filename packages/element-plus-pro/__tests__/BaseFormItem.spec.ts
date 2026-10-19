@@ -464,4 +464,47 @@ describe('BaseFormItem 组件测试', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A19 [判别]: 字段类名/样式复用宿主 ClassValue / StyleValue
+  // ----------------------------------------------------
+  it('BI-A19 [判别]: 字段类名与样式接受宿主 ClassValue / StyleValue 形态，非类名取值被拒', async () => {
+    const fields: Field[] = [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'input',
+        formItemClass: ['item-cls', { 'item-active': true }],
+        formItemStyle: ['padding: 0', { margin: 0 }],
+        componentClass: { 'input-cls': true },
+        componentStyle: 'color: red',
+      },
+    ];
+    const form = useForm({ name: '' }, fields);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点：数组/对象类名与字符串/数组样式落到各自节点，未被类型面挡住
+    const item = wrapper.find('.item-cls');
+    expect(item.exists()).toBe(true);
+    expect(item.classes()).toContain('item-active');
+    expect(item.attributes('style') ?? '').toContain('padding: 0');
+    const control = wrapper.find('.input-cls');
+    expect(control.exists()).toBe(true);
+    expect(control.attributes('style') ?? '').toContain('color: red');
+
+    // 类型面：数字不属于宿主 ClassValue 契约
+    const invalid: Field = {
+      path: 'invalid',
+      component: 'input',
+      // @ts-expect-error ClassValue 不接受数字
+      componentClass: 1,
+    };
+    expect(invalid.componentClass).toBe(1);
+
+    wrapper.unmount();
+  });
 });

@@ -39,4 +39,9 @@ describe('AI 上下文 · vant-pro', () => {
   it('AC-07: 提示 componentMap 注册 key 可作 Field.component 取值', () => {
     expect(aiContext).toContain('合法的 `Field.component` 取值');
   });
+
+  it('AC-08: 反模式含「字段顶层写 validateTrigger」条目', () => {
+    expect(aiContext).toContain('校验触发时机是 Form 级配置');
+    expect(aiContext).toContain('`rules` 的 `trigger`');
+  });
 });

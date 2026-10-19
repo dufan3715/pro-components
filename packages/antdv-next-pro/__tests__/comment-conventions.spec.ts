@@ -66,6 +66,24 @@ const hiddenSources = [
     ] as const
 );
 
+/*
+ * 字段类名 / 样式口径的四包同构来源：类型面声明与 README 字段表（vant 的 FormItem 层命名为 field*）
+ */
+const classStyleSources = [
+  ['antd-vue-pro', ['formItemClass', 'formItemStyle']],
+  ['antdv-next-pro', ['formItemClass', 'formItemStyle']],
+  ['element-plus-pro', ['formItemClass', 'formItemStyle']],
+  ['vant-pro', ['fieldClass', 'fieldStyle']],
+].map(
+  ([pkg, itemKeys]) =>
+    [
+      pkg as string,
+      read(`../../${pkg}/src/components/form/types/index.ts`),
+      read(`../../${pkg}/README.md`),
+      [...itemKeys, 'componentClass', 'componentStyle'],
+    ] as const
+);
+
 describe('注释规范契约 · antdv-next-pro', () => {
   // ----------------------------------------------------
   // DOC-01 [判别]: 实现手段 / 动机表述缺席，行为陈述在场
@@ -221,5 +239,24 @@ describe('注释规范契约 · antdv-next-pro', () => {
     expect(aiContext).toContain('由 ProTable 消费，不下发 `SearchForm`');
     expect(readme).toContain('不参与 `componentVars` 注入');
     expect(proTableDoc).toContain('不参与注入');
+  });
+
+  // ----------------------------------------------------
+  // DOC-06 [判别]: 字段类名 / 样式四包复用宿主 ClassValue / StyleValue
+  // ----------------------------------------------------
+  it('DOC-06 [判别]: 字段类名与样式在四包类型面与 README 复用宿主类型', () => {
+    for (const [pkg, types, pkgReadme, keys] of classStyleSources) {
+      expect(types, `${pkg} 未复用宿主类名类型`).toContain('type ClassValue');
+      expect(types, `${pkg} 未复用宿主样式类型`).toContain('type StyleValue');
+      for (const key of keys) {
+        const hostType = key.endsWith('Class') ? 'ClassValue' : 'StyleValue';
+        expect(types, `${pkg} 的 ${key} 未按宿主类型声明`).toContain(
+          `${key}?: ${hostType};`
+        );
+        expect(pkgReadme, `${pkg} 的 README 未同步 ${key}`).toMatch(
+          new RegExp(`\`${key}\`[^\\n]*\`${hostType}\``)
+        );
+      }
+    }
   });
 });

@@ -402,12 +402,12 @@ const table = useTable<D, T>({
 | `disabled`           | 组件的禁用状态，支持 Ref/Computed 响应式                                           | `boolean \| Ref<boolean>`                         | `false`        |
 | `rules`              | 字段数据校验规则，遵循 Element Plus 表单校验格式                                   | `Rule[]`                                          | -              |
 | `span`               | 栅格占位宽度（在 ProForm 开启 `grid` 后有效）                                      | `number`                                          | -              |
-| `formItemStyle`      | 挂载在外部 `el-form-item` 节点上的额外 CSS 样式属性                                | `CSSProperties`                                   | -              |
-| `formItemClass`      | 挂载在外部 `el-form-item` 节点上的自定义类名                                       | `string`                                          | -              |
+| `formItemStyle`      | 挂载在外部 `el-form-item` 节点上的额外 CSS 样式属性                                | `StyleValue`                                      | -              |
+| `formItemClass`      | 挂载在外部 `el-form-item` 节点上的自定义类名                                       | `ClassValue`                                      | -              |
 | `formItemContainer`  | 针对该表单项的最外层 DOM 包裹组件                                                  | `Component`                                       | -              |
 | `formItemDataAttrs`  | 附加在 `el-form-item` DOM 节点上的自定义 data 属性                                 | `Record<string, string>`                          | -              |
-| `componentStyle`     | 直接传递给内部表单输入组件的额外 CSS 样式属性                                      | `CSSProperties`                                   | -              |
-| `componentClass`     | 直接传递给内部表单输入组件的自定义类名                                             | `string`                                          | -              |
+| `componentStyle`     | 直接传递给内部表单输入组件的额外 CSS 样式属性                                      | `StyleValue`                                      | -              |
+| `componentClass`     | 直接传递给内部表单输入组件的自定义类名                                             | `ClassValue`                                      | -              |
 | `componentContainer` | 针对表单输入组件的包裹组件                                                         | `Component`                                       | -              |
 | `componentDataAttrs` | 附加在内部输入组件 DOM 节点上的自定义 data 属性                                    | `Record<string, string>`                          | -              |
 | `valueFormatter`     | 字段值转换处理器，可在输入更新或提取数据时做 get/set 转换                          | `ValueFormatter`                                  | -              |

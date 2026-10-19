@@ -332,4 +332,110 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
 
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BI-A21 [判别]: componentContainer / fieldContainer 分别在控件层与分组层生效
+  // ----------------------------------------------------
+  it('BI-A21 [判别]: componentContainer 包裹内层控件，fieldContainer 包裹分组子字段', async () => {
+    const ControlBox = defineComponent({
+      name: 'ControlBox',
+      setup(_, { slots }) {
+        return () => h('div', { class: 'control-box' }, slots.default?.());
+      },
+    });
+    const GroupBox = defineComponent({
+      name: 'GroupBox',
+      setup(_, { slots }) {
+        return () => h('section', { class: 'group-box' }, slots.default?.());
+      },
+    });
+
+    const form = useForm({ name: '', address: { city: '' } });
+    const wrapper = mount(BaseFormItem as any, {
+      props: {
+        fields: [
+          {
+            path: 'name',
+            label: '姓名',
+            component: 'field',
+            componentContainer: ControlBox,
+          },
+          {
+            path: 'address',
+            label: '地址',
+            fieldContainer: GroupBox,
+            fields: [
+              { path: 'address.city', label: '城市', component: 'field' },
+            ],
+          },
+        ],
+      } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    // 判别点：容器组件成为实际包裹层，而非被忽略；且各自只包裹自己的子树
+    expect(wrapper.find('.control-box input').attributes('name')).toBe('name');
+    expect(wrapper.find('.group-box input').attributes('name')).toBe(
+      'address.city'
+    );
+    expect(wrapper.find('.control-box input').element).not.toBe(
+      wrapper.find('.group-box input').element
+    );
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A22 [判别]: 字段样式类名/样式按宿主 ClassValue / StyleValue 复用
+  // ----------------------------------------------------
+  it('BI-A22 [判别]: 样式类名与样式按宿主类型复用，数组/对象/字符串形态照常绑定', async () => {
+    // 类型面：数字不属于宿主 ClassValue / StyleValue 契约
+    const invalidField: Field = {
+      path: 'invalid',
+      component: 'field',
+      // @ts-expect-error ClassValue 不接受数字
+      componentClass: 1,
+    };
+    expect(invalidField.componentClass).toBe(1);
+
+    const form = useForm({ name: 'Alice' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'field',
+        componentClass: ['custom-cls', { active: true }],
+        componentStyle: ['color: red', { fontSize: '12px' }],
+        fieldClass: { 'field-cls': true },
+        fieldStyle: 'font-weight: bold',
+      },
+    ]);
+    const wrapper = mount(BaseFormItem as any, {
+      props: { fields: form.fields.value } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    // 判别点：数组/对象形态落到内层控件与外层 van-field 的 class 上
+    const customControl = wrapper.find('.custom-cls');
+    expect(customControl.exists()).toBe(true);
+    expect(customControl.classes()).toContain('active');
+    expect(wrapper.find('.field-cls').exists()).toBe(true);
+
+    // 判别点：样式数组 / 字符串形态经宿主归一后落到各自节点
+    const controlStyle = customControl.attributes('style') ?? '';
+    expect(controlStyle).toContain('color: red');
+    expect(controlStyle).toContain('font-size: 12px');
+    expect(wrapper.find('.field-cls').attributes('style')).toContain(
+      'font-weight: bold'
+    );
+
+    wrapper.unmount();
+  });
 });

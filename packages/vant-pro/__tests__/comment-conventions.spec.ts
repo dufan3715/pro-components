@@ -108,4 +108,44 @@ describe('注释规范契约 · vant-pro', () => {
     expect(aiContext).toContain('在注入层静默忽略（类型面已限制，不输出告警）');
     expect(readme).toContain('不参与 `componentVars` 注入');
   });
+
+  // ----------------------------------------------------
+  // DOC-05 [判别]: 字段样式类名/样式的文档类型列与公开类型面一致
+  // ----------------------------------------------------
+  it('DOC-05 [判别]: 字段样式类名与样式在两个文档面记为宿主类型，示例不再用未注册组件名', () => {
+    const docs = read('../../../docs/vant-pro/components/pro-form/index.md');
+    for (const [name, doc] of Object.entries({ readme, docs })) {
+      for (const key of ['componentClass', 'fieldClass']) {
+        expect(doc, `${name} 的 ${key} 未记 ClassValue`).toMatch(
+          new RegExp(`\`${key}\`[^\\n]*\`ClassValue\``)
+        );
+        expect(doc, `${name} 的 ${key} 仍以 any 记档`).not.toMatch(
+          new RegExp(`\`${key}\`[^\\n]*\`any\``)
+        );
+      }
+      for (const key of ['componentStyle', 'fieldStyle']) {
+        expect(doc, `${name} 的 ${key} 未记 StyleValue`).toMatch(
+          new RegExp(`\`${key}\`[^\\n]*\`StyleValue\``)
+        );
+      }
+    }
+    // 入口示例的组件名应取自内置组件表，未注册名会告警并降级为原生元素
+    expect(read('../src/index.ts')).not.toContain("component: 'input'");
+  });
+
+  // ----------------------------------------------------
+  // DOC-06 [判别]: 校验触发归属（Form 级 validateTrigger / 字段级 rules[].trigger）在两个文档面同句
+  // ----------------------------------------------------
+  it('DOC-06 [判别]: 校验触发归属在 README 与组件文档同句，字段顶层 validateTrigger 不入文档承诺', () => {
+    const docs = read('../../../docs/vant-pro/components/pro-form/index.md');
+    for (const [name, doc] of Object.entries({ readme, docs })) {
+      expect(doc, `${name} 未声明校验触发的归属层`).toContain(
+        '校验触发时机是 Form 级配置'
+      );
+      expect(doc, `${name} 未给出字段级写法`).toContain('`rules` 的 `trigger`');
+      expect(doc, `${name} 未说明字段顶层写法不生效`).toContain(
+        '字段配置顶层写 `validateTrigger` 不生效'
+      );
+    }
+  });
 });

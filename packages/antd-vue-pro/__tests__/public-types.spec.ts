@@ -75,4 +75,29 @@ describe('公开类型面冒烟 · antd-vue-pro', () => {
     const locale: Partial<ProLocale> = { 'table.query': '搜索' };
     expect(locale['table.query']).toBe('搜索');
   });
+
+  // ----------------------------------------------------
+  // SX-07 [判别]: 字段类名/样式复用宿主 ClassValue / StyleValue
+  // ----------------------------------------------------
+  it('SX-07 [判别]: 字段类名与样式接受宿主 ClassValue / StyleValue 形态，非类名取值被拒', () => {
+    const field: Field = {
+      path: 'name',
+      component: 'input',
+      formItemClass: ['a', { b: true }],
+      formItemStyle: ['padding: 0', { margin: 0 }],
+      componentClass: { c: true },
+      componentStyle: 'color: red',
+    };
+    expect(field.componentClass).toEqual({ c: true });
+    expect(field.formItemStyle).toEqual(['padding: 0', { margin: 0 }]);
+
+    // 类型面：数字不属于宿主 ClassValue 契约
+    const invalid: Field = {
+      path: 'invalid',
+      component: 'input',
+      // @ts-expect-error ClassValue 不接受数字
+      componentClass: 1,
+    };
+    expect(invalid.componentClass).toBe(1);
+  });
 });

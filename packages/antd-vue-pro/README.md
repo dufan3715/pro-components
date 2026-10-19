@@ -364,12 +364,12 @@ const table = useTable<D, T>({
 | `disabled`           | 组件的禁用状态，支持 Ref/Computed 响应式                                                                  | `boolean \| Ref<boolean> \| ComputedRef<boolean>` | `false`   |
 | `rules`              | 字段数据校验规则，遵循 ant-design-vue Form 校验格式                                                       | `Rule[]`                                          | -         |
 | `span`               | 栅格占位宽度（在 ProForm 开启 `grid` 网格布局后有效）                                                     | `number`                                          | -         |
-| `formItemStyle`      | 挂载在外部 `a-form-item` 节点上的额外 CSS 样式属性                                                        | `CSSProperties`                                   | -         |
-| `formItemClass`      | 挂载在外部 `a-form-item` 节点上的自定义类名                                                               | `string`                                          | -         |
+| `formItemStyle`      | 挂载在外部 `a-form-item` 节点上的额外 CSS 样式属性                                                        | `StyleValue`                                      | -         |
+| `formItemClass`      | 挂载在外部 `a-form-item` 节点上的自定义类名                                                               | `ClassValue`                                      | -         |
 | `formItemContainer`  | 针对该表单项的最外层 DOM 包裹组件                                                                         | `Component`                                       | -         |
 | `formItemDataAttrs`  | 附加在 `a-form-item` DOM 节点上的自定义 data 属性                                                         | `Record<string, string>`                          | -         |
-| `componentStyle`     | 直接传递给内部表单输入组件的额外 CSS 样式属性                                                             | `CSSProperties`                                   | -         |
-| `componentClass`     | 直接传递给内部表单输入组件的自定义类名                                                                    | `string`                                          | -         |
+| `componentStyle`     | 直接传递给内部表单输入组件的额外 CSS 样式属性                                                             | `StyleValue`                                      | -         |
+| `componentClass`     | 直接传递给内部表单输入组件的自定义类名                                                                    | `ClassValue`                                      | -         |
 | `componentContainer` | 针对表单输入组件的包裹组件（位于 FormItem 与组件之间）                                                    | `Component`                                       | -         |
 | `componentDataAttrs` | 附加在内部输入组件 DOM 节点上的自定义 data 属性                                                           | `Record<string, string>`                          | -         |
 | `slots`              | 该表单项的插槽自定义内容，包含 formItem 插槽或组件插槽（`label` 插槽与字段 `label` 同时存在时由插槽渲染） | `Record<string, Slot>`                            | -         |

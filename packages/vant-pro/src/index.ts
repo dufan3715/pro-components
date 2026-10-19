@@ -17,7 +17,7 @@ export * from './locale';
  * <script setup lang="ts">
  * import { ProForm, useForm } from '@qin-ui/vant-pro'
  * const form = useForm<User>({ name: '' }, [
- *   { path: 'name', label: '姓名', component: 'input' }
+ *   { path: 'name', label: '姓名', component: 'field' }
  * ])
  * </script>
  * <template>
