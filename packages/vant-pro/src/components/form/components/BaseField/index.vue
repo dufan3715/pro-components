@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 /**
+ * 字段级渲染组件，负责将 field 配置渲染为实际的输入组件
+ *
  * @component BaseField
- * @description 字段级渲染组件，负责将 field 配置渲染为实际的输入组件
  *
  * ## 核心职责
  *
@@ -64,7 +65,9 @@ defineOptions({ name: 'BaseField', inheritAttrs: false });
 const uiFieldPropsKeys = Object.keys(VanField.props || {});
 
 type Props = {
+  /** 组件名或组件对象 */
   component?: string | Component;
+  /** 字段路径，用于绑定表单数据 */
   path?: string;
 };
 const props = withDefaults(defineProps<Props>(), {
@@ -76,8 +79,8 @@ const { t } = useLocale();
 
 const form = useForm(false);
 /**
- * 全局默认配置：按组件名解析注入描述符，inject 须在 setup 同步期调用。
- * 组件名仅取 setup 期初始值——运行期变更不会切换 Provider 的默认值预设。
+ * 全局默认配置：按组件名解析注入描述符；
+ * 组件名仅取 setup 期初始值，运行期变更不切换 Provider 的默认值预设。
  */
 const config = getInjectConfig(props.component);
 const rawInjectComponentProps = inject(config.injectionKey, config.default);
@@ -87,7 +90,7 @@ const fieldRef = ref<any>();
 
 const attrs: any = useAttrs();
 
-// setter: 向 formData 写入值，支持 valueFormatter / valueFormatter.set 转换
+// 双向绑定：读取经 valueFormatter.get，写入经 valueFormatter（或 .set）转换后落 formData
 const value = computed({
   get() {
     let val = form?.getFormData?.(props.path);
@@ -219,7 +222,9 @@ const groupedAttrs = computed(() => {
     currentInjectProps,
     t
   );
+  // modelProp 取值：字段属性 > Provider 注入 > 默认 modelValue
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'modelValue';
+  // 禁用取值：字段/表单下发的 attrs 优先，未提供时取 Provider 注入默认值
   const effectiveDisabled =
     attrs.disabled !== undefined
       ? Boolean(attrs.disabled)
@@ -264,7 +269,7 @@ const groupedAttrs = computed(() => {
 
   const fieldAttrs = Object.keys(bindAttrs).reduce(
     (acc, key) => {
-      // 事件仅绑内层组件（经 bindAttrs），不进外层 VanField，避免冒泡类事件双触发
+      // 事件仅绑内层组件（经 bindAttrs），不进外层 VanField；冒泡类事件不会在外层重复触发
       if (uiFieldPropsKeys.includes(key) && key !== 'type' && key !== 'name') {
         acc[key] = (bindAttrs as any)[key];
       }
@@ -297,7 +302,7 @@ const groupedAttrs = computed(() => {
   };
 });
 
-// 处理 Popup 相关的逻辑
+// popup 字段的弹层可用性与挂载容器
 const popupAble = computed(() => !!groupedAttrs.value.popup);
 const popupContainer = computed(() =>
   typeof groupedAttrs.value.popup === 'boolean'
@@ -305,7 +310,7 @@ const popupContainer = computed(() =>
     : groupedAttrs.value.popup?.container
 );
 
-// 获取要展示在只读 Field 上的文字
+// 展示文本：应用 displayFormatter 后的字段值
 const displayValue = computed(() => {
   const { displayFormatter } = groupedAttrs.value;
   if (displayFormatter && typeof displayFormatter === 'function') {

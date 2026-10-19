@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 /**
- * @component BaseFormItem
- * @description 表单字段渲染引擎
+ * 表单字段渲染引擎
  *
- * 负责将字段配置数组渲染为实际的表单项，支持：
+ * @component BaseFormItem
+ *
+ * 将字段配置数组渲染为实际的表单项，支持：
  * - 字段分组（嵌套 fields 递归渲染）
  * - Field 包装（label、rules、校验等）
  * - 组件绑定（通过 BaseField 渲染具体组件，如 Popup 选择器等）
@@ -12,7 +13,7 @@
  * ## 渲染流程
  *
  * 1. 遍历 fields 数组，过滤 hidden 字段
- * 2. 通过 useGroupFieldAttrs Hook 纯计算各字段属性与路径
+ * 2. 将字段配置分流为组件属性、外层容器与渲染 key
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
  *
  * @param {Fields} [fields] - 字段配置数组
@@ -30,7 +31,9 @@ import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
 defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
 
 type Props = {
+  /** 字段配置数组 */
   fields?: Fields;
+  /** 是否禁用所有子字段 */
   disabled?: boolean;
 };
 

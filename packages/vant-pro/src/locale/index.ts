@@ -36,7 +36,8 @@ export const LOCALE_INJECT_KEY: InjectionKey<
  * 获取响应式 locale 文案
  *
  * @description 返回 `t` 翻译函数与当前语言名。
- * `t` 在 computed / 模板中调用时会随宿主语言切换自动更新。
+ * `t` 在 computed / 模板中调用时会随宿主语言切换自动更新；
+ * 文案取值顺序为 Provider 覆盖 > 当前语言包 > key 本身。
  *
  * @returns
  * - `t(key, params?)` - 翻译函数，支持 `{placeholder}` 参数

@@ -15,8 +15,9 @@ import type { ContainerComponent } from '../types';
 
 /**
  * Vant Popup 组件属性类型
- * @description 用于配置表单弹出层的属性
- 
+ *
+ * @description 配置表单弹出层的属性；`container` 指定弹层内容挂载的包裹容器。
+ *
  * @public
  */
 export type PopupProps = ComponentProps<typeof Popup> & {
@@ -25,6 +26,7 @@ export type PopupProps = ComponentProps<typeof Popup> & {
 
 /**
  * Popup 默认属性配置
+ *
  * @public
  */
 export const DEFAULT_POPUP_PROPS: Partial<PopupProps> = {
@@ -35,8 +37,9 @@ export const DEFAULT_POPUP_PROPS: Partial<PopupProps> = {
 
 /**
  * 表单弹出层管理对象
- * @description Vant 移动端特有的表单弹出层功能
- 
+ *
+ * @description 维护 Vant Popup 的显隐、当前字段、合并属性与容器标识。
+ *
  * @public
  */
 export type FormPopup = {
@@ -81,11 +84,12 @@ let fallbackPopupIdSeed = 0;
 export const InjectionPopupKey = Symbol('form-popup');
 
 /**
- * @qin-ui/vant-pro 表单弹出层管理 Hook
+ * 表单弹出层管理 Hook
  *
- * @description 用于管理 Vant 移动端的表单弹出层（Popup）。
- * 在移动端表单中，某些字段（如地址选择、日期选择）需要以弹出层形式展示。
+ * @description 维护表单弹层状态，并在组件上下文内将同一实例提供给子组件。
  *
+ * @param root - 是否创建独立弹层；为 `true` 时创建独立实例并向下提供；
+ * 为 `false` 或未提供时优先注入父级弹层实例，无可用实例时回退为独立弹层并输出告警。
  * @returns {FormPopup} 弹出层管理对象
  *
  * @example
@@ -95,7 +99,7 @@ export const InjectionPopupKey = Symbol('form-popup');
  * formPopup.close()                              // 关闭
  * formPopup.updateProps({ position: 'top' })
  * ```
- 
+ *
  * @public
  */
 export function useFormPopup(root?: boolean): FormPopup;
@@ -161,6 +165,9 @@ export function useFormPopup(initRoot?: boolean): FormPopup {
 
   /**
    * 打开指定路径字段的弹层
+   *
+   * @description 每次打开先清空单次覆盖属性再应用 `customProps`；初值无条件写入，不沿用其他字段的取值。
+   *
    * @param path - 字段路径
    * @param initialValue - 弹层初始值，取控件侧取值（已应用 valueFormatter.get）
    * @param customProps - 本次打开的 PopupProps 覆盖项，仅对本次打开生效
@@ -181,7 +188,7 @@ export function useFormPopup(initRoot?: boolean): FormPopup {
     syncProps();
     popupFieldPath.value = path;
     activeFieldId.value = fieldId;
-    // 无条件赋值：打开字段时写入当前初值，不残留上一个字段的旧值
+    // 每次打开都写入当前初值，不沿用上一字段的值
     popupFieldValue.value = initialValue;
   }
 

@@ -1,7 +1,9 @@
 <script lang="ts" setup generic="F extends Form<any> = Form">
 /**
+ * 配置驱动表单组件（移动端）
+ *
  * @component ProForm
- * @description @qin-ui/vant-pro 配置驱动表单组件（移动端）
+ * @description 按字段配置数组渲染移动端表单，管理表单实例、字段插槽与共享弹层。
  *
  * 架构设计说明 (Architecture Overview)
  *
@@ -12,17 +14,18 @@
  * 2. 上下文透传：通过 `provide` 将核心状态下发给子组件。
  * 3. 递归渲染：具体字段的解析交由 `<BaseFormItem>` 递归完成。
  *
- * 通过配置驱动的方式快速构建移动端表单，支持：
+ * 支持：
  * - 字段联动、嵌套字段、自定义组件
- * - 弹出层表单（Popup，适用于移动端选择器场景）
+ * - 弹出层表单（Popup，移动端选择器场景）
  *
  * @template F - 表单实例类型
  * @param {F} [form] - useForm 返回的表单实例
- * @param {boolean} [disabled] - 全局表单禁用
+ * @param {boolean} [disabled] - 表单级禁用状态；未提供时字段回退自身配置与 Provider 注入值
+ * @param {...VanFormProps} ...attrs - Vant Form 的其余属性，经 attrs 透传
  *
  * @slot default - 默认插槽
  * @slot [path] - 以字段 path 命名的动态插槽
- 
+ *
  * @public
  */
 import {
@@ -61,18 +64,13 @@ const props = withDefaults(defineProps<Props>(), {
 
 const attrs = useAttrs();
 
-/**
- * 依赖注入中心：
- * 未传 form 实例（含运行期置空）时回退内部表单实例；
- * 将 Form 实例注入到 Vue Context 中，供深层子组件跨层级直接访问数据和方法。
- */
 // 兜底表单实例：setup 同步期创建，未传 :form（含运行期置空）时经 currentForm 生效
 const fallbackForm = useForm() as unknown as F;
 const currentForm = computed(() => props.form ?? fallbackForm);
 
-/**
- * 表单实例代理：操作全部转发至 currentForm 当前实例；
- * 下游持有本代理即可，:form 运行期替换无需重绑；方法具有引用记忆化。
+/*
+ * 表单实例代理：操作全部转发至 currentForm 当前实例，供深层子组件跨层级访问；
+ * 下游持有本代理即可，:form 运行期替换无需重绑；方法具有引用记忆化
  */
 const formProxy = createFormProxy(() => currentForm.value);
 
@@ -84,6 +82,10 @@ const fields = computed(() => {
 });
 const setFormRef = (el: any) => currentForm.value?.setFormRef?.(el);
 
+/*
+ * formKey 子树重挂载契约：以 WeakMap 为每个 form 实例生成自增 key，绑定到原生 Form 的 :key
+ * :form 运行期替换为全新实例时强制整棵表单子树重新挂载，重置宿主校验状态与深层字段非受控状态
+ */
 let formInstanceCounter = 0;
 const formInstanceKeyMap = new WeakMap<object, number>();
 const getFormKey = (f: object) => {
@@ -95,6 +97,9 @@ const getFormKey = (f: object) => {
 };
 const formKey = computed(() => getFormKey(currentForm.value as any));
 
+/*
+ * 从 ProComponentProvider 获取 ProForm 全局默认属性，按运行期变更响应式派生
+ */
 const config = INJECT_CONFIG['pro-form'];
 const injectFormConfig = inject(config.injectionKey, config.default);
 const injectAttrs = computed(() => toValue(injectFormConfig) || {});

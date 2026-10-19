@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 /**
- * @component ProComponentProvider
- * @description @qin-ui/vant-pro 全局配置提供者组件
+ * 全局配置提供者组件
  *
- * 用于在组件树的顶层配置所有子组件的全局默认属性。
+ * @component ProComponentProvider
+ * @description 在组件树的顶层配置所有子组件的全局默认属性。
  *
  * @param {ComponentVars} [componentVars] - 组件全局配置变量
  * @param {Record<ComponentName, any>} [componentMap] - 自定义组件映射
@@ -19,7 +19,7 @@
  *   <ProForm :form="form" />
  * </ProComponentProvider>
  * ```
- 
+ *
  * @public
  */
 import {
@@ -55,9 +55,8 @@ type Props = {
 const props = defineProps<Props>();
 
 /*
- * 遍历 componentVars 的每个 key，获取或创建对应的 inject 配置
- * 将用户提供的值合并到默认值上，剔除该注入项的不可注入键后通过 provide 响应式注入到子组件树
- * 子组件通过 inject(config.injectionKey) 获取合并后的计算属性配置
+ * 内置组件名按各自注入 key 下发「默认值 + componentVars」的合并结果，不可注入键在注入层剔除；
+ * 合并结果为响应式，子组件按注入 key 读取
  */
 (Object.keys(INJECT_CONFIG) as Array<keyof typeof INJECT_CONFIG>).forEach(
   key => {
@@ -80,7 +79,7 @@ const props = defineProps<Props>();
   }
 );
 
-// 为内置集合之外的 componentVars 自定义 key 补建同构注入通道
+// 为内置集合之外的 componentVars 自定义 key 补建同构注入通道（按 setup 期的 key 集合登记）
 if (props.componentVars) {
   Object.keys(props.componentVars).forEach(key => {
     if (!(key in INJECT_CONFIG)) {

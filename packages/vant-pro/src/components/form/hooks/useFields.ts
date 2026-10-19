@@ -61,7 +61,9 @@ export function useFields(initFields?: any) {
   return coreUseFields(initFields);
 }
 
-/** useFields 返回值类型
+/**
+ * useFields 返回值类型
+ *
  * @public
  */
 export type UseFields<D extends Data = Data> = ReturnType<typeof useFields<D>>;

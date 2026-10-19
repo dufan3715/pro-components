@@ -18,7 +18,8 @@ import {
 
 /**
  * 内置组件映射表
- * @description Vant 内置支持的组件类型映射
+ *
+ * @description Vant 内置支持的组件类型映射。
  */
 export type BaseComponentMap = {
   field: typeof Field;
@@ -40,7 +41,8 @@ export type BaseComponentMap = {
 
 /**
  * 组件映射扩展接口
- * @description 通过 TypeScript 声明合并添加自定义组件
+ *
+ * @description 通过 TypeScript 声明合并添加自定义组件。
  *
  * @example
  * ```ts
@@ -50,7 +52,7 @@ export type BaseComponentMap = {
  *   }
  * }
  * ```
- 
+ *
  * @public
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -58,8 +60,9 @@ export interface ComponentMap {}
 
 /**
  * 组件名称联合类型
- * @description 所有支持的组件名称
- 
+ *
+ * @description 所有支持的组件名称，含内置组件名、声明合并扩展名与 `custom`。
+ *
  * @public
  */
 export type ComponentName =
@@ -69,6 +72,7 @@ export type ComponentName =
 
 /**
  * 根据组件名获取组件类型
+ *
  * @template K - 组件名称
  */
 export type GetComponentType<K extends ComponentName> =

@@ -9,8 +9,7 @@ export * from './locale';
 /**
  * Schema 驱动的表单组件，基于 vant Form 封装
  *
- * @description 通过声明式 JSON Schema 配置即可快速生成表单，
- * 提供极致的 TypeScript 类型推导与组件库插槽扩展能力。
+ * @description 通过声明式 Schema 配置生成表单，具备 TypeScript 类型推导与组件库插槽扩展能力。
  *
  * @example
  * ```vue
@@ -27,10 +26,9 @@ export * from './locale';
  */
 export { ProForm };
 /**
- * 组件提供者，用于全局配置 ProForm 的默认行为
+ * 全局配置提供者
  *
- * @description 通过 `ProComponentProvider` 包裹应用根组件，
- * 可以全局覆盖组件的默认属性。
+ * @description 为子组件树注入组件默认属性、自定义组件映射与文案覆盖。
  *
  * @example
  * ```vue
@@ -45,8 +43,9 @@ export { ProComponentProvider };
 
 export default {
   /**
-   * @qin-ui/vant-pro 安装方法
-   * @description 全局注册所有组件（ProForm、ProComponentProvider）
+   * 安装方法
+   *
+   * @description 全局注册 ProForm 与 ProComponentProvider。
    *
    * @param {App} app - Vue 应用实例
    *
