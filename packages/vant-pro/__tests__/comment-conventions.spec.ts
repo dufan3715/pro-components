@@ -8,6 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { auditPackage } from '../../../scripts/check-jsdoc-hover';
 
 const read = (path: string) => readFileSync(resolve(__dirname, path), 'utf-8');
 
@@ -147,5 +148,22 @@ describe('注释规范契约 · vant-pro', () => {
         '字段配置顶层写 `validateTrigger` 不生效'
       );
     }
+  });
+
+  // ----------------------------------------------------
+  // DOC-07 [判别]: 包内 TS 导出符号均有悬浮可见的自由文本摘要
+  // ----------------------------------------------------
+  it('DOC-07 [判别]: 导出符号的 JSDoc 首行为摘要文本，无「仅含标签」与「无 JSDoc」缺口', () => {
+    const { tagOnly, missing, vue } = auditPackage('vant-pro', {
+      repoRoot: resolve(__dirname, '../../..'),
+    });
+    expect(
+      tagOnly,
+      `仅含标签（悬浮主体为空）：\n${tagOnly.join('\n')}`
+    ).toEqual([]);
+    expect(missing, `无 JSDoc（悬浮为空）：\n${missing.join('\n')}`).toEqual(
+      []
+    );
+    expect(vue, `无 JSDoc 头块的 .vue：\n${vue.join('\n')}`).toEqual([]);
   });
 });
