@@ -16,6 +16,7 @@
  * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
  *
  * @param {Fields} [fields] - 字段配置数组
+ * @param {boolean} [disabled] - 是否禁用所有子字段
  *
  * @internal
  */

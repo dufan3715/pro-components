@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import { defineComponent, h, shallowRef, nextTick, ref } from 'vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
+import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { Field as VanField, Form as VanForm } from '../src/shared/ui';
 import { createBasicFields, createNestedFields } from './helpers/fixtures';
@@ -235,6 +236,148 @@ describe('ProForm 组件测试 (vant-pro)', () => {
     const formComp = wrapper.findComponent(VanForm);
     expect(formComp.props('disabled')).toBe(true);
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-F21 [判别]: 表单级 disabled 归一后下发字段控件，字段级配置优先
+  // ----------------------------------------------------
+  it('VP-F21 [判别]: ProForm 的 disabled 归一后下发字段控件，字段级配置优先', async () => {
+    const form = useForm({ name: '', count: 5, free: '' }, [
+      { path: 'name', label: '姓名', component: 'field' },
+      { path: 'count', label: '数量', component: 'stepper' },
+      { path: 'free', label: '自由', component: 'field', disabled: false },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      // 布尔属性形态：模板 `<ProForm disabled>` 编译为 disabled=""，同样归一为禁用
+      props: { form },
+      attrs: { disabled: '' },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const fieldDisabled = (index: number) =>
+      wrapper.findAllComponents(VanField)[index].props('disabled');
+    const stepperDisabled = () =>
+      wrapper.findComponent({ name: 'VanStepper' }).props('disabled');
+
+    // 判别点：禁用态到达字段控件自身（含 stepper 这类非 Field 控件），而非只停在 VanForm
+    expect(wrapper.findComponent(VanForm).props('disabled')).toBe(true);
+    expect(stepperDisabled()).toBe(true);
+    expect(fieldDisabled(0)).toBe(true);
+    expect(wrapper.find('.van-field--disabled').exists()).toBe(true);
+    expect(wrapper.find('.van-stepper__minus--disabled').exists()).toBe(true);
+    expect(wrapper.find('input').attributes('disabled')).toBeDefined();
+    // 字段级 disabled: false 优先于表单级
+    expect(fieldDisabled(2)).toBe(false);
+
+    await wrapper.setProps({ disabled: false });
+    await flushPromises();
+    expect(stepperDisabled()).toBe(false);
+    expect(fieldDisabled(0)).toBe(false);
+    expect(wrapper.find('.van-field--disabled').exists()).toBe(false);
+    expect(wrapper.find('.van-stepper__minus--disabled').exists()).toBe(false);
+    expect(wrapper.find('input').attributes('disabled')).toBeUndefined();
+
+    // 同名属性形态：宿主 Boolean prop 同样把 disabled="disabled" 视为禁用
+    await wrapper.setProps({ disabled: 'disabled' } as any);
+    await flushPromises();
+    expect(stepperDisabled()).toBe(true);
+    expect(fieldDisabled(0)).toBe(true);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-F22 [判别]: Provider 注入的 pro-form.disabled 与显式属性同源下发字段
+  // ----------------------------------------------------
+  it('VP-F22 [判别]: Provider 注入的 pro-form.disabled 同样下发字段控件，显式属性优先', async () => {
+    const form = useForm({ name: '', count: 5 }, [
+      { path: 'name', label: '姓名', component: 'field' },
+      { path: 'count', label: '数量', component: 'stepper' },
+    ]);
+    const mountInProvider = (explicitDisabled?: boolean) =>
+      mount(
+        defineComponent({
+          setup: () => () =>
+            h(
+              ProComponentProvider,
+              { componentVars: { 'pro-form': { disabled: true } } },
+              {
+                default: () =>
+                  h(ProForm, {
+                    form,
+                    ...(explicitDisabled === undefined
+                      ? {}
+                      : { disabled: explicitDisabled }),
+                  }),
+              }
+            ),
+        }),
+        { attachTo: document.body, global: { stubs: { transition: false } } }
+      );
+
+    // 判别点：Provider 注入的禁用值与显式属性同源，字段控件一并进入禁用态
+    const wrapper = mountInProvider();
+    await flushPromises();
+    expect(wrapper.findComponent(VanForm).props('disabled')).toBe(true);
+    expect(
+      wrapper.findComponent({ name: 'VanStepper' }).props('disabled')
+    ).toBe(true);
+    expect(wrapper.findAllComponents(VanField)[0].props('disabled')).toBe(true);
+
+    // 判别点：显式 disabled=false 覆盖 Provider 注入值，宿主 Form 与字段同步启用
+    const overridden = mountInProvider(false);
+    await flushPromises();
+    expect(overridden.findComponent(VanForm).props('disabled')).toBe(false);
+    expect(
+      overridden.findComponent({ name: 'VanStepper' }).props('disabled')
+    ).toBe(false);
+    expect(overridden.findAllComponents(VanField)[0].props('disabled')).toBe(
+      false
+    );
+
+    wrapper.unmount();
+    overridden.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-F23 [判别]: 表单级 disabled 各形态的归一结果与宿主解析真值一致
+  // ----------------------------------------------------
+  it('VP-F23 [判别]: 表单级 disabled 的归一结果与宿主 Boolean prop 的解析真值逐形态一致', async () => {
+    const forms: Array<[string, unknown]> = [
+      ['disabled=""（裸属性）', ''],
+      ['disabled="disabled"', 'disabled'],
+      ['disabled="true"', 'true'],
+      ['disabled="false"', 'false'],
+      ['disabled="0"', '0'],
+      [':disabled="true"', true],
+      [':disabled="false"', false],
+      [':disabled="0"', 0],
+      [':disabled="null"', null],
+    ];
+
+    for (const [label, value] of forms) {
+      const form = useForm({ name: '' }, [
+        { path: 'name', label: '姓名', component: 'field' },
+      ]);
+      const wrapper = mount(ProForm, {
+        props: { form },
+        attrs: { disabled: value },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+
+      // 判别点：宿主保留原值（字符串 'false' / '0' 亦为真），字段禁用态取同一真值
+      const hostDisabled = !!wrapper.findComponent(VanForm).props('disabled');
+      expect(
+        wrapper.findAllComponents(VanField)[0].props('disabled'),
+        `${label} 的字段禁用态与宿主解析结果不一致`
+      ).toBe(hostDisabled);
+
+      wrapper.unmount();
+    }
   });
 
   // ----------------------------------------------------

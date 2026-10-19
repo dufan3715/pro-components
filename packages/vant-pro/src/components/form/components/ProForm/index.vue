@@ -135,6 +135,18 @@ const popupContentId = computed(() => {
 const formAttrs = computed(() => {
   return mergeProps(injectAttrs.value, camelizeProperties(attrs));
 });
+
+/*
+ * 表单级禁用状态：取实际下发给宿主 Form 的合并值（Provider 注入与显式属性），
+ * 按宿主 Boolean prop 的转换规则判定——`''` 与同名属性形态为 true，其余取真值
+ * （`disabled="false"` 等字符串与宿主一致地视为真）；
+ * 未提供时不下发，字段层回退自身配置与 Provider 注入值
+ */
+const formDisabled = computed(() => {
+  const d = formAttrs.value.disabled;
+  if (d === undefined) return undefined;
+  return d === '' || d === 'disabled' ? true : Boolean(d);
+});
 </script>
 
 <template>
@@ -145,7 +157,7 @@ const formAttrs = computed(() => {
     class="pro-form"
     @submit.prevent
   >
-    <BaseFormItem :fields="fields" />
+    <BaseFormItem :fields="fields" :disabled="formDisabled" />
 
     <Popup
       v-if="currentForm?.formPopup"
