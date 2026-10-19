@@ -44,11 +44,7 @@
  * ```
  */
 import type { FormProps as AFormProps } from '../../../../shared/ui';
-import {
-  Form as AForm,
-  useDisabledContext,
-  useDisabledContextProvider,
-} from '../../../../shared/ui';
+import { Form as AForm } from '../../../../shared/ui';
 import {
   computed,
   inject,
@@ -80,20 +76,14 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const attrs: any = useAttrs();
-// 显式 attrs.disabled（含 '' / 'true' 字符串形态）归一为 boolean 后下发禁用上下文；未显式指定时下发上层上下文的值
-const parentDisabled = useDisabledContext();
-useDisabledContextProvider(
-  computed(() => {
-    const d = attrs.disabled;
-    if (d === undefined) return parentDisabled.value;
-    return d === '' || d === true || d === 'true';
-  }) as any
-);
 
 /**
  * 依赖注入中心：
  * 未传 form 实例（含运行期置空）时回退内部表单实例；
  * 将 Form 实例注入到 Vue Context 中，供深层子组件跨层级直接访问数据和方法。
+ *
+ * 禁用上下文不在本层提供：显式 `disabled` 经 `v-bind` 到 `AForm` 后由其自身 prop 优先消费，
+ * 未显式指定时 `AForm` 回退到上层上下文（宿主 `ConfigProvider` / 外层 `Form`）。
  */
 // 兜底表单实例：setup 同步期创建，未传 :form（含运行期置空）时经 currentForm 生效
 const fallbackForm = useForm() as unknown as F;
