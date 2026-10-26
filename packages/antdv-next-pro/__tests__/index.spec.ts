@@ -82,12 +82,11 @@ describe('Public API Export Smoke Test (SX-01)', () => {
     expect((AntdvNextPro as any).toPathSegments).toBeUndefined();
   });
 
-  it('SX-02 [判别]: 表格模块导出面与同构包对齐，不额外导出 PageParam', async () => {
-    // 类型面契约：PageParam 不再由表格 Hook 模块与表格模块导出
+  it('SX-02 [判别]: 表格模块导出面与同构包对齐，PageParam 由表格模块导出', async () => {
+    // 类型面契约：PageParam 由表格模块导出，不由表格 Hook 模块导出
     /* eslint-disable @typescript-eslint/consistent-type-imports */
-    // @ts-expect-error PageParam 已从表格 Hook 模块导出面移除
+    // @ts-expect-error PageParam 不由表格 Hook 模块导出
     type _HookPageParamFace = import('../src/components/table/hooks').PageParam;
-    // @ts-expect-error PageParam 不属于表格模块导出面
     type _PageParamFace = import('../src/components/table').PageParam;
     /* eslint-enable @typescript-eslint/consistent-type-imports */
 
@@ -96,5 +95,15 @@ describe('Public API Export Smoke Test (SX-01)', () => {
     expect(Object.keys(tableModule).sort()).toEqual(['default', 'useTable']);
     expect(typeof tableModule.useTable).toBe('function');
     expect(typeof tableModule.default).toBe('object');
+  });
+  // ----------------------------------------------------
+  // SX-03 [判别]: 公开类型导出面
+  // ----------------------------------------------------
+  it('SX-03 [判别]: 文档承诺的公开类型可从包根导入', () => {
+    /* eslint-disable @typescript-eslint/consistent-type-imports */
+    type _ColumnControlConfigFace = import('../src').ColumnControlConfig;
+    type _ValueFormatterFace = import('../src').ValueFormatter;
+    /* eslint-enable @typescript-eslint/consistent-type-imports */
+    expect(true).toBe(true);
   });
 });

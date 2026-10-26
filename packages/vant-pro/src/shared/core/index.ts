@@ -9,6 +9,7 @@ export {
   useFields,
   useFormData,
   useFormRef,
+  useReactiveAttrs,
   // 字段标识
   resolveFieldIdentity,
   DEFAULT_FIELD_IDENTITY_KEYS,
@@ -20,6 +21,7 @@ export {
   InjectionFormSlotsKey,
   // utils
   getObject,
+  omitBy,
   get,
   set,
   normalizePathKey,

@@ -38,7 +38,8 @@ const checkAll = ref(false);
 const indeterminate = ref(false);
 
 const getColumnKey = (column: Column) => {
-  const rawKey = column.key ?? column.prop;
+  // 空字符串 key 视为未提供，回退 prop（与列渲染口径一致）
+  const rawKey = column.key || column.prop;
   if (rawKey === undefined || rawKey === null || rawKey === '')
     return undefined;
   return normalizePathKey(rawKey);

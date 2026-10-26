@@ -9,6 +9,7 @@ import type {
   PageParam,
 } from '../../../shared/core';
 import type { Fields } from '../../form/types';
+import { ELEMENT_FIELD_IDENTITY_KEYS } from '../../form/constants';
 import type { Column, Columns } from '../types';
 import type { Ref } from 'vue';
 
@@ -133,6 +134,7 @@ export function useTable<
     ...rest,
     dataSource: data,
     columns: columns as any,
+    fieldIdentityKeys: ELEMENT_FIELD_IDENTITY_KEYS,
   });
 
   const { dataSource, ...tableWithoutDataSource } = coreTable as Omit<

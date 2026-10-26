@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ref, toRaw } from 'vue';
-import useFields from '../src/form/useFields';
+import useFields, { DEFAULT_FIELD_IDENTITY_KEYS } from '../src/form/useFields';
 
 const baseFields = [
   { path: 'name', label: '姓名' },
@@ -614,5 +614,87 @@ describe('useFields', () => {
     expect(useFields<any>('' as any).fields.value).toEqual([]);
     expect(useFields<any>(false as any).fields.value).toEqual([]);
     expect(useFields<any>().fields.value).toEqual([]);
+  });
+
+  // ----------------------------------------------------
+  // FF-50 [判别]: 多位点插入时嵌套 fields 逐层克隆，单位点保持原引用
+  // ----------------------------------------------------
+  it('FF-50 [判别]: 多位点插入的字段嵌套 fields 独立，单位点插入保持原引用', () => {
+    const nested = { path: 'child', label: '子字段' };
+    const groupField = { path: 'group', fields: [nested] } as any;
+
+    const multi = useFields<any>([{ path: 'a' }, { path: 'b' }]);
+    multi.appendField(() => true, groupField, { all: true });
+    const first = toRaw(multi.fields.value[1]) as any;
+    const second = toRaw(multi.fields.value[3]) as any;
+
+    // 判别点：根字段与嵌套子字段均按位点独立分配
+    expect(first).not.toBe(second);
+    expect(first).not.toBe(groupField);
+    expect(toRaw(first.fields[0])).not.toBe(toRaw(second.fields[0]));
+    expect(toRaw(first.fields[0])).not.toBe(nested);
+    // 克隆保留字段配置内容
+    expect(first.fields[0].path).toBe('child');
+
+    // 反向约束：单位点插入保持原引用，不产生额外副本
+    const single = useFields<any>([{ path: 'a' }]);
+    single.appendField('a', groupField);
+    expect(toRaw(single.fields.value[1])).toBe(groupField);
+  });
+
+  // ----------------------------------------------------
+  // FF-51 [判别]: rewrite 就地重写保持字段对象身份
+  // ----------------------------------------------------
+  it('FF-51 [判别]: updateType=rewrite 就地覆盖且字段对象身份不变', () => {
+    const api = useFields<any>([
+      { path: 'name', label: '姓名', extra: 'old', fields: [] },
+    ]);
+    const before = api.fields.value[0] as any;
+    const rawBefore = toRaw(before);
+
+    api.setField('name', { path: 'name', label: '用户名' } as any, {
+      updateType: 'rewrite',
+    });
+
+    const after = api.fields.value[0] as any;
+    // 判别点：对象身份保持（渲染 key 与实例登记不漂移），未包含的键被删除
+    expect(toRaw(after)).toBe(rawBefore);
+    expect(after.label).toBe('用户名');
+    expect('extra' in toRaw(after)).toBe(false);
+    expect('fields' in toRaw(after)).toBe(false);
+  });
+
+  // ----------------------------------------------------
+  // FF-52 [判别]: 默认字段标识键序为只读常量
+  // ----------------------------------------------------
+  it('FF-52 [判别]: DEFAULT_FIELD_IDENTITY_KEYS 不可在运行期被改写', () => {
+    expect(Object.isFrozen(DEFAULT_FIELD_IDENTITY_KEYS)).toBe(true);
+    // 判别点：外部 push/splice 会抛错，不再污染全进程默认键序
+    expect(() => (DEFAULT_FIELD_IDENTITY_KEYS as any).push('x')).toThrow();
+    expect([...DEFAULT_FIELD_IDENTITY_KEYS]).toEqual(['name', 'path']);
+  });
+
+  // ----------------------------------------------------
+  // FF-49 [判别]: 环状 fields 下遍历类 API 全部终止
+  // ----------------------------------------------------
+  it('FF-49 [判别]: 环状 fields 的查找/更新/插入/删除遍历均终止', () => {
+    const cyclic: any = { path: 'loop' };
+    cyclic.fields = [cyclic];
+    const api = useFields<any>([cyclic, { path: 'normal' }]);
+
+    // 判别点：finder 全量查找、非命中路径遍历与多位点写入均不挂死
+    expect(() => api.getField(() => true, { all: true })).not.toThrow();
+    expect(api.getField('normal')).toBeTruthy();
+    expect(api.getField('loop')).toBeTruthy();
+    expect(() =>
+      api.setField(() => true, { label: 'x' } as any, { all: true })
+    ).not.toThrow();
+    expect(() =>
+      api.appendField('loop', { path: 'child' } as any)
+    ).not.toThrow();
+    expect(() => api.getParentField(() => true, { all: true })).not.toThrow();
+    expect(() => api.deleteField('loop')).not.toThrow();
+    expect(api.getField('loop')).toBeUndefined();
+    expect(api.getField('normal')).toBeTruthy();
   });
 });

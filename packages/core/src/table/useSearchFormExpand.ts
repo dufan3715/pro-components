@@ -127,6 +127,8 @@ export function useSearchFormExpand(
     observedItemEls = new Set();
     observedInitEls = new Set();
     measuredEl = undefined;
+    // 初值判定随观察一并复位，下一次 updateHeights 重建 IO 后可再次产出判定
+    initExpandSettled = false;
   };
 
   onBeforeUnmount(() => {
@@ -339,6 +341,11 @@ export function useSearchFormExpand(
     } else if (lastAppliedRowBoundaries !== undefined) {
       rowBoundaries.value = [];
       lastAppliedRowBoundaries = undefined;
+    }
+
+    // 观察重建后仍存在溢出行时重新执行初值判定（cleanupObservers 已复位 settled）
+    if (showExpandToggle.value) {
+      setInitExpandStatus();
     }
   };
 

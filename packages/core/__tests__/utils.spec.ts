@@ -7,6 +7,7 @@ import {
   isObjectItem,
   pick,
   omit,
+  omitBy,
   cloneDeep,
   isPromise,
 } from '../src/shared/utils';
@@ -181,6 +182,29 @@ describe('utils', () => {
       const obj = { a: { b: 1, c: 2 } };
       expect(omit(obj, ['a.b'] as any)).toEqual({ a: { b: 1, c: 2 } });
       expect(omit(obj, ['a'] as any)).toEqual({});
+    });
+
+    it('SU-14 [判别]: omit 的数字 / 布尔键按字符串键比对（对齐 lodash toKey）', () => {
+      const numeric = { 1: 'a', 2: 'b' };
+      // 判别点：数字键入参同样剔除同名属性，结果与 lodash 一致
+      expect(omit(numeric, [1])).toEqual(lodashOmit(numeric, [1]));
+      expect(omit(numeric, [1])).toEqual({ 2: 'b' });
+
+      const flag = { true: 't', false: 'f' };
+      expect(omit(flag, [true] as any)).toEqual(
+        lodashOmit(flag, [true] as any)
+      );
+      expect(omit(flag, [true] as any)).toEqual({ false: 'f' });
+
+      // 数组索引键同口径
+      expect(omit(['x', 'y', 'z'], [1 as any])).toEqual({ 0: 'x', 2: 'z' });
+
+      // -0 与 0 是不同键：toKey(-0) === '-0'
+      const zero = { 0: 'a', '-0': 'b' } as any;
+      expect(omit(zero, [-0] as any)).toEqual(lodashOmit(zero, [-0] as any));
+      expect(omit(zero, [0])).toEqual(lodashOmit(zero, [0]));
+      expect(pick(zero, [-0] as any)).toEqual(lodashPick(zero, [-0] as any));
+      expect(pick(zero, [0])).toEqual(lodashPick(zero, [0]));
     });
   });
 
@@ -542,5 +566,49 @@ describe('utils', () => {
     expect(isObjectItem(() => {})).toBe(false);
     expect(isObjectItem(Symbol('s'))).toBe(false);
     expect(isObjectItem(10n)).toBe(false);
+  });
+
+  it('SU-13 [判别]: omitBy 按谓词剔除属性，其余假值原样保留', () => {
+    const source = {
+      disabled: undefined,
+      enabled: false,
+      count: 0,
+      empty: '',
+      nothing: null,
+      size: 'small',
+    } as Record<string, unknown>;
+    const result = omitBy(source, value => value === undefined);
+
+    // 判别点：undefined 键被剔除，false / 0 / '' / null 原样保留
+    expect('disabled' in result).toBe(false);
+    expect(result).toEqual({
+      enabled: false,
+      count: 0,
+      empty: '',
+      nothing: null,
+      size: 'small',
+    });
+    // 不修改源对象；null / undefined 入参返回空对象
+    expect('disabled' in source).toBe(true);
+    expect(omitBy(null, () => true)).toEqual({});
+    expect(omitBy(undefined, () => true)).toEqual({});
+
+    // 谓词同时接收 value 与 key，可按 key 剔除
+    expect(omitBy({ a: 1, b: 2 }, (_value, key) => key === 'a')).toEqual({
+      b: 2,
+    });
+    // 任意谓词：剔除字符串值
+    expect(
+      omitBy({ a: 1, b: 'x' }, value => typeof value === 'string')
+    ).toEqual({ a: 1 });
+    // 危险键不参与拷贝
+    const polluted = omitBy(
+      JSON.parse('{"__proto__":{"x":1},"ok":2}'),
+      () => false
+    );
+    expect(Object.getPrototypeOf(polluted)).toBe(Object.prototype);
+    expect(Object.prototype.hasOwnProperty.call(polluted, '__proto__')).toBe(
+      false
+    );
   });
 });

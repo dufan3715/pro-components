@@ -2,6 +2,11 @@ import type { RequiredComponentVars } from '../types';
 import type { InjectionKey, Component } from 'vue';
 import { type ComputedRef } from 'vue';
 
+/** 全量 componentVars 注入通道：运行期新增的自定义组件键由此读取（按组件名取配置） */
+export const INJECT_COMPONENT_VARS: InjectionKey<
+  ComputedRef<Record<string, any> | undefined> | Record<string, any>
+> = Symbol('COMPONENT_VARS');
+
 /** 注入项配置：注入 key、内置默认值与不可注入键清单 */
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;

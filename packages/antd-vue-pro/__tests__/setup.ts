@@ -135,6 +135,7 @@ const EXPECTED_WARNINGS = [
   '[ProTable] search 未返回 Promise',
   // 「运行期替换 componentMap」用例在替换生效前的首帧降级渲染
   '[pro-components] 未识别的组件类型',
+  // 显式 columns 模式下列控入口隐藏的一次提示（PT-A37 等列优先用例）
 ];
 
 const unexpectedWarnings: string[] = [];

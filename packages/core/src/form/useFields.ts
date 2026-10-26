@@ -24,8 +24,11 @@ export type FR<F, FormInstance> = Readonly<F & AM<FormInstance>>;
 /** 字段标识键序：按顺序取第一个非 null / undefined 的值 */
 export type FieldIdentityKeys = readonly string[];
 
-/** 默认标识键序：宿主表单域标识键（name）优先，path 兜底 */
-export const DEFAULT_FIELD_IDENTITY_KEYS: FieldIdentityKeys = ['name', 'path'];
+/** 默认标识键序：宿主表单域标识键（name）优先，path 兜底；只读常量，运行时不可变更 */
+export const DEFAULT_FIELD_IDENTITY_KEYS: FieldIdentityKeys = Object.freeze([
+  'name',
+  'path',
+]);
 
 /**
  * 解析字段标识
@@ -46,6 +49,34 @@ export const resolveFieldIdentity = (
     if (value !== undefined && value !== null) return normalizePathKey(value);
   }
   return '';
+};
+
+/**
+ * 就地写回字段配置
+ *
+ * @description `removeMissing` 为 true 时删除 `source` 未包含的键（rewrite 语义）；
+ * 写入保留字段对象身份，只读 ref 字段可被新值替换，字段身份与渲染 key 保持稳定。
+ *
+ * @param target - 被写入的字段对象
+ * @param source - 新配置
+ * @param removeMissing - 是否删除新配置未包含的键
+ */
+const writeFieldProps = <F extends object>(
+  target: F,
+  source: F,
+  removeMissing: boolean
+) => {
+  for (const key of Object.keys(target)) {
+    if (removeMissing && !(key in (source as any))) {
+      delete (target as any)[key];
+    }
+  }
+  for (const key of Object.keys(source)) {
+    if (isRef((toRaw(target) as any)[key]) && !isRef((source as any)[key])) {
+      delete (target as any)[key];
+    }
+    (target as any)[key] = (source as any)[key];
+  }
 };
 
 /** useFields 选项 */
@@ -239,6 +270,8 @@ const useFields = <
       if (bool) return;
     }
     // BFS 遍历顺带登记未缓存坐标；非 all 模式命中即返回（层序意义上的第一个匹配）
+    // expanded 记录已展开 children 的字段对象，环状 fields 不再重复入队
+    const expanded = new WeakSet<object>();
     const queue = fields.value.map((field, i) => ({
       field,
       fieldPath: [i] as MapPathValue,
@@ -262,7 +295,8 @@ const useFields = <
         updater({ field, fieldIndex, parentField });
         if (!all) return;
       }
-      if (Array.isArray(field?.fields)) {
+      if (Array.isArray(field?.fields) && !expanded.has(field)) {
+        expanded.add(field);
         field.fields.forEach((f, i) => {
           queue.push({
             field: f as F,
@@ -303,27 +337,14 @@ const useFields = <
     const { updateType = 'merge', ...rest } = options || {};
     updaterMatch(
       path,
-      ({ field: preField, fieldIndex, parentField }) => {
+      ({ field: preField }) => {
         let value: any = field;
         if (typeof field === 'function') {
           value = field(preField);
         }
         if (!value) return;
-        if (updateType === 'rewrite') {
-          parentField.fields![fieldIndex] = value as F;
-        } else {
-          /*
-           * 旧值为只读 ref 而新值不是 ref 时先 delete 再赋值，否则 reactive 会拦截该次赋值；
-           * 旧值需经 toRaw 读取，避免 proxy 的 get 自动解包 ref
-           */
-          const rawTarget = toRaw(preField);
-          for (const key of Object.keys(value)) {
-            if (isRef((rawTarget as any)[key]) && !isRef((value as any)[key])) {
-              delete (preField as any)[key];
-            }
-            (preField as any)[key] = (value as any)[key];
-          }
-        }
+        // rewrite 就地重写（保留字段对象身份）；merge 仅覆盖新配置中的键
+        writeFieldProps(preField, value as F, updateType === 'rewrite');
       },
       rest
     );
@@ -335,7 +356,7 @@ const useFields = <
     options?: UpdateFieldOptions
   ) {
     if (path === undefined || path === null) return;
-    // 两段式：先收集全部匹配快照，再按组降序 splice，多位点删除不错位
+    // 多位点删除时索引不因前序删除而偏移
     const matches: GroupMatch<F>[] = [];
     updaterMatch(
       path,
@@ -386,6 +407,24 @@ const useFields = <
     return options?.all ? res : res[0];
   }
 
+  // 多位点插入的字段克隆：逐层浅拷贝并保留嵌套 fields；环状引用命中已克隆对象时复用副本
+  const cloneFieldForInsert = (
+    field: F,
+    cloned: WeakMap<object, F> = new WeakMap()
+  ): F => {
+    if (!isObjectItem(field)) return field;
+    const existing = cloned.get(field as any);
+    if (existing) return existing;
+    const copy = { ...(field as any) } as F;
+    cloned.set(field as any, copy);
+    if (Array.isArray((field as any).fields)) {
+      (copy as any).fields = (field as any).fields.map((child: any) =>
+        isObjectItem(child) ? cloneFieldForInsert(child, cloned) : child
+      );
+    }
+    return copy;
+  };
+
   function addFields(
     path: Path<D> | FieldFindBy<D, F> | undefined,
     newFields: F[],
@@ -404,11 +443,17 @@ const useFields = <
       );
       applyByGroupDesc(matches, ({ group, index }) => {
         const insertIndex = placement === 'after' ? index + 1 : index;
-        // 多位点匹配时浅拷贝字段对象，单位点保持原引用
+        if (matches.length === 1) {
+          // 单位点保持原引用
+          group.splice(insertIndex, 0, ...newFields);
+          return;
+        }
+        // 每位点独立克隆嵌套 fields，位点之间不共享嵌套引用
+        const cloneCache = new WeakMap<object, F>();
         group.splice(
           insertIndex,
           0,
-          ...(matches.length > 1 ? newFields.map(f => ({ ...f })) : newFields)
+          ...newFields.map(f => cloneFieldForInsert(f, cloneCache))
         );
       });
     } else if (placement === 'after') {

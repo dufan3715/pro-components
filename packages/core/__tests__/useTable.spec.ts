@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { isReactive, toRaw } from 'vue';
 import useTable, {
   normalizeColumn,
@@ -608,6 +608,304 @@ describe('useTable', () => {
   });
 
   // ----------------------------------------------------
+  // TT-39 [判别]: 环状 children 列在多站点插入（all）下不爆栈
+  // ----------------------------------------------------
+  it('TT-39 [判别]: 环状 children 列多站点插入不爆栈，克隆副本按位点独立', () => {
+    const cyclic: any = { title: 'cyc' };
+    cyclic.children = [cyclic];
+    const table = useTable<any>({
+      columns: [
+        { key: 'a', title: 'A' },
+        { key: 'b', title: 'B' },
+      ],
+    });
+
+    // 函数定位默认 all：每个匹配位点各插入一份克隆
+    expect(() =>
+      table.appendColumn(() => true, cyclic, { all: true })
+    ).not.toThrow();
+    expect(table.columns.value).toHaveLength(4);
+
+    // 判别点：每个位点的克隆副本各自成环，位点之间不共享对象
+    const inserted = [table.columns.value[1], table.columns.value[3]] as any[];
+    for (const column of inserted) {
+      expect(column.children[0]).toBe(column);
+      expect(column.key).toBeTruthy();
+    }
+    expect(inserted[0]).not.toBe(inserted[1]);
+  });
+
+  // ----------------------------------------------------
+  // TT-40 [判别]: 非法列项与数字 key 的列操作兼容
+  // ----------------------------------------------------
+  it('TT-40 [判别]: columns 含 null 项时列操作不抛错，数字 key 按字符串形态命中', () => {
+    const table = useTable<any>({
+      columns: [{ key: 1 as any, title: 'A' }],
+    });
+    // 运行期 push 非法列项：遍历与更新不得读取空项属性
+    table.columns.value.push(null as any);
+    table.columns.value.push(undefined as any);
+
+    expect(() => table.setColumn(1 as any, { title: 'A2' })).not.toThrow();
+    expect((table.columns.value[0] as any).title).toBe('A2');
+
+    // 判别点：数字 key 与字符串入参均可命中同一列
+    expect(() => table.setColumn('1' as any, { title: 'A3' })).not.toThrow();
+    expect((table.columns.value[0] as any).title).toBe('A3');
+
+    expect(() =>
+      table.appendColumn(1 as any, { key: 'b' } as any)
+    ).not.toThrow();
+    expect(() => table.deleteColumn(1 as any)).not.toThrow();
+    expect(table.columns.value.some((c: any) => c === null)).toBe(true);
+  });
+
+  // ----------------------------------------------------
+  // TT-41 [判别]: 冻结 + 环状列连续读取不再加深副本
+  // ----------------------------------------------------
+  it('TT-41 [判别]: 冻结自引用列的环深度在连续读取中保持稳定', () => {
+    const cyclic: any = {};
+    cyclic.children = [cyclic];
+    Object.freeze(cyclic);
+    const table = useTable({ columns: [cyclic] as any });
+
+    const cycleDepth = () => {
+      let node: any = table.columns.value[0];
+      let depth = 0;
+      const seen = new Set<object>();
+      while (
+        node &&
+        typeof node === 'object' &&
+        !seen.has(node) &&
+        depth < 30
+      ) {
+        seen.add(node);
+        depth += 1;
+        node = node.children?.[0];
+      }
+      return depth;
+    };
+
+    // 判别点：副本环指向补 key 后的自身，连续读取不再每层加深
+    expect([cycleDepth(), cycleDepth(), cycleDepth(), cycleDepth()]).toEqual([
+      1, 1, 1, 1,
+    ]);
+    expect(table.columns.value[0].children?.[0]).toBe(table.columns.value[0]);
+    expect(table.columns.value[0].children?.[0]?.key).toBeTruthy();
+
+    // 反向约束：非冻结环仍保持原对象自引用
+    const raw: any = { key: 'raw' };
+    raw.children = [raw];
+    const rawTable = useTable({ columns: [raw] as any });
+    expect(rawTable.columns.value[0].children?.[0]).toBe(
+      rawTable.columns.value[0]
+    );
+    expect(rawTable.columns.value[0].children?.[0]?.key).toBe('raw');
+  });
+
+  // ----------------------------------------------------
+  // TT-42 [判别]: 直接 push 的无 key 列在读取时补齐且幂等
+  // ----------------------------------------------------
+  it('TT-42 [判别]: columns 读取期补齐外部直接追加列，重复读取不再变化', () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name' }] as any,
+    });
+    // 绕过列操作 API 直接追加，模拟外部改写
+    table.columns.value.push({ dataIndex: 'late' } as any);
+
+    const first = table.columns.value[1] as any;
+    // 判别点：读取时按 dataIndex 补齐 key
+    expect(first.key).toBe('late');
+
+    // 幂等：已补齐的列不再被替换，重复读取身份稳定
+    const second = table.columns.value[1] as any;
+    expect(second).toBe(first);
+    expect(second.key).toBe('late');
+  });
+
+  // ----------------------------------------------------
+  // TT-43 [判别]: 直接写入冻结列被跳过并提示一次
+  // ----------------------------------------------------
+  it('TT-43 [判别]: 冻结 children 的运行时写入不抛错、提示一次，受支持入口仍补齐 key', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const table = useTable({ columns: [{ key: 'root' }] as any });
+
+    const frozenParent = Object.freeze({
+      key: 'p',
+      children: Object.freeze([Object.freeze({ dataIndex: 'lateChild' })]),
+    });
+    table.columns.value.push(frozenParent as any);
+
+    // 判别点：读取不再抛 TypeError，冻结 children 不被改写
+    let parent: any;
+    expect(() => {
+      parent = table.columns.value[1];
+    }).not.toThrow();
+    expect(parent.children[0].key).toBeUndefined();
+
+    // 重复读取只提示一次，且提示包含受支持入口
+    expect(table.columns.value[1]).toBe(parent);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(
+      warnSpy.mock.calls.some(args =>
+        String(args[0]).includes('不支持直接向 columns 写入冻结列')
+      )
+    ).toBe(true);
+    expect(String(warnSpy.mock.calls[0][0])).toContain('prependColumn');
+
+    // 每个表格实例独立提示一次
+    const second = useTable({ columns: [{ key: 'root2' }] as any });
+    second.columns.value.push(
+      Object.freeze({
+        key: 'p2',
+        children: Object.freeze([Object.freeze({ dataIndex: 'x2' })]),
+      }) as any
+    );
+    expect(second.columns.value[1]).toBeDefined();
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+
+    // 受支持入口：appendColumn 复制冻结列并补齐嵌套 key
+    table.appendColumn(
+      undefined,
+      Object.freeze({
+        key: 'q',
+        children: Object.freeze([Object.freeze({ dataIndex: 'child' })]),
+      }) as any
+    );
+    const appended = table.columns.value[2] as any;
+    expect(appended.children[0].key).toBe('child');
+
+    // 受支持入口：prependColumn 同样复制冻结列并补齐嵌套 key
+    table.prependColumn(
+      undefined,
+      Object.freeze({
+        key: 'r',
+        children: Object.freeze([Object.freeze({ dataIndex: 'preChild' })]),
+      }) as any
+    );
+    const prepended = table.columns.value[0] as any;
+    expect(prepended.children[0].key).toBe('preChild');
+
+    warnSpy.mockRestore();
+  });
+
+  // ----------------------------------------------------
+  // TT-44 [判别]: 冻结 a↔b 互引用初始列
+  // ----------------------------------------------------
+  it('TT-44 [判别]: 冻结互引用分组列两层 key 补齐且读取深度稳定', () => {
+    const a: any = { title: 'A' };
+    const b: any = { title: 'B' };
+    a.children = [b];
+    b.children = [a];
+    Object.freeze(a);
+    Object.freeze(b);
+    const table = useTable({ columns: [a] as any });
+
+    const depth = () => {
+      let node: any = table.columns.value[0];
+      let d = 0;
+      const seen = new Set<object>();
+      while (node && typeof node === 'object' && !seen.has(node) && d < 20) {
+        seen.add(node);
+        d += 1;
+        node = node.children?.[0];
+      }
+      return d;
+    };
+
+    // 判别点：副本两层均补齐 key，互引用成环后连续读取深度稳定
+    expect(table.columns.value[0].key).toBeTruthy();
+    expect((table.columns.value[0] as any).children[0].key).toBeTruthy();
+    expect([depth(), depth(), depth()]).toEqual([2, 2, 2]);
+    // 原冻结对象未被改写
+    expect(a.key).toBeUndefined();
+    expect(b.key).toBeUndefined();
+  });
+
+  // ----------------------------------------------------
+  // TT-45 [判别]: setColumn merge 冻结列不抛错，调用方 children 数组不被替换
+  // ----------------------------------------------------
+  it('TT-45 [判别]: merge 冻结列不再抛错，调用方 children 数组不被替换', () => {
+    const table = useTable({
+      columns: [
+        { key: 'a', title: 'A', children: [{ key: 'x', title: 'X' }] },
+      ] as any,
+    });
+
+    const frozenChild = Object.freeze({ dataIndex: 'y', title: 'Y' });
+    const frozenChildren = Object.freeze([frozenChild]);
+    const frozen = Object.freeze({ title: 'A2', children: frozenChildren });
+
+    // 判别点：冻结列 merge 不再抛 TypeError
+    expect(() => table.setColumn('a', frozen as any)).not.toThrow();
+    const column = table.columns.value[0] as any;
+    expect(column.title).toBe('A2');
+    // 未显式指定 key 时继承原列 key
+    expect(column.key).toBe('a');
+    expect(column.children[0].key).toBe('y');
+    // 调用方冻结对象与 children 数组未被改写
+    expect(column.children).not.toBe(frozenChildren);
+    expect((frozen as any).children).toBe(frozenChildren);
+    expect((frozenChild as any).key).toBeUndefined();
+
+    // 可扩展 value：children 数组不被替换（子列对象按需就地补 key）
+    const child: any = { dataIndex: 'z', title: 'Z' };
+    const value: any = { title: 'A3', children: [child] };
+    table.setColumn('a', value as any);
+    const mergedColumn = table.columns.value[0] as any;
+    expect(mergedColumn.children[0].key).toBe('z');
+    expect(mergedColumn.children).not.toBe(value.children);
+    expect(value.children[0]).toBe(child);
+
+    // rewrite：冻结列可用，标题覆盖、子列补 key、未指定 key 时继承原列
+    table.setColumn(
+      'a',
+      Object.freeze({
+        title: 'A4',
+        children: Object.freeze([Object.freeze({ dataIndex: 'rewriteChild' })]),
+      }) as any,
+      { updateType: 'rewrite' }
+    );
+    const rewritten = table.columns.value.find(
+      (c: any) => c.key === 'a'
+    ) as any;
+    expect(rewritten.title).toBe('A4');
+    expect(rewritten.children[0].key).toBe('rewriteChild');
+  });
+
+  // ----------------------------------------------------
+  // TT-46 [判别]: 冻结 children 的缺失 key 检查只执行一次
+  // ----------------------------------------------------
+  it('TT-46 [判别]: 冻结 children 重复读取不重复扫描子列', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    let keyReads = 0;
+    const child = Object.freeze(
+      Object.defineProperty({ dataIndex: 'x' }, 'key', {
+        get() {
+          keyReads += 1;
+          return undefined;
+        },
+        enumerable: true,
+      })
+    );
+    const frozenChildren = Object.freeze([child]);
+    const table = useTable({ columns: [{ key: 'root' }] as any });
+    table.columns.value.push(
+      Object.freeze({ key: 'p', children: frozenChildren }) as any
+    );
+
+    const first = table.columns.value;
+    const second = table.columns.value;
+    const third = table.columns.value;
+    expect(first).toBe(second);
+    expect(second).toBe(third);
+
+    // 判别点：同一冻结数组只扫描一次
+    expect(keyReads).toBe(1);
+    warnSpy.mockRestore();
+  });
+
+  // ----------------------------------------------------
   // TT-37 [判别]: searchParam 与 pageParam 入参隔离口径一致
   // ----------------------------------------------------
   it('TT-37 [判别]: searchParam 入参不改写调用方对象，与 pageParam 同为内部副本', () => {
@@ -626,5 +924,27 @@ describe('useTable', () => {
     paged.setPageParam({ current: 5 });
     expect(pageParam.current).toBe(1);
     expect(paged.pageParam.current).toBe(5);
+  });
+
+  // ----------------------------------------------------
+  // TT-38 [判别]: fieldIdentityKeys 透传至 searchForm 的字段标识解析
+  // ----------------------------------------------------
+  it('TT-38 [判别]: fieldIdentityKeys 决定 searchForm 字段查找与读写标识', () => {
+    const propOnly = useTable<any>({
+      searchParam: { keyword: '' },
+      searchFields: [{ prop: 'keyword' }],
+      fieldIdentityKeys: ['prop', 'path'],
+    });
+    // 判别点：prop-only 字段在自定义键序下可被命中，而非按默认 name/path 落空
+    expect(propOnly.searchForm.getField('keyword')).toBeTruthy();
+    propOnly.searchForm.setField('keyword', { label: '关键词' });
+    expect(propOnly.searchForm.getField('keyword')?.label).toBe('关键词');
+
+    // 反向约束：默认键序下同一字段落空，说明结果由入参而非其它口径决定
+    const defaultKeys = useTable<any>({
+      searchParam: { keyword: '' },
+      searchFields: [{ prop: 'keyword' }],
+    });
+    expect(defaultKeys.searchForm.getField('keyword')).toBeUndefined();
   });
 });

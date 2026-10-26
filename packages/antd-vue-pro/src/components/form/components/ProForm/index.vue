@@ -26,7 +26,7 @@
  * @template F - 表单实例类型
  *
  * @param {F} [form] - useForm 返回的表单实例
- * @param {boolean | GridProps} [grid=false] - 是否启用网格布局
+ * @param {boolean | GridProps} [grid] - 是否启用网格布局；未提供时回退 Provider 注入的 `grid` 配置
  * @param {...FormProps} ...attrs - Ant Design Vue Form 组件的其他属性
  *
  * @slot default - 默认插槽，可用于添加额外内容
@@ -54,7 +54,6 @@ import {
   shallowRef,
   toValue,
   triggerRef,
-  useAttrs,
   type Slot,
 } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
@@ -62,7 +61,12 @@ import BaseFormItem from '../BaseFormItem/index.vue';
 import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { Grid, VModelProps, PathProps } from '../../types';
 import type { Path } from '../../../../shared/core';
-import { camelizeProperties, createFormProxy } from '../../../../shared/core';
+import {
+  camelizeProperties,
+  createFormProxy,
+  omitBy,
+  useReactiveAttrs,
+} from '../../../../shared/core';
 import { useForm, type Form } from '../../hooks/useForm';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
@@ -71,7 +75,7 @@ type MyFormProps = Partial<Omit<AFormProps, 'model'>>;
 
 type Props = { grid?: Grid; form?: F } & /* @vue-ignore */ MyFormProps;
 const props = withDefaults(defineProps<Props>(), {
-  grid: false,
+  grid: undefined,
   form: undefined,
 });
 
@@ -117,7 +121,7 @@ const formKey = computed(() => getFormKey(currentForm.value as any));
 const config = INJECT_CONFIG['pro-form'];
 const injectFormConfig = inject(config.injectionKey, config.default);
 
-const attrs = useAttrs();
+const attrs = useReactiveAttrs();
 
 /**
  * 从 ProComponentProvider 获取全局配置，响应式派生以支持动态配置变更
@@ -129,7 +133,10 @@ const injectAttrs = computed(() => {
 });
 
 const formAttrs = computed(() => {
-  return mergeProps(injectAttrs.value, camelizeProperties(attrs));
+  return mergeProps(
+    injectAttrs.value,
+    omitBy(camelizeProperties(attrs), value => value === undefined)
+  );
 });
 
 type ExtractPath<T> = T extends Form<infer D> ? Path<D> : string;

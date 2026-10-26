@@ -53,6 +53,10 @@ export {
 } from 'ant-design-vue/es/config-provider/DisabledContext';
 export { colProps as gridItemProps } from 'ant-design-vue/es/grid/Col';
 export { formItemProps } from 'ant-design-vue/es/form';
+export {
+  useInjectFormItemContext,
+  useProvideFormItemContext,
+} from 'ant-design-vue/es/form/FormItemContext';
 export { type NamePath } from 'ant-design-vue/es/form/interface';
 export { type MenuItemType } from 'ant-design-vue/es/menu/src/interface';
 

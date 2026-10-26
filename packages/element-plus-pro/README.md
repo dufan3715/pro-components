@@ -25,7 +25,7 @@
 
 ## 📦 安装
 
-确保您的项目中已安装 `element-plus` (v2.13.6+) 和 `vue` (v3.5+)：
+确保您的项目中已安装 `element-plus` (v2.14.5+) 和 `vue` (v3.5+)：
 
 ```bash
 npm i @qin-ui/element-plus-pro
@@ -599,7 +599,7 @@ declare module '@qin-ui/element-plus-pro' {
 | 依赖包名称     | 推荐版本要求 |
 | :------------- | :----------- |
 | `vue`          | `^3.5.0`     |
-| `element-plus` | `^2.13.6`    |
+| `element-plus` | `^2.14.5`    |
 
 ---
 

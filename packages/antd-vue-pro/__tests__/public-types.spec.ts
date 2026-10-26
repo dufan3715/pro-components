@@ -15,8 +15,6 @@ import type {
   Fields,
   Form,
   ProFormInstance,
-  ProFormItemInstance,
-  ProFormItemProps,
   ProFormProps,
   ProLocale,
   ProTableInstance,
@@ -51,9 +49,7 @@ describe('公开类型面冒烟 · antd-vue-pro', () => {
     expectTypeOf<ProFormProps>().toHaveProperty('form');
     expectTypeOf<ProTableProps>().toHaveProperty('table');
     expectTypeOf<ProFormInstance>().not.toBeAny();
-    expectTypeOf<ProFormItemInstance>().not.toBeAny();
     expectTypeOf<ProTableInstance>().not.toBeAny();
-    expectTypeOf<ProFormItemProps>().not.toBeAny();
 
     // 表单与 hook 返回类型：可作显式标注
     const form = null as unknown as Form<{ name: string }>;

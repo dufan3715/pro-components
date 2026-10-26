@@ -67,7 +67,7 @@ const search = async () => {
 | 参数名           | 说明                                                       | 类型                                                                                 | 默认值 |
 | ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
 | table            | useTable 返回对象                                          | Object                                                                               | -      |
-| search           | 表格数据查询获取方法                                       | () => Promise<unknown>                                                               | -      |
+| search           | 表格数据查询获取方法                                       | `() => Promise<unknown>`                                                             | -      |
 | addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | true   |
 | immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                              | -      |
 | control          | 是否展示表格 size 和 column 控制按钮                       | boolean \| { sizeControl?: boolean; columnControl?: boolean \| ColumnControlConfig } | true   |
@@ -102,6 +102,8 @@ const search = async () => {
 ## 列控制配置（ColumnControlConfig）
 
 `control.columnControl` 支持布尔值或配置对象，用于控制列显隐下拉的行为：
+
+> 显式传入 `columns` 时列控入口不渲染，`control.columnControl` 在该模式下不生效；列显隐请直接维护传入的 `columns`。
 
 ```ts
 type ColumnControlConfig<K extends string | number = string | number> = {

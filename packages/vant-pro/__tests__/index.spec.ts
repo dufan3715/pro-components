@@ -41,4 +41,13 @@ describe('入口导出测试 (vant-pro)', () => {
       }
     }
   });
+  // ----------------------------------------------------
+  // EXP-02 [判别]: 公开类型导出面
+  // ----------------------------------------------------
+  it('EXP-02 [判别]: ValueFormatter 可从包根导入', () => {
+    /* eslint-disable @typescript-eslint/consistent-type-imports */
+    type _ValueFormatterFace = import('../src/index').ValueFormatter;
+    /* eslint-enable @typescript-eslint/consistent-type-imports */
+    expect(true).toBe(true);
+  });
 });

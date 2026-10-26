@@ -42,7 +42,6 @@ import {
   shallowRef,
   toValue,
   triggerRef,
-  useAttrs,
   type Slot,
 } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
@@ -50,9 +49,15 @@ import BaseFormItem from '../BaseFormItem/index.vue';
 import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { VModelProps, PathProps } from '../../types';
 import type { Path } from '../../../../shared/core';
-import { camelizeProperties, createFormProxy } from '../../../../shared/core';
+import {
+  camelizeProperties,
+  createFormProxy,
+  omitBy,
+  useReactiveAttrs,
+} from '../../../../shared/core';
 import type { Form } from '../../hooks/useForm';
 import { useForm } from '../../hooks/useForm';
+import { InjectionPopupKey } from '../../hooks/useFormPopup';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
 
@@ -62,7 +67,7 @@ const props = withDefaults(defineProps<Props>(), {
   form: undefined,
 });
 
-const attrs = useAttrs();
+const attrs = useReactiveAttrs();
 
 // 兜底表单实例：setup 同步期创建，未传 :form（含运行期置空）时经 currentForm 生效
 const fallbackForm = useForm() as unknown as F;
@@ -75,6 +80,15 @@ const currentForm = computed(() => props.form ?? fallbackForm);
 const formProxy = createFormProxy(() => currentForm.value);
 
 provide(InjectionFormKey, formProxy);
+
+/*
+ * 弹层注入代理：路由到当前表单实例的 formPopup；
+ * 未传 :form 时指向兜底实例，运行期替换 :form 后子组件无需重新注入
+ */
+provide(
+  InjectionPopupKey,
+  createFormProxy(() => currentForm.value?.formPopup)
+);
 
 const fields = computed(() => {
   const f = currentForm.value?.fields;
@@ -138,7 +152,10 @@ const popupContentId = computed(() => {
 });
 
 const formAttrs = computed(() => {
-  return mergeProps(injectAttrs.value, camelizeProperties(attrs));
+  return mergeProps(
+    injectAttrs.value,
+    omitBy(camelizeProperties(attrs), value => value === undefined)
+  );
 });
 
 /*

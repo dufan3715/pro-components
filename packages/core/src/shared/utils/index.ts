@@ -89,9 +89,22 @@ export function isPlainObject(v: unknown): v is Record<string, any> {
 }
 
 /**
+ * 键归一：Symbol 原样返回；数字 / 布尔键转字符串，`-0` 保留为 `'-0'`（对齐 lodash `toKey`）
+ *
+ * @param key - 待归一的键
+ * @returns 归一后的键
+ */
+const toKey = (key: PropertyKey): PropertyKey =>
+  typeof key === 'symbol'
+    ? key
+    : typeof key === 'number' && Object.is(key, -0)
+      ? '-0'
+      : String(key);
+
+/**
  * 与 lodash pick 语义对齐：返回新对象，仅含 keys 中存在于对象（含继承）的属性
  *
- * @description 危险键（`__proto__` / `constructor` / `prototype`）不参与拷贝。
+ * @description 数字 / 布尔键按 `toKey` 归一（`-0` → `'-0'`）；危险键（`__proto__` / `constructor` / `prototype`）不参与拷贝。
  */
 export function pick<T extends object, K extends PropertyKey>(
   object: T,
@@ -99,8 +112,11 @@ export function pick<T extends object, K extends PropertyKey>(
 ): Pick<T, Extract<K, keyof T>> {
   const result = {} as Pick<T, Extract<K, keyof T>>;
   for (const key of keys) {
-    if (isDangerousKey(key as string | number)) continue;
-    if (key in object) (result as any)[key] = (object as any)[key];
+    const normalizedKey = toKey(key);
+    if (isDangerousKey(normalizedKey as string)) continue;
+    if (normalizedKey in object) {
+      (result as any)[normalizedKey] = (object as any)[normalizedKey];
+    }
   }
   return result;
 }
@@ -121,7 +137,8 @@ const enumerableSymbolsIn = (object: object): symbol[] => {
 /**
  * 与 lodash omit 语义对齐：返回新对象，含对象（含继承）的可枚举属性并剔除 keys 中的属性
  *
- * @description 仅处理顶层键（不解析 `a.b` 深层路径）；危险键（`__proto__` / `constructor` / `prototype`）不参与拷贝；
+ * @description 仅处理顶层键（不解析 `a.b` 深层路径）；数字 / 布尔键按字符串键比对（对齐 lodash `toKey`），
+ * 因此 `omit({ 1: 'a' }, [1])` 同样剔除 `'1'`；危险键（`__proto__` / `constructor` / `prototype`）不参与拷贝；
  * Symbol 键与可枚举继承属性照常拷贝（数组入参不拷贝 Symbol 键，对齐 lodash）；`null` / `undefined` 入参返回空对象；
  * 不修改源对象。
  *
@@ -136,7 +153,8 @@ export function omit<T extends object, K extends PropertyKey>(
   keys: readonly K[]
 ): Omit<T, Extract<K, keyof T>> {
   const result = {} as Omit<T, Extract<K, keyof T>>;
-  const excluded = new Set<PropertyKey>(keys);
+  // 非 Symbol 键统一转字符串，数字 / 布尔键与 for...in 产出的字符串键按同一形态比对
+  const excluded = new Set<PropertyKey>(keys.map(toKey));
   if (object == null) return result;
   const copy = (key: PropertyKey) => {
     if (excluded.has(key) || isDangerousKey(key as string)) return;
@@ -158,6 +176,45 @@ export function omit<T extends object, K extends PropertyKey>(
  */
 export function getObject(val: any): Record<string, any> {
   return isPlainObject(val) ? val : {};
+}
+
+/**
+ * 与 lodash omitBy 语义对齐：返回新对象，剔除谓词返回真值的属性
+ *
+ * @description 谓词入参为 `(value, key)` 且必填（仅支持函数形态，不支持 lodash 的 iteratee 简写）；
+ * 遍历自有与继承的可枚举属性（含 Symbol 键；数组入参不拷贝 Symbol 键）；危险键
+ * （`__proto__` / `constructor` / `prototype`）不参与拷贝；`null` / `undefined` 入参返回空对象；
+ * 不修改源对象。
+ *
+ * @template T - 源对象类型
+ * @param object - 源对象
+ * @param predicate - 返回真值时剔除该属性
+ * @returns {Partial<T>} 剔除后的新对象
+ *
+ * @example
+ * ```ts
+ * omitBy({ disabled: undefined, size: 'small' }, v => v === undefined) // { size: 'small' }
+ * omitBy({ a: 1, b: 'x' }, v => typeof v === 'string') // { a: 1 }
+ * ```
+ */
+export function omitBy<T extends object>(
+  object: T | null | undefined,
+  predicate: (value: any, key: PropertyKey) => boolean
+): Partial<T> {
+  const result: Record<PropertyKey, any> = {};
+  if (object == null) return result as Partial<T>;
+  const copyIfKept = (key: PropertyKey) => {
+    if (isDangerousKey(key as string)) return;
+    const value = (object as any)[key];
+    if (predicate(value, key)) return;
+    result[key] = value;
+  };
+  // for...in 覆盖自有与继承的可枚举字符串键；数组入参不拷贝 Symbol 键
+  for (const key in object) copyIfKept(key);
+  if (!Array.isArray(object)) {
+    for (const symbol of enumerableSymbolsIn(object)) copyIfKept(symbol);
+  }
+  return result as Partial<T>;
 }
 
 const verbatimAttrRE = /^(data|aria)-/i;

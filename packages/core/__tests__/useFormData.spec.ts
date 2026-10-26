@@ -307,4 +307,30 @@ describe('useFormData', () => {
     expect(Object.keys(second.formData)).toEqual(['count']);
     expect((shared as any).extra).toBeUndefined();
   });
+
+  // ----------------------------------------------------
+  // FD-27 [判别]: 非字符串路径不被折叠成空键或重解释
+  // ----------------------------------------------------
+  it('FD-27 [判别]: 空段数组 / 对象 / Symbol 路径不写入空键，段数组保留字面量语义', () => {
+    const store = useFormData<any>({ a: 1 });
+
+    // 判别点：不可解析路径不产生空字符串键（此前 setFormData([], 'X') 会多出 '' 字段）
+    expect(() => store.setFormData([] as any, 'X')).not.toThrow();
+    expect(() => store.setFormData({} as any, 'Y')).not.toThrow();
+    expect(() => store.setFormData(Symbol('s') as any, 'Z')).not.toThrow();
+    expect(Object.keys(store.formData)).toEqual(['a']);
+    expect(store.getFormData('' as any)).toBeUndefined();
+
+    // 判别点：['a.b'] 作为单段字面量 key 写入，不重解释为嵌套 a.b
+    const literal = useFormData<any>({});
+    literal.setFormData(['a.b'] as any, 1);
+    expect(Object.keys(literal.formData)).toEqual(['a.b']);
+    expect((literal.formData as any).a).toBeUndefined();
+
+    // 正向约束：多段数组仍按嵌套路径写入
+    const nested = useFormData<any>({});
+    nested.setFormData(['x', 'y'] as any, 2);
+    expect((nested.formData as any).x.y).toBe(2);
+    expect(nested.getFormData(['x', 'y'] as any)).toBe(2);
+  });
 });

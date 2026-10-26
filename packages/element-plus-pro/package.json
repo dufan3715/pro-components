@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/element-plus-pro",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "description": "基于 element-plus 的二次封装组件",
   "bin": {
     "element-plus-pro": "./bin/init-ai.mjs"
@@ -14,6 +14,7 @@
       "types": "./es/index.d.ts",
       "import": "./es/index.js"
     },
+    "./element-plus-pro.css": "./es/element-plus-pro.css",
     "./package.json": "./package.json"
   },
   "files": [
@@ -42,7 +43,7 @@
   "license": "MIT",
   "private": false,
   "peerDependencies": {
-    "element-plus": "^2.13.6",
+    "element-plus": "^2.14.5",
     "vue": "^3.5.0"
   },
   "dependencies": {

@@ -6,7 +6,7 @@
 ## 安装与使用
 
 ```bash
-pnpm add @qin-ui/element-plus-pro   # peerDeps: element-plus ^2.13.6, vue ^3.5
+pnpm add @qin-ui/element-plus-pro   # peerDeps: element-plus ^2.14.5, vue ^3.5
 ```
 
 ```ts

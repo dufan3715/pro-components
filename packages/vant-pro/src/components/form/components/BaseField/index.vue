@@ -39,14 +39,18 @@ import {
   ref,
   Teleport,
   toValue,
-  useAttrs,
 } from 'vue';
-import { cloneDeep } from '../../../../shared/core';
+import {
+  cloneDeep,
+  getObject,
+  useReactiveAttrs,
+} from '../../../../shared/core';
 import type { Field as FieldType } from '../../types';
 import ContainerFragment from '../ContainerFragment/index.vue';
 import SlotComponent from '../SlotComponent/index.vue';
 import { componentMap, InjectionFormSlotsKey } from '../../constants';
 import {
+  INJECT_COMPONENT_VARS,
   INJECT_COMPONENTS,
   getInjectConfig,
 } from '../../../component-provider/constants';
@@ -62,7 +66,7 @@ const cloneDeepIfObject = (val: unknown) =>
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
 
-const uiFieldPropsKeys = Object.keys(VanField.props || {});
+const uiFieldPropKeys = new Set(Object.keys(VanField.props || {}));
 
 type Props = {
   /** 组件名或组件对象 */
@@ -84,11 +88,13 @@ const form = useForm(false);
  */
 const config = getInjectConfig(props.component);
 const rawInjectComponentProps = inject(config.injectionKey, config.default);
+// 全量 componentVars：运行期新增的自定义组件键由此兜底读取
+const componentVars = inject(INJECT_COMPONENT_VARS, undefined);
 
 const componentRef = ref<any>();
 const fieldRef = ref<any>();
 
-const attrs: any = useAttrs();
+const attrs: any = useReactiveAttrs();
 
 // 双向绑定：读取经 valueFormatter.get，写入经 valueFormatter（或 .set）转换后落 formData
 const value = computed({
@@ -173,7 +179,7 @@ const is = computed(() => {
  * 原生元素回退（未注册的字符串 component，如 'input'）没有 props 声明面，
  * 按 DOM 属性名放行 Field 层同名键；字段层专有键（label/rules 等）仍从控件绑定中剔除
  */
-const nativeElementAttrKeys = [
+const nativeElementAttrKeys = new Set([
   'type',
   'name',
   'id',
@@ -195,17 +201,43 @@ const nativeElementAttrKeys = [
   'enterkeyhint',
   'autofocus',
   'rows',
-];
+]);
 
 /*
  * 内层控件声明的 props 键：对象式与数组式声明均取声明面；
  * 字符串目标（原生元素、未注册组件）按 DOM 属性名放行
  */
-const getControlPropsKeys = (component: unknown): string[] => {
+const getControlPropsKeys = (component: unknown): Set<string> => {
   if (typeof component === 'string') return nativeElementAttrKeys;
   const declaredProps = (component as { props?: unknown } | undefined)?.props;
-  if (Array.isArray(declaredProps)) return declaredProps as string[];
-  return Object.keys((declaredProps as Record<string, unknown>) || {});
+  return new Set(
+    Array.isArray(declaredProps)
+      ? (declaredProps as string[])
+      : Object.keys((declaredProps as Record<string, unknown>) || {})
+  );
+};
+
+/*
+ * 控件目标类型：
+ * - builtin：componentMap 内置组件，按声明面剔除未声明的 Field 层键
+ * - native：原生元素回退，按 DOM 属性名放行
+ * - custom：自定义组件对象、componentMap 覆盖项与 ProForm 插槽，Field 层属性整体透传
+ */
+const controlKind = computed<'builtin' | 'native' | 'custom'>(() => {
+  if (props.path && injectedFormSlots?.value?.[props.path]) return 'custom';
+  if (typeof props.component !== 'string') return 'custom';
+  const customMap = toValue(customComponents) as any;
+  if (customMap?.[props.component]) return 'custom';
+  return (componentMap as any)[props.component] ? 'builtin' : 'native';
+});
+
+/*
+ * 原生元素回退：动态 v-model 参数只对组件生效，原生元素按 value / checked + 输入事件绑定
+ */
+const nativeInputType = computed(() => String(attrs.type ?? ''));
+const onNativeInput = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  value.value = target.type === 'checkbox' ? target.checked : target.value;
 };
 
 /*
@@ -213,7 +245,12 @@ const getControlPropsKeys = (component: unknown): string[] => {
  * 属性分为多类：组件绑定属性、Field UI 属性等
  */
 const groupedAttrs = computed(() => {
-  const currentInjectProps = toValue(rawInjectComponentProps) || {};
+  const currentInjectProps = {
+    ...(toValue(rawInjectComponentProps) || {}),
+    ...(typeof props.component === 'string'
+      ? getObject(toValue(componentVars)?.[props.component])
+      : {}),
+  };
   const initProps = getInitProps(
     {
       component: props.component,
@@ -224,11 +261,16 @@ const groupedAttrs = computed(() => {
   );
   // modelProp 取值：字段属性 > Provider 注入 > 默认 modelValue
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'modelValue';
-  // 禁用取值：字段/表单下发的 attrs 优先，未提供时取 Provider 注入默认值
+  /*
+   * 禁用取值：字段/表单下发的 attrs 优先，未提供（undefined/null）时取 Provider 注入默认值；
+   * 字符串形态与宿主 Boolean prop 一致——`''` 与同名属性形态为 true，其余取真值
+   */
+  const normalizeDisabled = (value: unknown) =>
+    value === '' || value === 'disabled' ? true : Boolean(value);
   const effectiveDisabled =
-    attrs.disabled !== undefined
-      ? Boolean(attrs.disabled)
-      : Boolean(initProps.disabled);
+    attrs.disabled !== undefined && attrs.disabled !== null
+      ? normalizeDisabled(attrs.disabled)
+      : normalizeDisabled(initProps.disabled);
   const mergedProps = mergeProps(
     initProps,
     attrs,
@@ -270,7 +312,7 @@ const groupedAttrs = computed(() => {
   const fieldAttrs = Object.keys(bindAttrs).reduce(
     (acc, key) => {
       // 事件仅绑内层组件（经 bindAttrs），不进外层 VanField；冒泡类事件不会在外层重复触发
-      if (uiFieldPropsKeys.includes(key) && key !== 'type' && key !== 'name') {
+      if (uiFieldPropKeys.has(key) && key !== 'type' && key !== 'name') {
         acc[key] = (bindAttrs as any)[key];
       }
       return acc;
@@ -279,15 +321,17 @@ const groupedAttrs = computed(() => {
   );
 
   /*
-   * Field 层专有键由 fieldAttrs 下发外层 Field；内层控件同样声明为 props 的键留在控件绑定中，
-   * 内层控件未声明的 Field 层键从 bindAttrs 剔除，不参与控件绑定
+   * 内置控件按声明面剔除未声明的 Field 层键；
+   * 自定义控件与插槽按 attrs 透传契约整体下发，label / rules 等由控件自行渲染
    */
-  const controlPropsKeys = getControlPropsKeys(is.value);
-  Object.keys(bindAttrs).forEach(key => {
-    if (uiFieldPropsKeys.includes(key) && !controlPropsKeys.includes(key)) {
-      delete bindAttrs[key];
-    }
-  });
+  if (controlKind.value !== 'custom') {
+    const controlPropsKeys = getControlPropsKeys(is.value);
+    Object.keys(bindAttrs).forEach(key => {
+      if (uiFieldPropKeys.has(key) && !controlPropsKeys.has(key)) {
+        delete bindAttrs[key];
+      }
+    });
+  }
 
   return {
     attrs: bindAttrs,
@@ -301,6 +345,29 @@ const groupedAttrs = computed(() => {
     onUpdateValue,
   };
 });
+
+/* 自定义控件与插槽额外接收字段路径；内置控件与原生元素不注入 */
+const customPathAttrs = computed(() =>
+  controlKind.value === 'custom' ? { path: props.path } : {}
+);
+const controlAttrs = computed(() => ({
+  ...groupedAttrs.value.attrs,
+  ...customPathAttrs.value,
+}));
+
+/*
+ * 原生元素回退绑定：用户 attrs 与内部值/事件监听器合并，
+ * input 与 change 均回写字段值
+ */
+const nativeControlAttrs = computed(() =>
+  mergeProps(
+    groupedAttrs.value.attrs,
+    nativeInputType.value === 'checkbox'
+      ? { checked: Boolean(value.value) }
+      : { value: value.value ?? '' },
+    { onInput: onNativeInput, onChange: onNativeInput }
+  )
+);
 
 // popup 字段的弹层可用性与挂载容器
 const popupAble = computed(() => !!groupedAttrs.value.popup);
@@ -381,7 +448,7 @@ defineExpose({
           <component
             :is="is"
             v-if="is"
-            v-bind="groupedAttrs.attrs"
+            v-bind="controlAttrs"
             v-model:[`${groupedAttrs.modelProp}`]="
               form.formPopup.popupFieldValue.value
             "
@@ -406,7 +473,7 @@ defineExpose({
       <component
         :is="is"
         v-if="props.component === 'field'"
-        v-bind="groupedAttrs.attrs"
+        v-bind="controlAttrs"
         ref="componentRef"
         v-model:[`${groupedAttrs.modelProp}`]="value"
         :class="groupedAttrs.fieldAttrs.class"
@@ -432,8 +499,26 @@ defineExpose({
         <template #input>
           <component
             :is="is"
-            v-if="is"
-            v-bind="groupedAttrs.attrs"
+            v-if="is && controlKind === 'native'"
+            ref="componentRef"
+            v-bind="nativeControlAttrs"
+          >
+            <template
+              v-for="(slot, name) in groupedAttrs.slots"
+              :key="name"
+              #[name]="scoped"
+            >
+              <SlotComponent
+                :path="props.path"
+                v-bind="scoped"
+                :component="slot"
+              />
+            </template>
+          </component>
+          <component
+            :is="is"
+            v-else-if="is"
+            v-bind="controlAttrs"
             ref="componentRef"
             v-model:[`${groupedAttrs.modelProp}`]="value"
           >
@@ -457,7 +542,7 @@ defineExpose({
       <component
         :is="is"
         v-if="is"
-        v-bind="groupedAttrs.attrs"
+        v-bind="controlAttrs"
         ref="componentRef"
         v-model:[`${groupedAttrs.modelProp}`]="value"
       >

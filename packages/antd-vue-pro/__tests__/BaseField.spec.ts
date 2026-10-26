@@ -603,4 +603,68 @@ describe('BaseField 组件测试', () => {
     customWrapper.unmount();
     document.body.innerHTML = '';
   });
+
+  // ----------------------------------------------------
+  // BF-A22 [判别]: 包装组件与 teleport 插槽内嵌宿主控件单次输入只校验一次
+  // ----------------------------------------------------
+  it('BF-A22 [判别]: 包装组件与插槽内的宿主控件单次输入各触发一次校验', async () => {
+    let validators = 0;
+    const rules = [
+      {
+        validator: () => {
+          validators += 1;
+          return Promise.resolve();
+        },
+      },
+    ];
+
+    const WrapperInput = defineComponent({
+      name: 'WrapperInput',
+      props: { value: { type: String, default: '' } },
+      emits: ['update:value'],
+      setup(props, { emit }) {
+        return () =>
+          h(Input, {
+            class: 'wrapped-input',
+            value: props.value,
+            'onUpdate:value': (val: any) => emit('update:value', val),
+          });
+      },
+    });
+
+    const form = useForm({ name: '', slotField: '' }, [
+      { path: 'name', label: '姓名', component: WrapperInput, rules },
+      { path: 'slotField', label: '插槽', component: 'input', rules },
+    ] as any);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      slots: {
+        slotField: (slotProps: any) =>
+          h(Input, { ...slotProps, class: 'slot-input' }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    validators = 0;
+    const wrapped = wrapper.find('input.wrapped-input');
+    (wrapped.element as HTMLInputElement).value = 'a';
+    await wrapped.trigger('input');
+    await flushPromises();
+    // 判别点：包装组件内部的 a-input 不再向宿主 FormItem 自报，仅字段事件通路校验一次
+    expect(validators).toBe(1);
+    expect(form.getFormData('name')).toBe('a');
+
+    validators = 0;
+    const slotted = wrapper.find('.slot-input input');
+    (slotted.element as HTMLInputElement).value = 'b';
+    await slotted.trigger('input');
+    await flushPromises();
+    expect(validators).toBe(1);
+    expect(form.getFormData('slotField')).toBe('b');
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
+  });
 });

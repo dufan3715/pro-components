@@ -3,7 +3,7 @@
 ## 环境准备
 
 - Vue 3.5+
-- Element Plus 2.13.6+
+- Element Plus 2.14.5+
 
 ## 安装
 

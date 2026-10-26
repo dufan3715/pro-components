@@ -68,6 +68,51 @@ describe('useFormPopup Hook & Popup 交互测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
+  // VP-B9 [判别]: :form 场景下 useFormPopup() 注入当前表单实例的弹层
+  // ----------------------------------------------------
+  it('VP-B9 [判别]: 传 :form 时 useFormPopup() 路由到该实例的 formPopup', async () => {
+    const form = useForm({ city: ['Hangzhou'] }, [
+      {
+        path: 'city',
+        label: '城市',
+        component: 'picker',
+        popup: true,
+        columns: [{ text: '杭州', value: 'Hangzhou' }],
+      } as any,
+    ]);
+    let injectedPopup: any;
+    const Probe = defineComponent({
+      setup() {
+        injectedPopup = useFormPopup(false);
+        return () => h('div', { class: 'popup-probe' });
+      },
+    });
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      slots: { default: () => h(Probe) },
+      global: { stubs: { transition: false, teleport: true } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.popup-probe').exists()).toBe(true);
+
+    // 判别点：子组件拿到的弹层写入落到 :form 实例，而非 ProForm 内部兜底实例
+    injectedPopup.open('city', ['Hangzhou']);
+    await flushPromises();
+    expect(form.formPopup.visible.value).toBe(true);
+    expect(form.formPopup.popupFieldPath.value).toBe('city');
+    // 页面上的共享弹层同步展开
+    expect(wrapper.findComponent({ name: 'VanPopup' }).props('show')).toBe(
+      true
+    );
+
+    injectedPopup.close();
+    await flushPromises();
+    expect(form.formPopup.visible.value).toBe(false);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // VP-V10 [判别]: 实例级 contentId / Teleport 容器隔离
   // ----------------------------------------------------
   it('VP-V10 [判别]: 多个 FormPopup 实例拥有独立的 contentId 与 Teleport 目标选择器，互不干扰', () => {

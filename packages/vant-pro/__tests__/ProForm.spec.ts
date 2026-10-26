@@ -290,6 +290,27 @@ describe('ProForm 组件测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
+  // PF-U3 [判别]: 挂载后新增 disabled
+  // ----------------------------------------------------
+  it('PF-U3 [判别]: 挂载后新增 disabled 立即下发字段控件', async () => {
+    const form = useForm({ name: '' }, [
+      { path: 'name', label: '姓名', component: 'field' },
+    ]);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('input').attributes('disabled')).toBeUndefined();
+
+    await wrapper.setProps({ disabled: true } as any);
+    await flushPromises();
+    expect(wrapper.find('input').attributes('disabled')).toBeDefined();
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // VP-F22 [判别]: Provider 注入的 pro-form.disabled 与显式属性同源下发字段
   // ----------------------------------------------------
   it('VP-F22 [判别]: Provider 注入的 pro-form.disabled 同样下发字段控件，显式属性优先', async () => {
@@ -529,5 +550,40 @@ describe('ProForm 组件测试 (vant-pro)', () => {
     expect(inputAfter).not.toBe(inputBefore);
     expect((inputAfter as HTMLInputElement).value).toBe('Bob');
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-U1 [判别]: 显式 undefined 绑定不冲掉 Provider 注入
+  // ----------------------------------------------------
+  it('PF-U1 [判别]: 显式 :disabled="undefined" 保留下发的 Provider 注入值', async () => {
+    const form = useForm({ name: '' }, [
+      { path: 'name', label: '姓名', component: 'field' },
+    ]);
+    const wrapper = mount(
+      defineComponent({
+        setup: () => () =>
+          h(
+            ProComponentProvider,
+            { componentVars: { 'pro-form': { disabled: true } } },
+            {
+              default: () =>
+                h(ProForm, {
+                  form,
+                  // 判别的关键：绑定键存在但值为 undefined
+                  disabled: undefined,
+                }),
+            }
+          ),
+      }),
+      { attachTo: document.body, global: { stubs: { transition: false } } }
+    );
+    await flushPromises();
+
+    // 判别点：未显式指定时该键不下发，Provider 注入的禁用态保持生效
+    expect(wrapper.findComponent(VanForm).props('disabled')).toBe(true);
+    expect(wrapper.findAllComponents(VanField)[0].props('disabled')).toBe(true);
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
   });
 });

@@ -886,6 +886,52 @@ describe('useSearchFormExpand', () => {
   });
 
   // ----------------------------------------------------
+  // SE-17 [判别]: cleanupObservers 复位初值判定，updateHeights 重建 IO 后可再次判定
+  // ----------------------------------------------------
+  it('SE-17 [判别]: cleanup 后 updateHeights 重建初值判定观察并再次产出结果', async () => {
+    const ioInstances = stubIntersectionObserver();
+    stubResizeObserver();
+
+    const values: Record<string, any> = { a: 'x', b: '' };
+    const state = {
+      items: [createFakePathItem('a', 0), createFakePathItem('b', 48)],
+      naturalHeight: 200,
+    };
+    const form = {
+      formRef: ref<any>({ $el: buildFakePathForm(state) }),
+      getFormData: (path: string) => values[path],
+    };
+    const { api, wrapper } = mountHook({
+      form: form as any,
+      expand: true,
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+
+    // 第一次判定：隐藏字段无值 → 保持折叠并断开观察
+    expect(api.showExpandToggle.value).toBe(true);
+    const firstIo = ioInstances[0]!;
+    firstIo.callback([{ target: state.items[1], intersectionRatio: 0 }]);
+    expect(api.expandStatus.value).toBe(false);
+    expect(firstIo.disconnected).toBe(true);
+
+    // 观察清理后补充初值，再重测
+    values.b = 'hidden-value';
+    api.cleanupObservers();
+    expect(() => api.updateHeights()).not.toThrow();
+    await nextTick();
+
+    // 判别点：重建了新的 IO 并重新登记隐藏字段
+    expect(ioInstances.length).toBeGreaterThan(1);
+    const secondIo = ioInstances[ioInstances.length - 1]!;
+    expect(secondIo.elements.size).toBe(2);
+    secondIo.callback([{ target: state.items[1], intersectionRatio: 0 }]);
+    expect(api.expandStatus.value).toBe(true);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // SE-16 [判别]: 非 grid 布局或未启用折叠时不施加高度约束
   // ----------------------------------------------------
   it('SE-16 [判别]: 非 grid 布局下 currentHeight 为 unset、heightStyle 为 undefined', async () => {

@@ -92,4 +92,16 @@ describe('SX: 公共导出冒烟测试', () => {
     /* eslint-enable @typescript-eslint/consistent-type-imports */
     expect(typeof tableModule.useTable).toBe(typeof hooksModule.useTable);
   });
+  // ----------------------------------------------------
+  // SX-03 [判别]: 公开类型导出面
+  // ----------------------------------------------------
+  it('SX-03 [判别]: 文档承诺的公开类型可从包根导入', () => {
+    /* eslint-disable @typescript-eslint/consistent-type-imports */
+    type _ColumnControlConfigFace = import('../src').ColumnControlConfig;
+    type _ColumnScopeFace = import('../src').ColumnScope;
+    type _ValueFormatterFace = import('../src').ValueFormatter;
+    type _PageParamFace = import('../src').PageParam;
+    /* eslint-enable @typescript-eslint/consistent-type-imports */
+    expect(true).toBe(true);
+  });
 });

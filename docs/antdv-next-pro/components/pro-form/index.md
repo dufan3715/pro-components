@@ -187,7 +187,6 @@ const form = useForm({ user: { first: '', last: '' } }, [
 ## Types
 
 - `Field`：字段配置入口，组合组件参数 / FormItem 参数 / GridItem 参数
-- `Base`：字段公共能力集合（path、slots、容器、样式、格式化等）
 - `Fields`：字段数组，支持嵌套
 - `ValueFormatter`：字段值处理函数，支持 `get/set` 或单函数
 - `modelProp`：自定义 v-model 绑定字段名

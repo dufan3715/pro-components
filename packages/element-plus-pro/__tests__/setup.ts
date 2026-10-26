@@ -119,6 +119,7 @@ const originalError = console.error.bind(console);
 /* 本包运行期实际出现的预期噪声：reactive 组件配置触发的 Vue 性能提示 */
 const IGNORED_WARN_PREFIXES = [
   '[Vue warn]: Vue received a Component that was made a reactive object',
+  // 显式 columns 模式下列控入口隐藏的一次提示（PT-A28 等列优先用例）
 ];
 
 /** 当前用例未放行的 warn/error 文本，afterEach 断言为空 */

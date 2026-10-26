@@ -38,7 +38,7 @@
  * @param {() => Promise<unknown>} [search] - 列表数据查询方法
  * @param {boolean} [addIndexColumn] - 是否在首列插入序号列
  * @param {boolean} [immediateSearch] - 挂载后是否立即触发一次查询
- * @param {boolean | Partial<Control>} [control] - 是否展示尺寸与列控制按钮
+ * @param {boolean | Partial<Control>} [control] - 是否展示尺寸与列控制按钮；显式传入 columns 时列控入口不渲染
  * @param {SearchFormConfig} [searchFormConfig] - 搜索栏查询字段表单配置
  * @param {ContainerComponent | false} [tableContainer] - 表格区域包裹容器
  *
@@ -63,8 +63,9 @@ import {
   Fragment,
   Text,
   computed,
+  effect,
+  stop,
   nextTick,
-  useAttrs,
   onMounted,
   inject,
   toValue,
@@ -85,7 +86,9 @@ import {
   isObjectItem,
   isPlainObject,
   isPromise,
+  omitBy,
   pick,
+  useReactiveAttrs,
 } from '../../../shared/core';
 import DefaultSearchFormContainer from './DefaultSearchFormContainer.vue';
 import DefaultTableContainer from './DefaultTableContainer.vue';
@@ -132,7 +135,7 @@ type Props = {
   addIndexColumn?: boolean;
   /** 挂载后是否立即触发一次查询 */
   immediateSearch?: boolean;
-  /** 是否展示尺寸与列控制按钮，支持分别控制 */
+  /** 是否展示尺寸与列控制按钮，支持分别控制；显式传入 columns 时列控入口不渲染 */
   control?: boolean | Partial<Control>;
   /** 搜索栏查询字段表单配置 */
   searchFormConfig?: SearchFormConfig;
@@ -172,7 +175,7 @@ const config = INJECT_CONFIG['pro-table'];
 const injectPropsRaw = inject(config.injectionKey, config.default);
 const injectProps = computed(() => toValue(injectPropsRaw) || {});
 
-const attrs = useAttrs() as Record<string, any>;
+const attrs = useReactiveAttrs() as Record<string, any>;
 
 // 组件自身消费的 attrs 键：class / style 绑定根节点，onSearch / onChange 由搜索与分页流程消费
 const PRO_TABLE_CONSUMED_ATTR_KEYS = new Set([
@@ -196,9 +199,9 @@ const injectTableAttrs = computed(() => {
 });
 
 const attrsTableProps = computed(() => {
-  return pick(
-    camelizeProperties(attrs),
-    tableProperties
+  return omitBy(
+    pick(camelizeProperties(attrs), tableProperties),
+    value => value === undefined
   ) as Partial<TableProps>;
 });
 
@@ -209,7 +212,7 @@ const restTableAttrs = computed(() => {
       rest[key] = value;
     }
   }
-  return rest;
+  return omitBy(rest, value => value === undefined);
 });
 
 const size = defineModel<TableProps['size']>('size');
@@ -287,32 +290,42 @@ const hasRenderableContent = (nodes: unknown): boolean => {
   return true;
 };
 
-// default 插槽保留给列渲染器，同名用户插槽不透传宿主表格
-let defaultSlotChecked = false;
-const forwardedSlotNames = () => {
-  const names = Object.keys(slots).filter(
-    name => name !== 'default' && !customSlotNames.includes(name as any)
-  );
-  // 首次渲染按实际产出判定一次：包装组件透传的空插槽（仅注释 / 空白）不提示
-  if (
-    !defaultSlotChecked &&
-    Object.prototype.hasOwnProperty.call(slots, 'default')
-  ) {
-    defaultSlotChecked = true;
-    let hasContent = false;
+/*
+ * 求值一次 default 插槽产出，用于判定是否有可渲染内容（空插槽 / 包装组件透传不提示）。
+ * 求值由一次性 effect 执行并立即停止，插槽内的响应式读取不进入 ProTable 的渲染依赖。
+ */
+const evaluateSlotContent = (): boolean => {
+  let hasContent = false;
+  const runner = effect(() => {
     try {
       hasContent = hasRenderableContent(slots.default?.());
     } catch {
       // 产出无法求值时按有内容处理，照常提示 default 插槽被保留
       hasContent = true;
     }
-    if (hasContent) {
-      console.warn(
-        '[pro-components] ProTable 的 default 插槽保留用于列渲染，已忽略传入的 default 插槽内容；自定义区域请使用 search-form / button-bar / toolbar / table 具名插槽。'
-      );
-    }
+  });
+  stop(runner);
+  return hasContent;
+};
+
+// default 插槽保留给列渲染器，同名用户插槽不透传宿主表格
+let defaultSlotChecked = false;
+const checkDefaultSlot = () => {
+  if (defaultSlotChecked) return;
+  if (!Object.prototype.hasOwnProperty.call(slots, 'default')) return;
+  defaultSlotChecked = true;
+  if (evaluateSlotContent()) {
+    console.warn(
+      '[pro-components] ProTable 的 default 插槽保留用于列渲染，已忽略传入的 default 插槽内容；自定义区域请使用 search-form / button-bar / toolbar / table 具名插槽。'
+    );
   }
-  return names;
+};
+
+const forwardedSlotNames = () => {
+  checkDefaultSlot();
+  return Object.keys(slots).filter(
+    name => name !== 'default' && !customSlotNames.includes(name as any)
+  );
 };
 
 const searchPage1st = () => {
@@ -350,14 +363,21 @@ const computedTableContainer = computed(() => {
   return container ? container : undefined;
 });
 
+/*
+ * 序号列随有效分页偏移：分页关闭时退化为 index + 1；
+ * current / pageSize 取有效分页（显式 :pagination 或 Provider 注入），table.pageParam 仅作兜底
+ */
 const getIndex = (i: number) => {
-  if (props.table?.pageParam && computedPagination.value !== false) {
-    const current = props.table.pageParam.current ?? 1;
-    const pageSize = props.table.pageParam.pageSize ?? 10;
-    return (current - 1) * pageSize + i + 1;
-  }
-  return i + 1;
+  const pagination = computedPagination.value;
+  if (pagination === false) return i + 1;
+  const pageParam = props.table?.pageParam;
+  const current = pagination.currentPage ?? pageParam?.current ?? 1;
+  const pageSize = pagination.pageSize ?? pageParam?.pageSize ?? 10;
+  return (current - 1) * pageSize + i + 1;
 };
+
+/** 调用方是否显式传入 columns（值为 undefined 时视为未指定） */
+const hasExplicitColumns = computed(() => props.columns !== undefined);
 
 const normalizedRawColumns = computed(() => {
   const source = (
@@ -390,7 +410,10 @@ const computedTableProps = computed<TableProps>(() => {
   } as TableProps;
 });
 
-// 分页来源：props.pagination 显式配置 > provider 全局配置 > 默认合成
+/*
+ * 分页来源：分页开关与展示配置取 props.pagination 显式配置 > provider 全局配置 > 默认合成；
+ * currentPage / pageSize / total 以 table.pageParam 为实时状态，显式配置仅在 pageParam 缺省时兜底
+ */
 const computedPagination = computed<false | Partial<PaginationProps>>(() => {
   if (props.pagination === false) return false;
   if (isPlainObject(props.pagination)) {
@@ -450,7 +473,10 @@ const searchFormVisible = computed(() => {
   );
 });
 
-const computedControl = computed<{
+/*
+ * 控制项来源：显式控制配置 > Provider 全局配置
+ */
+const resolvedControl = computed<{
   sizeControl: boolean;
   columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
 }>(() => {
@@ -463,6 +489,13 @@ const computedControl = computed<{
   const columnControl = c?.columnControl ?? false;
   return { sizeControl: !!sizeControl, columnControl };
 });
+
+/* 显式 columns 模式下渲染源不受 table.setColumn 影响，列控入口隐藏 */
+const computedControl = computed(() =>
+  hasExplicitColumns.value && resolvedControl.value.columnControl
+    ? { ...resolvedControl.value, columnControl: false }
+    : resolvedControl.value
+);
 
 const columnControlConfig = computed(() => {
   const cc = computedControl.value.columnControl;
@@ -515,7 +548,7 @@ defineExpose({
           v-if="computedControl.sizeControl"
           class="pro-table_header_size-control"
         >
-          <SizeControl v-model:size="size" />
+          <SizeControl v-model:size="size" :effective-size="resolvedSize" />
         </div>
         <div
           v-if="computedControl.columnControl"

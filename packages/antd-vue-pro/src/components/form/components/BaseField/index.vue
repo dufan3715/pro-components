@@ -35,24 +35,28 @@ import {
   mergeProps,
   ref,
   toValue,
-  useAttrs,
 } from 'vue';
-import { cloneDeep } from '../../../../shared/core';
-import { useInjectDisabled } from '../../../../shared/ui';
+import {
+  cloneDeep,
+  getObject,
+  useReactiveAttrs,
+} from '../../../../shared/core';
+import {
+  useInjectDisabled,
+  useInjectFormItemContext,
+  useProvideFormItemContext,
+} from '../../../../shared/ui';
 import type { Field } from '../../types';
 import ContainerFragment from '../ContainerFragment/index.vue';
 import SlotComponent from '../SlotComponent/index.vue';
 import { componentMap, InjectionFormSlotsKey } from '../../constants';
 import {
+  INJECT_COMPONENT_VARS,
   INJECT_COMPONENTS,
   getInjectConfig,
 } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
-import {
-  getInitProps,
-  isHostFieldComponent,
-  warnUnknownComponent,
-} from './utils';
+import { getInitProps, warnUnknownComponent } from './utils';
 import { useLocale } from '../../../../locale';
 
 const cloneDeepIfObject = (val: unknown) =>
@@ -81,13 +85,26 @@ const componentRef = ref<any>();
 const emit = defineEmits<{
   (e: 'field-value-change', value: unknown): void;
 }>();
-// 值写入 formData 后向外广播；宿主内置控件自身已上报变更，仅自定义控件经此回传校验
+
+/*
+ * 派生 FormItem 校验上下文：保留父级 id、clearValidate 与 blur 通路，变更回调置空。
+ * 控件（含包装组件内部与插槽内的宿主控件）的值变更统一经字段事件回传一次，
+ * 不在宿主上下文内自报，避免同一字段同一 tick 触发两遍校验
+ */
+const formItemContext = useInjectFormItemContext();
+useProvideFormItemContext({
+  id: formItemContext.id,
+  onFieldBlur: formItemContext.onFieldBlur,
+  onFieldChange: () => {},
+  clearValidate: formItemContext.clearValidate,
+});
+
+// 值写入 formData 后向外广播，由 BaseFormItem 触发所属 FormItem 校验
 const triggerFormItemChange = (value: unknown) => {
-  if (isHostFieldComponent(is.value)) return;
   emit('field-value-change', value);
 };
 
-const attrs: any = useAttrs();
+const attrs: any = useReactiveAttrs();
 
 /**
  * 全局默认配置注入：key = 组件名 + picker 修饰段，inject 须在 setup 同步期调用。
@@ -105,6 +122,8 @@ const componentInjectConfig = injectConfigKey
 const rawInjectComponentProps = componentInjectConfig
   ? inject(componentInjectConfig.injectionKey, componentInjectConfig.default)
   : undefined;
+// 全量 componentVars：运行期新增的自定义组件键由此兜底读取
+const componentVars = inject(INJECT_COMPONENT_VARS, undefined);
 
 // setter: 向 formData 写入值，支持 valueFormatter / valueFormatter.set 转换
 const value = computed({
@@ -157,7 +176,10 @@ const parentDisabled = useInjectDisabled();
  * 属性分为三类：绑定属性（v-model）、组件属性（传递给组件）、插槽（动态渲染）
  */
 const groupedAttrs = computed(() => {
-  const currentInjectProps = toValue(rawInjectComponentProps) || {};
+  const currentInjectProps = {
+    ...(toValue(rawInjectComponentProps) || {}),
+    ...getObject(toValue(componentVars)?.[injectConfigKey]),
+  };
   const initProps = getInitProps(
     { component: props.component, picker: attrs.picker } as Field,
     currentInjectProps,

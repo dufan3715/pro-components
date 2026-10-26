@@ -279,7 +279,7 @@ formPopup.updateProps({ position: 'top' }); // 更新弹窗属性
 | `label`              | 字段标签，支持字符串或插槽组件     | `SlotComponentType`              | -         |
 | `component`          | 字段组件类型，见下方支持列表       | `ComponentName`                  | `'field'` |
 | `hidden`             | 是否隐藏字段，支持响应式           | `MaybeRef<boolean>`              | `false`   |
-| `disabled`           | 是否禁用字段，支持响应式           | `MaybeRef<boolean>`              | `false`   |
+| `disabled`           | 是否禁用字段，支持响应式           | `WithRef<boolean>`               | `false`   |
 | `required`           | 是否必填                           | `boolean`                        | -         |
 | `placeholder`        | 占位提示文字                       | `string`                         | -         |
 | `clearable`          | 是否可清空                         | `boolean`                        | -         |
@@ -471,7 +471,7 @@ declare module '@qin-ui/vant-pro' {
 
 - **v-model**：默认绑 `modelValue`（`v-model:modelValue`，vant 统一约定）。若组件用别的 prop，通过字段 `modelProp` 指定。
 - **接收 path**：组件会收到 `path` prop（字段路径），可用于透传或标识。
-- **属性透传**：Field 上除框架级属性外（`component` / `hidden` / `modelProp` / `valueFormatter` / `displayFormatter` / `fields` / `slots` / `popup` / `fieldContainer` / `componentContainer` / `extraProps` 等），其余作为 attrs 透传给自定义组件。
+- **属性透传**：Field 上除框架级属性外（`component` / `hidden` / `modelProp` / `valueFormatter` / `displayFormatter` / `fields` / `slots` / `popup` / `fieldContainer` / `componentContainer` / `extraProps` 等），其余作为 attrs 透传给自定义组件；`label` / `rules` / `required` 等 Field 层属性同样透传，由自定义组件自行渲染（ProForm 不额外包裹 `van-field`）。
 
 ---
 

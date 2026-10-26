@@ -104,6 +104,8 @@ const search = async () => {
 
 `control.columnControl` 支持布尔值或配置对象，用于控制列显隐下拉的行为：
 
+> 显式传入 `columns` 时列控入口不渲染，`control.columnControl` 在该模式下不生效；列显隐请直接维护传入的 `columns`。
+
 ```ts
 type ColumnControlConfig<K extends string | number = string | number> = {
   /** 列在下拉中的显示名称映射，key 为列 key/dataIndex，用于 title 为 vnode 时无法正常渲染 */

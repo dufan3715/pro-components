@@ -75,7 +75,7 @@ const form = useForm<FormData>({}, [
 | `label`              | `SlotComponentType`                                           | 字段标签，支持字符串、组件、VNode、函数等                   |
 | `component`          | 见下方组件表                                                  | 使用的内置组件名或自定义组件                                |
 | `hidden`             | `MaybeRef<boolean>`（支持 `boolean` / `Ref` / `ComputedRef`） | 是否隐藏                                                    |
-| `disabled`           | `MaybeRef<boolean>`                                           | 是否禁用                                                    |
+| `disabled`           | `WithRef<boolean>`（支持 `boolean` / `Ref` / `ComputedRef`）  | 是否禁用                                                    |
 | `rules`              | `FormItemRule[]`                                              | Vant 表单校验规则                                           |
 | `slots`              | `Slots`                                                       | 字段插槽配置                                                |
 | `fields`             | `Fields<D>`                                                   | 嵌套子字段配置                                              |

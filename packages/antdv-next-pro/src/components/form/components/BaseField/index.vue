@@ -36,15 +36,19 @@ import {
   mergeProps,
   ref,
   toValue,
-  useAttrs,
 } from 'vue';
-import { cloneDeep } from '../../../../shared/core';
+import {
+  cloneDeep,
+  getObject,
+  useReactiveAttrs,
+} from '../../../../shared/core';
 import { useDisabledContext } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import ContainerFragment from '../ContainerFragment/index.vue';
 import SlotComponent from '../SlotComponent/index.vue';
 import { componentMap, InjectionFormSlotsKey } from '../../constants';
 import {
+  INJECT_COMPONENT_VARS,
   INJECT_COMPONENTS,
   getInjectConfig,
 } from '../../../component-provider/constants';
@@ -75,7 +79,7 @@ const form = useForm(false);
 
 const componentRef = ref<any>();
 
-const attrs: any = useAttrs();
+const attrs: any = useReactiveAttrs();
 
 /**
  * 全局默认配置注入：key = 组件名 + picker 修饰段，inject 须在 setup 同步期调用。
@@ -93,6 +97,8 @@ const componentInjectConfig = injectConfigKey
 const rawInjectComponentProps = componentInjectConfig
   ? inject(componentInjectConfig.injectionKey, componentInjectConfig.default)
   : undefined;
+// 全量 componentVars：运行期新增的自定义组件键由此兜底读取
+const componentVars = inject(INJECT_COMPONENT_VARS, undefined);
 
 // v-model 双向绑定到 formData 的深层路径：读取经 valueFormatter.get，写入经 valueFormatter / valueFormatter.set
 const value = computed({
@@ -144,7 +150,10 @@ const parentDisabled = useDisabledContext();
  * 属性分为三类：绑定属性（v-model）、组件属性（传递给组件）、插槽（动态渲染）
  */
 const groupedAttrs = computed(() => {
-  const currentInjectProps = toValue(rawInjectComponentProps) || {};
+  const currentInjectProps = {
+    ...(toValue(rawInjectComponentProps) || {}),
+    ...getObject(toValue(componentVars)?.[injectConfigKey]),
+  };
   const initProps = getInitProps(
     {
       component: props.component,

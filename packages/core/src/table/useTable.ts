@@ -19,8 +19,8 @@ import type {
   ColumnFindBy,
 } from './types';
 import type { Data, DeepPartial, ExtendWithAny, Path } from '../shared/types';
-import { cloneDeep, pick } from '../shared/utils';
-import type { Fields, Form } from '../form';
+import { cloneDeep, isObjectItem, pick } from '../shared/utils';
+import type { Fields, Form, FieldIdentityKeys } from '../form';
 import { useForm } from '../form';
 
 const getDefaultPageParam = (): PageParam => ({
@@ -72,7 +72,12 @@ export type Table<
   T extends Data = ExtendWithAny<D>,
   C extends BaseColumn<T> = BaseColumn<T>,
 > = {
-  /** 列配置数组（Vue ref） */
+  /**
+   * 列配置数组（Vue ref）
+   *
+   * @description 元素级写入（`push` / `splice` / 下标赋值）仅支持可扩展列对象；冻结 / 密封列
+   * 请通过初始 `columns`、`setColumn`、`appendColumn` / `prependColumn` 传入，这些入口会复制并补齐 `key`
+   */
   columns: Ref<Columns<T, C>>;
   /** 数据源数组（Vue ref） */
   dataSource: Ref<T[]>;
@@ -115,7 +120,8 @@ let fallbackColumnKeySeed = 0;
  * 规范化单个列配置：为缺失 key 的列就地补齐 `key` 并递归 `children`
  *
  * @description key 兜底链：`key` → `dataIndex`（数组 join 点分）→ `prop` → `columnKey` → 自增 `__col_N`；
- * 不可扩展对象（冻结 / seal / preventExtensions）返回浅拷贝副本；环状 `children` 不再展开。
+ * 不可扩展对象（冻结 / seal / preventExtensions）返回浅拷贝副本；环状 `children` 复用同一次调用中
+ * 已产出的结果（冻结列的环指向补 key 后的副本），不会被重复展开或反复复制。
  *
  * @mutates 就地修改传入的列对象（补 `key`）；不可扩展对象不改写原对象。
  *
@@ -127,22 +133,28 @@ export function normalizeColumn<
   T extends Data = Data,
   C extends BaseColumn<T> = BaseColumn<T>,
 >(col: C, allocateKey?: () => string): C {
-  return normalizeColumnNode(col, allocateKey, new WeakSet());
+  return normalizeColumnNode(col, allocateKey, new WeakMap());
 }
 
-/** 列配置递归实现：`seen` 记录当前递归链上已展开的对象，环状 children 原样保留 */
+/** 列配置递归实现：`normalized` 记录原对象到规范化结果的映射，环状 children 复用它 */
 function normalizeColumnNode<
   T extends Data = Data,
   C extends BaseColumn<T> = BaseColumn<T>,
->(col: C, allocateKey: (() => string) | undefined, seen: WeakSet<object>): C {
+>(
+  col: C,
+  allocateKey: (() => string) | undefined,
+  normalized: WeakMap<object, C>
+): C {
   if (!col || typeof col !== 'object') return col;
-  if (seen.has(col as object)) return col;
-  seen.add(col as object);
+  const existing = normalized.get(col as object);
+  if (existing) return existing;
   let target = col;
   if (!Object.isExtensible(target)) {
     target = { ...col };
   }
-  // key 兜底链（仅缺失时）：dataIndex → prop → columnKey → 自增，保证列最终具备字符串 key
+  // 环状 children 复用同一次规范化的结果
+  normalized.set(col as object, target);
+  // key 兜底链（仅缺失时）：dataIndex → prop → columnKey → 自增
   if (target.key === undefined || target.key === null) {
     if (target.dataIndex !== undefined && target.dataIndex !== null) {
       target.key = (
@@ -165,7 +177,7 @@ function normalizeColumnNode<
   }
   if (Array.isArray(target.children) && target.children.length > 0) {
     target.children = target.children.map((child: any) =>
-      normalizeColumnNode(child as C, allocateKey, seen)
+      normalizeColumnNode(child as C, allocateKey, normalized)
     );
   }
   return target;
@@ -192,6 +204,37 @@ export function normalizeColumns<
 }
 
 /**
+ * 列树中是否存在缺失 key 的列
+ *
+ * @internal
+ *
+ * @param list - 列配置数组
+ * @param ancestors - 已访问列集合（环状 children 防护）
+ * @returns 是否存在缺失 `key` 的列
+ */
+const hasMissingColumnKeys = (
+  list: readonly unknown[],
+  ancestors: WeakSet<object> = new WeakSet()
+): boolean => {
+  for (const item of list) {
+    if (!isObjectItem(item)) continue;
+    const column = item as { key?: unknown; children?: unknown };
+    if (column.key === undefined || column.key === null) return true;
+    if (
+      Array.isArray(column.children) &&
+      column.children.length > 0 &&
+      !ancestors.has(column)
+    ) {
+      ancestors.add(column);
+      const missing = hasMissingColumnKeys(column.children, ancestors);
+      ancestors.delete(column);
+      if (missing) return true;
+    }
+  }
+  return false;
+};
+
+/**
  * 创建表格实例
  *
  * @description 组合列状态（`columns` + 列操作）、`dataSource`、`pageParam`（分页读写与重置）
@@ -207,6 +250,7 @@ export function normalizeColumns<
  * @param {PageParam} [params.pageParam] - 初始分页参数；内部持浅拷贝（字段写入不改写传入对象）
  * @param {ExtendWithAny<DeepPartial<D>>} [params.searchParam] - 初始搜索参数（内部持顶层浅拷贝）
  * @param {Fields<D>} [params.searchFields] - 搜索表单字段配置
+ * @param {FieldIdentityKeys} [params.fieldIdentityKeys] - 搜索表单字段标识键序；未提供时回退 `['name', 'path']`
  * @returns {Table<D, T, C>} 表格实例
  *
  * @example
@@ -232,6 +276,7 @@ const useTable = <
     pageParam?: PageParam;
     searchParam?: ExtendWithAny<DeepPartial<D>>;
     searchFields?: Fields<D>;
+    fieldIdentityKeys?: FieldIdentityKeys;
   } = {}
 ): Table<D, T, C> => {
   const {
@@ -240,6 +285,7 @@ const useTable = <
     pageParam: initPageParam = getDefaultPageParam(),
     searchParam: initSearchParam = {},
     searchFields: initSearchFields = [],
+    fieldIdentityKeys,
   } = params;
   const _initSearchParam = cloneDeep(toValue(initSearchParam));
   const _initPageParam = cloneDeep(toValue(initPageParam));
@@ -253,41 +299,51 @@ const useTable = <
     normalizeColumns(initialColumns, allocateColumnKey)
   ) as Ref<Columns<T, C>>;
 
-  // 就地补齐缺失 key（含 children 递归，仅缺失时写入）；ancestors 记录递归链，环状 children 不再深入
+  // 冻结列直接写入的提示：每个实例提示一次
+  let warnedFrozenColumnWrite = false;
+  const warnFrozenColumnWrite = () => {
+    if (warnedFrozenColumnWrite) return;
+    warnedFrozenColumnWrite = true;
+    console.warn(
+      '[pro-components] useTable 不支持直接向 columns 写入冻结列：冻结 / 密封列请通过初始 columns、setColumn、appendColumn / prependColumn 传入（内部会复制并补齐 key）。'
+    );
+  };
+
+  // 不可扩展 children 的缺失 key 检查缓存：每个冻结数组只扫描一次
+  const inspectedFrozenChildren = new WeakSet<object>();
+
+  // 读取时扫描列树补齐缺失 key；仅缺失时替换元素，不可扩展的 children 跳过并提示一次
   const ensureColumnKeys = (
     list: Columns<T, C>,
     allocateKey: () => string,
     ancestors: WeakSet<object> = new WeakSet()
   ) => {
-    let changed = false;
     for (let i = 0; i < list.length; i++) {
       const col = list[i] as C;
       if (!col || typeof col !== 'object') continue;
       if (col.key === undefined || col.key === null) {
         list[i] = normalizeColumn(col, allocateKey);
-        changed = true;
       } else if (
         Array.isArray(col.children) &&
         col.children.length > 0 &&
         !ancestors.has(col)
       ) {
-        ancestors.add(col);
-        if (
-          ensureColumnKeys(
-            col.children as Columns<T, C>,
-            allocateKey,
-            ancestors
-          )
-        ) {
-          changed = true;
+        // 不可扩展的 children 无法就地补齐，跳过后仅首次检查缺失 key
+        if (!Object.isExtensible(col.children)) {
+          if (!inspectedFrozenChildren.has(col.children)) {
+            inspectedFrozenChildren.add(col.children);
+            if (hasMissingColumnKeys(col.children)) warnFrozenColumnWrite();
+          }
+          continue;
         }
+        ancestors.add(col);
+        ensureColumnKeys(col.children as Columns<T, C>, allocateKey, ancestors);
         ancestors.delete(col);
       }
     }
-    return changed;
   };
 
-  // customRef：读取时幂等补齐缺失 key，整体重赋值先规范化再收编（经 ref 转发保持深层响应式）
+  // 读取时补齐缺失 key（不可扩展 children 跳过）；整体重赋值时规范化新数组
   const columns = customRef<Columns<T, C>>((track, trigger) => ({
     get() {
       track();
@@ -319,7 +375,14 @@ const useTable = <
     Object.assign(pageParam, pick(newPageParam, pageParamProperty as any));
   };
 
-  const searchForm = useForm<D>(initSearchParam as any, initSearchFields, true);
+  const searchForm = useForm<D>(
+    initSearchParam as any,
+    initSearchFields,
+    true,
+    {
+      fieldIdentityKeys,
+    }
+  );
 
   const resetQueryParams = () => {
     // 恢复初始化快照（全部 key，含自定义分页键）：分页合并写、搜索走批量覆盖；每次重新深拷贝
@@ -346,11 +409,14 @@ const useTable = <
     ): boolean => {
       for (let i = 0; i < currentColumns.length; i++) {
         const columnItem = currentColumns[i];
+        // 空位 / 非对象列不参与匹配
+        if (!isObjectItem(columnItem)) continue;
         let matched = false;
         if (typeof key === 'function') {
           matched = (key as any)(columnItem);
         } else if (columnItem.key !== undefined && columnItem.key !== null) {
-          matched = columnItem.key === keyStr;
+          // 数字 / 布尔列 key 与入参按字符串形态一致比对（`key: 1` 可用 `setColumn(1)` 命中）
+          matched = String(columnItem.key) === keyStr;
         } else if (
           columnItem.dataIndex !== undefined &&
           columnItem.dataIndex !== null
@@ -419,7 +485,8 @@ const useTable = <
           }
           group[columnIndex] = normalized;
         } else {
-          const merged = value as C;
+          // 合并前复制顶层配置，调用方 children 数组不被替换
+          const merged = { ...(value as C) };
           // 合并新增的 children 就地补齐子列 key
           if (merged.children !== undefined) {
             merged.children = merged.children.map((child: any) =>
@@ -489,16 +556,23 @@ const useTable = <
     addColumns(path, newColumns, options, 'before');
   }
 
-  // 多位点插入的列克隆：逐层浅拷贝并重新分配 key，与调用方对象及其他位点互不共享
-  const cloneColumnForInsert = (col: C): C => {
+  // 多位点插入的列克隆：逐层浅拷贝并重新分配 key；环状 children 命中已克隆对象时复用副本
+  const cloneColumnForInsert = (
+    col: C,
+    cloned: WeakMap<object, C> = new WeakMap()
+  ): C => {
+    if (col == null || typeof col !== 'object') return col;
+    const existing = cloned.get(col as any);
+    if (existing) return existing;
     const copy = { ...(col as any) } as C;
+    cloned.set(col as any, copy);
     (copy as any).key = allocateColumnKey();
     if (
       Array.isArray((copy as any).children) &&
       (copy as any).children.length > 0
     ) {
       (copy as any).children = (copy as any).children.map((child: any) =>
-        cloneColumnForInsert(child)
+        cloneColumnForInsert(child, cloned)
       );
     }
     return copy;
@@ -525,12 +599,16 @@ const useTable = <
       if (!multiSite) normalizeColumns(newColumns, allocateColumnKey);
       applyByGroupDesc(matches, ({ group, index }) => {
         const insertIndex = placement === 'after' ? index + 1 : index;
+        if (!multiSite) {
+          group.splice(insertIndex, 0, ...newColumns);
+          return;
+        }
+        // 每个位点独立的克隆缓存：位点间互不共享，单个位点内的环状引用复用同一副本
+        const cloneCache = new WeakMap<object, C>();
         group.splice(
           insertIndex,
           0,
-          ...(multiSite
-            ? newColumns.map(col => cloneColumnForInsert(col))
-            : newColumns)
+          ...newColumns.map(col => cloneColumnForInsert(col, cloneCache))
         );
       });
     } else if (placement === 'after') {

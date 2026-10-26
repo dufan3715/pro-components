@@ -8,7 +8,9 @@ import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useTable } from '../src/components/table/hooks/useTable';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
-import { ElInput, ElDropdown } from 'element-plus';
+import { createBasicColumns } from './helpers/fixtures';
+import ProTable from '../src/components/table/components/ProTable.vue';
+import { ElConfigProvider, ElInput, ElDropdown } from 'element-plus';
 
 describe('控制组件与全局 Provider 测试', () => {
   // ----------------------------------------------------
@@ -56,6 +58,33 @@ describe('控制组件与全局 Provider 测试', () => {
     await dropdown.vm.$emit('command', 'small');
     expect(currentSize).toBe('small');
 
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // CC-03 [判别]: 空字符串 key 回退 prop，列控与渲染口径一致
+  // ----------------------------------------------------
+  it('CC-03 [判别]: key 为空字符串的列按 prop 进入列控面板', async () => {
+    const table = useTable({
+      columns: [
+        { key: '', prop: 'name', label: '姓名' },
+        { key: 'age', prop: 'age', label: '年龄' },
+      ],
+      data: [],
+    });
+
+    const wrapper = mount(ColumnControl, {
+      props: { columns: table.columns.value, table },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const vm = wrapper.vm as any;
+    // 判别点：空 key 列不被列控丢弃，标识回退为 prop
+    expect(vm.checkedColumnsOptions.map((opt: any) => opt.value)).toEqual([
+      'name',
+      'age',
+    ]);
     wrapper.unmount();
   });
 
@@ -424,5 +453,90 @@ describe('控制组件与全局 Provider 测试', () => {
     expect(setColumnCalls).toEqual([]);
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SC-A14 [判别]: SizeControl 高亮项与表格实际使用的尺寸一致
+  // ----------------------------------------------------
+  it('SC-A14 [判别]: 高亮项等于表格有效尺寸，Provider 注入不被拉回默认，回写优先于注入', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [],
+    });
+    const highlightOf = (wrapper: any) =>
+      (wrapper.findComponent(SizeControl as any).vm as any).currentSize;
+
+    // ① Provider 注入 size：本地 model 未绑定，高亮项跟随注入值
+    const injected = mount(ProComponentProvider as any, {
+      props: {
+        componentVars: {
+          'pro-table': { size: 'small', control: { sizeControl: true } },
+        },
+      },
+      slots: { default: () => h(ProTable, { table }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    try {
+      expect(injected.findComponent({ name: 'ElTable' }).props('size')).toBe(
+        'small'
+      );
+      expect(highlightOf(injected)).toBe('small');
+
+      // ② Provider 注入后经控件改尺寸：回写值优先于注入值，表格与高亮同步
+      (injected.findComponent(SizeControl as any).vm as any).size = 'large';
+      await flushPromises();
+      expect(injected.findComponent({ name: 'ElTable' }).props('size')).toBe(
+        'large'
+      );
+      expect(highlightOf(injected)).toBe('large');
+    } finally {
+      injected.unmount();
+    }
+
+    // ③ 显式绑定 size：高亮项跟随显式值
+    const explicit = mount(ProTable as any, {
+      props: { table, size: 'large', control: { sizeControl: true } },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    try {
+      expect(explicit.findComponent({ name: 'ElTable' }).props('size')).toBe(
+        'large'
+      );
+      expect(highlightOf(explicit)).toBe('large');
+    } finally {
+      explicit.unmount();
+    }
+
+    // ④ 宿主 ConfigProvider 尺寸兜底：未注入未绑定时高亮跟随宿主配置
+    const hostConfigured = mount(
+      defineComponent({
+        setup: () => () =>
+          h(
+            ElConfigProvider,
+            { size: 'small' },
+            {
+              default: () =>
+                h(
+                  ProComponentProvider,
+                  {
+                    componentVars: {
+                      'pro-table': { control: { sizeControl: true } },
+                    },
+                  },
+                  { default: () => h(ProTable, { table }) }
+                ),
+            }
+          ),
+      }) as any,
+      { global: { stubs: { transition: false } } }
+    );
+    await flushPromises();
+    try {
+      expect(highlightOf(hostConfigured)).toBe('small');
+    } finally {
+      hostConfigured.unmount();
+    }
   });
 });

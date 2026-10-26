@@ -186,7 +186,7 @@ export function set(
 ): object {
   if (obj == null) return obj;
   if (typeof path === 'string') {
-    if (isDangerousKey(path)) return obj; // 原型污染防护（对齐 lodash 4.17.21）
+    if (isDangerousKey(path)) return obj; // 原型污染防护
     if (isObjectLike(obj) && path in obj) {
       assignValue(obj as any, path, value);
       return obj;

@@ -5,6 +5,7 @@ import { Pagination } from 'antdv-next';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import SizeControl from '../src/components/table/components/SizeControl.vue';
+import ColumnControl from '../src/components/table/components/ColumnControl.vue';
 import { useTable } from '../src/components/table/hooks/useTable';
 import { tableProps } from '../src/shared/ui';
 import { INJECT_CONFIG } from '../src/components/component-provider/constants';
@@ -1793,5 +1794,224 @@ describe('ProTable 组件测试', () => {
     expect(Object.keys(INJECT_CONFIG['pro-form'].default)).not.toContain(
       'form'
     );
+  });
+
+  // ----------------------------------------------------
+  // PT-U1 [判别]: 显式 undefined 绑定不冲掉 Provider 注入
+  // ----------------------------------------------------
+  it('PT-U1 [判别]: 显式 :bordered="undefined" 保留下发的 Provider 注入值', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [{ name: '甲' }],
+    });
+    const wrapper = mount(ProComponentProvider, {
+      props: { componentVars: { 'pro-table': { bordered: true } } },
+      slots: {
+        default: () =>
+          h(ProTable, {
+            table,
+            addIndexColumn: false,
+            // 判别的关键：绑定键存在但值为 undefined
+            bordered: undefined,
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点：未显式指定时该键不下发，Provider 注入值保持生效
+    expect(wrapper.findComponent({ name: 'ATable' }).props('bordered')).toBe(
+      true
+    );
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-U2 [判别]: v-model:size 初值为 undefined 时 Provider 尺寸不被短路
+  // ----------------------------------------------------
+  it('PT-U2 [判别]: v-model:size 未赋初值时 Provider 注入尺寸继续生效', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      dataSource: [{ name: '甲' }],
+    });
+    const sizeModel = ref<any>(undefined);
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: { 'pro-table': { size: 'small', control: true } },
+      },
+      slots: {
+        default: () =>
+          h(ProTable, {
+            table,
+            addIndexColumn: false,
+            size: sizeModel.value,
+            'onUpdate:size': (val: any) => {
+              sizeModel.value = val;
+            },
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点：绑定通道存在但值为 undefined，不应短路 Provider 注入尺寸
+    expect(wrapper.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'small'
+    );
+    expect(
+      (wrapper.findComponent(SizeControl as any).vm as any).currentSize
+    ).toBe('small');
+
+    // 反向约束：控件回写后本地值优先
+    (wrapper.findComponent(SizeControl as any).vm as any).size = 'middle';
+    await flushPromises();
+    expect(wrapper.findComponent({ name: 'ATable' }).props('size')).toBe(
+      'middle'
+    );
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-U3 [判别]: 显式 columns 模式下列控入口隐藏（无可写回列来源）
+  // ----------------------------------------------------
+  it('PT-U3 [判别]: 显式 :columns 时隐藏列控入口，table 列模式下正常展示', async () => {
+    const columns = [{ dataIndex: 'name', title: '姓名' }];
+    const explicit = mount(ProTable, {
+      props: {
+        columns,
+        dataSource: [{ name: '甲' }],
+        control: { columnControl: true },
+        addIndexColumn: false,
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点：显式列模式下渲染源不受 table.setColumn 影响，列控入口不渲染
+    expect(explicit.findComponent(ColumnControl).exists()).toBe(false);
+    explicit.unmount();
+
+    // 反向约束：table 列模式下列控入口照常渲染
+    const table = useTable({ columns, dataSource: [{ name: '甲' }] } as any);
+    const byTable = mount(ProTable, {
+      props: { table, control: { columnControl: true }, addIndexColumn: false },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(byTable.findComponent(ColumnControl).exists()).toBe(true);
+    byTable.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-U4 [判别]: 环状分组列渲染不爆栈
+  // ----------------------------------------------------
+  it('PT-U4 [判别]: 环状分组列渲染不爆栈，重复祖先引用被剔除', async () => {
+    const group: any = { key: 'group', title: '分组', children: [] as any[] };
+    group.children.push(group);
+    const table = useTable({
+      columns: [group, { dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '甲' }],
+    });
+    const wrapper = mount(ProTable, {
+      props: { table, addIndexColumn: false },
+      global: { stubs: { transition: false } },
+    });
+    try {
+      await flushPromises();
+      // 判别点：环状引用被剔除后正常渲染表头，而非 RangeError 爆栈
+      expect(wrapper.text()).toContain('分组');
+      expect(wrapper.text()).toContain('姓名');
+    } finally {
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
+  // PT-U7 [判别]: 双节点互引用分组列
+  // ----------------------------------------------------
+  it('PT-U7 [判别]: a→b→a 互引用分组列渲染终止，祖先引用不重复展开', async () => {
+    const parent: any = { key: 'parent', title: '父' };
+    const child: any = { key: 'child', title: '子' };
+    parent.children = [child];
+    child.children = [parent];
+
+    const table = useTable({
+      columns: [parent, { dataIndex: 'name', title: '姓名' }],
+      dataSource: [{ name: '甲' }],
+    });
+    const wrapper = mount(ProTable, {
+      props: { table, addIndexColumn: false },
+      global: { stubs: { transition: false } },
+    });
+    try {
+      await flushPromises();
+      const headers = wrapper.findAll('thead th').map(th => th.text());
+      expect(headers).toEqual(['父', '姓名', '子']);
+    } finally {
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
+  // PT-U8 [判别]: 挂载后新增 columns
+  // ----------------------------------------------------
+  it('PT-U8 [判别]: 初始未绑定 columns，挂载后新增立即切换渲染列', async () => {
+    const table = useTable({
+      columns: [{ dataIndex: 'name', title: 'A' }],
+      dataSource: [{ name: 'a' }],
+    });
+    const wrapper = mount(ProTable, {
+      props: { table, addIndexColumn: false },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.findAll('thead th').map(th => th.text())).toEqual(['A']);
+
+    await wrapper.setProps({
+      columns: [{ dataIndex: 'age', title: 'B' }] as any,
+    });
+    await flushPromises();
+    expect(wrapper.findAll('thead th').map(th => th.text())).toEqual(['B']);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-U6 [判别]: 无 table 实例时序号列随 :pagination 偏移
+  // ----------------------------------------------------
+  it('PT-U6 [判别]: 仅传 columns / dataSource 时序号列跟随分页偏移', async () => {
+    const wrapper = mount(ProTable, {
+      props: {
+        columns: [{ dataIndex: 'name', title: '姓名' }],
+        dataSource: [{ name: 'a' }, { name: 'b' }],
+        pagination: { current: 2, pageSize: 5, total: 20 },
+        addIndexColumn: true,
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点：无 table 实例时不再退化为 index + 1，序号随有效分页偏移
+    const indexCells = wrapper
+      .findAll('tbody tr')
+      .map(row => row.find('td').text());
+    expect(indexCells).toEqual(['6', '7']);
+
+    // 反向约束：分页关闭时序号从 1 开始
+    const noPager = mount(ProTable, {
+      props: {
+        columns: [{ dataIndex: 'name', title: '姓名' }],
+        dataSource: [{ name: 'a' }],
+        pagination: false,
+        addIndexColumn: true,
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(noPager.find('tbody tr td').text()).toBe('1');
+
+    wrapper.unmount();
+    noPager.unmount();
   });
 });

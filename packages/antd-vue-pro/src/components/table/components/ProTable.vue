@@ -38,13 +38,14 @@
  * @param {() => Promise<unknown>} [search] - 列表数据查询方法
  * @param {boolean} [addIndexColumn] - 是否在首列插入序号列
  * @param {boolean} [immediateSearch] - 挂载后是否立即触发一次查询
- * @param {boolean | Partial<Control>} [control] - 是否展示尺寸与列控制按钮
+ * @param {boolean | Partial<Control>} [control] - 是否展示尺寸与列控制按钮；显式传入 columns 时列控入口不渲染
  * @param {SearchFormConfig} [searchFormConfig] - 搜索栏查询字段表单配置
  * @param {ContainerComponent | false} [tableContainer] - 表格区域包裹容器
  *
  * @slot search-form - 搜索区域插槽，作用域参数 form / search / reset
  * @slot button-bar - 表格头部按钮区插槽
  * @slot toolbar - 工具栏插槽
+ * @slot default - 透传给宿主表格的默认插槽（可用于以宿主列组件声明列）
  * @slot table - 表格区域插槽，作用域参数 columns / dataSource / pagination / loading / size / onChange
  */
 import type {
@@ -57,7 +58,6 @@ import {
   computed,
   getCurrentInstance,
   nextTick,
-  useAttrs,
   onMounted,
   inject,
   toValue,
@@ -77,7 +77,9 @@ import {
   isObjectItem,
   isPlainObject,
   isPromise,
+  omitBy,
   pick,
+  useReactiveAttrs,
 } from '../../../shared/core';
 import type { ComponentSlots } from 'vue-component-type-helpers';
 import DefaultSearchFormContainer from './DefaultSearchFormContainer.vue';
@@ -111,7 +113,7 @@ type Props = {
   addIndexColumn?: boolean;
   /** 挂载后是否立即触发一次查询 */
   immediateSearch?: boolean;
-  /** 是否展示尺寸与列控制按钮 */
+  /** 是否展示尺寸与列控制按钮；显式传入 columns 时列控入口不渲染 */
   control?: boolean | Partial<Control>;
   /** 搜索栏查询字段表单配置 */
   searchFormConfig?: SearchFormConfig;
@@ -162,7 +164,7 @@ const searchFormProps = computed(() => {
   return rest;
 });
 
-const attrs: Record<string, any> = useAttrs();
+const attrs: Record<string, any> = useReactiveAttrs();
 
 const size = defineModel<TableProps['size']>('size');
 const loading = defineModel<boolean>('loading', { default: false });
@@ -291,19 +293,24 @@ const camelAttrs = computed<Record<string, any>>(() =>
  * 组件自有键取值：`Props` 中声明的键取 prop，其余宿主键取 attrs（模板 kebab-case 绑定经归一后同键）；
  * 均以调用方显式绑定为唯一来源，未绑定时不取值（留给 Provider 注入兜底）
  */
-const resolveOwnedProp = (name: string) =>
-  isBoundProp(name)
-    ? ((props as Record<string, any>)[name] ?? camelAttrs.value[name])
-    : undefined;
+const resolveOwnedProp = (name: string) => {
+  const attrValue = camelAttrs.value[name];
+  return isBoundProp(name)
+    ? ((props as Record<string, any>)[name] ?? attrValue)
+    : attrValue;
+};
+
+/** 调用方是否显式传入 columns（prop 或 attrs 形态，值为 undefined 时视为未指定） */
+const hasExplicitColumns = computed(
+  () => resolveOwnedProp('columns') !== undefined
+);
 
 /*
- * 表格尺寸单一来源：显式绑定 > SizeControl 回写 > Provider 注入；
- * 本地模型已写入时即视为已选定，未绑定的 Provider 注入不再回压
+ * 表格尺寸单一来源：本地模型（显式绑定或 SizeControl 回写）> Provider 注入；
+ * 本地模型为 undefined 时视为未指定，Provider 注入值继续生效
  */
 const effectiveSize = computed<TableProps['size']>(() => {
-  return isBoundProp('size') || size.value !== undefined
-    ? size.value
-    : injectAttrs.value.size;
+  return size.value ?? injectAttrs.value.size;
 });
 
 /*
@@ -313,7 +320,10 @@ const effectiveSize = computed<TableProps['size']>(() => {
 const computedTableProps = computed<TableProps>(() => {
   const merged = {
     ...injectAttrs.value,
-    ...pick(camelAttrs.value, tableProperties),
+    ...omitBy(
+      pick(camelAttrs.value, tableProperties),
+      value => value === undefined
+    ),
   } as Record<string, any>;
   // onChange 由模板监听器收口，散落 attrs 中的同名监听器并入会形成重复回调
   delete merged.onChange;
@@ -334,19 +344,16 @@ type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
 type RecordType = ReturnGenericParameterTypes<T>;
 
 /*
- * 序号列随有效分页偏移：第 n 页首行序号 = (n-1)*pageSize + i + 1；
- * 有效分页取自 computedPagination（attrs/provider 的 pageSize 优先于 table.pageParam），
- * 分页关闭时退化为 index+1
+ * 序号列随有效分页偏移：分页关闭时退化为 index + 1；
+ * current / pageSize 取有效分页（显式 :pagination 或 Provider 注入），table.pageParam 仅作兜底
  */
 const getIndex = (i: number) => {
   const pagination = computedPagination.value;
+  if (pagination === false) return i + 1;
   const pageParam = props.table?.pageParam;
-  if (pageParam && pagination !== false) {
-    const current = pagination.current ?? pageParam.current ?? 1;
-    const pageSize = pagination.pageSize ?? pageParam.pageSize ?? 10;
-    return (current - 1) * pageSize + i + 1;
-  }
-  return i + 1;
+  const current = pagination.current ?? pageParam?.current ?? 1;
+  const pageSize = pagination.pageSize ?? pageParam?.pageSize ?? 10;
+  return (current - 1) * pageSize + i + 1;
 };
 
 const indexColumn = computed<ColumnType>(() => ({
@@ -371,7 +378,8 @@ const computedColumns = computed<Columns<RecordType>>(() => {
  * 未发生变动的列保持原对象引用（每次 columns 变化执行一次，不在渲染期递归）
  */
 const filterVisibleColumns = (
-  columns: any[]
+  columns: any[],
+  ancestors: Set<object> = new Set()
 ): { list: any[]; changed: boolean } => {
   const list: any[] = [];
   let changed = false;
@@ -381,7 +389,14 @@ const filterVisibleColumns = (
       continue;
     }
     if (Array.isArray(column.children) && column.children.length > 0) {
-      const filtered = filterVisibleColumns(column.children);
+      // 环状分组列不再深入，重复出现的祖先引用直接剔除
+      if (ancestors.has(column)) {
+        changed = true;
+        continue;
+      }
+      ancestors.add(column);
+      const filtered = filterVisibleColumns(column.children, ancestors);
+      ancestors.delete(column);
       if (filtered.changed) {
         changed = true;
         list.push({ ...column, children: filtered.list });
@@ -458,7 +473,10 @@ const searchFormVisible = computed(() => {
   );
 });
 
-const computedControl = computed<{
+/*
+ * 控制项来源：显式控制配置 > Provider 全局配置
+ */
+const resolvedControl = computed<{
   sizeControl: boolean;
   columnControl: boolean | ColumnControlConfig<Path<RecordType>>;
 }>(() => {
@@ -474,6 +492,13 @@ const computedControl = computed<{
     columnControl: controlConfig?.columnControl ?? false,
   };
 });
+
+/* 显式 columns 模式下渲染源不受 table.setColumn 影响，列控入口隐藏 */
+const computedControl = computed(() =>
+  hasExplicitColumns.value && resolvedControl.value.columnControl
+    ? { ...resolvedControl.value, columnControl: false }
+    : resolvedControl.value
+);
 
 const columnControlConfig = computed(() => {
   const cc = computedControl.value.columnControl;

@@ -36,51 +36,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       never
     >;
-    '/core-audit-verification': RouteRecordInfo<
-      '/core-audit-verification',
-      '/core-audit-verification',
-      Record<never, never>,
-      Record<never, never>,
-      never
-    >;
-    '/form-item-a11y-demo': RouteRecordInfo<
-      '/form-item-a11y-demo',
-      '/form-item-a11y-demo',
-      Record<never, never>,
-      Record<never, never>,
-      never
-    >;
     '/search-form-playground': RouteRecordInfo<
       '/search-form-playground',
       '/search-form-playground',
-      Record<never, never>,
-      Record<never, never>,
-      never
-    >;
-    '/table-columns-mutation-demo': RouteRecordInfo<
-      '/table-columns-mutation-demo',
-      '/table-columns-mutation-demo',
-      Record<never, never>,
-      Record<never, never>,
-      never
-    >;
-    '/table-group-column-demo': RouteRecordInfo<
-      '/table-group-column-demo',
-      '/table-group-column-demo',
-      Record<never, never>,
-      Record<never, never>,
-      never
-    >;
-    '/table-provider-size-demo': RouteRecordInfo<
-      '/table-provider-size-demo',
-      '/table-provider-size-demo',
-      Record<never, never>,
-      Record<never, never>,
-      never
-    >;
-    '/vant-class-style-repro-demo': RouteRecordInfo<
-      '/vant-class-style-repro-demo',
-      '/vant-class-style-repro-demo',
       Record<never, never>,
       Record<never, never>,
       never
@@ -103,38 +61,8 @@ declare module 'vue-router/auto-routes' {
       views: never;
       pathParamNames: never;
     };
-    'src/views/core-audit-verification.vue': {
-      routes: '/core-audit-verification';
-      views: never;
-      pathParamNames: never;
-    };
-    'src/views/form-item-a11y-demo.vue': {
-      routes: '/form-item-a11y-demo';
-      views: never;
-      pathParamNames: never;
-    };
     'src/views/search-form-playground.vue': {
       routes: '/search-form-playground';
-      views: never;
-      pathParamNames: never;
-    };
-    'src/views/table-columns-mutation-demo.vue': {
-      routes: '/table-columns-mutation-demo';
-      views: never;
-      pathParamNames: never;
-    };
-    'src/views/table-group-column-demo.vue': {
-      routes: '/table-group-column-demo';
-      views: never;
-      pathParamNames: never;
-    };
-    'src/views/table-provider-size-demo.vue': {
-      routes: '/table-provider-size-demo';
-      views: never;
-      pathParamNames: never;
-    };
-    'src/views/vant-class-style-repro-demo.vue': {
-      routes: '/vant-class-style-repro-demo';
       views: never;
       pathParamNames: never;
     };

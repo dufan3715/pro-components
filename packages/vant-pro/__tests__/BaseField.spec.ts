@@ -241,6 +241,78 @@ describe('BaseField 组件测试 (vant-pro)', () => {
   });
 
   // ----------------------------------------------------
+  // BF-15 [判别]: 字段级 disabled 的字符串形态与宿主 Boolean prop 真值一致
+  // ----------------------------------------------------
+  it('BF-15 [判别]: 字段级 disabled 按宿主规则归一，null/undefined 回落 Provider 注入值', async () => {
+    const form = useForm({ count: 1 });
+    const mountField = (disabled: unknown) =>
+      mount(BaseField, {
+        props: { path: 'count', component: 'stepper', disabled } as any,
+        global: {
+          provide: {
+            [InjectionFormKey as symbol]: form,
+            [INJECT_CONFIG.stepper.injectionKey as symbol]: { disabled: true },
+          },
+          stubs: { transition: false },
+        },
+      });
+
+    const cases: Array<[unknown, boolean]> = [
+      // 裸属性形态（''）与同名属性形态按宿主规则为 true
+      ['', true],
+      ['disabled', true],
+      // 其余字符串取真值（与宿主 Boolean prop 一致）
+      ['false', true],
+      ['0', true],
+      [true, true],
+      [false, false],
+      // 未提供时回落 Provider 注入值
+      [undefined, true],
+      [null, true],
+    ];
+
+    for (const [input, expected] of cases) {
+      const wrapper = mountField(input);
+      await flushPromises();
+      expect(
+        wrapper.findComponent({ name: 'VanStepper' }).props('disabled'),
+        `disabled=${String(input)}`
+      ).toBe(expected);
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
+  // BF-16 [判别]: 原生元素回退可按 value 回显并回写
+  // ----------------------------------------------------
+  it('BF-16 [判别]: component 为原生元素时回显 formData 并回写输入值', async () => {
+    const form = useForm({ keyword: 'abc' });
+    const wrapper = mount(BaseField, {
+      props: {
+        path: 'keyword',
+        component: 'input',
+        placeholder: '请输入关键字',
+      } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    const input = wrapper.find('input');
+    // 判别点：原生元素分支按 value 回显，而非生成 modelvalue 属性
+    expect((input.element as HTMLInputElement).value).toBe('abc');
+    expect(input.attributes('modelvalue')).toBeUndefined();
+
+    await input.setValue('def');
+    await flushPromises();
+    expect(form.getFormData('keyword')).toBe('def');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // BF-05: 占位符兜底
   // ----------------------------------------------------
   it('BF-05: field 字段未配置 placeholder 时自动兜底「请输入」提示', async () => {
@@ -792,10 +864,10 @@ describe('BaseField 组件测试 (vant-pro)', () => {
     expect(comp.props('modelValue')).toBe(2);
     expect(comp.props('disabled')).toBe(true);
     expect(comp.props('placeholder')).toBe('请输入数量');
-    // 反向约束：控件未声明的 Field 层专有键不下发
+    // 契约：控件未声明的 label / rules 以 attrs 落到根节点，由控件自行消费
     const root = wrapper.find('.arr-props-root');
-    expect(root.attributes('label')).toBeUndefined();
-    expect(root.attributes('rules')).toBeUndefined();
+    expect(root.attributes('label')).toBe('数量');
+    expect(root.attributes('rules')).toBeDefined();
 
     wrapper.unmount();
   });
@@ -876,6 +948,213 @@ describe('BaseField 组件测试 (vant-pro)', () => {
     expect(fieldInput.attributes('type')).toBe('tel');
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-13 [判别]: 无 props 声明面的自定义控件整体接收 Field 层属性
+  // ----------------------------------------------------
+  it('BF-13 [判别]: 无声明面的自定义控件接收 disabled/readonly/placeholder/label/rules', async () => {
+    const NoPropsComponent = defineComponent({
+      name: 'NoPropsComponent',
+      setup(_, { attrs }) {
+        return () =>
+          h('div', {
+            class: 'no-props-root',
+            'data-disabled': String(attrs.disabled),
+            'data-readonly': String(attrs.readonly),
+            'data-placeholder': String(attrs.placeholder),
+            'data-maxlength': String(attrs.maxlength),
+            'data-label': String(attrs.label),
+            'data-has-rules': String(Array.isArray(attrs.rules)),
+          });
+      },
+    });
+
+    const form = useForm({ custom: 'abc' });
+    const wrapper = mount(BaseField, {
+      props: {
+        path: 'custom',
+        component: NoPropsComponent,
+        disabled: true,
+        readonly: true,
+        placeholder: '请输入自定义值',
+        maxlength: 8,
+        label: '自定义',
+        rules: [{ required: true, message: '必填' }],
+      } as any,
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    // 判别点：无声明面控件不再被当作 Field 专有键剔除
+    const root = wrapper.find('.no-props-root');
+    expect(root.attributes('data-disabled')).toBe('true');
+    expect(root.attributes('data-readonly')).toBe('true');
+    expect(root.attributes('data-placeholder')).toBe('请输入自定义值');
+    expect(root.attributes('data-maxlength')).toBe('8');
+    // 契约：Field 层属性（label / rules）整体透传，由控件自行渲染
+    expect(root.attributes('data-label')).toBe('自定义');
+    expect(root.attributes('data-has-rules')).toBe('true');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-17 [判别]: ProForm 自定义字段下发 label/rules，由控件自行渲染
+  // ----------------------------------------------------
+  it('BF-17 [判别]: ProForm 自定义字段把 label/rules 透传给控件，不额外渲染 label', async () => {
+    const Probe = defineComponent({
+      name: 'ProFormCustomProbe',
+      props: {
+        modelValue: { default: undefined },
+        path: { type: String, default: 'MISSING' },
+      },
+      setup(props, { attrs }) {
+        return () =>
+          h('div', {
+            class: 'proform-custom-probe',
+            'data-label': String(attrs.label),
+            'data-has-rules': String(Array.isArray(attrs.rules)),
+            'data-path': props.path,
+          });
+      },
+    });
+
+    const form = useForm({ code: '' }, [
+      {
+        path: 'code',
+        label: '验证码',
+        rules: [{ required: true, message: '请输入验证码' }],
+        component: Probe,
+      } as any,
+    ]);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const probe = wrapper.find('.proform-custom-probe');
+    // 判别点：Field 层属性透传到自定义控件
+    expect(probe.attributes('data-label')).toBe('验证码');
+    expect(probe.attributes('data-has-rules')).toBe('true');
+    // 契约：自定义组件收到字段路径
+    expect(probe.attributes('data-path')).toBe('code');
+    // 标签由自定义控件负责渲染，ProForm 不再额外生成 label 元素
+    expect(wrapper.findAll('label')).toHaveLength(0);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-18 [判别]: 原生回退合并用户事件监听器
+  // ----------------------------------------------------
+  it('BF-18 [判别]: 原生回退保留用户 onInput/onChange，同时正常回写字段值', async () => {
+    const userInput = vi.fn();
+    const userChange = vi.fn();
+    const form = useForm({ keyword: '' }, [
+      {
+        path: 'keyword',
+        component: 'input',
+        onInput: userInput,
+        onChange: userChange,
+      } as any,
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const input = wrapper.find('input');
+    const inputEl = input.element as HTMLInputElement;
+    inputEl.value = 'ab';
+    await input.trigger('input');
+
+    // 判别点：用户监听器与内部写值并存，不再被覆盖
+    expect(userInput).toHaveBeenCalledTimes(1);
+    expect(userInput.mock.calls[0][0]).toBeInstanceOf(Event);
+    expect(form.getFormData('keyword')).toBe('ab');
+
+    inputEl.value = 'abc';
+    await input.trigger('change');
+    expect(userChange).toHaveBeenCalledTimes(1);
+    // 反身约束：change 不重复触发用户的 input 监听器
+    expect(userInput).toHaveBeenCalledTimes(1);
+    expect(form.getFormData('keyword')).toBe('abc');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-14 [判别]: componentMap 覆盖与 ProForm 插槽同样保留 Field 层属性
+  // ----------------------------------------------------
+  it('BF-14 [判别]: componentMap 覆盖项与 ProForm 插槽保留 Field 层属性', async () => {
+    const OverrideComponent = defineComponent({
+      name: 'OverrideComponent',
+      setup(_, { attrs }) {
+        return () =>
+          h('div', {
+            class: 'override-root',
+            'data-disabled': String(attrs.disabled),
+            'data-placeholder': String(attrs.placeholder),
+          });
+      },
+    });
+
+    const form = useForm({ custom: 'abc' });
+    const wrapper = mount(BaseField, {
+      props: {
+        path: 'custom',
+        component: 'custom-control',
+        disabled: true,
+        placeholder: '覆盖组件占位',
+      } as any,
+      global: {
+        provide: {
+          [InjectionFormKey as symbol]: form,
+          [INJECT_COMPONENTS as symbol]: {
+            'custom-control': OverrideComponent,
+          },
+        },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    const overrideRoot = wrapper.find('.override-root');
+    expect(overrideRoot.attributes('data-disabled')).toBe('true');
+    expect(overrideRoot.attributes('data-placeholder')).toBe('覆盖组件占位');
+    wrapper.unmount();
+
+    const slotForm = useForm({ slotField: 'x' }, [
+      { path: 'slotField', component: 'field' },
+    ]);
+    const slotWrapper = mount(ProForm, {
+      props: { form: slotForm, disabled: true },
+      slots: {
+        slotField: (slotProps: any) =>
+          h('div', {
+            class: 'slot-root',
+            'data-disabled': String(slotProps.disabled),
+            'data-placeholder': String(slotProps.placeholder),
+            'data-path': String(slotProps.path),
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const slotRoot = slotWrapper.find('.slot-root');
+    expect(slotRoot.attributes('data-disabled')).toBe('true');
+    expect(slotRoot.attributes('data-placeholder')).toBe('请输入');
+    // 契约：teleport 插槽作用域参数同样带字段路径
+    expect(slotRoot.attributes('data-path')).toBe('slotField');
+    slotWrapper.unmount();
   });
 
   // ----------------------------------------------------

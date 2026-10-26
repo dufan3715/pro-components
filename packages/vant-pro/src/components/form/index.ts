@@ -12,7 +12,7 @@ export {
 export { type ComponentMap, type ComponentName } from './constants';
 
 // 3. 仅导出核心表单配置 Schema 类型
-export { type Field, type Fields } from './types';
+export { type Field, type Fields, type ValueFormatter } from './types';
 
 // 4. 仅导出核心业务 Hooks
 export {

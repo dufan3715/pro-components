@@ -30,6 +30,7 @@
  * ```
  */
 import {
+  INJECT_COMPONENT_VARS,
   INJECT_COMPONENTS,
   INJECT_CONFIG,
   ensureInjectConfig,
@@ -111,6 +112,12 @@ if (props.componentVars) {
     }
   });
 }
+
+// 全量 componentVars：自定义组件键在运行期新增后同样可被子组件读取
+provide(
+  INJECT_COMPONENT_VARS,
+  computed(() => (props.componentVars as Record<string, any>) ?? {})
+);
 
 // 注入自定义组件映射，BaseField 在解析组件时会优先使用此映射
 provide(

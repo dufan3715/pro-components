@@ -5,7 +5,8 @@ import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises, mountProForm } from './helpers/mount';
 import { createBasicFields, createNestedFields } from './helpers/fixtures';
-import { FormItem, Input } from 'ant-design-vue';
+import { Form, FormItem, Input } from 'ant-design-vue';
+import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 
 describe('ProForm 组件测试', () => {
   // ----------------------------------------------------
@@ -241,6 +242,21 @@ describe('ProForm 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // PF-U3 [判别]: 挂载后新增 disabled
+  // ----------------------------------------------------
+  it('PF-U3 [判别]: 挂载后新增 disabled 立即下发子控件', async () => {
+    const { wrapper } = mountProForm({ fields: createBasicFields() });
+    await flushPromises();
+    expect(wrapper.findComponent(Input).props('disabled')).toBeFalsy();
+
+    await wrapper.setProps({ disabled: true } as any);
+    await flushPromises();
+    expect(wrapper.findComponent(Input).props('disabled')).toBe(true);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // PF-04: formRef 绑定
   // ----------------------------------------------------
   it('PF-04: form.formRef.value 正确绑定到底层 antd Form 实例', async () => {
@@ -346,5 +362,66 @@ describe('ProForm 组件测试', () => {
     expect(formEl.attributes('arialabel')).toBeUndefined();
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-U1 [判别]: 显式 undefined 绑定不冲掉 Provider 注入
+  // ----------------------------------------------------
+  it('PF-U1 [判别]: 显式 :disabled="undefined" 保留下发的 Provider 注入值', async () => {
+    const form = useForm({ name: '' }, [
+      { path: 'name', label: '姓名', component: 'input' },
+    ]);
+    const wrapper = mount(ProComponentProvider as any, {
+      props: { componentVars: { 'pro-form': { disabled: true } } },
+      slots: {
+        default: () =>
+          h(ProForm, {
+            form,
+            // 判别的关键：绑定键存在但值为 undefined
+            disabled: undefined,
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点：未显式指定时该键不下发，Provider 注入的禁用态保持生效
+    expect(wrapper.findComponent(Form).props('disabled')).toBe(true);
+    expect(wrapper.find('input').attributes('disabled')).toBeDefined();
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-U2 [判别]: Provider 注入的 pro-form.grid 在未显式传 grid 时生效
+  // ----------------------------------------------------
+  it('PF-U2 [判别]: Provider 注入的 grid 生效，显式 grid=false 覆盖注入值', async () => {
+    const form = useForm({ name: '' }, [
+      { path: 'name', label: '姓名', component: 'input', span: 12 },
+    ] as any);
+    const mountInProvider = (grid?: boolean) =>
+      mount(ProComponentProvider as any, {
+        props: { componentVars: { 'pro-form': { grid: { gutter: 24 } } } },
+        slots: {
+          default: () =>
+            h(ProForm, {
+              form,
+              ...(grid === undefined ? {} : { grid }),
+            } as any),
+        },
+        global: { stubs: { transition: false } },
+      });
+
+    // 判别点：未显式传 grid 时回退 Provider 注入的全局网格配置
+    const wrapper = mountInProvider();
+    await flushPromises();
+    expect(wrapper.find('.ant-col-12').exists()).toBe(true);
+    wrapper.unmount();
+
+    // 反向约束：显式 grid=false 关闭注入的网格布局
+    const disabled = mountInProvider(false);
+    await flushPromises();
+    expect(disabled.find('.ant-col-12').exists()).toBe(false);
+    disabled.unmount();
   });
 });

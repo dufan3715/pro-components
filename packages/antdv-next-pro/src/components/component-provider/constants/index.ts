@@ -7,6 +7,11 @@ const getPopupContainer = (triggerNode: any) =>
   triggerNode?.closest?.("form[class*='-form']") ||
   (typeof document !== 'undefined' ? document.body : undefined);
 
+/** 全量 componentVars 注入通道：运行期新增的自定义组件键由此读取（按组件名取配置） */
+export const INJECT_COMPONENT_VARS: InjectionKey<
+  ComputedRef<Record<string, any> | undefined> | Record<string, any>
+> = Symbol('COMPONENT_VARS');
+
 /** 单个组件名的注入配置：注入 key、默认值与不接受 Provider 注入的键 */
 export type InjectConfigEntry<T = any> = {
   injectionKey: InjectionKey<T>;

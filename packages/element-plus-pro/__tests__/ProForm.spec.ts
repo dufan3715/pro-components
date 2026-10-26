@@ -6,7 +6,8 @@ import { useForm } from '../src/components/form/hooks/useForm';
 import { useFormData } from '../src';
 import { flushPromises, mountProForm } from './helpers/mount';
 import { createBasicFields, createNestedFields } from './helpers/fixtures';
-import { ElFormItem, ElInput } from 'element-plus';
+import { ElForm, ElFormItem, ElInput } from 'element-plus';
+import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 
 describe('ProForm 组件测试', () => {
   // ----------------------------------------------------
@@ -245,6 +246,21 @@ describe('ProForm 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // PF-U3 [判别]: 挂载后新增 disabled
+  // ----------------------------------------------------
+  it('PF-U3 [判别]: 挂载后新增 disabled 立即下发子控件', async () => {
+    const { wrapper } = mountProForm({ fields: createBasicFields() });
+    await flushPromises();
+    expect(wrapper.findComponent(ElInput).props('disabled')).toBeFalsy();
+
+    await wrapper.setProps({ disabled: true } as any);
+    await flushPromises();
+    expect(wrapper.findComponent(ElInput).props('disabled')).toBe(true);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // PF-04: formRef 绑定
   // ----------------------------------------------------
   it('PF-04: form.formRef.value 正确绑定到底层 element-plus Form 实例', async () => {
@@ -465,5 +481,114 @@ describe('ProForm 组件测试', () => {
     } finally {
       wrapper.unmount();
     }
+  });
+
+  // ----------------------------------------------------
+  // PF-U1 [判别]: 显式 undefined 绑定不冲掉 Provider 注入
+  // ----------------------------------------------------
+  it('PF-U1 [判别]: 显式 :disabled="undefined" 保留下发的 Provider 注入值', async () => {
+    const form = useForm({ name: '' }, [
+      { prop: 'name', label: '姓名', component: 'input' },
+    ] as any);
+    const wrapper = mount(ProComponentProvider as any, {
+      props: { componentVars: { 'pro-form': { disabled: true } } },
+      slots: {
+        default: () =>
+          h(ProForm, {
+            form,
+            // 判别的关键：绑定键存在但值为 undefined
+            disabled: undefined,
+          } as any),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 判别点：未显式指定时该键不下发，Provider 注入的禁用态保持生效
+    expect(wrapper.findComponent(ElForm).props('disabled')).toBe(true);
+    expect(wrapper.find('input').attributes('disabled')).toBeDefined();
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-U4 [判别]: 字段级 disabled 形态归一
+  // ----------------------------------------------------
+  it('PF-U4 [判别]: 字段 disabled="" / "disabled" 为 true，null 回退 Provider', async () => {
+    const mountWithFieldDisabled = (
+      disabled: unknown,
+      providerDisabled?: boolean
+    ) => {
+      const form = useForm({ name: '' }, [
+        { path: 'name', component: 'input', disabled } as any,
+      ]);
+      return mount(ProComponentProvider as any, {
+        props: {
+          componentVars:
+            providerDisabled === undefined
+              ? {}
+              : { 'pro-form': { disabled: providerDisabled } },
+        },
+        slots: {
+          default: () => h(ProForm, { form } as any),
+        },
+        global: { stubs: { transition: false } },
+      });
+    };
+
+    // 裸属性形态与同名属性形态均为 true
+    const empty = mountWithFieldDisabled('');
+    await flushPromises();
+    expect(empty.findComponent(ElInput).props('disabled')).toBe(true);
+    empty.unmount();
+
+    const named = mountWithFieldDisabled('disabled');
+    await flushPromises();
+    expect(named.findComponent(ElInput).props('disabled')).toBe(true);
+    named.unmount();
+
+    // null 回退 Provider；显式 false 覆盖 Provider
+    const fallback = mountWithFieldDisabled(null, true);
+    await flushPromises();
+    expect(fallback.findComponent(ElInput).props('disabled')).toBe(true);
+    fallback.unmount();
+
+    const explicitFalse = mountWithFieldDisabled(false, true);
+    await flushPromises();
+    expect(explicitFalse.findComponent(ElInput).props('disabled')).toBe(false);
+    explicitFalse.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-U2 [判别]: Provider 注入的 pro-form.grid 在未显式传 grid 时生效
+  // ----------------------------------------------------
+  it('PF-U2 [判别]: Provider 注入的 grid 生效，显式 grid=false 覆盖注入值', async () => {
+    const form = useForm({ name: '' }, [
+      { path: 'name', label: '姓名', component: 'input', span: 12 },
+    ] as any);
+    const mountInProvider = (grid?: boolean) =>
+      mount(ProComponentProvider as any, {
+        props: { componentVars: { 'pro-form': { grid: { gutter: 24 } } } },
+        slots: {
+          default: () =>
+            h(ProForm, {
+              form,
+              ...(grid === undefined ? {} : { grid }),
+            } as any),
+        },
+        global: { stubs: { transition: false } },
+      });
+
+    // 判别点：未显式传 grid 时回退 Provider 注入的全局网格配置
+    const wrapper = mountInProvider();
+    await flushPromises();
+    expect(wrapper.find('.el-col-12').exists()).toBe(true);
+    wrapper.unmount();
+
+    // 反向约束：显式 grid=false 关闭注入的网格布局
+    const disabled = mountInProvider(false);
+    await flushPromises();
+    expect(disabled.find('.el-col-12').exists()).toBe(false);
+    disabled.unmount();
   });
 });

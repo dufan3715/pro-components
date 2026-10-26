@@ -36,15 +36,19 @@ import {
   mergeProps,
   ref,
   toValue,
-  useAttrs,
 } from 'vue';
-import { cloneDeep } from '../../../../shared/core';
+import {
+  cloneDeep,
+  getObject,
+  useReactiveAttrs,
+} from '../../../../shared/core';
 import { useDisabledContext } from '../../../../shared/ui';
 import type { Field } from '../../types';
 import ContainerFragment from '../ContainerFragment/index.vue';
 import SlotComponent from '../SlotComponent/index.vue';
 import { componentMap, InjectionFormSlotsKey } from '../../constants';
 import {
+  INJECT_COMPONENT_VARS,
   INJECT_COMPONENTS,
   getInjectConfig,
 } from '../../../component-provider/constants';
@@ -73,7 +77,7 @@ const form = useForm(false);
 
 const componentRef = ref<any>();
 
-const attrs: any = useAttrs();
+const attrs: any = useReactiveAttrs();
 
 /**
  * 全局默认配置注入：key = 组件名 + type 修饰段，inject 须在 setup 同步期调用。
@@ -91,6 +95,8 @@ const componentInjectConfig = injectConfigKey
 const rawInjectComponentProps = componentInjectConfig
   ? inject(componentInjectConfig.injectionKey, componentInjectConfig.default)
   : undefined;
+// 全量 componentVars：运行期新增的自定义组件键由此兜底读取
+const componentVars = inject(INJECT_COMPONENT_VARS, undefined);
 
 // setter: 向 formData 写入值，支持 valueFormatter / valueFormatter.set 转换
 const value = computed({
@@ -142,7 +148,10 @@ const parentDisabled = useDisabledContext();
  * 属性分为三类：绑定属性（v-model）、组件属性（传递给组件）、插槽（动态渲染）
  */
 const groupedAttrs = computed(() => {
-  const currentInjectProps = toValue(rawInjectComponentProps) || {};
+  const currentInjectProps = {
+    ...(toValue(rawInjectComponentProps) || {}),
+    ...getObject(toValue(componentVars)?.[injectConfigKey]),
+  };
   const initProps = getInitProps(
     {
       component: props.component,
@@ -152,10 +161,14 @@ const groupedAttrs = computed(() => {
     t
   );
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'modelValue';
+  // 字段级优先；null / undefined 回退父级与 Provider，'' / 'disabled' 按宿主 Boolean 形态为 true
+  const normalizeDisabled = (value: unknown) =>
+    value === '' || value === 'disabled' ? true : Boolean(value);
   const effectiveDisabled =
-    attrs.disabled !== undefined
-      ? Boolean(attrs.disabled)
-      : Boolean(parentDisabled.value || initProps.disabled);
+    attrs.disabled !== undefined && attrs.disabled !== null
+      ? normalizeDisabled(attrs.disabled)
+      : normalizeDisabled(parentDisabled.value) ||
+        normalizeDisabled(initProps.disabled);
   const mergedProps = mergeProps(
     initProps,
     attrs,

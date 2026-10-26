@@ -1,7 +1,7 @@
 import { getCurrentInstance, inject, provide, reactive } from 'vue';
 import type { Path, Data, ExtendWithAny, DeepPartial } from '../shared/types';
 import { isPlainObject } from '../shared/utils';
-import { get, isDangerousKey, normalizePathKey, set } from '../shared/path';
+import { get, isDangerousKey, set } from '../shared/path';
 
 const InjectionFormDataKey = Symbol('form-data');
 
@@ -99,10 +99,7 @@ const useFormData = <D extends Data = Data>(
 
   function getFormData(path: Path<D>) {
     if (path === undefined || path === null) return undefined;
-    return get(
-      formData,
-      typeof path === 'string' ? path : normalizePathKey(path)
-    ) as any;
+    return get(formData, path as any) as any;
   }
 
   function setFormData(...args: any[]) {
@@ -120,11 +117,7 @@ const useFormData = <D extends Data = Data>(
         const preValue = getFormData(path);
         value = value(preValue);
       }
-      set(
-        formData,
-        typeof path === 'string' ? path : normalizePathKey(path),
-        value
-      );
+      set(formData, path as any, value);
     } else {
       if (typeof value === 'function') {
         const preValue = formData;
@@ -136,7 +129,7 @@ const useFormData = <D extends Data = Data>(
       Object.entries(value).forEach(([key, val]) => {
         if (!isDangerousKey(key)) safeValue[key] = val;
       });
-      // 批量覆盖：先删新对象未含的自有 key 再合并（全量替换），formData 引用不变
+      // 批量覆盖为全量替换，formData 引用不变
       const newKeys = new Set(Object.keys(safeValue));
       Object.keys(formData).forEach(key => {
         if (!newKeys.has(key)) {

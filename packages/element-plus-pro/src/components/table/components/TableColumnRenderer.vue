@@ -59,20 +59,29 @@ const getColumnProps = (column: Column) => {
 };
 
 /*
- * 递归渲染列树：子列以同层 vnode 数组展开，深层分组同样成立
+ * 递归渲染列树：子列以同层 vnode 数组展开，深层分组同样成立；
+ * 每层以不可变祖先路径向下传递，重复出现的祖先引用直接剔除（含 a→b→a 互引用）
  */
-const renderColumn = (column: Column): any => {
+const renderColumn = (
+  column: Column,
+  ancestors: Set<object> = new Set()
+): any => {
   const hasChildren =
     Array.isArray(column.children) && column.children.length > 0;
   const vnodeProps = { key: getColumnKey(column), ...getColumnProps(column) };
   if (hasChildren) {
+    // 每层祖先路径随 vnode 创建确定，环状引用按路径截断
+    const nextAncestors = new Set(ancestors).add(column);
     return h(TableColumn, vnodeProps, {
       default: () =>
         column
           .children!.filter(
-            child => isObjectItem(child) && !toValue(child.hidden)
+            child =>
+              isObjectItem(child) &&
+              !nextAncestors.has(child) &&
+              !toValue(child.hidden)
           )
-          .map(child => renderColumn(child)),
+          .map(child => renderColumn(child, nextAncestors)),
     });
   }
   if (typeof column.render === 'function') {
