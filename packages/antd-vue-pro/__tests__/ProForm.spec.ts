@@ -5,7 +5,7 @@ import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises, mountProForm } from './helpers/mount';
 import { createBasicFields, createNestedFields } from './helpers/fixtures';
-import { Form, FormItem, Input } from 'ant-design-vue';
+import { Form, FormItem, Input, Row } from 'ant-design-vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 
 describe('ProForm 组件测试', () => {
@@ -393,9 +393,48 @@ describe('ProForm 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // PF-U2 [判别]: Provider 注入的 pro-form.grid 在未显式传 grid 时生效
+  // PF-U5 [判别]: 未传 grid 且无 Provider 配置时默认关闭网格
   // ----------------------------------------------------
-  it('PF-U2 [判别]: Provider 注入的 grid 生效，显式 grid=false 覆盖注入值', async () => {
+  it('PF-U5 [判别]: 未传 grid 时默认不启用网格布局', async () => {
+    const form = useForm({ name: '' }, [
+      { path: 'name', label: '姓名', component: 'input', span: 12 },
+    ] as any);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.ant-col-12').exists()).toBe(false);
+    expect(wrapper.findComponent(Input).exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-U6 [判别]: grid:true 时使用内置默认栅格间距
+  // ----------------------------------------------------
+  it('PF-U6 [判别]: grid:true 使用内置默认 gutter', async () => {
+    const form = useForm({ name: '' }, [
+      { path: 'name', label: '姓名', component: 'input', span: 12 },
+    ] as any);
+    const wrapper = mount(ProForm, {
+      props: { form, grid: true },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.ant-col-12').exists()).toBe(true);
+    expect(wrapper.findComponent(Row).props('gutter')).toEqual({
+      xs: 8,
+      sm: 16,
+      md: 16,
+      lg: 24,
+    });
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-U2 [判别]: Provider 的 grid 只提供启用时的参数，不单独开启网格
+  // ----------------------------------------------------
+  it('PF-U2 [判别]: Provider grid 仅配置参数，不单独开启网格', async () => {
     const form = useForm({ name: '' }, [
       { path: 'name', label: '姓名', component: 'input', span: 12 },
     ] as any);
@@ -412,13 +451,20 @@ describe('ProForm 组件测试', () => {
         global: { stubs: { transition: false } },
       });
 
-    // 判别点：未显式传 grid 时回退 Provider 注入的全局网格配置
+    // 未传 grid：Provider 参数不构成开启开关
     const wrapper = mountInProvider();
     await flushPromises();
-    expect(wrapper.find('.ant-col-12').exists()).toBe(true);
+    expect(wrapper.find('.ant-col-12').exists()).toBe(false);
     wrapper.unmount();
 
-    // 反向约束：显式 grid=false 关闭注入的网格布局
+    // grid:true：开启网格，并采用 Provider 提供的 gutter
+    const enabled = mountInProvider(true);
+    await flushPromises();
+    expect(enabled.find('.ant-col-12').exists()).toBe(true);
+    expect(enabled.findComponent(Row).props('gutter')).toEqual(24);
+    enabled.unmount();
+
+    // 显式 grid=false：关闭网格
     const disabled = mountInProvider(false);
     await flushPromises();
     expect(disabled.find('.ant-col-12').exists()).toBe(false);

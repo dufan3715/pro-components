@@ -120,7 +120,7 @@ const submit = async () => {
   max-width: 430px;
   padding: 16px;
   overflow: hidden;
-  background: #f7f8fa;
+  background: var(--van-background, #f7f8fa);
   border-radius: 8px;
 }
 </style>

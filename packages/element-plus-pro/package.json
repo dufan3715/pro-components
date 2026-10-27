@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/element-plus-pro",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "基于 element-plus 的二次封装组件",
   "bin": {
     "element-plus-pro": "./bin/init-ai.mjs"
@@ -14,7 +14,6 @@
       "types": "./es/index.d.ts",
       "import": "./es/index.js"
     },
-    "./element-plus-pro.css": "./es/element-plus-pro.css",
     "./package.json": "./package.json"
   },
   "files": [

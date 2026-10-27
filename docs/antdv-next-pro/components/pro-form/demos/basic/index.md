@@ -1,3 +1,7 @@
+---
+aside: false
+---
+
 # 基础表单
 
 基础表单示例展示了 antdv-next-pro ProForm 的基本使用。

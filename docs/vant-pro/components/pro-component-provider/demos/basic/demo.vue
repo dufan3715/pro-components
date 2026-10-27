@@ -36,7 +36,7 @@ const form = useForm({}, [
 .demo-wrapper {
   max-width: 430px;
   padding: 16px;
-  background: #f7f8fa;
+  background: var(--van-background, #f7f8fa);
   border-radius: 8px;
 }
 </style>

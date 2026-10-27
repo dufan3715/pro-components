@@ -5,6 +5,7 @@ import { nextTick, provide } from 'vue';
 import AntdvNextLayout from './AntdvNextLayout.vue';
 import AntdvLayout from './AntdvLayout.vue';
 import ElLayout from './ElLayout.vue';
+import VantLayout from './VantLayout.vue';
 
 const { isDark } = useData();
 
@@ -47,7 +48,9 @@ provide('toggle-appearance', async ({ clientX: x, clientY: y }: MouseEvent) => {
   <ElLayout>
     <AntdvNextLayout>
       <AntdvLayout>
-        <DefaultTheme.Layout />
+        <VantLayout>
+          <DefaultTheme.Layout />
+        </VantLayout>
       </AntdvLayout>
     </AntdvNextLayout>
   </ElLayout>

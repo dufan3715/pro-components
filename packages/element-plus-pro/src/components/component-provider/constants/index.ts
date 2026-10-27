@@ -43,7 +43,7 @@ export const INJECT_CONFIG: {
   },
   'pro-form': {
     injectionKey: Symbol(''),
-    // 表单实例由 `:form` 显式传入
+    // 表单实例由 `:form` 显式传入；grid 仅作为启用时的参数默认值，不开启网格
     ignoreProps: ['form'],
     default: { grid: { gutter: 24 } },
   },

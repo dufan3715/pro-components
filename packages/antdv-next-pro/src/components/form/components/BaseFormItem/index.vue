@@ -75,11 +75,8 @@ const config = INJECT_CONFIG['pro-form'];
 const injectFormConfig = inject(config.injectionKey, config.default);
 const injectGrid = computed(() => toValue(injectFormConfig)?.grid);
 
-// 网格布局：优先使用当前层级的 grid 配置，否则使用注入的全局配置
-const enableGrid = computed(() => {
-  if (props.grid !== undefined) return !!props.grid;
-  return !!injectGrid.value;
-});
+// 网格布局：仅由当前层级的 grid 配置决定是否启用
+const enableGrid = computed(() => !!props.grid);
 
 const computedGridProps = computed<GridProps>(() => {
   return enableGrid.value

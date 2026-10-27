@@ -17,7 +17,7 @@ const form = useForm<FormData>({}, [
     // 方式1：使用Field中 component 属性
     component: markRaw(CustomInput),
     componentStyle: {
-      width: `clamp(200px, 80vw, 400px)`,
+      width: `min(100%, 400px)`,
       borderColor: 'green',
     },
     placeholder: '请输入姓氏',
@@ -25,7 +25,7 @@ const form = useForm<FormData>({}, [
   {
     label: '名字',
     path: 'lastName',
-    componentStyle: { width: `clamp(200px, 80vw, 400px)`, borderColor: 'blue' },
+    componentStyle: { width: `min(100%, 400px)`, borderColor: 'blue' },
     placeholder: '请输入名字',
   },
 ]);

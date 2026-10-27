@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antd-vue-pro",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "二次封装antd vue组件",
   "bin": {
     "antd-vue-pro": "./bin/init-ai.mjs"
@@ -14,7 +14,6 @@
       "types": "./es/index.d.ts",
       "import": "./es/index.js"
     },
-    "./antd-vue-pro.css": "./es/antd-vue-pro.css",
     "./package.json": "./package.json"
   },
   "files": [

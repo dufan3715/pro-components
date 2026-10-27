@@ -71,10 +71,7 @@ const config = INJECT_CONFIG['pro-form'];
 const injectFormConfig = inject(config.injectionKey, config.default);
 const injectGrid = computed(() => toValue(injectFormConfig)?.grid);
 
-const enableGrid = computed(() => {
-  if (props.grid !== undefined) return !!props.grid;
-  return !!injectGrid.value;
-});
+const enableGrid = computed(() => !!props.grid);
 
 const computedGridProps = computed<GridProps>(() => {
   return enableGrid.value

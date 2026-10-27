@@ -1,6 +1,6 @@
 {
   "name": "@qin-ui/antdv-next-pro",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "基于 antdv-next 的二次封装组件",
   "bin": {
     "antdv-next-pro": "./bin/init-ai.mjs"
@@ -14,7 +14,6 @@
       "types": "./es/index.d.ts",
       "import": "./es/index.js"
     },
-    "./antdv-next-pro.css": "./es/antdv-next-pro.css",
     "./package.json": "./package.json"
   },
   "sideEffects": [

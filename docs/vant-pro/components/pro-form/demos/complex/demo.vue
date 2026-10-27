@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { computed, h, markRaw, watch } from 'vue';
 import { Space, Button, CellGroup, Divider, Radio } from 'vant';
-import { Field, Fields, ProForm, useForm } from '@qin-ui/vant-pro';
+import type { Field, Fields } from '@qin-ui/vant-pro';
+import { ProForm, useForm } from '@qin-ui/vant-pro';
 
 type User = {
   name: string;
@@ -285,7 +286,7 @@ const submit = async () => {
   max-width: 430px;
   padding-top: 16px;
   overflow: hidden;
-  background: #f7f8fa;
+  background: var(--van-background, #f7f8fa);
   border-radius: 8px;
 }
 </style>

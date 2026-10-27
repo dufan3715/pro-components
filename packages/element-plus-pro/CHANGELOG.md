@@ -1,5 +1,12 @@
 # @qin-ui/element-plus-pro
 
+## 1.4.1
+
+### Patch Changes
+
+- 修正 `element-plus` peer 下限为 `^2.14.5`，与 `TableEmits` 的宿主导出及文档、开发依赖一致。
+- 修复 1.4.0 中 ProForm 网格默认值与 Provider grid 语义回归：`grid` 默认关闭；Provider 的 `pro-form.grid` 仅作为启用网格时的参数配置，不再单独开启网格；显式 `grid: true` 时使用内置默认 gutter。
+
 ## 1.4.0
 
 ### Minor Changes
@@ -204,6 +211,7 @@
 
   破坏性变更：无（原先能渲染的合法配置行为不变；非法项此前会导致崩溃，现被忽略）。
 
+- 修复 ProForm 未传 `grid` 且 Provider 未显式配置 `pro-form.grid` 时默认启用网格布局的回归：`grid` 恢复默认关闭，显式 `grid` 与 Provider 注入的 `grid` 仍生效。
 - d20727b: ProComponentProvider 注入面收敛：不可注入键在注入层静默剔除。
   - **注入面边界由两处声明**：类型面在 `RequiredComponentVars` 内直接剔除（`Omit<TableProps, 'loading' | 'columns' | 'dataSource'>`、`Omit<ProFormProps, 'form' | 'grid'>` 等），`ComponentVars` 仍为 `Partial<RequiredComponentVars>`；运行期清单直接声明在 `INJECT_CONFIG` 各项的 `ignoreProps`（普通数组），驱动注入层剔除（剔除经 core 的 `omit` 执行，原适配层局部实现 `omitIgnoredProps` 移除）。两处由契约用例分别锁定（类型面文本 + 项内清单文本），行为用例覆盖剔除与静默。
     不可注入键：`antd-vue-pro` / `antdv-next-pro` 的 `pro-table` → `loading` / `columns` / `dataSource`；`element-plus-pro` 的 `pro-table` → `data`（类型面），运行期清单另含 `loading` / `columns`（二者非其类型面成员，此前被静默忽略，现同样剔除）；四包 `pro-form` → `form`。

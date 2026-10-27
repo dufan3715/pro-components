@@ -26,7 +26,7 @@
  * @template F - 表单实例类型
  *
  * @param {F} [form] - useForm 返回的表单实例
- * @param {boolean | GridProps} [grid] - 是否启用网格布局；未提供时回退 Provider 注入的 `grid` 配置
+ * @param {boolean | GridProps} [grid] - 是否启用网格布局，默认关闭；Provider 的 `grid` 仅作为启用时的参数配置
  * @param {...FormProps} ...attrs - Element Plus Form 组件的其他属性
  *
  * @slot default - 默认插槽，可用于添加额外内容
@@ -78,7 +78,7 @@ type Props = {
   form?: F;
 } & /* @vue-ignore */ FormProps;
 const props = withDefaults(defineProps<Props>(), {
-  grid: undefined,
+  grid: false,
   form: undefined,
 });
 
