@@ -6,7 +6,7 @@ import ProComponentProvider from '../src/components/component-provider/component
 import { useTable } from '../src/components/table/hooks/useTable';
 import { expectWarn, flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
-import { ElPagination, ElTable } from 'element-plus';
+import { ElPagination, ElSelect, ElTable } from 'element-plus';
 import SearchForm from '../src/components/table/components/SearchForm.vue';
 import SizeControl from '../src/components/table/components/SizeControl.vue';
 import ColumnControl from '../src/components/table/components/ColumnControl.vue';
@@ -1578,6 +1578,45 @@ describe('ProTable 组件测试', () => {
         .map(item => item.props('prop'))
     ).toEqual(['keyword', 'a']);
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A39 [判别]: pageSize 变更触发页码钳制时仅查询一次并回到第 1 页
+  // ----------------------------------------------------
+  it('PT-A39 [判别]: pageSize 变更触发页码钳制时仅查询一次，页码回到第 1 页', async () => {
+    const table = useTable({
+      columns: createBasicColumns(),
+      data: [],
+      pageParam: { current: 5, pageSize: 10, total: 40 },
+    });
+    const searchSpy = vi.fn().mockResolvedValue(undefined);
+    const { wrapper } = mountProTable({ table, search: searchSpy as any });
+
+    try {
+      await flushPromises();
+      const pagination = wrapper.findComponent(ElPagination);
+      expect(pagination.props('currentPage')).toBe(5);
+      expect(pagination.props('pageSize')).toBe(10);
+
+      // 经宿主尺寸选择器触发真实 handleSizeChange：current 5 大于新总页数 2，宿主级联钳制页码
+      pagination.findComponent(ElSelect).vm.$emit('change', 20);
+      await flushPromises();
+
+      // 仅按 pageSize 变更查询一次，钳制产生的 current-change 不回写页码
+      expect(searchSpy).toHaveBeenCalledTimes(1);
+      expect(table.pageParam.current).toBe(1);
+      expect(table.pageParam.pageSize).toBe(20);
+      expect(wrapper.findComponent(ElPagination).props('currentPage')).toBe(1);
+      expect(wrapper.findComponent(ElPagination).props('pageSize')).toBe(20);
+
+      // 变更窗口释放后，翻页仍正常回写并查询
+      wrapper.findComponent(ElPagination).vm.$emit('current-change', 2);
+      await flushPromises();
+      expect(table.pageParam.current).toBe(2);
+      expect(searchSpy).toHaveBeenCalledTimes(2);
+    } finally {
+      wrapper.unmount();
+    }
   });
 
   // ----------------------------------------------------

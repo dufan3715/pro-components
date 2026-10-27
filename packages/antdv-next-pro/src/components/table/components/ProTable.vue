@@ -32,6 +32,11 @@
  * 2. 分页变化：分页参数同步后发起查询
  * 3. 重置：查询参数恢复初始值后重新查询
  *
+ * ## 列来源
+ *
+ * 显式 `:columns` 优先于 `:table` 实例的 `columns`；显式列按原样透传给宿主，不补齐 `key`，
+ * 需由调用方提供 `key` / `dataIndex` / `prop`。显式模式下 `setColumn` 与列控入口均不生效。
+ *
  * @template T - 表格实例类型（useTable 返回值）
  *
  * @param {T} [table] - 列表表格对象，来自 useTable
@@ -350,6 +355,7 @@ const hasExplicitColumns = computed(
   () => tableAttrs.value.columns !== undefined
 );
 
+// 列来源优先级：显式绑定 > table 实例（useTable 创建的 columns）；显式列原样透传，不补齐 key
 const computedColumns = computed<Columns<RecordType>>(() => {
   const cols = (tableAttrs.value.columns ??
     toValue(props.table?.columns) ??
@@ -433,8 +439,26 @@ const computedPagination = computed<PaginationProps | false>(() => {
   };
 });
 
+// 显式 pagination 的 value 键覆盖 pageParam 时，宿主回写不会反映到分页
+let warnedPaginationShadow = false;
+const warnPaginationShadow = (keys: Array<'current' | 'pageSize'>) => {
+  if (warnedPaginationShadow) return;
+  warnedPaginationShadow = true;
+  console.warn(
+    `[ProTable] 显式 :pagination 的 ${keys.join(' / ')} 覆盖了 table.pageParam，翻页或修改页大小后分页不会更新；请移除显式值或在回调中同步更新绑定。`
+  );
+};
+
 const onTableChange: TableProps['onChange'] = (...args) => {
   props.table?.setPageParam?.(args[0]);
+  const nextPagination = computedPagination.value;
+  if (props.table?.pageParam && nextPagination !== false) {
+    const shadowed = (['current', 'pageSize'] as const).filter(
+      key =>
+        args[0]?.[key] !== undefined && nextPagination[key] !== args[0][key]
+    );
+    if (shadowed.length) warnPaginationShadow(shadowed);
+  }
   // change 回放：模板监听器优先，未绑定时回退 Provider 全局配置
   (attrs.onChange ?? injectProps.value.onChange)?.(...args);
   _search();

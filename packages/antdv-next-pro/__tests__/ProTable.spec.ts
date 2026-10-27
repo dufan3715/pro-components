@@ -174,6 +174,53 @@ describe('ProTable 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // PT-A40 [判别]: 显式分页值覆盖 pageParam 时提示一次，回写仍正常
+  // ----------------------------------------------------
+  it('PT-A40 [判别]: 显式 pagination 值覆盖 pageParam 时输出一次告警，pageParam 回写不受影响', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const proTableWarns = () =>
+      warnSpy.mock.calls
+        .map(args => String(args[0]))
+        .filter(msg => msg.startsWith('[ProTable] 显式 :pagination'));
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+      pageParam: { current: 1, pageSize: 10, total: 100 },
+    });
+    const { wrapper } = mountProTable({
+      table,
+      props: {
+        pagination: { current: 1, pageSize: 10 },
+        addIndexColumn: false,
+      },
+    });
+
+    try {
+      await flushPromises();
+      expect(proTableWarns()).toHaveLength(0);
+
+      const aTable = wrapper.findComponent({ name: 'ATable' });
+      aTable.vm.$emit('change', { current: 2, pageSize: 10, total: 100 });
+      await flushPromises();
+
+      // pageParam 已回写，但宿主分页被显式 current 钉在第 1 页
+      expect(proTableWarns()).toHaveLength(1);
+      expect(proTableWarns()[0]).toContain('current');
+      expect(table.pageParam.current).toBe(2);
+      expect(wrapper.findComponent(Pagination).props('current')).toBe(1);
+
+      // 同实例仅提示一次
+      aTable.vm.$emit('change', { current: 3, pageSize: 10, total: 100 });
+      await flushPromises();
+      expect(proTableWarns()).toHaveLength(1);
+      expect(table.pageParam.current).toBe(3);
+    } finally {
+      warnSpy.mockRestore();
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
   // PT-01: 列渲染与数据源行数
   // ----------------------------------------------------
   it('PT-01: 正确渲染列标题与数据行', async () => {

@@ -32,6 +32,11 @@
  * 2. 分页变化：分页参数同步后发起查询
  * 3. 重置：查询参数恢复初始值后重新查询
  *
+ * ## 列来源
+ *
+ * 显式 `:columns` 优先于 `:table` 实例的 `columns`；显式列按原样透传给宿主，不补齐 `key`，
+ * 需由调用方提供 `key` / `dataIndex` / `prop`。显式模式下 `setColumn` 与列控入口均不生效。
+ *
  * @template T - 表格实例类型（useTable 返回值）
  *
  * @param {T} [table] - 列表表格对象，来自 useTable
@@ -141,7 +146,7 @@ type Props = {
   searchFormConfig?: SearchFormConfig;
   /** 表格区域包裹容器 */
   tableContainer?: ContainerComponent | false;
-  /** 直接传入列配置（覆盖 :table 实例的 columns） */
+  /** 直接传入列配置（覆盖 :table 实例的 columns）；列需自备 key / dataIndex / prop，显式模式不参与 setColumn 与列控 */
   columns?: Columns<RecordType>;
   /** 直接传入数据源（覆盖 :table 实例的 data） */
   data?: RecordType[];
@@ -379,6 +384,7 @@ const getIndex = (i: number) => {
 /** 调用方是否显式传入 columns（值为 undefined 时视为未指定） */
 const hasExplicitColumns = computed(() => props.columns !== undefined);
 
+/** 显式列原样透传（key 由调用方提供）；table 列经 core 规范化 */
 const normalizedRawColumns = computed(() => {
   const source = (
     (props.columns ?? toValue(props.table?.columns) ?? []) as any[]
@@ -445,15 +451,23 @@ const computedPagination = computed<false | Partial<PaginationProps>>(() => {
 
 const showPagination = computed(() => computedPagination.value !== false);
 
+// pageSize 变更窗口：窗口内忽略宿主级联的 current-change
+let sizeChangeWindow = false;
+
 const onCurrentChange = (current: number) => {
+  if (sizeChangeWindow) return;
   props.table?.setPageParam?.({ current });
   _search();
 };
 
 // 改变 pageSize 时重置回第 1 页并重新查询
 const onSizeChange = (pageSize: number) => {
+  sizeChangeWindow = true;
   props.table?.setPageParam?.({ pageSize, current: 1 });
   _search();
+  nextTick(() => {
+    sizeChangeWindow = false;
+  });
 };
 
 const onPaginationChange = (currentPage: number, pageSize: number) => {
