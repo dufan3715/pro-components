@@ -61,6 +61,16 @@ const form = useForm<FormData>({}, [
       { text: '本科', value: 'bachelor' },
       { text: '硕士', value: 'master' },
     ],
+    displayFormatter: (val?: string[]) => {
+      const currentField: any = getField('education');
+      if (currentField?.columns) {
+        const currentColumn = currentField.columns.find((column: any) =>
+          val?.includes(column.value)
+        );
+        return currentColumn?.text;
+      }
+      return val;
+    },
   },
   {
     label: '兴趣爱好',
@@ -79,7 +89,7 @@ const form = useForm<FormData>({}, [
   { label: '家庭地址', path: 'address', component: 'field', type: 'textarea' },
 ]);
 
-const { formRef, formData, formPopup, setFormData } = form;
+const { formRef, formData, formPopup, setFormData, getField } = form;
 
 const reset = () => {
   formRef.value?.resetValidation();

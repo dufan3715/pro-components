@@ -33,6 +33,14 @@ type FormData = User & {
   educations: Education[];
 };
 
+// 弹窗选择器的候选项：同时用于 columns 与 displayFormatter 的 value → text 映射
+const stageOptions = [
+  { text: '初中', value: 'middle' },
+  { text: '高中', value: 'high' },
+  { text: '大学', value: 'university' },
+];
+const cityOptions = [{ text: '北京', value: 'Beijing' }];
+
 const getEducationFields = (index: number): Fields<Education> => [
   {
     path: `educations.${index}.no`,
@@ -52,17 +60,18 @@ const getEducationFields = (index: number): Fields<Education> => [
     placeholder: '请选择教育阶段',
     popup: true,
     columns: computed(() => {
-      return [
-        { text: '初中', value: 'middle' },
-        { text: '高中', value: 'high' },
-        { text: '大学', value: 'university' },
-      ].map(item => ({
+      return stageOptions.map(item => ({
         ...item,
         disabled: getFormData('educations')?.some(
           education => education.stage?.[0] === item.value
         ),
       }));
     }),
+    // 输入框展示选中项的 text，而不是存储值
+    displayFormatter: (val?: string[]) =>
+      stageOptions.find(column => val?.includes(column.value))?.text ??
+      val?.[0] ??
+      '',
     rules: [{ required: true, message: '请选择教育阶段' }],
   },
   {
@@ -170,7 +179,12 @@ const form = useForm<FormData>({}, [
         component: 'picker',
         isLink: true,
         popup: true,
-        columns: [{ text: '北京', value: 'Beijing' }],
+        columns: cityOptions,
+        // 输入框展示选中项的 text，而不是存储值
+        displayFormatter: (val?: string[]) =>
+          cityOptions.find(column => val?.includes(column.value))?.text ??
+          val?.[0] ??
+          '',
       },
       {
         path: 'family.address',

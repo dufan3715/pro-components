@@ -18,16 +18,23 @@ const config = {
   },
 };
 
+const cityColumns = [
+  { text: '北京', value: 'Beijing' },
+  { text: '上海', value: 'Shanghai' },
+];
+
 const form = useForm({}, [
   {
     component: 'picker',
     label: '选择城市',
     path: 'city',
     popup: true,
-    columns: [
-      { text: '北京', value: 'Beijing' },
-      { text: '上海', value: 'Shanghai' },
-    ],
+    columns: cityColumns,
+    // 输入框展示选中项的 text，而不是存储值
+    displayFormatter: (val?: string[]) =>
+      cityColumns.find(column => val?.includes(column.value))?.text ??
+      val?.[0] ??
+      '',
   },
 ]);
 </script>
