@@ -260,6 +260,49 @@ describe('BaseField 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // BF-D1 [判别]: 禁用优先级 字段 > 表单 > componentVars 默认值
+  // ----------------------------------------------------
+  it('BF-D1 [判别]: 表单未声明 disabled 时组件级默认值生效，表单/字段显式 false 可覆盖', async () => {
+    const mountWithFormDisabled = (disabled?: boolean) => {
+      const form = useForm({ enabled: true }, [
+        { path: 'enabled', component: 'switch' },
+      ]);
+      return mount(ProComponentProvider, {
+        props: { componentVars: { switch: { disabled: true } } as any },
+        slots: {
+          default: () =>
+            h(ProForm, disabled === undefined ? { form } : { form, disabled }),
+        },
+        global: { stubs: { transition: false } },
+      });
+    };
+
+    // ① 表单未声明 disabled：componentVars 的组件级默认值生效
+    const inherited = mountWithFormDisabled();
+    await flushPromises();
+    expect(inherited.findComponent(Switch).props('disabled')).toBe(true);
+    inherited.unmount();
+
+    // ② 表单显式 disabled=false：覆盖组件级默认值
+    const overridden = mountWithFormDisabled(false);
+    await flushPromises();
+    expect(overridden.findComponent(Switch).props('disabled')).toBe(false);
+    overridden.unmount();
+
+    // ③ 字段级 disabled=false：覆盖表单级禁用
+    const fieldForm = useForm({ enabled: true }, [
+      { path: 'enabled', component: 'switch', disabled: false },
+    ]);
+    const fieldWrapper = mount(ProForm, {
+      props: { form: fieldForm, disabled: true },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(fieldWrapper.findComponent(Switch).props('disabled')).toBe(false);
+    fieldWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // BF-06: 占位符兜底
   // ----------------------------------------------------
   it('BF-06: input 字段未配置 placeholder 时自动兜底「请输入」提示', async () => {

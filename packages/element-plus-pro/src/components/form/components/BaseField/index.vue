@@ -54,6 +54,7 @@ import {
 } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps, warnUnknownComponent } from './utils';
+import { resolveEffectiveDisabled } from '../../utils/disabled';
 import { useLocale } from '../../../../locale';
 
 const cloneDeepIfObject = (val: unknown) =>
@@ -161,14 +162,11 @@ const groupedAttrs = computed(() => {
     t
   );
   const modelPropName = attrs.modelProp ?? initProps.modelProp ?? 'modelValue';
-  // 字段级优先；null / undefined 回退父级与 Provider，'' / 'disabled' 按宿主 Boolean 形态为 true
-  const normalizeDisabled = (value: unknown) =>
-    value === '' || value === 'disabled' ? true : Boolean(value);
-  const effectiveDisabled =
-    attrs.disabled !== undefined && attrs.disabled !== null
-      ? normalizeDisabled(attrs.disabled)
-      : normalizeDisabled(parentDisabled.value) ||
-        normalizeDisabled(initProps.disabled);
+  const effectiveDisabled = resolveEffectiveDisabled(
+    attrs.disabled,
+    parentDisabled.value,
+    initProps.disabled
+  );
   const mergedProps = mergeProps(
     initProps,
     attrs,

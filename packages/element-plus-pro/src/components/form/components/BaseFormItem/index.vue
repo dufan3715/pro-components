@@ -181,7 +181,7 @@ const groupedFields = useGroupFieldAttrs(validFields);
               <BaseFormItem
                 :grid="(item.rawField as any).grid ?? props.grid"
                 :fields="item.rawField.fields"
-                :disabled="toValue(item.rawField.disabled)"
+                :disabled="toValue(item.rawField.disabled) ?? props.disabled"
               />
             </template>
             <template v-else>
@@ -189,6 +189,7 @@ const groupedFields = useGroupFieldAttrs(validFields);
                 :ref="el => setComponentRef(item.rawField, el)"
                 v-bind="item.componentProps"
                 :path="item.path"
+                :disabled="toValue(item.rawField.disabled) ?? props.disabled"
               />
             </template>
           </FormItem>

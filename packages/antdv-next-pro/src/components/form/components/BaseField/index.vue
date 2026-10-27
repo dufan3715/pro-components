@@ -54,6 +54,7 @@ import {
 } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps, warnUnknownComponent } from './utils';
+import { resolveEffectiveDisabled } from '../../utils/disabled';
 import { useLocale } from '../../../../locale';
 
 const cloneDeepIfObject = (val: unknown) =>
@@ -163,11 +164,16 @@ const groupedAttrs = computed(() => {
     t
   );
   const effectiveModelProp = attrs.modelProp ?? initProps.modelProp ?? 'value';
+  const effectiveDisabled = resolveEffectiveDisabled(
+    attrs.disabled,
+    parentDisabled.value,
+    initProps.disabled
+  );
   const mergedProps = mergeProps(
     initProps,
     attrs,
     { class: attrs.componentClass, style: attrs.componentStyle },
-    { disabled: attrs.disabled ?? parentDisabled.value ?? initProps.disabled },
+    { disabled: effectiveDisabled },
     { modelProp: effectiveModelProp }
   ) as Required<Field>;
 

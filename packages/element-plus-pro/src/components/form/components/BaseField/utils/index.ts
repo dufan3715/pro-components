@@ -21,6 +21,8 @@ const PLACEHOLDER_KEYS: Record<string, string> = {
   'date-picker.week': 'date-picker.placeholder',
   'date-picker.month': 'date-picker.placeholder',
   'date-picker.months': 'date-picker.placeholder',
+  'date-picker.quarter': 'date-picker.placeholder',
+  'date-picker.quarters': 'date-picker.placeholder',
   'date-picker.year': 'date-picker.placeholder',
   'date-picker.years': 'date-picker.placeholder',
   'date-picker.datetime': 'date-picker.placeholder',
@@ -33,6 +35,7 @@ const RANGE_PLACEHOLDER_KEYS: Record<string, [string, string]> = {
   'date-picker.daterange': ['date-picker.start', 'date-picker.end'],
   'date-picker.monthrange': ['date-picker.startMonth', 'date-picker.endMonth'],
   'date-picker.yearrange': ['date-picker.startYear', 'date-picker.endYear'],
+  'date-picker.quarterrange': ['date-picker.start', 'date-picker.end'],
   'date-picker.datetimerange': ['date-picker.startTime', 'date-picker.endTime'],
 };
 

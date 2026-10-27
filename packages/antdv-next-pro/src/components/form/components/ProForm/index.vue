@@ -44,7 +44,7 @@
  * ```
  */
 import type { FormProps as AFormProps } from '../../../../shared/ui';
-import { Form as AForm } from '../../../../shared/ui';
+import { Form as AForm, useDisabledContext } from '../../../../shared/ui';
 import {
   computed,
   inject,
@@ -68,6 +68,7 @@ import {
   useReactiveAttrs,
 } from '../../../../shared/core';
 import { useForm, type Form } from '../../hooks/useForm';
+import { resolveDisabled } from '../../utils/disabled';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
 
@@ -86,8 +87,7 @@ const attrs: any = useReactiveAttrs();
  * 未传 form 实例（含运行期置空）时回退内部表单实例；
  * 将 Form 实例注入到 Vue Context 中，供深层子组件跨层级直接访问数据和方法。
  *
- * 禁用上下文不在本层提供：显式 `disabled` 经 `v-bind` 到 `AForm` 后由其自身 prop 优先消费，
- * 未显式指定时 `AForm` 回退到上层上下文（宿主 `ConfigProvider` / 外层 `Form`）。
+ * 表单级禁用经 `formDisabled` 下发到 `BaseFormItem`；显式 `disabled` 同时经 `v-bind` 交给 `AForm`。
  */
 // 兜底表单实例：setup 同步期创建，未传 :form（含运行期置空）时经 currentForm 生效
 const fallbackForm = useForm() as unknown as F;
@@ -139,6 +139,14 @@ const formAttrs = computed(() => {
   );
 });
 
+// 表单级禁用声明：显式值（含 false）优先，未声明时仅继承外层 true
+const outerDisabled = useDisabledContext();
+const formDisabled = computed<boolean | undefined>(() => {
+  const explicit = resolveDisabled(toValue(formAttrs.value.disabled));
+  if (explicit !== undefined) return explicit;
+  return outerDisabled.value ? true : undefined;
+});
+
 type ExtractPath<T> = T extends Form<infer D> ? Path<D> : string;
 type FieldSlotProps = VModelProps &
   PathProps & { disabled?: boolean; [x: string]: any };
@@ -165,7 +173,11 @@ provide(InjectionFormSlotsKey, formSlotsRef);
     v-bind="formAttrs"
     class="pro-form"
   >
-    <BaseFormItem :fields="fields" :grid="props.grid" />
+    <BaseFormItem
+      :fields="fields"
+      :grid="props.grid"
+      :disabled="formDisabled"
+    />
     <slot />
   </AForm>
 </template>

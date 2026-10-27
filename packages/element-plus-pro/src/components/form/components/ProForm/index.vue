@@ -44,7 +44,7 @@
  * ```
  */
 import type { FormProps as ElFormProps } from '../../../../shared/ui';
-import { Form as ElForm } from '../../../../shared/ui';
+import { Form as ElForm, useDisabledContext } from '../../../../shared/ui';
 import {
   computed,
   inject,
@@ -68,6 +68,7 @@ import {
   useReactiveAttrs,
 } from '../../../../shared/core';
 import { useForm, type Form } from '../../hooks/useForm';
+import { resolveDisabled } from '../../utils/disabled';
 
 defineOptions({ name: 'ProForm', inheritAttrs: false });
 
@@ -141,6 +142,14 @@ const formAttrs = computed(() => {
   );
 });
 
+// 表单级禁用声明：显式值（含 false）优先，未声明时仅继承外层 true
+const outerDisabled = useDisabledContext();
+const formDisabled = computed<boolean | undefined>(() => {
+  const explicit = resolveDisabled(toValue(formAttrs.value.disabled));
+  if (explicit !== undefined) return explicit;
+  return outerDisabled.value ? true : undefined;
+});
+
 type ExtractPath<T> = T extends Form<infer D> ? Path<D> : string;
 type FieldSlotProps = VModelProps &
   PathProps & { disabled?: boolean; [x: string]: any };
@@ -169,7 +178,11 @@ provide(InjectionFormSlotsKey, formSlotsRef);
     class="pro-form"
     @submit.prevent
   >
-    <BaseFormItem :fields="fields" :grid="props.grid" />
+    <BaseFormItem
+      :fields="fields"
+      :grid="props.grid"
+      :disabled="formDisabled"
+    />
     <slot />
   </ElForm>
 </template>

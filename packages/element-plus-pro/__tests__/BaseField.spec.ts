@@ -263,6 +263,49 @@ describe('BaseField 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // BF-D1 [判别]: 禁用优先级 字段 > 表单 > componentVars 默认值
+  // ----------------------------------------------------
+  it('BF-D1 [判别]: 表单未声明 disabled 时组件级默认值生效，表单/字段显式 false 可覆盖', async () => {
+    const mountWithFormDisabled = (disabled?: boolean) => {
+      const form = useForm({ enabled: true }, [
+        { path: 'enabled', component: 'switch' },
+      ]);
+      return mount(ProComponentProvider, {
+        props: { componentVars: { switch: { disabled: true } } as any },
+        slots: {
+          default: () =>
+            h(ProForm, disabled === undefined ? { form } : { form, disabled }),
+        },
+        global: { stubs: { transition: false } },
+      });
+    };
+
+    // ① 表单未声明 disabled：componentVars 的组件级默认值生效
+    const inherited = mountWithFormDisabled();
+    await flushPromises();
+    expect(inherited.findComponent(ElSwitch).props('disabled')).toBe(true);
+    inherited.unmount();
+
+    // ② 表单显式 disabled=false：覆盖组件级默认值
+    const overridden = mountWithFormDisabled(false);
+    await flushPromises();
+    expect(overridden.findComponent(ElSwitch).props('disabled')).toBe(false);
+    overridden.unmount();
+
+    // ③ 字段级 disabled=false：覆盖表单级禁用
+    const fieldForm = useForm({ enabled: true }, [
+      { path: 'enabled', component: 'switch', disabled: false },
+    ]);
+    const fieldWrapper = mount(ProForm, {
+      props: { form: fieldForm, disabled: true },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(fieldWrapper.findComponent(ElSwitch).props('disabled')).toBe(false);
+    fieldWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
   // BF-06: 占位符兜底
   // ----------------------------------------------------
   it('BF-06: input 字段未配置 placeholder 时自动兜底「请输入」提示', async () => {
@@ -279,6 +322,47 @@ describe('BaseField 组件测试', () => {
     const inputComp = wrapper.findComponent(ElInput);
     expect(inputComp.props('placeholder')).toBe('请输入');
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-A16 [判别]: 季度选择器占位符兜底与日期族一致
+  // ----------------------------------------------------
+  it('BF-A16 [判别]: quarter / quarters / quarterrange 未配置 placeholder 时按日期族兜底', async () => {
+    const mountPicker = async (field: Record<string, any>) => {
+      const form = useForm({ value: undefined }, [
+        { path: 'value', component: 'date-picker', ...field } as any,
+      ]);
+      const wrapper = mount(ProForm, {
+        props: { form },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      return wrapper;
+    };
+
+    const quarter = await mountPicker({ type: 'quarter' });
+    expect(quarter.find('input').attributes('placeholder')).toBe('请选择');
+    quarter.unmount();
+
+    const quarters = await mountPicker({ type: 'quarters' });
+    expect(quarters.find('input').attributes('placeholder')).toBe('请选择');
+    quarters.unmount();
+
+    const quarterRange = await mountPicker({ type: 'quarterrange' });
+    expect(
+      quarterRange
+        .findAll('input')
+        .map(input => input.attributes('placeholder'))
+    ).toEqual(['开始日期', '结束日期']);
+    quarterRange.unmount();
+
+    // 显式 placeholder 不被兜底覆盖
+    const explicit = await mountPicker({
+      type: 'quarters',
+      placeholder: '自定义',
+    });
+    expect(explicit.find('input').attributes('placeholder')).toBe('自定义');
+    explicit.unmount();
   });
 
   // ----------------------------------------------------
