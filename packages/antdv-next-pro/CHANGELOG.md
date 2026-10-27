@@ -1,5 +1,22 @@
 # @qin-ui/antdv-next-pro
 
+## 1.5.2
+
+### Patch Changes
+
+- 2b718c0: 新增分页显式值冲突提示：当 `:pagination` 显式设置 `current` / `pageSize` 覆盖 `table.pageParam`，导致宿主回写后分页不更新时，输出一次去重告警。运行时行为保持不变。
+- 325b356: 内部重构：字段禁用取值的三级优先（字段显式 > 外层上下文 > componentVars 默认值）收敛为共享工具 `resolveEffectiveDisabled` 单一实现，两包调用点对齐，无行为变化。
+- 325b356: 统一 `disabled` 取值优先级为「字段 > 表单 > componentVars 默认值」：
+  - antdv-next-pro：修复 `componentVars` 中组件级 `disabled` 默认值在表单未声明 `disabled` 时始终失效的问题；
+  - element-plus-pro：修复表单显式 `disabled={false}` 无法覆盖组件级 `disabled` 默认值的问题。
+
+  显式字段级 `disabled={false}` 仍可解禁；`disabled` 的 `''` / `'disabled'` 字符串形态与宿主 Boolean 解析保持一致。
+
+- 2b718c0: 补充显式 `:columns` 的 key 约定说明：显式列按原样透传给宿主，ProTable 不补齐 `key`，需调用方提供 `key` / `dataIndex` / `prop`；显式模式下 `setColumn` 与列控入口均不生效。
+- Updated dependencies [1573e89]
+- Updated dependencies [1573e89]
+  - @qin-ui/pro-components-core@2.1.1
+
 ## 1.5.1
 
 ### Patch Changes

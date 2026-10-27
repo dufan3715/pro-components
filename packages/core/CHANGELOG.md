@@ -1,5 +1,12 @@
 # @qin-ui/pro-components-core
 
+## 2.1.1
+
+### Patch Changes
+
+- 1573e89: 补充 `useSearchFormExpand` 初值判定边界说明：`Date` / `File` / `RegExp` 等无可枚举自有键的非普通对象按“无值”处理，含可枚举键但值为 `undefined` 的空壳普通对象按“有值”处理。
+- 1573e89: 补充 `resetQueryParams` 的分页重置边界说明：分页按初始化快照合并写，仅恢复快照中存在的键，运行期新增的分页键在重置后保留；搜索条件仍按快照批量覆盖。
+
 ## 2.1.0
 
 ### Minor Changes

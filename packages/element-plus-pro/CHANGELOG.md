@@ -1,5 +1,23 @@
 # @qin-ui/element-plus-pro
 
+## 1.4.2
+
+### Patch Changes
+
+- 325b356: 内部重构：字段禁用取值的三级优先（字段显式 > 外层上下文 > componentVars 默认值）收敛为共享工具 `resolveEffectiveDisabled` 单一实现，两包调用点对齐，无行为变化。
+- 325b356: 统一 `disabled` 取值优先级为「字段 > 表单 > componentVars 默认值」：
+  - antdv-next-pro：修复 `componentVars` 中组件级 `disabled` 默认值在表单未声明 `disabled` 时始终失效的问题；
+  - element-plus-pro：修复表单显式 `disabled={false}` 无法覆盖组件级 `disabled` 默认值的问题。
+
+  显式字段级 `disabled={false}` 仍可解禁；`disabled` 的 `''` / `'disabled'` 字符串形态与宿主 Boolean 解析保持一致。
+
+- 2b718c0: 修复 ProTable 在 pageSize 变更触发页码钳制时重复发起查询的问题：pageSize 变更窗口内忽略宿主级联的 `current-change`，查询仅执行一次，页码稳定回到第 1 页。
+- 325b356: 补齐 `date-picker` 季度族占位符兜底：`quarter` / `quarters` 未显式配置时回落 `date-picker.placeholder`，`quarterrange` 回落开始/结束日期文案，与 `date` / `month` / `year` 族保持一致。
+- 2b718c0: 补充显式 `:columns` 的 key 约定说明：显式列按原样透传给宿主，ProTable 不补齐 `key`，需调用方提供 `key` / `dataIndex` / `prop`；显式模式下 `setColumn` 与列控入口均不生效。
+- Updated dependencies [1573e89]
+- Updated dependencies [1573e89]
+  - @qin-ui/pro-components-core@2.1.1
+
 ## 1.4.1
 
 ### Patch Changes

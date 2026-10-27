@@ -1,5 +1,15 @@
 # @qin-ui/antd-vue-pro
 
+## 2.5.2
+
+### Patch Changes
+
+- 2b718c0: 新增分页显式值冲突提示：当 `:pagination` 显式设置 `current` / `pageSize` 覆盖 `table.pageParam`，导致宿主回写后分页不更新时，输出一次去重告警。运行时行为保持不变。
+- 2b718c0: 补充显式 `:columns` 的 key 约定说明：显式列按原样透传给宿主，ProTable 不补齐 `key`，需调用方提供 `key` / `dataIndex` / `prop`；显式模式下 `setColumn` 与列控入口均不生效。
+- Updated dependencies [1573e89]
+- Updated dependencies [1573e89]
+  - @qin-ui/pro-components-core@2.1.1
+
 ## 2.5.1
 
 ### Patch Changes
