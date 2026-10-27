@@ -1,7 +1,3 @@
----
-aside: false
----
-
 # 联动逻辑处理
 
 使用 computed、ref、watch 三种方式实现表单字段联动。
