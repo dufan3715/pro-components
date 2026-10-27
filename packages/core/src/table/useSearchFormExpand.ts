@@ -357,6 +357,15 @@ export function useSearchFormExpand(
     expandStatus.value = !expandStatus.value;
   };
 
+  /**
+   * 判定字段值是否算作“有值”
+   *
+   * @description 空字符串 / null / undefined / 空数组 / 无可枚举自有键的对象视为无值；
+   * Date / File / RegExp 等无自有键的非普通对象同样视为无值；
+   * `{ key: undefined }` 等含可枚举键的空壳普通对象视为有值。
+   * @param val - 字段值
+   * @returns 是否视为有值
+   */
   const hasFieldValue = (val: any) =>
     val !== null &&
     val !== undefined &&

@@ -228,6 +228,26 @@ describe('useTable', () => {
     expect(searchForm.fields.value.length).toBe(1);
   });
 
+  // TT-47 [判别]: resetQueryParams 对分页为合并写，运行期新增键保留
+  it('TT-47 [判别]: resetQueryParams 仅恢复初始化快照中的分页键，运行期新增键保留', () => {
+    const { pageParam, resetQueryParams } = useTable<any>({
+      pageParam: { current: 3, pageSize: 20, total: 5, sortField: 'id' },
+    });
+    pageParam.deptId = 1;
+    pageParam.sortField = 'name';
+    resetQueryParams();
+    // 快照内键恢复初始值，快照外键保留
+    expect(pageParam.sortField).toBe('id');
+    expect(pageParam.deptId).toBe(1);
+    expect(pageParam).toEqual({
+      current: 3,
+      pageSize: 20,
+      total: 5,
+      sortField: 'id',
+      deptId: 1,
+    });
+  });
+
   it('TT-20 searchForm 独立根表单', () => {
     const { searchForm } = useTable<any>({
       searchParam: { k: 1 },

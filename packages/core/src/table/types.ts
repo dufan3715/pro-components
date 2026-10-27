@@ -39,6 +39,8 @@ export type Columns<
 /**
  * 分页参数
  *
+ * @description `resetQueryParams` 对分页为快照合并写：恢复初始化快照中存在的键，运行期新增的键保留
+ *
  * @example
  * ```ts
  * const pageParam: PageParam = {

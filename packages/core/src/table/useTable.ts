@@ -3,7 +3,8 @@
  * @description 表格状态核心：列配置、数据源、分页参数与搜索表单的统一管理
  *
  * 列操作与整体重赋值共用 `columns`（customRef，读取时幂等补齐缺失 key）；分页写入按
- * `current` / `pageSize` / `total` 白名单过滤；`resetQueryParams` 恢复初始化深拷贝快照（含自定义分页键）；
+ * `current` / `pageSize` / `total` 白名单过滤；`resetQueryParams` 对分页按初始化快照合并写
+ * （仅恢复快照中存在的键，运行期新增键保留），对搜索条件按快照批量覆盖；
  * `searchForm` 为内部 `useForm` 实例。本模块为底层基建，上层组件库做泛型绑定与二次导出。
  */
 import type { Reactive, Ref } from 'vue';
@@ -106,7 +107,12 @@ export type Table<
   ) => void;
   /** 设置分页参数：仅保留 `current` / `pageSize` / `total`（未知 key 丢弃，部分更新只写不删） */
   setPageParam: SetPageParam;
-  /** 重置查询参数：分页与搜索条件恢复到初始化快照（含自定义分页键，非固定回到第一页） */
+  /**
+   * 重置查询参数
+   *
+   * @description 分页按初始化快照合并写：仅恢复快照中存在的键，运行期新增的分页键保留；
+   * 搜索条件按快照批量覆盖。分页不固定回到第一页。
+   */
   resetQueryParams: () => void;
 };
 
@@ -385,7 +391,7 @@ const useTable = <
   );
 
   const resetQueryParams = () => {
-    // 恢复初始化快照（全部 key，含自定义分页键）：分页合并写、搜索走批量覆盖；每次重新深拷贝
+    // 分页按初始化快照合并写（仅恢复快照中存在的键，运行期新增键保留）；搜索走批量覆盖；每次重新深拷贝
     Object.assign(pageParam, cloneDeep(_initPageParam));
     searchForm.setFormData(cloneDeep(_initSearchParam) as any);
   };
