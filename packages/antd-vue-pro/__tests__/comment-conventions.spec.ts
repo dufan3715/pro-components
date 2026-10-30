@@ -17,8 +17,9 @@ const sources = {
   ),
   formTypes: read('../src/components/form/types/index.ts'),
   baseFormItem: read(
-    '../src/components/form/components/BaseFormItem/index.vue'
+    '../src/components/form/components/BaseFormItems/index.vue'
   ),
+  baseFormRow: read('../src/components/form/components/BaseFormItem/index.vue'),
   baseField: read('../src/components/form/components/BaseField/index.vue'),
   searchForm: read('../src/components/table/components/SearchForm.vue'),
   useFields: read('../src/components/form/hooks/useFields.ts'),
@@ -159,5 +160,14 @@ describe('注释规范契约 · antd-vue-pro', () => {
     );
     // 跨包差异已声明，避免与 element 的 prop 口径混用
     expect(formTypes).toContain('element-plus-pro');
+  });
+
+  // ----------------------------------------------------
+  // DOC-08 [判别]: 单字段行与字段列表组件同时受注释契约覆盖
+  // ----------------------------------------------------
+  it('DOC-08 [判别]: BaseFormItem / BaseFormItems 的头块 JSDoc 同时受契约覆盖', () => {
+    expect(sources.baseFormRow).toContain('单字段行渲染组件');
+    expect(sources.baseFormRow).toContain('@component BaseFormItem');
+    expect(sources.baseFormItem).toContain('@component BaseFormItems');
   });
 });

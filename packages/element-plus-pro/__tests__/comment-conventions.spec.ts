@@ -29,8 +29,9 @@ const sources = {
     '../src/components/form/hooks/useGroupFieldAttrs.ts'
   ),
   baseFormItem: read(
-    '../src/components/form/components/BaseFormItem/index.vue'
+    '../src/components/form/components/BaseFormItems/index.vue'
   ),
+  baseFormRow: read('../src/components/form/components/BaseFormItem/index.vue'),
   baseField: read('../src/components/form/components/BaseField/index.vue'),
   proForm: read('../src/components/form/components/ProForm/index.vue'),
   componentProvider: read(
@@ -48,7 +49,7 @@ const antd = {
     '../../antd-vue-pro/src/components/form/hooks/useGroupFieldAttrs.ts'
   ),
   baseFormItem: read(
-    '../../antd-vue-pro/src/components/form/components/BaseFormItem/index.vue'
+    '../../antd-vue-pro/src/components/form/components/BaseFormItems/index.vue'
   ),
   proForm: read(
     '../../antd-vue-pro/src/components/form/components/ProForm/index.vue'
@@ -291,7 +292,7 @@ describe('注释规范契约 · element-plus-pro', () => {
       );
     }
 
-    // BaseFormItem 的 @param 清单与 @internal 位置同构
+    // BaseFormItems 的 @param 清单与 @internal 位置同构
     const baseFormItemLines = [
       ' * @param {Fields} [fields] - 字段配置数组',
       ' * @param {boolean | GridProps} [grid] - 是否启用网格布局',
@@ -413,5 +414,14 @@ describe('注释规范契约 · element-plus-pro', () => {
     expect(docsProTable).not.toContain(
       '其余 el-table 列插槽（如 `el-table-column` 的 `default`、`header` 等）'
     );
+  });
+
+  // ----------------------------------------------------
+  // DOC-12 [判别]: 单字段行与字段列表组件同时受注释契约覆盖
+  // ----------------------------------------------------
+  it('DOC-12 [判别]: BaseFormItem / BaseFormItems 的头块 JSDoc 同时受契约覆盖', () => {
+    expect(sources.baseFormRow).toContain('单字段行渲染组件');
+    expect(sources.baseFormRow).toContain('@component BaseFormItem');
+    expect(sources.baseFormItem).toContain('@component BaseFormItems');
   });
 });

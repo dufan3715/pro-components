@@ -1,133 +1,101 @@
-<script lang="ts" setup>
+<script lang="ts">
 /**
- * 表单字段渲染引擎
+ * 单字段行渲染组件
  *
  * @component BaseFormItem
  *
- * 将字段配置数组渲染为实际的表单项，支持：
- * - 字段分组（嵌套 fields 递归渲染）
- * - Field 包装（label、rules、校验等）
- * - 组件绑定（通过 BaseField 渲染具体组件，如 Popup 选择器等）
- * - 插槽透传（label 等 Field 插槽）
+ * 将单个字段配置渲染为控件或嵌套分组，支持：
+ * - 字段属性与容器拆分
+ * - 嵌套字段递归渲染（交由 BaseFormItems）
+ * - 控件实例登记
  *
- * ## 渲染流程
- *
- * 1. 遍历 fields 数组，过滤 hidden 字段
- * 2. 将字段配置分流为组件属性、外层容器与渲染 key
- * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
- *
- * @param {Fields} [fields] - 字段配置数组
- * @param {boolean} [disabled] - 是否禁用所有子字段
+ * @param {Field} field - 字段配置
+ * @param {boolean} [disabled] - 上层下发的禁用状态
+ * @param {Function} [setComponentRef] - 控件实例登记回调
  *
  * @internal
  */
-import { computed, toRaw, toValue } from 'vue';
-import { isObjectItem } from '../../../../shared/core';
-import type { Fields } from '../../types';
+import {
+  computed,
+  defineComponent,
+  h,
+  toValue,
+  watch,
+  type PropType,
+} from 'vue';
+import type { Field } from '../../types';
 import BaseField from '../BaseField/index.vue';
-import ContainerFragment from '../ContainerFragment/index.vue';
-import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
+import BaseFormItems from '../BaseFormItems/index.vue';
+import { useGroupedField } from '../../hooks/useGroupFieldAttrs';
 
-defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
+export default defineComponent({
+  name: 'BaseFormItem',
+  inheritAttrs: false,
+  props: {
+    /** 字段配置 */
+    field: { type: Object as PropType<Field>, required: true },
+    /** 上层下发的禁用状态 */
+    disabled: { type: Boolean, default: undefined },
+    /** 控件实例登记回调 */
+    setComponentRef: {
+      type: Function as PropType<(field: Field, el: any) => void>,
+      default: undefined,
+    },
+  },
+  setup(props) {
+    const grouped = useGroupedField(() => props.field);
 
-type Props = {
-  /** 字段配置数组 */
-  fields?: Fields;
-  /** 是否禁用所有子字段 */
-  disabled?: boolean;
-};
-
-const props = withDefaults(defineProps<Props>(), {
-  fields: () => [],
-  disabled: undefined,
-});
-
-const validFields = computed(() => {
-  const f = toValue(props.fields);
-  if (!Array.isArray(f)) return [];
-  // hidden 支持 Ref / ComputedRef 响应式形态（统一使用 toValue 取值）
-  return f.filter(field => isObjectItem(field) && !toValue(field.hidden));
-});
-
-const groupedFields = useGroupFieldAttrs(validFields);
-
-/** 已告警过的字段对象（不可写场景去重） */
-const warnedFrozenFields = new WeakSet<object>();
-const defineFieldAccessors = (
-  raw: object,
-  accessors: Record<string, () => any>
-) => {
-  try {
-    for (const [key, getter] of Object.entries(accessors)) {
-      // 访问器仅用于字段对象读取，不参与属性遍历与字段配置透传
-      Object.defineProperty(raw, key, {
-        value: getter,
-        enumerable: false,
-        configurable: true,
-        writable: true,
-      });
-    }
-  } catch {
-    if (!warnedFrozenFields.has(raw)) {
-      warnedFrozenFields.add(raw);
-      console.warn(
-        '[pro-components] 字段配置对象不可写（如被 Object.freeze），getComponentRef 等实例访问器挂载失败。'
-      );
-    }
-  }
-};
-
-/*
- * 以字段原始对象（toRaw）为 key 登记控件实例，挂接 getComponentRef 等访问器供业务层调用；
- * 随字段回收自动释放
- */
-const componentRefMap = new WeakMap<object, any>();
-const setComponentRef = (field: any, el: any) => {
-  if (!field || typeof field !== 'object') return;
-  const raw = toRaw(field);
-  if (el) {
-    componentRefMap.set(raw, el);
-    defineFieldAccessors(raw, {
-      getComponentRef: () => componentRefMap.get(raw)?.getComponentRef?.(),
-      getComponentComputedProps: () =>
-        componentRefMap.get(raw)?.getComponentComputedProps?.(),
+    // 控件级配置身份：字符串组件名；组件对象无 Provider 配置，使用固定值
+    const componentKey = computed(() => {
+      const field = props.field as any;
+      const component = toValue(field.component);
+      if (typeof component !== 'string') return 'component-object';
+      return `string:${component}`;
     });
-  } else {
-    componentRefMap.delete(raw);
-    delete (raw as any).getComponentRef;
-    delete (raw as any).getComponentComputedProps;
-  }
-};
 
-defineExpose({
-  getComponentRef: (rawField: object) =>
-    componentRefMap.get(toRaw(rawField))?.getComponentRef?.(),
-  getComponentComputedProps: (rawField: object) =>
-    componentRefMap.get(toRaw(rawField))?.getComponentComputedProps?.(),
+    const setFieldRef = (el: any) => {
+      props.setComponentRef?.(props.field, el);
+    };
+
+    // 字段对象变化后，控件实例访问器归属当前字段
+    watch(
+      () => props.field,
+      (next, prev) => {
+        if (!prev || prev === next) return;
+        props.setComponentRef?.(prev, null);
+      },
+      { flush: 'pre' }
+    );
+
+    return () => {
+      const groupedField = grouped.value;
+      const field = props.field as any;
+
+      if (field.fields) {
+        const nested = h(BaseFormItems as any, {
+          fields: field.fields,
+          disabled: toValue(field.disabled) ?? props.disabled,
+        });
+        return groupedField.fieldContainer
+          ? h(
+              groupedField.fieldContainer,
+              {
+                path: groupedField.path,
+                ...groupedField.componentProps,
+              },
+              { default: () => nested }
+            )
+          : nested;
+      }
+
+      return h(BaseField as any, {
+        key: componentKey.value,
+        ref: setFieldRef,
+        ...groupedField.componentProps,
+        path: groupedField.path,
+        disabled: groupedField.componentProps.disabled ?? props.disabled,
+      });
+    };
+  },
 });
 </script>
-
-<template>
-  <template v-for="item in groupedFields" :key="item.renderKey">
-    <template v-if="item.rawField.fields">
-      <ContainerFragment
-        :component="item.fieldContainer"
-        :path="item.path"
-        v-bind="item.componentProps"
-      >
-        <BaseFormItem
-          :fields="item.rawField.fields"
-          :disabled="toValue(item.rawField.disabled) ?? props.disabled"
-        />
-      </ContainerFragment>
-    </template>
-    <template v-else>
-      <BaseField
-        :ref="(el: any) => setComponentRef(item.rawField, el)"
-        v-bind="item.componentProps"
-        :disabled="item.componentProps.disabled ?? props.disabled"
-        :path="item.path"
-      />
-    </template>
-  </template>
-</template>

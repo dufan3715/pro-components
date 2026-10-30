@@ -710,4 +710,160 @@ describe('BaseField 组件测试', () => {
     wrapper.unmount();
     document.body.innerHTML = '';
   });
+
+  // ----------------------------------------------------
+  // BF-A23 [判别]: formatter 归一化后存储值未变时不触发校验
+  // ----------------------------------------------------
+  it('BF-A23 [判别]: 尾空格 formatter 归一化回原值时跳过字段校验，实际变更才校验', async () => {
+    let validators = 0;
+    const form = useForm({ name: 'bob' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'input',
+        valueFormatter: (val: any) => String(val).trim(),
+        rules: [
+          {
+            validator: () => {
+              validators += 1;
+              return Promise.resolve();
+            },
+          },
+        ],
+      },
+    ]);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    validators = 0;
+    const input = wrapper.find('input');
+    await input.setValue('bob ');
+    await flushPromises();
+    // 判别点：格式化后仍为 bob，formData 未变，不应产生校验
+    expect(validators).toBe(0);
+    expect(form.getFormData('name')).toBe('bob');
+
+    await input.setValue('alice');
+    await flushPromises();
+    expect(validators).toBe(1);
+    expect(form.getFormData('name')).toBe('alice');
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
+  });
+
+  // ----------------------------------------------------
+  // BF-A24 [判别]: 同一 tick 多次值变更合并为一次校验，取最终值
+  // ----------------------------------------------------
+  it('BF-A24 [判别]: 同一 tick 连续两次写入合并为一次校验，校验取最终值', async () => {
+    let validators = 0;
+    const validatedValues: unknown[] = [];
+    const EmitTwice = defineComponent({
+      name: 'EmitTwice',
+      props: { value: { type: String, default: '' } },
+      emits: ['update:value'],
+      setup(_, { emit }) {
+        return () =>
+          h(
+            'button',
+            {
+              class: 'emit-twice',
+              type: 'button',
+              onClick: () => {
+                emit('update:value', 'ab');
+                emit('update:value', 'abc');
+              },
+            },
+            'emit'
+          );
+      },
+    });
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: EmitTwice,
+        rules: [
+          {
+            validator: (_: any, value: unknown) => {
+              validators += 1;
+              validatedValues.push(value);
+              return Promise.resolve();
+            },
+          },
+        ],
+      },
+    ] as any);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    validators = 0;
+    await wrapper.find('button.emit-twice').trigger('click');
+    await flushPromises();
+    expect(validators).toBe(1);
+    expect(validatedValues).toEqual(['abc']);
+    expect(form.getFormData('name')).toBe('abc');
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
+  });
+
+  // ----------------------------------------------------
+  // BF-A25 [判别]: 卸载后未发送的合并变更通知不再触发校验
+  // ----------------------------------------------------
+  it('BF-A25 [判别]: 输入后同一 tick 卸载，未发送的合并通知不再触发校验', async () => {
+    let validators = 0;
+    const CustomInput = defineComponent({
+      name: 'UnmountValidationInput',
+      props: { value: { type: String, default: '' } },
+      emits: ['update:value'],
+      setup(_, { emit }) {
+        return () =>
+          h('input', {
+            class: 'unmount-validation-input',
+            onInput: (event: Event) =>
+              emit('update:value', (event.target as HTMLInputElement).value),
+          });
+      },
+    });
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        component: CustomInput,
+        rules: [
+          {
+            validator: () => {
+              validators += 1;
+              return Promise.resolve();
+            },
+          },
+        ],
+      },
+    ]);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    validators = 0;
+    const input = wrapper.find('.unmount-validation-input');
+    (input.element as HTMLInputElement).value = 'x';
+    void input.trigger('input');
+    wrapper.unmount();
+    await flushPromises();
+
+    expect(form.getFormData('name')).toBe('x');
+    expect(validators).toBe(0);
+    document.body.innerHTML = '';
+  });
 });

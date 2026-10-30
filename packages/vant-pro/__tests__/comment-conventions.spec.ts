@@ -26,8 +26,9 @@ const sources = {
     '../src/components/form/components/SlotComponent/index.vue'
   ),
   baseFormItem: read(
-    '../src/components/form/components/BaseFormItem/index.vue'
+    '../src/components/form/components/BaseFormItems/index.vue'
   ),
+  baseFormRow: read('../src/components/form/components/BaseFormItem/index.vue'),
   baseField: read('../src/components/form/components/BaseField/index.vue'),
   proForm: read('../src/components/form/components/ProForm/index.vue'),
 };
@@ -165,5 +166,14 @@ describe('注释规范契约 · vant-pro', () => {
       []
     );
     expect(vue, `无 JSDoc 头块的 .vue：\n${vue.join('\n')}`).toEqual([]);
+  });
+
+  // ----------------------------------------------------
+  // DOC-08 [判别]: 单字段行与字段列表组件同时受注释契约覆盖
+  // ----------------------------------------------------
+  it('DOC-08 [判别]: BaseFormItem / BaseFormItems 的头块 JSDoc 同时受契约覆盖', () => {
+    expect(sources.baseFormRow).toContain('单字段行渲染组件');
+    expect(sources.baseFormRow).toContain('@component BaseFormItem');
+    expect(sources.baseFormItem).toContain('@component BaseFormItems');
   });
 });

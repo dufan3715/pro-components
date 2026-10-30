@@ -1,5 +1,9 @@
-import { computed, type ComputedRef } from 'vue';
-import { getFieldKey } from '../utils/fieldKey';
+import {
+  computed,
+  toValue,
+  type ComputedRef,
+  type MaybeRefOrGetter,
+} from 'vue';
 import { isPlainObject, resolveFieldIdentity } from '../../../shared/core';
 import type { Field } from '../types';
 
@@ -13,9 +17,27 @@ export interface GroupedField {
   fieldContainer?: any;
   /** 字段原始对象，供实例登记与访问器挂载使用 */
   rawField: Field;
-  /** 渲染 key，取自字段对象身份 */
-  renderKey: string | number;
 }
+
+/** 将单个字段配置拆分为字段属性与容器分组 */
+const groupField = (field: Field): GroupedField => {
+  let componentProps: Record<string, any> = {};
+  let fieldContainer: any = undefined;
+
+  if (isPlainObject(field)) {
+    // prettier-ignore
+    const { path: _path, name: _name, fieldContainer: fc, fields, hidden, extraProps, ...rest } = field as any;
+    componentProps = rest;
+    fieldContainer = fc;
+  }
+
+  return {
+    path: resolveFieldIdentity(field),
+    componentProps,
+    fieldContainer,
+    rawField: field,
+  };
+};
 
 /**
  * 将 fields 配置数组逐个拆分为字段属性与容器分组
@@ -25,30 +47,23 @@ export interface GroupedField {
  * 2. `extraProps` 保留在字段原始对象上供业务层存取，不落入字段属性；
  * 3. `hidden` 字段由调用方在上游过滤。
  *
- * @param validFields - 已过滤隐藏字段的字段配置数组
+ * @param {ComputedRef<Field[]>} validFields - 已过滤隐藏字段的字段配置数组
  * @returns 字段渲染分组数组
  */
 export function useGroupFieldAttrs(validFields: ComputedRef<Field[]>) {
   return computed<GroupedField[]>(() => {
-    return validFields.value.map(field => {
-      let componentProps: Record<string, any> = {};
-      let fieldContainer: any = undefined;
-
-      if (isPlainObject(field)) {
-        // prettier-ignore
-        const { path: _path, name: _name, fieldContainer: fc, fields, hidden, extraProps, ...rest } = field as any;
-        componentProps = rest;
-        fieldContainer = fc;
-      }
-
-      const raw = resolveFieldIdentity(field);
-      return {
-        path: raw,
-        componentProps,
-        fieldContainer,
-        rawField: field,
-        renderKey: getFieldKey(field),
-      };
-    });
+    return validFields.value.map(field => groupField(field));
   });
+}
+
+/**
+ * 将单个字段配置拆分为字段属性与容器分组
+ *
+ * @description 拆分规则与 `useGroupFieldAttrs` 一致，结果依赖该字段自身配置。
+ *
+ * @param {MaybeRefOrGetter<Field>} field - 待拆分的字段配置
+ * @returns {ComputedRef<GroupedField>} 单字段渲染分组
+ */
+export function useGroupedField(field: MaybeRefOrGetter<Field>) {
+  return computed<GroupedField>(() => groupField(toValue(field)));
 }

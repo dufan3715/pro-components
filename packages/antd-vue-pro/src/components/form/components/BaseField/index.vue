@@ -33,6 +33,7 @@ import {
   computed,
   inject,
   mergeProps,
+  onBeforeUnmount,
   ref,
   toValue,
 } from 'vue';
@@ -62,6 +63,9 @@ import { useLocale } from '../../../../locale';
 const cloneDeepIfObject = (val: unknown) =>
   // 原始值直接传递，引用值克隆快照
   typeof val === 'object' && val !== null ? cloneDeep(val) : val;
+
+/** SameValueZero 同值判定（`0` / `-0`、`NaN` / `NaN` 视为同值） */
+const isSameValue = (a: unknown, b: unknown) => a === b || (a !== a && b !== b);
 
 defineOptions({ name: 'BaseField', inheritAttrs: false });
 
@@ -99,10 +103,25 @@ useProvideFormItemContext({
   clearValidate: formItemContext.clearValidate,
 });
 
-// 值写入 formData 后向外广播，由 BaseFormItem 触发所属 FormItem 校验
+/*
+ * 值变更通知按微任务合并：同一 tick 多次写入只回传最后一次；
+ * 组件卸载时未发送的通知不再发出
+ */
+let pendingChange = false;
+let pendingChangeValue: unknown;
 const triggerFormItemChange = (value: unknown) => {
-  emit('field-value-change', value);
+  pendingChangeValue = value;
+  if (pendingChange) return;
+  pendingChange = true;
+  queueMicrotask(() => {
+    if (!pendingChange) return;
+    pendingChange = false;
+    emit('field-value-change', pendingChangeValue);
+  });
 };
+onBeforeUnmount(() => {
+  pendingChange = false;
+});
 
 const attrs: any = useReactiveAttrs();
 
@@ -148,17 +167,19 @@ const value = computed({
             typeof valueFormatter?.set === 'function'
           ? valueFormatter.set
           : undefined;
+    const oldVal = form.getFormData?.(props.path);
 
     if (setFormatter) {
       // 旧值仅在 set 转换函数声明双形参时注入
-      const oldVal =
-        setFormatter.length > 1
-          ? cloneDeepIfObject(form.getFormData?.(props.path))
-          : undefined;
-      newVal = setFormatter(val, oldVal);
+      newVal = setFormatter(
+        val,
+        setFormatter.length > 1 ? cloneDeepIfObject(oldVal) : undefined
+      );
     }
-    form.setFormData?.(props.path, newVal);
-    triggerFormItemChange(newVal);
+    if (!isSameValue(newVal, oldVal)) {
+      form.setFormData?.(props.path, newVal);
+      triggerFormItemChange(newVal);
+    }
     // 字段配置/attrs 传入的 onUpdate:* 监听器与内部写值组合回放，参数为组件原始 emit 值
     const { onUpdateValue } = groupedAttrs.value;
     if (typeof onUpdateValue === 'function') {

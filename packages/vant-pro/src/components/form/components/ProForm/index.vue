@@ -7,12 +7,12 @@
  *
  * 架构设计说明 (Architecture Overview)
  *
- * [ 数据层 (Core) ]  =>  [ 绑定层 (ProForm) ]  =>  [ 渲染层 (BaseFormItem / BaseField) ]
+ * [ 数据层 (Core) ]  =>  [ 绑定层 (ProForm) ]  =>  [ 渲染层 (BaseFormItems / BaseFormItem / BaseField) ]
  *
  * 1. 数据隔离：ProForm 本身不负责存储和管理表单状态，所有核心状态（formData, fields, 校验规则）
  *    均交由底层的 `useForm`（@qin-ui/pro-components-core）驱动。
  * 2. 上下文透传：通过 `provide` 将核心状态下发给子组件。
- * 3. 递归渲染：具体字段的解析交由 `<BaseFormItem>` 递归完成。
+ * 3. 递归渲染：具体字段的解析交由 `<BaseFormItems>` 递归完成。
  *
  * 支持：
  * - 字段联动、嵌套字段、自定义组件
@@ -45,7 +45,7 @@ import {
   type Slot,
 } from 'vue';
 import { INJECT_CONFIG } from '../../../component-provider/constants';
-import BaseFormItem from '../BaseFormItem/index.vue';
+import BaseFormItems from '../BaseFormItems/index.vue';
 import { InjectionFormKey, InjectionFormSlotsKey } from '../../constants';
 import type { VModelProps, PathProps } from '../../types';
 import type { Path } from '../../../../shared/core';
@@ -179,7 +179,7 @@ const formDisabled = computed(() => {
     class="pro-form"
     @submit.prevent
   >
-    <BaseFormItem :fields="fields" :disabled="formDisabled" />
+    <BaseFormItems :fields="fields" :disabled="formDisabled" />
 
     <Popup
       v-if="currentForm?.formPopup"

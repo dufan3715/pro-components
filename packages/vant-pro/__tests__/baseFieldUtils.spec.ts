@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { computed } from 'vue';
 import { getInitProps } from '../src/components/form/components/BaseField/utils';
 import { useGroupFieldAttrs } from '../src/components/form/hooks/useGroupFieldAttrs';
-import { getFieldKey } from '../src/components/form/utils/fieldKey';
 import { dispatchListeners } from '../src/components/form/utils/listeners';
 
 describe('BaseField utils 与字段属性分组测试 (vant-pro)', () => {
@@ -48,7 +47,7 @@ describe('BaseField utils 与字段属性分组测试 (vant-pro)', () => {
   // ----------------------------------------------------
   // VP-F15 [判别]: useGroupFieldAttrs 分组
   // ----------------------------------------------------
-  it('VP-F15 [判别]: useGroupFieldAttrs 解析字段标识、剥离容器属性并绑定字段渲染 key', () => {
+  it('VP-F15 [判别]: useGroupFieldAttrs 解析字段标识并剥离容器属性', () => {
     const container = { name: 'Section' };
     const childField = {
       path: 'user.child',
@@ -88,11 +87,8 @@ describe('BaseField utils 与字段属性分组测试 (vant-pro)', () => {
     });
     expect(grouped[0].fieldContainer).toBe(container);
 
-    // 原始字段引用与稳定渲染 key（以字段对象身份分配，非路径字面量）
+    // 原始字段引用保留
     expect(grouped[0].rawField).toBe(firstField);
-    expect(grouped[0].renderKey).toBe(getFieldKey(firstField));
-    expect(typeof grouped[0].renderKey).toBe('number');
-    expect(grouped[0].renderKey).not.toBe(grouped[1].renderKey);
   });
 
   // ----------------------------------------------------

@@ -1,205 +1,174 @@
-<script lang="ts" setup>
+<script lang="ts">
 /**
- * 表单字段渲染引擎
+ * 单字段行渲染组件
  *
  * @component BaseFormItem
  *
- * 负责将字段配置数组渲染为实际的表单项，支持：
- * - 字段分组（嵌套 fields 递归渲染，嵌套字段 path 须为完整点分路径）
- * - 网格布局（grid 属性控制）
- * - FormItem 包装（label、rules、校验等）
- * - 组件绑定（通过 BaseField 渲染具体组件）
- * - 插槽透传（label、error 等 FormItem 插槽）
+ * 将单个字段配置渲染为栅格项、FormItem 与控件，支持：
+ * - 字段属性分流（grid / formItem / component / slots）
+ * - 嵌套字段递归渲染（交由 BaseFormItems）
+ * - FormItem / 控件实例登记
  *
- * ## 渲染流程
- *
- * 1. 遍历 fields 数组，过滤 hidden 字段
- * 2. 通过 useGroupFieldAttrs Hook 纯计算将 field 配置拆分为 gridItemProps / formItemProps / componentProps / slots
- * 3. 递归渲染 BaseFormItem（嵌套表单）或 BaseField（输入组件）
- * 4. 通过 ref 回调收集 FormItem 和 Component 实例，注入到 field 对象上
- *
- * @param {Fields} [fields] - 字段配置数组
+ * @param {Field} field - 字段配置
  * @param {boolean | GridProps} [grid] - 是否启用网格布局
- * @param {boolean} [disabled] - 是否禁用所有子字段
+ * @param {boolean} [disabled] - 上层下发的禁用状态
+ * @param {Function} [setFormItemRef] - FormItem 实例登记回调
+ * @param {Function} [setComponentRef] - 控件实例登记回调
  *
  * @internal
  */
 import {
-  getObject,
-  isObjectItem,
-  normalizePathKey,
-} from '../../../../shared/core';
-import type { GridProps } from '../../../../shared/ui';
-import {
-  FormItem,
-  Grid as ElGrid,
-  GridItem as ElGridItem,
-  useProviderDisabled,
-} from '../../../../shared/ui';
-import { computed, inject, toRaw, toValue } from 'vue';
-import type { Fields, Grid } from '../../types';
+  computed,
+  defineComponent,
+  h,
+  toValue,
+  watch,
+  type PropType,
+  type VNode,
+} from 'vue';
+import { normalizePathKey } from '../../../../shared/core';
+import { FormItem, GridItem as ElGridItem } from '../../../../shared/ui';
+import type { Field, Grid } from '../../types';
 import BaseField from '../BaseField/index.vue';
+import BaseFormItems from '../BaseFormItems/index.vue';
 import SlotComponent from '../SlotComponent/index.vue';
-import ContainerFragment from '../ContainerFragment/index.vue';
-import { useGroupFieldAttrs } from '../../hooks/useGroupFieldAttrs';
-import { INJECT_CONFIG } from '../../../component-provider/constants';
+import {
+  useGroupedField,
+  type GroupedField,
+} from '../../hooks/useGroupFieldAttrs';
 
-defineOptions({ name: 'BaseFormItem', inheritAttrs: false });
+export default defineComponent({
+  name: 'BaseFormItem',
+  inheritAttrs: false,
+  props: {
+    /** 字段配置 */
+    field: { type: Object as PropType<Field>, required: true },
+    /** 是否启用网格布局 */
+    grid: {
+      type: [Boolean, Object] as PropType<Grid>,
+      default: undefined,
+    },
+    /** 上层下发的禁用状态 */
+    disabled: { type: Boolean, default: undefined },
+    /** FormItem 实例登记回调 */
+    setFormItemRef: {
+      type: Function as PropType<
+        (field: Field, el: any, getFormItemProps: () => any) => void
+      >,
+      default: undefined,
+    },
+    /** 控件实例登记回调 */
+    setComponentRef: {
+      type: Function as PropType<(field: Field, el: any) => void>,
+      default: undefined,
+    },
+  },
+  setup(props) {
+    const grouped = useGroupedField(() => props.field);
+    const enableGrid = computed(() => !!props.grid);
 
-type Props = {
-  grid?: Grid;
-  fields?: Fields;
-  disabled?: boolean;
-};
-const props = withDefaults(defineProps<Props>(), {
-  grid: undefined,
-  fields: () => [],
-  disabled: undefined,
-});
+    // 控件级配置身份：字符串组件名 + type 段；组件对象无 Provider 配置，使用固定值
+    const componentKey = computed(() => {
+      const field = props.field as any;
+      const component = toValue(field.component);
+      if (typeof component !== 'string') return 'component-object';
+      return `string:${component}:${toValue(field.type) ?? ''}`;
+    });
+    const effectiveDisabled = computed(
+      () => toValue(props.field.disabled) ?? props.disabled
+    );
 
-// 分组字段的禁用状态向下注入，供 BaseField 经禁用上下文消费
-useProviderDisabled(computed(() => props.disabled));
-
-const validFields = computed(() =>
-  // hidden 支持 Ref / ComputedRef 响应式形态（统一使用 toValue 取值）
-  (props.fields ?? []).filter(
-    field => isObjectItem(field) && !toValue((field as any).hidden)
-  )
-);
-
-const config = INJECT_CONFIG['pro-form'];
-const injectFormConfig = inject(config.injectionKey, config.default);
-const injectGrid = computed(() => toValue(injectFormConfig)?.grid);
-
-const enableGrid = computed(() => !!props.grid);
-
-const computedGridProps = computed<GridProps>(() => {
-  return enableGrid.value
-    ? { ...getObject(injectGrid.value), ...getObject(props.grid) }
-    : {};
-});
-
-/**
- * 以字段原始对象为 key 登记 FormItem / 控件实例，供 getFormItemRef / getComponentRef 读取；
- * 字段对象被回收后对应条目不再可读。
- */
-const formItemInstanceMap = new WeakMap<object, any>();
-const componentInstanceMap = new WeakMap<object, any>();
-
-/** 已告警过的字段对象（不可写场景去重） */
-const warnedFrozenFields = new WeakSet<object>();
-const defineFieldAccessors = (
-  raw: object,
-  accessors: Record<string, () => any>
-) => {
-  try {
-    for (const [key, getter] of Object.entries(accessors)) {
-      // 访问器仅用于字段对象读取，不参与属性遍历与字段配置透传
-      Object.defineProperty(raw, key, {
-        value: getter,
-        enumerable: false,
-        configurable: true,
-        writable: true,
-      });
-    }
-  } catch {
-    if (!warnedFrozenFields.has(raw)) {
-      warnedFrozenFields.add(raw);
-      console.warn(
-        '[pro-components] 字段配置对象不可写（如被 Object.freeze），getFormItemRef / getComponentRef 等实例访问器挂载失败。'
+    const setItemRef = (el: any) => {
+      props.setFormItemRef?.(
+        props.field,
+        el,
+        () => grouped.value.formItemProps
       );
-    }
-  }
-};
+    };
 
-const setFormItemRef = (field: any, el: any, formItemProps?: any) => {
-  if (!field || typeof field !== 'object') return;
-  const raw = toRaw(field);
-  if (el) {
-    formItemInstanceMap.set(raw, el);
-    defineFieldAccessors(raw, {
-      getFormItemRef: () => formItemInstanceMap.get(raw),
-      getFormItemComputedProps: () => formItemProps,
-    });
-  } else {
-    formItemInstanceMap.delete(raw);
-    delete raw.getFormItemRef;
-    delete raw.getFormItemComputedProps;
-  }
-};
+    const setFieldRef = (el: any) => {
+      props.setComponentRef?.(props.field, el);
+    };
 
-const setComponentRef = (field: any, el: any) => {
-  if (!field || typeof field !== 'object') return;
-  const raw = toRaw(field);
-  if (el) {
-    componentInstanceMap.set(raw, el);
-    defineFieldAccessors(raw, {
-      getComponentRef: () => componentInstanceMap.get(raw)?.getComponentRef(),
-      getComponentComputedProps: () =>
-        componentInstanceMap.get(raw)?.getComponentComputedProps(),
-    });
-  } else {
-    componentInstanceMap.delete(raw);
-    delete raw.getComponentRef;
-    delete raw.getComponentComputedProps;
-  }
-};
+    // 字段对象变化后，实例访问器归属当前字段
+    watch(
+      () => props.field,
+      (next, prev) => {
+        if (!prev || prev === next) return;
+        props.setFormItemRef?.(prev, null, () => grouped.value.formItemProps);
+        props.setComponentRef?.(prev, null);
+      },
+      { flush: 'pre' }
+    );
 
-const groupedFields = useGroupFieldAttrs(validFields);
+    /** 按容器组件逐层包裹当前节点 */
+    const withContainer = (
+      node: VNode,
+      component: any,
+      containerProps: Record<string, any>
+    ): VNode =>
+      component ? h(component, containerProps, { default: () => node }) : node;
+
+    /** 组装 FormItem 的动态插槽与默认插槽 */
+    const renderFormItemSlots = (groupedField: GroupedField) => {
+      const slots: Record<string, any> = {};
+      Object.entries(groupedField.formItemSlots).forEach(([name, slot]) => {
+        slots[name] = (scope?: Record<string, any>) =>
+          h(SlotComponent as any, {
+            path: groupedField.path,
+            component: slot,
+            ...(scope || {}),
+          });
+      });
+
+      slots.default = () => {
+        const field = props.field as any;
+        if (field.fields) {
+          return h(BaseFormItems as any, {
+            grid: field.grid ?? props.grid,
+            fields: field.fields,
+            disabled: effectiveDisabled.value,
+          });
+        }
+        return h(BaseField as any, {
+          key: componentKey.value,
+          ref: setFieldRef,
+          ...groupedField.componentProps,
+          path: groupedField.path,
+          disabled: effectiveDisabled.value,
+        });
+      };
+      return slots;
+    };
+
+    return () => {
+      const groupedField = grouped.value;
+      let node: VNode = h(
+        FormItem as any,
+        {
+          ...groupedField.formItemProps,
+          ref: setItemRef,
+          prop: normalizePathKey(groupedField.path),
+          path: groupedField.path,
+        },
+        renderFormItemSlots(groupedField)
+      );
+      node = withContainer(node, groupedField.container, {
+        path: groupedField.path,
+      });
+      node = withContainer(
+        node,
+        enableGrid.value ? ElGridItem : undefined,
+        groupedField.gridItemProps
+      );
+      return node;
+    };
+  },
+});
 </script>
 
-<template>
-  <ContainerFragment
-    :component="enableGrid ? ElGrid : undefined"
-    v-bind="computedGridProps"
-    style="width: 100%"
-  >
-    <template v-for="item of groupedFields" :key="item.renderKey">
-      <ContainerFragment
-        :component="enableGrid ? ElGridItem : undefined"
-        v-bind="item.gridItemProps"
-      >
-        <ContainerFragment :component="item.container" :path="item.path">
-          <FormItem
-            v-bind="item.formItemProps"
-            :ref="el => setFormItemRef(item.rawField, el, item.formItemProps)"
-            :prop="normalizePathKey(item.path)"
-            :path="item.path"
-          >
-            <template
-              v-for="(slot, name) in item.formItemSlots"
-              :key="name"
-              #[name]="scoped"
-            >
-              <SlotComponent
-                :path="item.path"
-                :component="slot"
-                v-bind="scoped"
-              />
-            </template>
-            <template v-if="item.rawField.fields">
-              <BaseFormItem
-                :grid="(item.rawField as any).grid ?? props.grid"
-                :fields="item.rawField.fields"
-                :disabled="toValue(item.rawField.disabled) ?? props.disabled"
-              />
-            </template>
-            <template v-else>
-              <BaseField
-                :ref="el => setComponentRef(item.rawField, el)"
-                v-bind="item.componentProps"
-                :path="item.path"
-                :disabled="toValue(item.rawField.disabled) ?? props.disabled"
-              />
-            </template>
-          </FormItem>
-        </ContainerFragment>
-      </ContainerFragment>
-    </template>
-  </ContainerFragment>
-</template>
-
 <style scoped lang="less">
+/* 分组字段的嵌套 FormItem 间距 */
 [class*='-form-item'] [class*='-form-item'] {
   margin-bottom: 18px;
 }

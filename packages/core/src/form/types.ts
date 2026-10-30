@@ -76,7 +76,7 @@ export type Fields<
 > = F[];
 
 /**
- * 字段实例暴露的额外方法（由适配层 BaseFormItem 实现）
+ * 字段实例暴露的额外方法（由适配层 BaseFormItems 实现）
  * @template FormItemInstance - FormItem 组件实例类型
  */
 export type AdditionalMethods<FormItemInstance> = {

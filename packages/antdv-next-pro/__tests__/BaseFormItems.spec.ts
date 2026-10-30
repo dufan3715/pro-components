@@ -1,13 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h } from 'vue';
+import { computed, defineComponent, h, markRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
-import { ElFormItem, ElInput } from 'element-plus';
+import { FormItem } from '../src/shared/ui';
+import ContainerFragment from '../src/components/form/components/ContainerFragment/index.vue';
+import BaseFormItem from '../src/components/form/components/BaseFormItem/index.vue';
+import BaseFormItems from '../src/components/form/components/BaseFormItems/index.vue';
 import type { Field } from '../src/components/form/types';
 
-describe('BaseFormItem 组件测试', () => {
+describe('BaseFormItems 组件测试', () => {
   // ----------------------------------------------------
   // BI-A3 [判别]: WeakMap 实例绑定，直接变异 fields.value.splice 不发生索引错位
   // ----------------------------------------------------
@@ -26,14 +29,17 @@ describe('BaseFormItem 组件测试', () => {
     await flushPromises();
 
     // 挂载后各字段获得 getFormItemRef
-    const f1Ref = f1.getFormItemRef?.();
-    const f2Ref = f2.getFormItemRef?.();
-    const f3Ref = f3.getFormItemRef?.();
+    const f1Ref = (f1 as any).getFormItemRef?.();
+    const f2Ref = (f2 as any).getFormItemRef?.();
+    const f3Ref = (f3 as any).getFormItemRef?.();
 
     expect(f1Ref).toBeDefined();
     expect(f2Ref).toBeDefined();
     expect(f3Ref).toBeDefined();
-    expect(f1Ref).not.toBe(f2Ref);
+    // 实例身份以内部实例 uid 比对：直接比较组件代理会触发 Vue 的实例键枚举告警
+    const instanceUid = (ref: any) => ref?.$?.uid;
+    expect(instanceUid(f1Ref)).not.toBe(instanceUid(f2Ref));
+    expect(instanceUid(f2Ref)).not.toBe(instanceUid(f3Ref));
 
     // 直接变异 fields: 删除头部 f1
     form.fields.value.splice(0, 1);
@@ -192,9 +198,9 @@ describe('BaseFormItem 组件测试', () => {
     });
 
     await flushPromises();
-    const items = wrapper.findAllComponents(ElFormItem);
+    const items = wrapper.findAllComponents(FormItem);
     expect(items.length).toBe(2);
-    expect(items.some(i => (i.props() as any).prop === 'hidden1')).toBe(false);
+    expect(items.some(i => (i.props() as any).path === 'hidden1')).toBe(false);
     wrapper.unmount();
   });
 
@@ -215,24 +221,24 @@ describe('BaseFormItem 组件测试', () => {
     });
 
     await flushPromises();
-    const col = wrapper.find('.el-col-12');
+    const col = wrapper.find('.ant-col-12');
     expect(col.exists()).toBe(true);
     wrapper.unmount();
   });
 
   // ----------------------------------------------------
-  // BI-03: FormItem 插槽透传 (label / error 等)
+  // BI-03: FormItem 插槽透传 (extra / help)
   // ----------------------------------------------------
-  it('BI-03: 支持通过字段配置 slots 透传 FormItem 插槽', async () => {
+  it('BI-03: 支持通过字段配置 slots 透传 extra / help 插槽', async () => {
     const form = useForm({}, [
       {
         path: 'email',
         label: '邮箱',
         component: 'input',
         slots: {
-          label: (() =>
-            h('span', { class: 'custom-label-tip' }, '自定义邮箱')) as any,
-        },
+          extra: (() =>
+            h('span', { class: 'custom-extra-tip' }, '请输入工作邮箱')) as any,
+        } as any,
       },
     ]);
 
@@ -242,30 +248,52 @@ describe('BaseFormItem 组件测试', () => {
     });
 
     await flushPromises();
-    const labelEl = wrapper.find('.custom-label-tip');
-    expect(labelEl.exists()).toBe(true);
-    expect(labelEl.text()).toBe('自定义邮箱');
+    const extraEl = wrapper.find('.custom-extra-tip');
+    expect(extraEl.exists()).toBe(true);
+    expect(extraEl.text()).toBe('请输入工作邮箱');
     wrapper.unmount();
   });
 
   // ----------------------------------------------------
-  // BI-04: 自定义 componentContainer
+  // BI-04 [判别]: formItemContainer 包裹整个 FormItem，componentContainer 仅包裹字段组件
   // ----------------------------------------------------
-  it('BI-04: 支持自定义 componentContainer 包裹 FormItem', async () => {
-    const CustomBox = defineComponent({
-      props: ['path'],
-      setup(props, { slots }) {
-        return () =>
-          h('div', { class: `custom-box-${props.path}` }, slots.default?.());
-      },
-    });
+  it('BI-04 [判别]: formItemContainer 包裹 FormItem，componentContainer 仅包裹内部字段组件', async () => {
+    const FormItemBox = markRaw(
+      defineComponent({
+        name: 'FormItemBox',
+        props: ['path'],
+        setup(props, { slots }) {
+          return () =>
+            h(
+              'div',
+              { class: `form-item-box-${props.path}` },
+              slots.default?.()
+            );
+        },
+      })
+    );
+    const ComponentBox = markRaw(
+      defineComponent({
+        name: 'ComponentBox',
+        props: ['path'],
+        setup(props, { slots }) {
+          return () =>
+            h(
+              'div',
+              { class: `component-box-${props.path}` },
+              slots.default?.()
+            );
+        },
+      })
+    );
 
     const form = useForm({}, [
       {
         path: 'userPhone',
         label: '手机号',
         component: 'input',
-        formItemContainer: CustomBox,
+        formItemContainer: FormItemBox,
+        componentContainer: ComponentBox,
       },
     ]);
 
@@ -275,8 +303,20 @@ describe('BaseFormItem 组件测试', () => {
     });
 
     await flushPromises();
-    const customContainer = wrapper.find('.custom-box-userPhone');
-    expect(customContainer.exists()).toBe(true);
+
+    // ① formItemContainer 包裹整个表单项：标签与控制区都在其内部
+    const itemBox = wrapper.find('.form-item-box-userPhone');
+    expect(itemBox.exists()).toBe(true);
+    expect(itemBox.find('.ant-form-item-label').exists()).toBe(true);
+    expect(itemBox.find('.ant-form-item-control').exists()).toBe(true);
+
+    // ② componentContainer 只包裹字段组件：输入框在内、标签在外，且嵌套于 formItemContainer 内
+    const compBox = wrapper.find('.component-box-userPhone');
+    expect(compBox.exists()).toBe(true);
+    expect(compBox.find('input').exists()).toBe(true);
+    expect(compBox.find('.ant-form-item-label').exists()).toBe(false);
+    expect(itemBox.find('.component-box-userPhone').exists()).toBe(true);
+
     wrapper.unmount();
   });
   // ----------------------------------------------------
@@ -308,11 +348,11 @@ describe('BaseFormItem 组件测试', () => {
 
     await flushPromises();
     // 默认分组占满 24 栅格
-    expect(wrapper.find('.el-col-24').exists()).toBe(true);
+    expect(wrapper.find('.ant-col-24').exists()).toBe(true);
     // 显式 span 12 的分组
-    expect(wrapper.find('.el-col-12').exists()).toBe(true);
+    expect(wrapper.find('.ant-col-12').exists()).toBe(true);
     // 显式 offset 4 的分组（此前分组分支会静默丢弃 offset）
-    expect(wrapper.find('.el-col-offset-4').exists()).toBe(true);
+    expect(wrapper.find('.ant-col-offset-4').exists()).toBe(true);
     wrapper.unmount();
   });
 
@@ -342,9 +382,9 @@ describe('BaseFormItem 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // BI-A15b [判别]: 原始值项仍走兜底分支，渲染 key 不抛 WeakMap 错误
+  // BI-A15b [判别]: 原始值项被忽略，仅渲染合法字段
   // ----------------------------------------------------
-  it('BI-A15b [判别]: fields 含原始值项时渲染不抛错（key 走非对象回退）', async () => {
+  it('BI-A15b [判别]: fields 含原始值项时被忽略，仅渲染合法表单项', async () => {
     const form = useForm({ a: '' }, [
       'not-a-field',
       { path: 'a', label: 'A', component: 'input' },
@@ -357,12 +397,34 @@ describe('BaseFormItem 组件测试', () => {
     await flushPromises();
 
     // 原始值项被忽略：仅 1 个表单项、1 个输入框，且合法字段可用
-    expect(wrapper.findAll('.el-form-item')).toHaveLength(1);
+    expect(wrapper.findAll('.ant-form-item')).toHaveLength(1);
     const inputs = wrapper.findAll('input');
     expect(inputs).toHaveLength(1);
     await inputs[0].setValue('y');
     await flushPromises();
     expect(form.getFormData('a')).toBe('y');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A21 [判别]: 运行期注入原始值项时由组件自身过滤（core 初始规整不覆盖该路径）
+  // ----------------------------------------------------
+  it('BI-A21 [判别]: 运行期向字段数组注入原始值项时被过滤，仅渲染合法字段', async () => {
+    const form = useForm({ a: '' }, [
+      { path: 'a', label: 'A', component: 'input' },
+    ]);
+    // 绕过 core 的初始规整，直接在运行期字段数组中插入原始值项
+    (form.fields.value as any).unshift('not-a-field');
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(wrapper.findAll('.ant-form-item')).toHaveLength(1);
+    expect(wrapper.findAll('input')).toHaveLength(1);
 
     wrapper.unmount();
   });
@@ -408,7 +470,7 @@ describe('BaseFormItem 组件测试', () => {
     });
     await flushPromises();
 
-    const before = wrapper.findAll('.el-form-item');
+    const before = wrapper.findAll('.ant-form-item');
     expect(before).toHaveLength(2);
     const elA = before[0].element as HTMLElement;
     const elB = before[1].element as HTMLElement;
@@ -420,7 +482,7 @@ describe('BaseFormItem 组件测试', () => {
     [arr[0], arr[1]] = [arr[1], arr[0]];
     await flushPromises();
 
-    const after = wrapper.findAll('.el-form-item');
+    const after = wrapper.findAll('.ant-form-item');
     expect(after).toHaveLength(2);
     // key 唯一时 Vue 迁移既有节点：显示 B / A 的仍是各自的元素
     expect(after[0].element).toBe(elB);
@@ -432,79 +494,225 @@ describe('BaseFormItem 组件测试', () => {
   });
 
   // ----------------------------------------------------
-  // BI-A18 [判别]: 分组字段 disabled 经禁用上下文传播至子字段控件
+  // BI-A18 [判别]: fields 中四类 falsy 项全部跳过，合法字段照常渲染与读写
   // ----------------------------------------------------
-  it('BI-A18 [判别]: 分组字段 disabled 传播至子字段控件，分组外字段不受影响', async () => {
-    const form = useForm({ a: '', b: '', c: '' }, [
-      {
-        path: 'group',
-        label: '分组',
-        disabled: true,
-        fields: [
-          { path: 'a', label: 'A', component: 'input' },
-          { path: 'b', label: 'B', component: 'input' },
-        ],
-      },
-      { path: 'c', label: 'C', component: 'input' },
+  it('BI-A18 [判别]: fields 含 null/undefined/0/空串时不抛错且全部跳过', async () => {
+    const form = useForm({ a: '' }, [
+      null,
+      undefined,
+      0,
+      '',
+      { path: 'a', label: 'A', component: 'input' },
     ] as any);
 
-    const wrapper = mount(ProForm as any, {
-      props: { form },
-      global: { stubs: { transition: false } },
-    });
-    await flushPromises();
-
-    const inputs = wrapper.findAllComponents(ElInput);
-    expect(inputs).toHaveLength(3);
-    // 分组内字段继承分组禁用状态
-    expect(inputs[0].props('disabled')).toBe(true);
-    expect(inputs[1].props('disabled')).toBe(true);
-    // 分组外字段不受分组配置影响
-    expect(inputs[2].props('disabled')).toBe(false);
-
-    wrapper.unmount();
-  });
-
-  // ----------------------------------------------------
-  // BI-A19 [判别]: 字段类名/样式复用宿主 ClassValue / StyleValue
-  // ----------------------------------------------------
-  it('BI-A19 [判别]: 字段类名与样式接受宿主 ClassValue / StyleValue 形态，非类名取值被拒', async () => {
-    const fields: Field[] = [
-      {
-        path: 'name',
-        label: '姓名',
-        component: 'input',
-        formItemClass: ['item-cls', { 'item-active': true }],
-        formItemStyle: ['padding: 0', { margin: 0 }],
-        componentClass: { 'input-cls': true },
-        componentStyle: 'color: red',
-      },
-    ];
-    const form = useForm({ name: '' }, fields);
     const wrapper = mount(ProForm, {
       props: { form },
       global: { stubs: { transition: false } },
     });
     await flushPromises();
 
-    // 判别点：数组/对象类名与字符串/数组样式落到各自节点，未被类型面挡住
-    const item = wrapper.find('.item-cls');
-    expect(item.exists()).toBe(true);
-    expect(item.classes()).toContain('item-active');
-    expect(item.attributes('style') ?? '').toContain('padding: 0');
-    const control = wrapper.find('.input-cls');
-    expect(control.exists()).toBe(true);
-    expect(control.attributes('style') ?? '').toContain('color: red');
-
-    // 类型面：数字不属于宿主 ClassValue 契约
-    const invalid: Field = {
-      path: 'invalid',
-      component: 'input',
-      // @ts-expect-error ClassValue 不接受数字
-      componentClass: 1,
-    };
-    expect(invalid.componentClass).toBe(1);
+    expect(wrapper.findAll('.ant-form-item')).toHaveLength(1);
+    const inputs = wrapper.findAll('input');
+    expect(inputs).toHaveLength(1);
+    await inputs[0].setValue('v');
+    await flushPromises();
+    expect(form.getFormData('a')).toBe('v');
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A19 [判别]: label 同时来自字段属性与字段 slots 时，slot 通道胜出
+  // ----------------------------------------------------
+  it('BI-A19 [判别]: label 同时来自字段属性与 slots 时 slot 胜出', async () => {
+    const form = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '属性标签',
+        component: 'input',
+        slots: { label: () => h('span', { class: 'slot-label' }, '插槽标签') },
+      },
+    ] as any);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('.slot-label').text()).toBe('插槽标签');
+    expect(wrapper.find('.ant-form-item-label').text()).not.toContain(
+      '属性标签'
+    );
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BI-A20 [判别]: slots 组件对象经 <component :is> 渲染，原始值仍走文本插值
+  // ----------------------------------------------------
+  it('BI-A20 [判别]: slots 传入组件对象时渲染组件本体，传入字符串时按文本渲染', async () => {
+    const CustomExtra = defineComponent({
+      setup() {
+        return () =>
+          h('span', { class: 'slot-comp-extra' }, 'EXTRA-FROM-COMPONENT');
+      },
+    });
+
+    const form = useForm({}, [
+      {
+        path: 'email',
+        label: '邮箱',
+        component: 'input',
+        slots: { extra: markRaw(CustomExtra) as any },
+      },
+      {
+        path: 'phone',
+        label: '手机号',
+        component: 'input',
+        slots: { extra: '纯文本提示' as any },
+      },
+    ]);
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const extras = wrapper.findAll('.ant-form-item-extra');
+    expect(extras).toHaveLength(2);
+    // 组件对象：渲染组件本体，而非组件对象的序列化文本
+    expect(extras[0].find('.slot-comp-extra').exists()).toBe(true);
+    expect(extras[0].text()).toBe('EXTRA-FROM-COMPONENT');
+    // 原始值：保持文本插值
+    expect(extras[1].text()).toBe('纯文本提示');
+
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // BI-A22 [判别]: 字段配置更新与联动翻转仅重渲染目标字段行
+  // ----------------------------------------------------
+  it('BI-A22 [判别]: setField / hidden 翻转仅重渲染目标字段行', async () => {
+    const renderCounts: Record<string, number> = {};
+    const holder: { form?: any } = {};
+    const createProbe = (key: string) =>
+      markRaw(
+        defineComponent({
+          name: `RowProbe_${key}`,
+          props: {
+            value: { type: null, default: undefined },
+            modelValue: { type: null, default: undefined },
+          },
+          setup() {
+            return () => {
+              renderCounts[key] = (renderCounts[key] ?? 0) + 1;
+              return h('input');
+            };
+          },
+        })
+      );
+
+    const fields = Array.from({ length: 5 }, (_, i) => ({
+      path: `f${i}`,
+      component: createProbe(`f${i}`),
+    })) as Field[];
+    fields[1] = {
+      ...fields[1],
+      hidden: computed(
+        () => (holder.form?.getFormData('f0') as string)?.length > 0
+      ),
+    };
+
+    const form = useForm(
+      Object.fromEntries(fields.map((_, i) => [`f${i}`, ''])),
+      fields
+    );
+    holder.form = form;
+
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 单字段配置更新：仅目标行重渲染
+    const beforeSetField = { ...renderCounts };
+    form.setField('f3', { disabled: true } as any);
+    await flushPromises();
+    expect(renderCounts.f3).toBe(beforeSetField.f3 + 1);
+    for (const key of ['f0', 'f1', 'f2', 'f4']) {
+      expect(renderCounts[key]).toBe(beforeSetField[key]);
+    }
+
+    // hidden 联动翻转：仅值变更字段重渲染，隐藏字段卸载，其余行不动
+    const beforeHidden = { ...renderCounts };
+    form.setFormData('f0', 'x');
+    await flushPromises();
+    expect(renderCounts.f0).toBe(beforeHidden.f0 + 1);
+    expect(renderCounts.f1).toBe(beforeHidden.f1);
+    for (const key of ['f2', 'f3', 'f4']) {
+      expect(renderCounts[key]).toBe(beforeHidden[key]);
+    }
+    expect(wrapper.findAll('input')).toHaveLength(4);
+
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // BI-A23 [判别]: 行内包裹链与字段列表顶层包裹均由 h()/条件分支直接承担
+  // ----------------------------------------------------
+  it('BI-A23 [判别]: 字段行与字段列表不再产生 ContainerFragment，grid 与自定义容器仍按需渲染', async () => {
+    const expectNoLayoutWrappers = (target: any) => {
+      expect(
+        target
+          .findAllComponents(ContainerFragment)
+          .filter(
+            (c: any) =>
+              c.vm.$.parent?.type === BaseFormItem ||
+              c.vm.$.parent?.type === BaseFormItems
+          )
+      ).toHaveLength(0);
+    };
+
+    const form = useForm({ f0: '', f1: '' }, [
+      { path: 'f0', component: 'input' },
+      { path: 'f1', component: 'input' },
+    ] as Field[]);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expectNoLayoutWrappers(wrapper);
+    wrapper.unmount();
+
+    const gridForm = useForm({ g0: '' }, [
+      { path: 'g0', component: 'input', span: 12 },
+    ] as Field[]);
+    const gridWrapper = mount(ProForm, {
+      props: { form: gridForm, grid: true },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(gridWrapper.find('.ant-col-12').exists()).toBe(true);
+    expectNoLayoutWrappers(gridWrapper);
+    gridWrapper.unmount();
+
+    const containerForm = useForm({ c0: '' }, [
+      {
+        path: 'c0',
+        component: 'input',
+        formItemContainer: (_: any, ctx: any) =>
+          h('div', { class: 'field-box' }, ctx.slots.default?.()),
+      },
+    ] as Field[]);
+    const containerWrapper = mount(ProForm, {
+      props: { form: containerForm },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(containerWrapper.find('.field-box').exists()).toBe(true);
+    expectNoLayoutWrappers(containerWrapper);
+    containerWrapper.unmount();
   });
 });

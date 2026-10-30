@@ -1,16 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
-import { defineComponent, h, ref } from 'vue';
+import { computed, defineComponent, h, markRaw, ref } from 'vue';
+import BaseFormItems from '../src/components/form/components/BaseFormItems/index.vue';
+import ContainerFragment from '../src/components/form/components/ContainerFragment/index.vue';
 import BaseFormItem from '../src/components/form/components/BaseFormItem/index.vue';
 import { Field as VanField } from '../src/shared/ui';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { InjectionFormKey } from '../src/components/form/constants';
 import type { Field } from '../src/components/form/types';
 
-describe('BaseFormItem 组件测试 (vant-pro)', () => {
+describe('BaseFormItems 组件测试 (vant-pro)', () => {
   it('BFI-01: 正确渲染字段列表', async () => {
     const form = useForm({ name: 'Alice', age: 18 });
-    const wrapper = mount(BaseFormItem, {
+    const wrapper = mount(BaseFormItems, {
       props: {
         fields: [
           { path: 'name', label: '姓名', component: 'field' },
@@ -35,7 +37,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
 
   it('BFI-02: 正确过滤 hidden: true 的字段', async () => {
     const form = useForm({});
-    const wrapper = mount(BaseFormItem, {
+    const wrapper = mount(BaseFormItems, {
       props: {
         fields: [
           { path: 'visibleField', label: '可见字段', component: 'field' },
@@ -64,7 +66,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
 
   it('BFI-03: 支持嵌套 fields 递归渲染', async () => {
     const form = useForm({ info: { title: 'Test' } });
-    const wrapper = mount(BaseFormItem, {
+    const wrapper = mount(BaseFormItems, {
       props: {
         fields: [
           {
@@ -100,7 +102,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
         fields: [{ path: 'b', label: 'B', component: 'field' }],
       },
     ];
-    const wrapper = mount(BaseFormItem, {
+    const wrapper = mount(BaseFormItems, {
       props: { fields },
       global: {
         provide: {
@@ -142,7 +144,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
       { path: 'a', label: 'A', component: 'field' },
     ] as any);
 
-    const wrapper = mount(BaseFormItem, {
+    const wrapper = mount(BaseFormItems, {
       props: { fields: form.fields.value } as any,
       global: {
         provide: { [InjectionFormKey as symbol]: form },
@@ -168,7 +170,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
       { path: 'a', label: 'A', component: 'field' },
     ] as any);
 
-    const wrapper = mount(BaseFormItem, {
+    const wrapper = mount(BaseFormItems, {
       props: { fields: form.fields.value } as any,
       global: {
         provide: { [InjectionFormKey as symbol]: form },
@@ -196,7 +198,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
       { path: 'a', label: 'A', component: 'field' },
     ] as any);
 
-    const wrapper = mount(BaseFormItem as any, {
+    const wrapper = mount(BaseFormItems as any, {
       props: { fields: form.fields.value } as any,
       global: {
         provide: { [InjectionFormKey as symbol]: form },
@@ -224,7 +226,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
       { path: 'date', label: 'B', component: 'field' },
     ] as any);
 
-    const wrapper = mount(BaseFormItem as any, {
+    const wrapper = mount(BaseFormItems as any, {
       props: { fields: form.fields.value } as any,
       global: {
         provide: { [InjectionFormKey as symbol]: form },
@@ -267,7 +269,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
     ];
     const form = useForm({ a: '', b: '' }, fields);
 
-    const wrapper = mount(BaseFormItem, {
+    const wrapper = mount(BaseFormItems, {
       props: { fields: form.fields.value },
       global: {
         provide: { [InjectionFormKey as symbol]: form },
@@ -297,7 +299,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
     });
 
     const form = useForm({ email: '', phone: '' });
-    const wrapper = mount(BaseFormItem as any, {
+    const wrapper = mount(BaseFormItems as any, {
       props: {
         fields: [
           {
@@ -351,7 +353,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
     });
 
     const form = useForm({ name: '', address: { city: '' } });
-    const wrapper = mount(BaseFormItem as any, {
+    const wrapper = mount(BaseFormItems as any, {
       props: {
         fields: [
           {
@@ -413,7 +415,7 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
         fieldStyle: 'font-weight: bold',
       },
     ]);
-    const wrapper = mount(BaseFormItem as any, {
+    const wrapper = mount(BaseFormItems as any, {
       props: { fields: form.fields.value } as any,
       global: {
         provide: { [InjectionFormKey as symbol]: form },
@@ -437,5 +439,127 @@ describe('BaseFormItem 组件测试 (vant-pro)', () => {
     );
 
     wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // BFI-05 [判别]: 字段配置更新与联动翻转仅重渲染目标字段行
+  // ----------------------------------------------------
+  it('BFI-05 [判别]: setField / hidden 翻转仅重渲染目标字段行', async () => {
+    const renderCounts: Record<string, number> = {};
+    const holder: { form?: any } = {};
+    const createProbe = (key: string) =>
+      markRaw(
+        defineComponent({
+          name: `RowProbe_${key}`,
+          props: {
+            value: { type: null, default: undefined },
+            modelValue: { type: null, default: undefined },
+          },
+          setup() {
+            return () => {
+              renderCounts[key] = (renderCounts[key] ?? 0) + 1;
+              return h('input');
+            };
+          },
+        })
+      );
+
+    const fields = Array.from({ length: 5 }, (_, i) => ({
+      path: `f${i}`,
+      component: createProbe(`f${i}`),
+    })) as Field[];
+    fields[1] = {
+      ...fields[1],
+      hidden: computed(
+        () => (holder.form?.getFormData('f0') as string)?.length > 0
+      ),
+    };
+
+    const form = useForm(
+      Object.fromEntries(fields.map((_, i) => [`f${i}`, ''])),
+      fields
+    );
+    holder.form = form;
+
+    const wrapper = mount(BaseFormItems as any, {
+      props: { fields: form.fields.value },
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    // 单字段配置更新：仅目标行重渲染
+    const beforeSetField = { ...renderCounts };
+    form.setField('f3', { disabled: true } as any);
+    await flushPromises();
+    expect(renderCounts.f3).toBe(beforeSetField.f3 + 1);
+    for (const key of ['f0', 'f1', 'f2', 'f4']) {
+      expect(renderCounts[key]).toBe(beforeSetField[key]);
+    }
+
+    // hidden 联动翻转：仅值变更字段重渲染，隐藏字段卸载，其余行不动
+    const beforeHidden = { ...renderCounts };
+    form.setFormData('f0', 'x');
+    await flushPromises();
+    expect(renderCounts.f0).toBe(beforeHidden.f0 + 1);
+    expect(renderCounts.f1).toBe(beforeHidden.f1);
+    for (const key of ['f2', 'f3', 'f4']) {
+      expect(renderCounts[key]).toBe(beforeHidden[key]);
+    }
+    expect(wrapper.findAll('input')).toHaveLength(4);
+
+    wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // BFI-06 [判别]: 行内包裹链由 h() 直接承担，不再产生 ContainerFragment
+  // ----------------------------------------------------
+  it('BFI-06 [判别]: 字段行不再产生 ContainerFragment，分组容器仍按需渲染', async () => {
+    const form = useForm({ f0: '', f1: '' });
+    const wrapper = mount(BaseFormItems as any, {
+      props: {
+        fields: [
+          { path: 'f0', label: 'F0', component: 'field' },
+          { path: 'f1', label: 'F1', component: 'field' },
+        ] as Field[],
+      },
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+    expect(
+      wrapper
+        .findAllComponents(ContainerFragment)
+        .filter((c: any) => c.vm.$.parent?.type === BaseFormItem)
+    ).toHaveLength(0);
+    wrapper.unmount();
+
+    const groupForm = useForm({ group: { a: '' } });
+    const groupWrapper = mount(BaseFormItems as any, {
+      props: {
+        fields: [
+          {
+            label: '分组',
+            fieldContainer: (_: any, ctx: any) =>
+              h('div', { class: 'group-box' }, ctx.slots.default?.()),
+            fields: [{ path: 'group.a', label: 'A', component: 'field' }],
+          },
+        ] as any[],
+      },
+      global: {
+        provide: { [InjectionFormKey as symbol]: groupForm },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+    expect(groupWrapper.find('.group-box').exists()).toBe(true);
+    expect(
+      groupWrapper
+        .findAllComponents(ContainerFragment)
+        .filter((c: any) => c.vm.$.parent?.type === BaseFormItem)
+    ).toHaveLength(0);
+    groupWrapper.unmount();
   });
 });

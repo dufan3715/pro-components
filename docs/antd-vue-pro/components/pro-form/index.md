@@ -16,10 +16,11 @@ antd-vue-pro 导出了一个名为 `useForm` 的自定义 Hook，用于处理表
 
 ![ProForm 架构图](/diagrams/ProForm.jpg)
 
-ProForm 的渲染链路可以理解为三层组件协作：
+ProForm 的渲染链路可以理解为以下组件协作：
 
 - `ProForm` 负责承接 `useForm` 的 `formData` 和 `fields`
-- `BaseFormItem` 负责将 `fields` 拆分为 FormItem / GridItem / 组件 props，并递归渲染
+- `BaseFormItems` 负责字段列表的过滤与递归渲染
+- `BaseFormItem` 负责将单个字段拆分为 FormItem / GridItem / 组件 props
 - `BaseField` 负责把字段配置映射为具体 UI 组件并处理 v-model
 
 数据流的核心路径如下：
@@ -28,7 +29,7 @@ ProForm 的渲染链路可以理解为三层组件协作：
 - `ProForm` 将 `formData` 作为 `Form` 的 `model`
 - `BaseField` 使用 `v-model:[modelProp]` 双向绑定字段值
 - `valueFormatter` 在值回写前处理数据，再由 `setFormData` 更新
-- `FormItem` 在字段更新时触发校验（通过内部 `onFieldChange`）
+- `FormItem` 在字段更新时触发校验（通过内部 `onFieldChange`）；同一 tick 的多次变更合并为一次，`valueFormatter` 归一化后存储值未变时不触发
 
 ## 快速开始
 
@@ -110,7 +111,7 @@ const form = useForm<FormData>({ name: '' }, [
 
 ### Nested（嵌套字段）
 
-去向：递归进入下一层 `BaseFormItem`。
+去向：递归进入下一层 `BaseFormItems`。
 
 | 字段     | 说明                         |
 | -------- | ---------------------------- |
@@ -178,7 +179,7 @@ const form = useForm({ user: { first: '', last: '' } }, [
 - `formItem*`/校验/提示等会传给 `FormItem`
 - `component*`/`modelProp`/`valueFormatter` 与其余 props 会传给具体组件
 - `formItemContainer`/`componentContainer`/`slots` 走容器或插槽
-- `fields` 进入下一层 `BaseFormItem`
+- `fields` 进入下一层 `BaseFormItems`
 
 **优先级说明**
 

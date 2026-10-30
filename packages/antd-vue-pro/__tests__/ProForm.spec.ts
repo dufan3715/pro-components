@@ -470,4 +470,61 @@ describe('ProForm 组件测试', () => {
     expect(disabled.find('.ant-col-12').exists()).toBe(false);
     disabled.unmount();
   });
+
+  // ----------------------------------------------------
+  // PF-S1 [判别]: 插槽内容响应式更新与 key 增删均生效
+  // ----------------------------------------------------
+  it('PF-S1 [判别]: 插槽内容响应式更新与 key 增删均生效', async () => {
+    const form = useForm({ f1: '', f2: '' }, [
+      { path: 'f1', component: 'input' },
+      { path: 'f2', component: 'input' },
+    ]);
+    const extra = ref('extra-1');
+    const fieldLabel = ref('slot-1');
+    const showSlot = ref(true);
+
+    const Wrapper = defineComponent({
+      setup() {
+        return () => {
+          const fieldSlot = () =>
+            h('span', { class: 'field-slot' }, fieldLabel.value);
+          return h(
+            ProForm,
+            { form },
+            {
+              default: () => h('span', { class: 'extra-content' }, extra.value),
+              ...(showSlot.value ? { f1: fieldSlot } : {}),
+            }
+          );
+        };
+      },
+    });
+
+    const wrapper = mount(Wrapper, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.find('.field-slot').text()).toBe('slot-1');
+
+    // default 插槽内容更新后页面仍正常
+    extra.value = 'extra-2';
+    await flushPromises();
+    expect(wrapper.find('.extra-content').text()).toBe('extra-2');
+
+    // 字段插槽内容自身的响应式变化：沿用原插槽函数也能更新
+    fieldLabel.value = 'slot-2';
+    await flushPromises();
+    expect(wrapper.find('.field-slot').text()).toBe('slot-2');
+
+    // 插槽 key 增删：刷新注入引用并切换插槽/内置控件
+    showSlot.value = false;
+    await flushPromises();
+    expect(wrapper.find('.field-slot').exists()).toBe(false);
+
+    showSlot.value = true;
+    await flushPromises();
+    expect(wrapper.find('.field-slot').exists()).toBe(true);
+
+    wrapper.unmount();
+  });
 });

@@ -103,7 +103,7 @@ const form = useForm<FormData>({ name: '' }, [
 
 ### Nested（嵌套字段）
 
-去向：递归进入下一层 `BaseFormItem`。
+去向：递归进入下一层 `BaseFormItems`。
 
 | 字段     | 说明                         |
 | -------- | ---------------------------- |
@@ -138,7 +138,7 @@ const form = useForm<FormData>({ name: '' }, [
 - `formItem*`/校验/提示等会传给 `FormItem`
 - `component*`/`modelProp`/`valueFormatter` 与其余 props 会传给具体组件
 - `formItemContainer`/`componentContainer`/`slots` 走容器或插槽
-- `fields` 进入下一层 `BaseFormItem`
+- `fields` 进入下一层 `BaseFormItems`
 
 **优先级说明**：同名插槽优先于 `component` 渲染；`modelProp` 默认 `modelValue`；`valueFormatter` 在值回写前执行；`slots` 中 `label/error` 归属 `FormItem`，其余归属组件。
 
