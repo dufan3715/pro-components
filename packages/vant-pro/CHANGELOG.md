@@ -1,5 +1,15 @@
 # @qin-ui/vant-pro
 
+## 1.3.6
+
+### Patch Changes
+
+- 3ca58ef: 动态数组字段行改用数据行对象身份作为渲染 key：数组行增删 / 重排时，只要业务数据保留行对象引用，已有行与 FormItem 实例保持复用，仅新增行挂载、删除行卸载。重复行引用与重复 path 由兄弟列表做唯一性收敛；无法定位数据行的字段回退到字段对象身份，行为与之前一致。
+
+  同一行内 `component` / `picker` / `type` 变化时，仅重建 BaseField 控件子树，按新控件重新解析 Provider 默认值、locale placeholder 与 `modelProp`。
+
+- 3ca58ef: 表单字段行渲染隔离：`setField` 更新单个字段配置或 `hidden` 联动翻转时，仅重渲染对应字段行，其余字段控件保持不动；`getFormItemComputedProps` 返回当前字段的实时 FormItem 属性。字段行的栅格与自定义容器包裹改由行组件直接渲染，字段列表的顶层栅格改为条件分支渲染；未配置 `grid` / `formItemContainer` 时不再产生空包裹组件。内部渲染组件命名对齐为 `BaseFormItems`（字段列表）/ `BaseFormItem`（单字段行）。
+
 ## 1.3.5
 
 ### Patch Changes
