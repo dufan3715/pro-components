@@ -126,6 +126,27 @@ describe('useTable', () => {
     expect(columns.value[0].title).toBe('标题!');
   });
 
+  it('TT-12b [判别] setColumn 函数 key 默认更新全部命中列', () => {
+    const { columns, setColumn } = useTable<any>({
+      columns: [
+        {
+          key: 'group',
+          children: [
+            { key: 'a', title: 'A' },
+            { key: 'b', title: 'B' },
+          ],
+        },
+      ],
+    });
+    setColumn(() => true, { ellipsis: { showTooltip: true } });
+    const group = columns.value[0];
+    expect(group.ellipsis.showTooltip).toBe(true);
+    expect(group.children?.map(child => child.ellipsis.showTooltip)).toEqual([
+      true,
+      true,
+    ]);
+  });
+
   it('TT-13 deleteColumn 字符串 key', () => {
     const { columns, deleteColumn } = useTable<any>({
       columns: [{ key: 'a' }, { key: 'age' }, { key: 'b' }],

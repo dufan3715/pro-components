@@ -42,7 +42,7 @@ type SetColumn<
   T extends Data = Data,
   C extends BaseColumn<T> = BaseColumn<T>,
 > = (
-  key: Path<T>,
+  key: Path<T> | ColumnFindBy<T, C>,
   column: C | ((pre: Readonly<C>) => C),
   options?: {
     updateType?: 'rewrite' | 'merge';
