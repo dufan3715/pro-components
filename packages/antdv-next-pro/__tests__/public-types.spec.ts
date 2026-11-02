@@ -8,10 +8,12 @@ import { describe, it, expect, expectTypeOf } from 'vitest';
 import { computed, ref } from 'vue';
 import type {
   Column,
+  ColumnEllipsis,
   Columns,
   ComponentMap,
   ComponentName,
   ComponentVars,
+  EllipsisTooltipConfig,
   Field,
   Fields,
   Form,
@@ -61,9 +63,33 @@ describe('公开类型面冒烟 · antdv-next-pro', () => {
     expect(column.title).toBe('姓名');
     expect(hiddenRef.value).toBe(false);
 
+    // 列省略配置：showTooltip 可组合进 ellipsis
+    const ellipsis: ColumnEllipsis = { showTooltip: true };
+    const ellipsisColumn: Column<User> = { dataIndex: 'name', ellipsis };
+    expect(ellipsisColumn.ellipsis).toEqual(ellipsis);
+
+    // 宿主 ellipsis 字段保留；宿主未声明的键被拒绝
+    const showTitleEllipsis: ColumnEllipsis = { showTitle: true };
+    expect(showTitleEllipsis.showTitle).toBe(true);
+    const invalidEllipsis: ColumnEllipsis = {
+      // @ts-expect-error 宿主未声明的键
+      unknownKey: true,
+    };
+    expect(invalidEllipsis).toBeTruthy();
+
+    // 表格级省略 Tooltip 配置可作显式标注
+    const tooltipConfig: EllipsisTooltipConfig = {
+      mouseEnterDelay: 0,
+      rootClass: 'ellipsis-tooltip',
+      styles: { root: { color: 'red' } },
+    };
+    expect(tooltipConfig.mouseEnterDelay).toBe(0);
+
     // 组件 props / 实例类型：形状可断言
     expectTypeOf<ProFormProps>().toHaveProperty('form');
     expectTypeOf<ProTableProps>().toHaveProperty('table');
+    const ellipsisTooltipProp: ProTableProps['ellipsisTooltip'] = true;
+    expect(ellipsisTooltipProp).toBe(true);
     expectTypeOf<ProFormInstance>().not.toBeAny();
     expectTypeOf<ProTableInstance>().not.toBeAny();
 
@@ -78,7 +104,9 @@ describe('公开类型面冒烟 · antdv-next-pro', () => {
     // 全局配置与组件名
     const componentName: ComponentName = 'input';
     const componentMap: ComponentMap = {};
-    const componentVars: ComponentVars = { 'pro-table': { size: 'small' } };
+    const componentVars: ComponentVars = {
+      'pro-table': { size: 'small', ellipsisTooltip: true },
+    };
     expect(componentName).toBe('input');
     expect(Object.keys(componentMap)).toHaveLength(0);
     expect(componentVars['pro-table']?.size).toBe('small');

@@ -11,7 +11,13 @@ export type ProTableProps = ComponentProps<typeof ProTable>;
 export type ProTableInstance = ComponentExposed<typeof ProTable>;
 
 // 仅导出核心列配置类型
-export { type Column, type ColumnControlConfig, type Columns } from './types';
+export {
+  type Column,
+  type ColumnControlConfig,
+  type ColumnEllipsis,
+  type Columns,
+  type EllipsisTooltipConfig,
+} from './types';
 
 // 仅导出核心表格 Hook 与类型
 export { useTable, type Table } from './hooks';

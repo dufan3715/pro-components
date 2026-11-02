@@ -1,8 +1,63 @@
-import type { ColumnType } from '../../../shared/ui';
+import type { ColumnType, TooltipProps } from '../../../shared/ui';
 import type { Data, KeyExpandString, Paths, Path } from '../../../shared/core';
 import type { ComputedRef, MaybeRef } from 'vue';
 
 type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
+
+/**
+ * 列内容省略配置
+ *
+ * @description 在宿主 `ellipsis` 基础上增加 `showTooltip`：单元格文本横向溢出时，
+ * 悬停由表格级共享的同一个 Tooltip 展示完整文本。`showTooltip` 为 `true` 时不输出宿主原生 `title`。
+ *
+ * @example
+ * ```ts
+ * const column: Column<User> = {
+ *   dataIndex: 'name',
+ *   ellipsis: { showTooltip: true },
+ * }
+ * ```
+ *
+ * @public
+ */
+export type ColumnEllipsis = NonNullable<
+  Exclude<ColumnType['ellipsis'], boolean>
+> & {
+  /** 文本溢出时是否显示表格级共享 Tooltip */
+  showTooltip?: boolean;
+};
+
+/**
+ * ProTable 共享省略 Tooltip 配置
+ *
+ * @description 复用宿主 Tooltip 的容器、延迟、方位与浮层样式字段，控制表格级单例 Tooltip。
+ * ProTable 侧另接受 `true` 作为全局启用简写；列上 `showTooltip: false` 或 `ellipsis: false` 可退出。
+ *
+ * @example
+ * ```ts
+ * const config: EllipsisTooltipConfig = {
+ *   getPopupContainer: () => document.body,
+ *   mouseEnterDelay: 0.2,
+ *   mouseLeaveDelay: 0.1,
+ *   placement: 'top',
+ * }
+ * ```
+ *
+ * @public
+ */
+export type EllipsisTooltipConfig = Pick<
+  TooltipProps,
+  | 'getPopupContainer'
+  | 'mouseEnterDelay'
+  | 'mouseLeaveDelay'
+  | 'placement'
+  | 'arrow'
+  | 'autoAdjustOverflow'
+  | 'color'
+  | 'overlayClassName'
+  | 'overlayStyle'
+  | 'overlayInnerStyle'
+>;
 
 /**
  * 表格列配置类型
@@ -11,6 +66,7 @@ type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
  * - 类型安全的 dataIndex（基于泛型 D 推导路径），优先使用
  * - key 作为辅助标识，当 dataIndex 不满足需求时使用
  * - hidden 属性用于控制列显隐
+ * - ellipsis 支持 `{ showTooltip: boolean }` 的表格级共享 Tooltip
  * - 所有 Ant Design Vue 原生的列属性依然可用（title、width、fixed、align 等）
  *
  * @template D - 表格行数据类型
@@ -37,7 +93,7 @@ type MaybeRefOrComputedRef<T = any> = MaybeRef<T> | ComputedRef<T>;
  */
 export type Column<D extends Data = Data> = Omit<
   ColumnType,
-  'dataIndex' | 'key'
+  'dataIndex' | 'key' | 'ellipsis'
 > & {
   /**
    * 列数据路径（主要字段）
@@ -59,6 +115,10 @@ export type Column<D extends Data = Data> = Omit<
    * @default false
    */
   hidden?: MaybeRefOrComputedRef<boolean>;
+  /**
+   * 列内容省略配置；`true` 等价于宿主默认省略，对象形态额外支持表格级共享 Tooltip
+   */
+  ellipsis?: boolean | ColumnEllipsis;
   /**
    * 分组子列；提供时该列作为分组表头渲染，子列沿用同一配置类型
    */

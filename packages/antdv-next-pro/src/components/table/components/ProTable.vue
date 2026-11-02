@@ -46,6 +46,7 @@
  * @param {boolean | Partial<Control>} [control] - 是否展示尺寸与列控制按钮；显式传入 columns 时列控入口不渲染
  * @param {SearchFormConfig} [searchFormConfig] - 搜索栏查询字段表单配置
  * @param {ContainerComponent | false} [tableContainer] - 表格区域包裹容器
+ * @param {boolean | EllipsisTooltipConfig} [ellipsisTooltip] - truthy 时全局启用所有列；对象同时作为 Tooltip 配置；列上 `showTooltip: false` 或 `ellipsis: false` 可退出
  *
  * @slot search-form - 搜索区域插槽，作用域参数 form / search / reset
  * @slot button-bar - 表格头部按钮区插槽
@@ -60,7 +61,16 @@ import type {
   ColumnType,
 } from '../../../shared/ui';
 import { Table as ATable, tableProps } from '../../../shared/ui';
-import { computed, nextTick, onMounted, inject, toValue, type Slot } from 'vue';
+import {
+  computed,
+  nextTick,
+  onMounted,
+  inject,
+  ref,
+  toValue,
+  watch,
+  type Slot,
+} from 'vue';
 import { INJECT_CONFIG } from '../../component-provider/constants';
 import ContainerFragment from '../../form/components/ContainerFragment/index.vue';
 import type { ContainerComponent } from '../../form/types';
@@ -83,8 +93,16 @@ import DefaultSearchFormContainer from './DefaultSearchFormContainer.vue';
 import DefaultTableContainer from './DefaultTableContainer.vue';
 import SizeControl from './SizeControl.vue';
 import ColumnControl from './ColumnControl.vue';
+import TableEllipsisTooltip from './TableEllipsisTooltip.vue';
+import { useEllipsisTooltip } from '../hooks/useEllipsisTooltip';
+import { useEllipsisTooltipColumns } from '../hooks/useEllipsisTooltipColumns';
 import type { ComponentSlots } from 'vue-component-type-helpers';
-import type { Column, Columns, ColumnControlConfig } from '../types';
+import type {
+  Column,
+  Columns,
+  ColumnControlConfig,
+  EllipsisTooltipConfig,
+} from '../types';
 
 defineOptions({ name: 'ProTable', inheritAttrs: false });
 
@@ -135,6 +153,8 @@ type Props = {
   searchFormConfig?: SearchFormConfig;
   /** 表格区域包裹容器 */
   tableContainer?: ContainerComponent | false;
+  /** 表格级省略 Tooltip 配置；truthy 时全局启用 */
+  ellipsisTooltip?: boolean | EllipsisTooltipConfig;
 } & /* @vue-ignore */ TableProps;
 
 const props = withDefaults(defineProps<Props>(), {
@@ -145,6 +165,7 @@ const props = withDefaults(defineProps<Props>(), {
   immediateSearch: undefined,
   searchFormConfig: undefined,
   tableContainer: undefined,
+  ellipsisTooltip: undefined,
 });
 
 const { t } = useLocale();
@@ -188,6 +209,75 @@ const tableAttrs = computed<TableProps>(() => {
     value => value === undefined
   ) as TableProps;
 });
+
+const computedTableContainer = computed(() => {
+  const container =
+    props.tableContainer ??
+    injectProps.value.tableContainer ??
+    DefaultTableContainer;
+  return container ? container : undefined;
+});
+
+type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
+type RecordType = ReturnGenericParameterTypes<T>;
+
+/*
+ * 序号列随有效分页偏移：分页关闭时退化为 index + 1；
+ * current / pageSize 取有效分页（显式 :pagination 或 Provider 注入），table.pageParam 仅作兜底
+ */
+const getIndex = (i: number) => {
+  const pagination = computedPagination.value;
+  if (pagination === false) return i + 1;
+  const pageParam = props.table?.pageParam;
+  const current = pagination.current ?? pageParam?.current ?? 1;
+  const pageSize = pagination.pageSize ?? pageParam?.pageSize ?? 10;
+  return (current - 1) * pageSize + i + 1;
+};
+
+const indexColumn = computed<ColumnType>(() => ({
+  title: t('table.index'),
+  dataIndex: '__INDEX__',
+  key: '__INDEX__',
+  width: 80,
+  // antdv-next 的 render 为位置参数签名：(value, record, index)
+  render: (_value: any, _record: any, index: number) => getIndex(index),
+}));
+
+/** 调用方是否显式传入 columns（值为 undefined 时视为未指定） */
+const hasExplicitColumns = computed(
+  () => tableAttrs.value.columns !== undefined
+);
+
+// 列来源优先级：显式绑定 > table 实例（useTable 创建的 columns）；显式列原样透传，不补齐 key
+const computedColumns = computed<Columns<RecordType>>(() => {
+  const cols = (tableAttrs.value.columns ??
+    toValue(props.table?.columns) ??
+    []) as any;
+  const needIndex = props.addIndexColumn ?? injectProps.value.addIndexColumn;
+  return needIndex ? [indexColumn.value, ...cols] : cols;
+});
+
+const ellipsisTooltipValue = computed(
+  () => props.ellipsisTooltip ?? injectProps.value.ellipsisTooltip
+);
+const ellipsisTooltipConfig = computed<EllipsisTooltipConfig>(() =>
+  typeof ellipsisTooltipValue.value === 'object' && ellipsisTooltipValue.value
+    ? ellipsisTooltipValue.value
+    : {}
+);
+const ellipsisTooltipGlobal = computed(() =>
+  Boolean(ellipsisTooltipValue.value)
+);
+
+const {
+  columns: visibleComputedColumns,
+  hasTooltip: ellipsisTooltipEnabled,
+  resolveSorterColumn,
+} = useEllipsisTooltipColumns(
+  () => computedColumns.value,
+  () => ellipsisTooltipGlobal.value
+);
+const rootRef = ref<HTMLElement | null>(null);
 
 const size = defineModel<TableProps['size']>('size');
 const loading = defineModel<boolean>('loading', { default: false });
@@ -317,91 +407,45 @@ const computedTableProps = computed<TableProps>(() => {
   return merged as TableProps;
 });
 
-const computedTableContainer = computed(() => {
-  const container =
-    props.tableContainer ??
-    injectProps.value.tableContainer ??
-    DefaultTableContainer;
-  return container ? container : undefined;
+const ellipsisTooltipContainer = computed(() => {
+  const getPopupContainer = ellipsisTooltipConfig.value.getPopupContainer;
+  if (!getPopupContainer) return undefined;
+  return () => {
+    if (typeof document === 'undefined') return undefined;
+    const root = rootRef.value ?? document.body;
+    return getPopupContainer(root) ?? document.body;
+  };
 });
-
-type ReturnGenericParameterTypes<V> = V extends Table<any, infer R> ? R : never;
-type RecordType = ReturnGenericParameterTypes<T>;
-
-/*
- * 序号列随有效分页偏移：分页关闭时退化为 index + 1；
- * current / pageSize 取有效分页（显式 :pagination 或 Provider 注入），table.pageParam 仅作兜底
- */
-const getIndex = (i: number) => {
-  const pagination = computedPagination.value;
-  if (pagination === false) return i + 1;
-  const pageParam = props.table?.pageParam;
-  const current = pagination.current ?? pageParam?.current ?? 1;
-  const pageSize = pagination.pageSize ?? pageParam?.pageSize ?? 10;
-  return (current - 1) * pageSize + i + 1;
-};
-
-const indexColumn = computed<ColumnType>(() => ({
-  title: t('table.index'),
-  dataIndex: '__INDEX__',
-  key: '__INDEX__',
-  width: 80,
-  // antdv-next 的 render 为位置参数签名：(value, record, index)
-  render: (_value: any, _record: any, index: number) => getIndex(index),
-}));
-
-/** 调用方是否显式传入 columns（值为 undefined 时视为未指定） */
-const hasExplicitColumns = computed(
-  () => tableAttrs.value.columns !== undefined
+const ellipsisTooltipDelay = computed(() =>
+  Math.max(0, (ellipsisTooltipConfig.value.mouseEnterDelay ?? 0.2) * 1000)
 );
-
-// 列来源优先级：显式绑定 > table 实例（useTable 创建的 columns）；显式列原样透传，不补齐 key
-const computedColumns = computed<Columns<RecordType>>(() => {
-  const cols = (tableAttrs.value.columns ??
-    toValue(props.table?.columns) ??
-    []) as any;
-  const needIndex = props.addIndexColumn ?? injectProps.value.addIndexColumn;
-  return needIndex ? [indexColumn.value, ...cols] : cols;
+const ellipsisTooltipLeaveDelay = computed(() =>
+  Math.max(0, (ellipsisTooltipConfig.value.mouseLeaveDelay ?? 0.1) * 1000)
+);
+const ellipsisTooltipProps = computed(() => {
+  const config = ellipsisTooltipConfig.value;
+  const {
+    getPopupContainer: _getPopupContainer,
+    mouseEnterDelay: _mouseEnterDelay,
+    mouseLeaveDelay: _mouseLeaveDelay,
+    ...rest
+  } = config;
+  return rest;
 });
 
-/*
- * 递归过滤 hidden 列（含分组子列）：仅对被过滤过子列的列生成浅拷贝，
- * 未发生变动的列保持原对象引用（每次 columns 变化执行一次，不在渲染期递归）
- */
-const filterVisibleColumns = (
-  columns: any[],
-  ancestors: Set<object> = new Set()
-): { list: any[]; changed: boolean } => {
-  const list: any[] = [];
-  let changed = false;
-  for (const column of columns) {
-    if (!isObjectItem(column) || toValue((column as Column).hidden)) {
-      changed = true;
-      continue;
-    }
-    if (Array.isArray(column.children) && column.children.length > 0) {
-      // 环状分组列不再深入，重复出现的祖先引用直接剔除
-      if (ancestors.has(column)) {
-        changed = true;
-        continue;
-      }
-      ancestors.add(column);
-      const filtered = filterVisibleColumns(column.children, ancestors);
-      ancestors.delete(column);
-      if (filtered.changed) {
-        changed = true;
-        list.push({ ...column, children: filtered.list });
-        continue;
-      }
-    }
-    list.push(column);
-  }
-  return { list, changed };
-};
-
-const visibleComputedColumns = computed(() => {
-  return filterVisibleColumns(computedColumns.value).list;
-});
+const {
+  open: ellipsisTooltipOpen,
+  content: ellipsisTooltipContent,
+  anchorStyle: ellipsisTooltipAnchorStyle,
+  onMouseOver: onEllipsisMouseOver,
+  onMouseOut: onEllipsisMouseOut,
+  close: closeEllipsisTooltip,
+} = useEllipsisTooltip(
+  rootRef,
+  ellipsisTooltipEnabled,
+  ellipsisTooltipDelay,
+  ellipsisTooltipLeaveDelay
+);
 
 const computedDataSource = computed<RecordType[]>(() => {
   return (
@@ -410,6 +454,9 @@ const computedDataSource = computed<RecordType[]>(() => {
     []
   );
 });
+
+// 列或数据变化后旧锚点失效，关闭共享 Tooltip
+watch([visibleComputedColumns, computedDataSource], closeEllipsisTooltip);
 
 // 分页优先级：tableAttrs 显式配置 > provider 全局配置 > 默认合成
 const computedPagination = computed<PaginationProps | false>(() => {
@@ -459,8 +506,15 @@ const onTableChange: TableProps['onChange'] = (...args) => {
     );
     if (shadowed.length) warnPaginationShadow(shadowed);
   }
-  // change 回放：模板监听器优先，未绑定时回退 Provider 全局配置
-  (attrs.onChange ?? injectProps.value.onChange)?.(...args);
+  // change 回放：模板监听器优先，未绑定时回退 Provider 全局配置；sorter.column 还原为原始列
+  const nextArgs = [...args] as any[];
+  const sorterArg = nextArgs[2];
+  if (Array.isArray(sorterArg)) {
+    nextArgs[2] = sorterArg.map(resolveSorterColumn);
+  } else if (sorterArg) {
+    nextArgs[2] = resolveSorterColumn(sorterArg);
+  }
+  (attrs.onChange ?? injectProps.value.onChange)?.(...nextArgs);
   _search();
 };
 
@@ -521,7 +575,15 @@ defineExpose({
 </script>
 
 <template>
-  <div class="pro-table" :class="attrs.class" :style="attrs.style">
+  <div
+    ref="rootRef"
+    class="pro-table"
+    data-pro-table-root
+    :class="attrs.class"
+    :style="attrs.style"
+    @mouseover="onEllipsisMouseOver"
+    @mouseout="onEllipsisMouseOut"
+  >
     <ContainerFragment
       v-if="searchFormVisible || $slots['search-form']"
       :component="computedSearchFormConfig.container"
@@ -608,6 +670,15 @@ defineExpose({
         </ATable>
       </slot>
     </ContainerFragment>
+
+    <TableEllipsisTooltip
+      v-if="ellipsisTooltipEnabled"
+      :open="ellipsisTooltipOpen"
+      :content="ellipsisTooltipContent"
+      :anchor-style="ellipsisTooltipAnchorStyle"
+      :container="ellipsisTooltipContainer"
+      v-bind="ellipsisTooltipProps"
+    />
   </div>
 </template>
 

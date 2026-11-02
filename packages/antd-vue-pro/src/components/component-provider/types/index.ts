@@ -58,6 +58,7 @@ export type RequiredComponentVars = {
         | 'immediateSearch'
         | 'addIndexColumn'
         | 'tableContainer'
+        | 'ellipsisTooltip'
       >
   >;
   /** ProForm 全局默认属性，grid 必须为 GridProps 对象而非 boolean */

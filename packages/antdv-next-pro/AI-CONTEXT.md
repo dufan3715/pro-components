@@ -123,14 +123,14 @@ useTable({ columns, dataSource, pageParam, searchParam, searchFields });
 
 返回 `Table` 实例：
 
-| 成员                                                                  | 说明                                                   |
-| :-------------------------------------------------------------------- | :----------------------------------------------------- |
-| `table.columns` / `table.dataSource`                                  | 列配置 / 数据源（Ref）                                 |
-| `table.pageParam`                                                     | 分页参数（reactive）：`current` / `pageSize` / `total` |
-| `table.searchForm`                                                    | 搜索表单实例（Form 类型，所有 useForm 方法可用）       |
-| `table.setColumn` / `deleteColumn` / `appendColumn` / `prependColumn` | 列增删改查（用法同 setField，支持 `{all:true}`）       |
-| `table.setPageParam(patch)`                                           | 设置分页参数                                           |
-| `table.resetQueryParams()`                                            | 恢复分页与搜索条件到初始化快照                         |
+| 成员                                                                  | 说明                                                        |
+| :-------------------------------------------------------------------- | :---------------------------------------------------------- |
+| `table.columns` / `table.dataSource`                                  | 列配置 / 数据源（Ref）                                      |
+| `table.pageParam`                                                     | 分页参数（reactive）：`current` / `pageSize` / `total`      |
+| `table.searchForm`                                                    | 搜索表单实例（Form 类型，所有 useForm 方法可用）            |
+| `table.setColumn` / `deleteColumn` / `appendColumn` / `prependColumn` | 列增删改查（用法同 setField，支持函数 key 与 `{all:true}`） |
+| `table.setPageParam(patch)`                                           | 设置分页参数                                                |
+| `table.resetQueryParams()`                                            | 恢复分页与搜索条件到初始化快照                              |
 
 ## 关键约定
 
@@ -166,7 +166,7 @@ useTable({ columns, dataSource, pageParam, searchParam, searchFields });
 
 关键 prop：`table`（useTable 实例）、`search`（数据查询方法 `() => Promise`，ProTable 内部调用，非自动触发）、`addIndexColumn`、`immediateSearch`、`control`、`searchFormConfig`（含 `hidden`/`container`/`layout`/`expand`）、`tableContainer`。
 
-Provider 注入面：`columns` / `dataSource` / `loading` 不可经 `componentVars['pro-table']` 配置（分别由 `:table` 实例与组件自身查询状态驱动），`form` 不可经 `componentVars['pro-form']` 配置（由显式 `:form` 实例驱动）；传入不可注入键时在注入层静默忽略（类型面已限制，不输出告警）。`searchFormConfig` 的 `container` / `hidden` 由 ProTable 消费，不下发 `SearchForm`。
+Provider 注入面：`columns` / `dataSource` / `loading` 不可经 `componentVars['pro-table']` 配置（分别由 `:table` 实例与组件自身查询状态驱动），`form` 不可经 `componentVars['pro-form']` 配置（由显式 `:form` 实例驱动）；传入不可注入键时在注入层静默忽略（类型面已限制，不输出告警）。`searchFormConfig` 的 `container` / `hidden` 由 ProTable 消费，不下发 `SearchForm`。`ellipsisTooltip` 可经 `componentVars['pro-table']` 配置。
 
 **列控制（control）**：`control` 支持布尔值或 `{ sizeControl, columnControl }` 对象；`columnControl` 可为布尔值或 `ColumnControlConfig`：`labels`（列在下拉中的显示名映射，title 为 vnode 时必用）、`excludedKeys`（不在下拉出现、始终展示）、`disabledKeys`（显示但不可取消勾选）、`disableCheckAll`（禁用全选/取消全选）。列 key 取 `dataIndex` 路径或自定义 `key`。
 
@@ -174,7 +174,27 @@ Provider 注入面：`columns` / `dataSource` / `loading` 不可经 `componentVa
 
 ### Column -- 列配置
 
-继承 antdv-next `ColumnType`，所有原生列属性可用。新增：`dataIndex`（列数据路径，主用，支持 `'name'` / `'address.city'` / `['address','city']`）、`key`（辅助标识，优先级更低）、`hidden`（隐藏该列，配合列控制）。
+继承 antdv-next `ColumnType`，所有原生列属性可用。新增：`dataIndex`（列数据路径，主用，支持 `'name'` / `'address.city'` / `['address','city']`）、`key`（辅助标识，优先级更低）、`hidden`（隐藏该列，配合列控制）。扩展 `ellipsis`：对象形态支持 `showTooltip`（文本溢出时使用表格级共享 Tooltip，body 单元格关闭宿主原生 title）；新增 `ColumnEllipsis` 类型导出。ProTable 级 `ellipsisTooltip` 为 truthy 时全局启用所有列（列上 `showTooltip: false` 或 `ellipsis: false` 可退出），对象同时复用 TooltipProps：`getPopupContainer`（收到 ProTable 根节点，稳定节点）、`mouseEnterDelay` / `mouseLeaveDelay`（秒，默认 0.2 / 0.1）、`placement` / `arrow` / `autoAdjustOverflow` / `color`，以及 `rootClass` / `styles.root` / `styles.container`；类型 `EllipsisTooltipConfig`。相邻单元格切换按 `mouseEnterDelay` 重新展示，不沿用 `mouseLeaveDelay`。
+
+### 全列省略 Tooltip（ellipsisTooltip）
+
+ProTable 设置 truthy 的 `ellipsisTooltip` 即可为所有可转换列启用单元格溢出省略 + 共享 Tooltip：
+
+```vue
+<ProTable :table="table" :ellipsis-tooltip="true" />
+```
+
+- `true` 或对象均为 truthy；对象同时作为 Tooltip 配置。
+- 列上 `ellipsis: { showTooltip: false }` 或 `ellipsis: false` 可单列退出。
+- 仅影响渲染，不改写 `table.columns`。
+- 仅文本横向溢出时展示；body 关闭原生 `title`，表头保留。
+- 需要把配置写入 `table.columns`（如持久化）时，再用：
+
+```ts
+table.setColumn(() => true, {
+  ellipsis: { showTooltip: true },
+});
+```
 
 ## 反模式
 

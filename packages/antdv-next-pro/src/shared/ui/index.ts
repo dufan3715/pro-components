@@ -32,6 +32,7 @@ export {
   TimeRangePicker,
   Transfer,
   TreeSelect,
+  Tooltip,
   type FormProps,
   type FormItemProps,
   type FormInstance,
@@ -51,6 +52,7 @@ export type FormItemInstance = InstanceType<typeof FormItem>;
  * 包内取用其中的 `componentDisabled` 与 `componentSize`，locale 文案读取见 `useLocale`。
  */
 export { useConfig as useHostConfig } from 'antdv-next';
+export type { TooltipProps } from 'antdv-next';
 
 const _gridItemProps = (Col as any).props || {};
 const _formItemProps = (FormItem as any).props || {};

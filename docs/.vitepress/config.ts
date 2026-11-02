@@ -58,6 +58,10 @@ const antdVueProSidebar = [
                 link: '/antd-vue-pro/components/pro-table/demos/configurable/',
               },
               {
+                text: '单元格省略 Tooltip',
+                link: '/antd-vue-pro/components/pro-table/demos/ellipsis-tooltip/',
+              },
+              {
                 text: '列控制与持久化',
                 link: '/antd-vue-pro/components/pro-table/demos/column-control/',
               },
@@ -146,6 +150,10 @@ const antdvNextProSidebar = [
               {
                 text: '表格配置项',
                 link: '/antdv-next-pro/components/pro-table/demos/configurable/',
+              },
+              {
+                text: '单元格省略 Tooltip',
+                link: '/antdv-next-pro/components/pro-table/demos/ellipsis-tooltip/',
               },
               {
                 text: '列控制与持久化',

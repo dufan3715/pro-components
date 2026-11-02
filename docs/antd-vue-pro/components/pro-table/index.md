@@ -64,16 +64,17 @@ const search = async () => {
 
 ### Props
 
-| 参数名           | 说明                                                       | 类型                                                                                 | 默认值 |
-| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------ |
-| table            | useTable 返回对象                                          | Table                                                                                | -      |
-| search           | 表格数据查询获取方法                                       | `() => Promise<unknown>`                                                             | -      |
-| addIndexColumn   | 是否添加索引列                                             | boolean                                                                              | -      |
-| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                              | -      |
-| control          | 是否展示表格 size 和 column 控制按钮，支持分别控制         | boolean \| `{ sizeControl: boolean; columnControl: boolean \| ColumnControlConfig }` | -      |
-| searchFormConfig | 搜索表单配置                                               | SearchFormConfig                                                                     | -      |
-| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component \| false                                                                   | -      |
-| ...              | 继承 Ant Design Vue Table 组件的所有参数                   | [TableProps](https://antdv.com/components/table-cn/#api)                             | -      |
+| 参数名           | 说明                                                       | 类型                                                                                                                                                                                                                       | 默认值 |
+| ---------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| table            | useTable 返回对象                                          | Table                                                                                                                                                                                                                      | -      |
+| search           | 表格数据查询获取方法                                       | `() => Promise<unknown>`                                                                                                                                                                                                   | -      |
+| addIndexColumn   | 是否添加索引列                                             | boolean                                                                                                                                                                                                                    | -      |
+| immediateSearch  | onMounted 时立即触发一次 search 事件                       | boolean                                                                                                                                                                                                                    | -      |
+| control          | 是否展示表格 size 和 column 控制按钮，支持分别控制         | boolean \| `{ sizeControl: boolean; columnControl: boolean \| ColumnControlConfig }`                                                                                                                                       | -      |
+| searchFormConfig | 搜索表单配置                                               | SearchFormConfig                                                                                                                                                                                                           | -      |
+| tableContainer   | 表格容器包裹组件，会渲染在 Table 外层，需要有 default slot | Component \| false                                                                                                                                                                                                         | -      |
+| ellipsisTooltip  | 表格级共享省略 Tooltip 配置                                | `boolean \| Pick<TooltipProps, 'getPopupContainer' \| 'mouseEnterDelay' \| 'mouseLeaveDelay' \| 'placement' \| 'arrow' \| 'autoAdjustOverflow' \| 'color' \| 'overlayClassName' \| 'overlayStyle' \| 'overlayInnerStyle'>` | -      |
+| ...              | 继承 Ant Design Vue Table 组件的所有参数                   | [TableProps](https://antdv.com/components/table-cn/#api)                                                                                                                                                                   | -      |
 
 > 事件入口：宿主 Table 声明的属性（含 `v-model:expanded-row-keys` 等 emit 型 attrs）经 attrs 透传到内部表格；
 > ant-design-vue 的 Table 未暴露 `scroll` 事件面，故本组件不提供 `@scroll` 入口。
@@ -91,14 +92,64 @@ const search = async () => {
 
 `Column` 基于 Ant Design Vue `ColumnType` 扩展而来，常用字段如下：
 
-| 字段        | 说明                                                                     |
-| ----------- | ------------------------------------------------------------------------ |
-| `dataIndex` | 列字段，支持路径数组                                                     |
-| `key`       | 列标识，默认由 `dataIndex` 推导                                          |
-| `hidden`    | 是否隐藏该列（支持 `boolean` / `Ref` / `ComputedRef`，分组子列递归生效） |
-| `children`  | 分组子列，提供时该列作为分组表头渲染，子列沿用同一配置类型               |
+| 字段        | 说明                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| `dataIndex` | 列字段，支持路径数组                                                                                   |
+| `key`       | 列标识，默认由 `dataIndex` 推导                                                                        |
+| `hidden`    | 是否隐藏该列（支持 `boolean` / `Ref` / `ComputedRef`，分组子列递归生效）                               |
+| `ellipsis`  | 列内容省略；`true` 为宿主默认省略，`{ showTooltip: true }` 显示共享 Tooltip；全局启用时 `false` 可退出 |
+| `children`  | 分组子列，提供时该列作为分组表头渲染，子列沿用同一配置类型                                             |
 
 其余字段均继承 Ant Design Vue `ColumnType`。
+
+### 共享省略 Tooltip
+
+`ellipsis: { showTooltip: true }` 在单元格文本横向溢出时，以表格级唯一的 Tooltip 展示完整文本；整个 ProTable 只渲染一个 Tooltip 实例，实例数量不随行数、列数增长。
+
+> 在线示例：[单元格省略 Tooltip](/antd-vue-pro/components/pro-table/demos/ellipsis-tooltip/)
+
+- 仅在 `scrollWidth > clientWidth` 时展示
+- Tooltip 文本取单元格渲染后的文本
+- `showTooltip` 开启后 **body 单元格**不再输出宿主原生 `title`；表头仍保留宿主原生提示
+- 列上已有的 `customCell` 返回值会合并保留，仅追加标记属性
+- `ellipsisTooltip` 为 truthy（`true` 或对象）时全局启用所有可转换列；列上 `ellipsis: { showTooltip: false }` 或 `ellipsis: false` 可退出
+- 也可通过 `ProComponentProvider` 的 `componentVars['pro-table'].ellipsisTooltip` 设置全局默认
+- 全局启用作用于 `:columns` / `useTable` 的可转换列；`addIndexColumn` 序号列随转换，宿主选择/展开列不参与
+- 全局启用会给所有可转换列加省略样式；操作列 / 自定义渲染列请用 `ellipsis: { showTooltip: false }` 或 `ellipsis: false` 退出，避免按钮被裁剪
+- `ellipsisTooltip.getPopupContainer` 接收 ProTable 根节点，返回稳定节点；该节点同时用于锚点 Teleport 与浮层，不随 `ConfigProvider.getPopupContainer` 漂移
+- `ellipsisTooltip.mouseEnterDelay` / `mouseLeaveDelay` 单位为秒，默认 `0.2` / `0.1`；`0` 表示立即展示 / 关闭
+- 相邻单元格之间切换会按 `mouseEnterDelay` 重新展示，不沿用 `mouseLeaveDelay`
+- `ellipsisTooltip.placement` 默认 `top`；`arrow` / `autoAdjustOverflow` / `color` 透传宿主 Tooltip
+- `ellipsisTooltip.overlayClassName` / `overlayStyle` / `overlayInnerStyle` 透传宿主浮层
+- `resizeColumn` 回传列对象会还原到原始列，`col.width = w` 的就地写法仍生效
+- 作用于 `:columns` / `useTable` 传入的列配置；以宿主列组件（默认插槽）声明的列不参与转换
+- 表格滚动、窗口尺寸变化、列或数据变化时自动关闭
+
+```ts
+const table = useTable<Row>({
+  columns: [
+    { title: '姓名', dataIndex: 'name', ellipsis: { showTooltip: true } },
+    { title: '地址', dataIndex: 'address', ellipsis: { showTooltip: true } },
+  ],
+});
+```
+
+为所有可转换列全局开启：
+
+```vue
+<ProTable :table="table" :ellipsis-tooltip="true" />
+```
+
+`ellipsisTooltip` 为 truthy（`true` 或对象）时生效；列上 `ellipsis: { showTooltip: false }` 或 `ellipsis: false` 可单列退出。需要把配置写入 `table.columns`（如持久化）时，再用 `table.setColumn(() => true, { ellipsis: { showTooltip: true } })`。
+
+操作列 / 自定义渲染列退出全局启用：
+
+```ts
+const columns = [
+  { title: '姓名', dataIndex: 'name' },
+  { title: '操作', key: 'action', ellipsis: false },
+];
+```
 
 ## 列控制配置（ColumnControlConfig）
 
@@ -245,18 +296,18 @@ Object.entries(state).forEach(([key, { hidden }]) => {
 
 ### 返回值
 
-| 属性/方法                               | 类型                  | 说明                                                       |
-| --------------------------------------- | --------------------- | ---------------------------------------------------------- |
-| `columns`                               | `Ref<Columns<T>>`     | 列配置数组（响应式）                                       |
-| `dataSource`                            | `Ref<T[]>`            | 数据源数组（响应式）                                       |
-| `pageParam`                             | `Reactive<PageParam>` | 分页参数（响应式），包含 `current`、`pageSize`、`total`    |
-| `searchForm`                            | `Form<D>`             | 搜索表单实例（useForm 返回值）                             |
-| `setColumn(key, column, options?)`      | `-`                   | 设置/更新列配置，支持 `merge`/`rewrite`；column 支持函数式 |
-| `deleteColumn(path, options?)`          | `-`                   | 删除列，`options.all` 批量删除                             |
-| `appendColumn(path, column, options?)`  | `-`                   | 在指定列后追加，传 `undefined` 在末尾追加                  |
-| `prependColumn(path, column, options?)` | `-`                   | 在指定列前插入，传 `undefined` 在开头插入                  |
-| `setPageParam(pageParam)`               | `-`                   | 设置分页参数，支持部分更新和函数式 `(prev) => next`        |
-| `resetQueryParams()`                    | `-`                   | 重置分页和搜索条件到初始值                                 |
+| 属性/方法                               | 类型                  | 说明                                                                                                         |
+| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `columns`                               | `Ref<Columns<T>>`     | 列配置数组（响应式）                                                                                         |
+| `dataSource`                            | `Ref<T[]>`            | 数据源数组（响应式）                                                                                         |
+| `pageParam`                             | `Reactive<PageParam>` | 分页参数（响应式），包含 `current`、`pageSize`、`total`                                                      |
+| `searchForm`                            | `Form<D>`             | 搜索表单实例（useForm 返回值）                                                                               |
+| `setColumn(key, column, options?)`      | `-`                   | 设置/更新列配置；key 支持路径或查找函数（函数默认更新全部命中列），column 支持函数式，支持 `merge`/`rewrite` |
+| `deleteColumn(path, options?)`          | `-`                   | 删除列，`options.all` 批量删除                                                                               |
+| `appendColumn(path, column, options?)`  | `-`                   | 在指定列后追加，传 `undefined` 在末尾追加                                                                    |
+| `prependColumn(path, column, options?)` | `-`                   | 在指定列前插入，传 `undefined` 在开头插入                                                                    |
+| `setPageParam(pageParam)`               | `-`                   | 设置分页参数，支持部分更新和函数式 `(prev) => next`                                                          |
+| `resetQueryParams()`                    | `-`                   | 重置分页和搜索条件到初始值                                                                                   |
 
 ## Types
 

@@ -36,6 +36,7 @@ export {
   Transfer,
   TreeSelect,
   RangePicker,
+  Tooltip,
   type FormItemInstance,
   type FormInstance,
   type RowProps as GridProps,
@@ -45,6 +46,7 @@ export {
 } from 'ant-design-vue';
 
 export { type ColumnType, tableProps } from 'ant-design-vue/es/table';
+export type { TooltipProps } from 'ant-design-vue';
 export { type RangePickerProps } from 'ant-design-vue/es/date-picker';
 export { useConfigContextInject } from 'ant-design-vue/es/config-provider/context';
 export {
