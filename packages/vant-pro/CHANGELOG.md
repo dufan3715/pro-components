@@ -1,5 +1,21 @@
 # @qin-ui/vant-pro
 
+## 1.3.7
+
+### Patch Changes
+
+- 8d980e8: 修复字段配置中的显式 `undefined` 冲掉 Provider 默认值与 locale 占位符兜底的问题：字段 attrs 参与合并前剔除 `undefined` 键，未赋值的属性不再覆盖注入默认值；显式空字符串 / `false` / `null` 仍按字段值下发。
+- 8d980e8: 修复运行期替换 ProForm 的 `:form` 实例后，旧实例 `formRef` 悬挂在已卸载表单组件上的问题：ref 回调改为在渲染期捕获所属表单实例，卸载通知写回该实例。旧实例 `formRef` 在切换后立即清空，整棵表单卸载后当前实例引用同样清空。
+- 8d980e8: 新增 `mergeComponentVars` 工具（组件配置表按组件键逐属性浅合并），并修复 `ProComponentProvider` 嵌套时配置继承不完整的问题：
+  - 全量 `componentVars` 通道按组件键逐属性合并：同一组件键下内层只覆盖其声明属性，外层兄弟属性（如 `input.placeholder` 与内层 `input.allowClear`）继续继承；
+  - `componentMap` / `locale` 全局通道按「祖先 → 本层」浅合并，内层同名键仍覆盖外层；
+  - 内层空 Provider 完整继承外层配置。
+
+- Updated dependencies [8d980e8]
+- Updated dependencies [8d980e8]
+- Updated dependencies [8d980e8]
+  - @qin-ui/pro-components-core@2.2.0
+
 ## 1.3.6
 
 ### Patch Changes

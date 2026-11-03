@@ -1,5 +1,30 @@
 # @qin-ui/element-plus-pro
 
+## 1.4.4
+
+### Patch Changes
+
+- 8d980e8: 修复 BaseField 的 Provider 配置解析：注入键不再只按「组件名 + picker/type」拼接，改为基础键与子类型键两层叠加。层叠顺序为「库内置默认（基础键 → 子类型键）→ Provider 配置（基础键 → 子类型键）→ 字段属性」，项目级 `componentVars` 始终覆盖库内置默认值。
+  - 带 picker/type 的字段重新读到基础组件的 Provider 默认值，基础组件携带无意义修饰段时不再丢失 `allowClear` / `getPopupContainer` / 占位符文案等配置；
+  - `date-picker` 未显式指定 picker/type 时按 `date` 子类型读取配置；
+  - 自定义组件携带 picker/type 时其 `componentVars` 配置重新生效。
+
+- 8d980e8: 修复字段配置中的显式 `undefined` 冲掉 Provider 默认值与 locale 占位符兜底的问题：字段 attrs 参与合并前剔除 `undefined` 键，未赋值的属性不再覆盖注入默认值；显式空字符串 / `false` / `null` 仍按字段值下发。
+- 8d980e8: 新增 `callListeners` 工具：函数或函数数组形态的监听器按序调用，非函数项跳过，返回各监听器返回值。
+
+  修复 ProTable 在 `@change` / `@search` 以数组形态到达（如二次封装写成 `v-bind="$attrs"` 并叠加同名监听）时抛 `TypeError`、分页参数已回写但查询未发出的问题：数组内监听器逐个回放，查询的 loading 竞态守卫在全部监听器返回的 Promise 结束后复位，任一监听器失败时抛出首个错误；`change` 回放中业务监听器抛错时查询链路仍继续发起。
+
+- 8d980e8: 修复运行期替换 ProForm 的 `:form` 实例后，旧实例 `formRef` 悬挂在已卸载表单组件上的问题：ref 回调改为在渲染期捕获所属表单实例，卸载通知写回该实例。旧实例 `formRef` 在切换后立即清空，整棵表单卸载后当前实例引用同样清空。
+- 8d980e8: 新增 `mergeComponentVars` 工具（组件配置表按组件键逐属性浅合并），并修复 `ProComponentProvider` 嵌套时配置继承不完整的问题：
+  - 全量 `componentVars` 通道按组件键逐属性合并：同一组件键下内层只覆盖其声明属性，外层兄弟属性（如 `input.placeholder` 与内层 `input.allowClear`）继续继承；
+  - `componentMap` / `locale` 全局通道按「祖先 → 本层」浅合并，内层同名键仍覆盖外层；
+  - 内层空 Provider 完整继承外层配置。
+
+- Updated dependencies [8d980e8]
+- Updated dependencies [8d980e8]
+- Updated dependencies [8d980e8]
+  - @qin-ui/pro-components-core@2.2.0
+
 ## 1.4.3
 
 ### Patch Changes

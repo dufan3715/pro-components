@@ -1,5 +1,22 @@
 # @qin-ui/pro-components-core
 
+## 2.2.0
+
+### Minor Changes
+
+- 8d980e8: 新增 `callListeners` 工具：函数或函数数组形态的监听器按序调用，非函数项跳过，返回各监听器返回值。
+
+  修复 ProTable 在 `@change` / `@search` 以数组形态到达（如二次封装写成 `v-bind="$attrs"` 并叠加同名监听）时抛 `TypeError`、分页参数已回写但查询未发出的问题：数组内监听器逐个回放，查询的 loading 竞态守卫在全部监听器返回的 Promise 结束后复位，任一监听器失败时抛出首个错误；`change` 回放中业务监听器抛错时查询链路仍继续发起。
+
+- 8d980e8: 新增 `mergeComponentVars` 工具（组件配置表按组件键逐属性浅合并），并修复 `ProComponentProvider` 嵌套时配置继承不完整的问题：
+  - 全量 `componentVars` 通道按组件键逐属性合并：同一组件键下内层只覆盖其声明属性，外层兄弟属性（如 `input.placeholder` 与内层 `input.allowClear`）继续继承；
+  - `componentMap` / `locale` 全局通道按「祖先 → 本层」浅合并，内层同名键仍覆盖外层；
+  - 内层空 Provider 完整继承外层配置。
+
+### Patch Changes
+
+- 8d980e8: 修复 `setColumn` 写入列上以只读 ref（如 `computed`）声明的属性时触发 Vue 只读告警且写入失效的问题：只读 ref 键先移除再写入普通值，可写 ref 仍按 `ref.value` 写入并保持外部绑定。列控面板切换 `hidden` 为只读 ref 的列现在真实生效。
+
 ## 2.1.2
 
 ### Patch Changes
