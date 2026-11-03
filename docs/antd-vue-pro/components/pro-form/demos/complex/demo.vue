@@ -7,7 +7,8 @@ import {
   Switch,
   Radio,
 } from 'ant-design-vue';
-import { Field, Fields, ProForm, useForm } from '@qin-ui/antd-vue-pro';
+import type { Field, Fields } from '@qin-ui/antd-vue-pro';
+import { ProForm, useForm } from '@qin-ui/antd-vue-pro';
 import { computed, h, markRaw, ref, toValue, watch } from 'vue';
 import { Flex } from 'ant-design-vue';
 import { useData } from 'vitepress';

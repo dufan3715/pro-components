@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { ConfigProvider, Card, RadioGroup, RadioButton } from 'ant-design-vue';
-import {
-  ProComponentProvider,
-  ProTable,
-  ProTableProps,
-  useTable,
-} from '@qin-ui/antd-vue-pro';
+import type { ProTableProps } from '@qin-ui/antd-vue-pro';
+import { ProComponentProvider, ProTable, useTable } from '@qin-ui/antd-vue-pro';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import zhTW from 'ant-design-vue/es/locale/zh_TW';
 import enUS from 'ant-design-vue/es/locale/en_US';

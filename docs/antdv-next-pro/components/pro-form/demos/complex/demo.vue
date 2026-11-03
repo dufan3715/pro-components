@@ -9,7 +9,8 @@ import {
   RadioButton,
   Flex,
 } from 'antdv-next';
-import { Field, Fields, ProForm, useForm } from '@qin-ui/antdv-next-pro';
+import type { Field, Fields } from '@qin-ui/antdv-next-pro';
+import { ProForm, useForm } from '@qin-ui/antdv-next-pro';
 import { computed, h, markRaw, ref, toValue, watch } from 'vue';
 import { useData } from 'vitepress';
 

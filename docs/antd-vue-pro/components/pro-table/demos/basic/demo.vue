@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Card } from 'ant-design-vue';
-import { ProTable, ProTableProps, useTable } from '@qin-ui/antd-vue-pro';
+import type { ProTableProps } from '@qin-ui/antd-vue-pro';
+import { ProTable, useTable } from '@qin-ui/antd-vue-pro';
 import { useData } from 'vitepress';
 const { isDark } = useData();
 

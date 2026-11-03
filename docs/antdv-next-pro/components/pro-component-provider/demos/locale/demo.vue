@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Card, ConfigProvider, RadioGroup, RadioButton } from 'antdv-next';
+import type { ProTableProps } from '@qin-ui/antdv-next-pro';
 import {
   ProComponentProvider,
   ProTable,
-  ProTableProps,
   useTable,
 } from '@qin-ui/antdv-next-pro';
 import zhCN from 'antdv-next/locale/zh_CN';

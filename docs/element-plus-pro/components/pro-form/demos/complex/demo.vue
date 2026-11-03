@@ -8,13 +8,8 @@ import {
   ElRadioButton,
   ElText,
 } from 'element-plus';
-import {
-  Field,
-  Fields,
-  ProForm,
-  useForm,
-  type ProFormProps,
-} from '@qin-ui/element-plus-pro';
+import type { Field, Fields } from '@qin-ui/element-plus-pro';
+import { ProForm, useForm, type ProFormProps } from '@qin-ui/element-plus-pro';
 import { computed, h, ref, toValue, watch } from 'vue';
 import { useData } from 'vitepress';
 
