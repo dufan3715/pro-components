@@ -105,7 +105,14 @@ const fields = computed(() => {
   return (Array.isArray(f) ? f : f?.value) ?? [];
 });
 const formData = computed(() => currentForm.value?.formData);
-const setFormRef = (el: any) => currentForm.value?.setFormRef?.(el);
+/*
+ * ref 回调按渲染期实例路由：卸载回调（null）写回该子树所属表单，
+ * 运行期替换 :form 后旧实例的 formRef 同步清空
+ */
+const formRefSetter = computed(() => {
+  const form = currentForm.value;
+  return (el: any) => form?.setFormRef?.(el);
+});
 
 /*
  * formKey 子树重挂载契约：以 WeakMap 为每个 form 实例生成自增 key，绑定到原生 Form 的 :key
@@ -172,7 +179,7 @@ provide(InjectionFormSlotsKey, formSlotsRef);
   <!-- el-form 渲染原生 form 元素，拦截回车触发的默认提交 -->
   <ElForm
     :key="formKey"
-    :ref="setFormRef"
+    :ref="formRefSetter"
     :model="formData"
     v-bind="formAttrs"
     class="pro-form"

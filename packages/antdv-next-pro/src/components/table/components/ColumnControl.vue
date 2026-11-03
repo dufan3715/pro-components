@@ -98,10 +98,12 @@ const checkedColumnKeys = computed({
   },
 });
 
-const onCheckAllChange = (e: any) => {
-  checkedColumnKeys.value = e.target.checked
-    ? controllableOptions.value.map(item => item.value)
-    : [];
+const onCheckAllChange = () => {
+  // 整行点击与勾选框共用：按当前全选态切换
+  checkedColumnKeys.value = checkAll.value
+    ? []
+    : controllableOptions.value.map(item => item.value);
+  indeterminate.value = false;
 };
 
 const checkColumnsMenuItemClick = (val: string) => {
@@ -152,15 +154,15 @@ const items = computed<any>(() => {
         label: h(
           Checkbox,
           {
-            style: { width: '100%' },
+            style: { width: '100%', pointerEvents: 'none' },
             checked: checkAll.value,
             indeterminate: indeterminate.value,
-            onChange: onCheckAllChange,
           },
           () => t('table.selectAll')
         ),
+        onClick: () => onCheckAllChange(),
       },
-      { type: 'divider' }
+      { key: 'divider', type: 'divider' }
     );
   }
   result.push(
@@ -170,13 +172,13 @@ const items = computed<any>(() => {
       label: h(
         Checkbox,
         {
-          style: { width: '100%' },
+          style: { width: '100%', pointerEvents: 'none' },
           checked: item.checked,
           disabled: item.disabled,
-          onChange: () => checkColumnsMenuItemClick(item.value),
         },
         () => item.label
       ),
+      onClick: () => checkColumnsMenuItemClick(item.value),
     }))
   );
   return result;

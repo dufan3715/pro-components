@@ -65,7 +65,8 @@ const getPlaceholderProps = (
 /**
  * 组件初始属性：以内置默认值为底，按下发组件名补默认占位符文案
  *
- * @description 组件名由 `component` 与 `type` 拼接（如 `input.password`）；`component` 非字符串时返回空记录。
+ * @description 占位符按 `component` 与 `type` 拼接的键查表（如 `input.password`），
+ * 该键无占位符映射时回落到基础组件名；`component` 非字符串时返回空记录。
  * @param {Field} field - 字段配置
  * @param {Record<string, any>} injectProps - Provider 下发的组件默认属性
  * @param {LocaleT} t - 取文案的翻译函数
@@ -78,8 +79,12 @@ export const getInitProps = (
 ): Record<string, any> => {
   const { component, type } = field as any;
   if (typeof component === 'string') {
-    const k = [component, type].filter(Boolean).join('.');
-    return { ...injectProps, ...getPlaceholderProps(k, injectProps, t) };
+    const subtypeKey = [component, type].filter(Boolean).join('.');
+    const key =
+      PLACEHOLDER_KEYS[subtypeKey] || RANGE_PLACEHOLDER_KEYS[subtypeKey]
+        ? subtypeKey
+        : component;
+    return { ...injectProps, ...getPlaceholderProps(key, injectProps, t) };
   }
   return {};
 };

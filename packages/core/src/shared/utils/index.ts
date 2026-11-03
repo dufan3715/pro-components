@@ -179,6 +179,32 @@ export function getObject(val: any): Record<string, any> {
 }
 
 /**
+ * 合并组件配置表
+ *
+ * @description 同名组件键在父级与子级均为普通对象时逐属性浅合并（子级覆盖父级），
+ * 其余键整体覆盖；返回新对象，不修改入参
+ * @param parent - 祖先级组件配置
+ * @param own - 当前层组件配置
+ * @returns 合并后的组件配置
+ */
+export function mergeComponentVars(
+  parent?: Record<string, any> | null,
+  own?: Record<string, any> | null
+): Record<string, any> {
+  const merged: Record<string, any> = { ...getObject(parent) };
+  const ownVars = getObject(own);
+  for (const key of Object.keys(ownVars)) {
+    const parentValue = merged[key];
+    const ownValue = ownVars[key];
+    merged[key] =
+      isPlainObject(parentValue) && isPlainObject(ownValue)
+        ? { ...parentValue, ...ownValue }
+        : ownValue;
+  }
+  return merged;
+}
+
+/**
  * 与 lodash omitBy 语义对齐：返回新对象，剔除谓词返回真值的属性
  *
  * @description 谓词入参为 `(value, key)` 且必填（仅支持函数形态，不支持 lodash 的 iteratee 简写）；
@@ -263,5 +289,24 @@ export function isPromise<T = any>(val: unknown): val is Promise<T> {
     val !== null &&
     (typeof val === 'object' || typeof val === 'function') &&
     typeof (val as Record<string, any>).then === 'function'
+  );
+}
+
+/**
+ * 调用监听器：函数形态直接调用，数组形态逐项调用
+ *
+ * @description 数组中的非函数项跳过；未绑定（`null` / `undefined`）时不调用任何监听器。
+ * @param handler - 监听器：函数、函数数组或未绑定
+ * @param args - 透传给各监听器的参数
+ * @returns 各监听器的返回值，按监听器顺序排列，跳过项不占位
+ */
+export function callListeners<T = unknown>(
+  handler: unknown,
+  ...args: any[]
+): T[] {
+  if (!handler) return [];
+  const listeners = Array.isArray(handler) ? handler : [handler];
+  return listeners.flatMap(listener =>
+    typeof listener === 'function' ? [listener(...args) as T] : []
   );
 }

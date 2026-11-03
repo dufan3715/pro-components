@@ -10,7 +10,7 @@
 import type { Reactive, Ref } from 'vue';
 import { customRef, reactive, ref, toValue } from 'vue';
 import type { GroupMatch } from '../shared/internals';
-import { applyByGroupDesc } from '../shared/internals';
+import { applyByGroupDesc, writeObjectProps } from '../shared/internals';
 import type {
   BaseColumn,
   Columns,
@@ -38,6 +38,12 @@ type SetPageParam = (
     | ((pre: Readonly<PageParam>) => Partial<PageParam>)
 ) => void;
 
+/**
+ * 设置列配置
+ *
+ * @description `merge`（默认）仅覆盖新配置包含的键，`rewrite` 就地整体替换；
+ * 目标键当前值为只读 ref 且新值不是 ref 时，移除该 ref 后写入普通值。
+ */
 type SetColumn<
   T extends Data = Data,
   C extends BaseColumn<T> = BaseColumn<T>,
@@ -499,7 +505,7 @@ const useTable = <
               normalizeColumn(child, allocateColumnKey)
             );
           }
-          Object.assign(preColumn, merged);
+          writeObjectProps(preColumn, merged, false, 'readonly');
         }
       },
       rest

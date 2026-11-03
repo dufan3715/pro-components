@@ -5,7 +5,7 @@ import ProForm from '../src/components/form/components/ProForm/index.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
 import { useForm } from '../src/components/form/hooks/useForm';
 import { flushPromises } from './helpers/mount';
-import { ElInput, ElSwitch } from 'element-plus';
+import { ElDatePicker, ElInput, ElSelect, ElSwitch } from 'element-plus';
 
 describe('BaseField 组件测试', () => {
   // ----------------------------------------------------
@@ -563,5 +563,168 @@ describe('BaseField 组件测试', () => {
     expect(widget.attributes('data-checked')).toBe('true');
 
     wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-D2 [判别]: date-picker 基础键与 type 子类型键的 Provider 配置按层合并
+  // ----------------------------------------------------
+  it('BF-D2 [判别]: date-picker 合并基础键与子类型键的 Provider 配置', async () => {
+    const form = useForm({}, [
+      { path: 'date', component: 'date-picker', type: 'date' },
+      { path: 'month', component: 'date-picker', type: 'month' },
+    ]);
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          'date-picker': { clearable: false },
+          'date-picker.month': { clearable: true },
+        },
+      },
+      slots: { default: () => h(ProForm, { form }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const pickers = wrapper.findAllComponents(ElDatePicker);
+    expect(pickers).toHaveLength(2);
+    // 子类型键缺省时继承基础键
+    expect(pickers[0].props('clearable')).toBe(false);
+    // 子类型键覆盖基础键
+    expect(pickers[1].props('clearable')).toBe(true);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-D3 [判别]: 隐式 date 子类型与无意义 type 不丢基础配置与占位符兜底
+  // ----------------------------------------------------
+  it('BF-D3 [判别]: date-picker 缺省 type 按 date 段取值，无意义 type 不丢基础配置', async () => {
+    // date-picker 未显式 type 时按 date 子类型读取
+    const dateForm = useForm({}, [{ path: 'date', component: 'date-picker' }]);
+    const dateWrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: { 'date-picker.date': { clearable: false } },
+      },
+      slots: { default: () => h(ProForm, { form: dateForm }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(dateWrapper.findComponent(ElDatePicker).props('clearable')).toBe(
+      false
+    );
+    dateWrapper.unmount();
+
+    // 基础组件带无意义 type：基础配置与 locale 占位符兜底均保留
+    const selectForm = useForm({}, [
+      { path: 'status', component: 'select', type: 'non-subtype' } as any,
+    ]);
+    const selectWrapper = mount(ProComponentProvider, {
+      props: { componentVars: { select: { clearable: true } } },
+      slots: { default: () => h(ProForm, { form: selectForm }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    const select = selectWrapper.findComponent(ElSelect);
+    expect(select.props('clearable')).toBe(true);
+    expect(select.props('placeholder')).toBe('请选择');
+    selectWrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // BF-D4 [判别]: 字段级 undefined 不冲掉 Provider 默认值与 locale 占位符兜底
+  // ----------------------------------------------------
+  it('BF-D4 [判别]: 字段级 undefined 保留 Provider 默认值与 locale 占位符兜底', async () => {
+    const form = useForm({}, [
+      {
+        path: 'name',
+        component: 'input',
+        placeholder: undefined,
+        clearable: undefined,
+      } as any,
+    ]);
+    const providerWrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          input: { placeholder: 'PROVIDER-PH', clearable: true },
+        },
+      },
+      slots: { default: () => h(ProForm, { form }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const input = providerWrapper.findComponent(ElInput);
+    expect(input.props('placeholder')).toBe('PROVIDER-PH');
+    expect(input.props('clearable')).toBe(true);
+    providerWrapper.unmount();
+
+    // 无 Provider 时保留 locale 占位符兜底
+    const localeForm = useForm({}, [
+      { path: 'name', component: 'input', placeholder: undefined } as any,
+    ]);
+    const localeWrapper = mount(ProForm, {
+      props: { form: localeForm },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(localeWrapper.findComponent(ElInput).props('placeholder')).toBe(
+      '请输入'
+    );
+    localeWrapper.unmount();
+
+    // 反向约束：显式空字符串仍按字段值下发
+    const explicitForm = useForm({}, [
+      { path: 'name', component: 'input', placeholder: '' },
+    ]);
+    const explicitWrapper = mount(ProForm, {
+      props: { form: explicitForm },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(explicitWrapper.findComponent(ElInput).props('placeholder')).toBe(
+      ''
+    );
+    explicitWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // BF-D5 [判别]: 项目级基础配置覆盖子类型内置默认值
+  // ----------------------------------------------------
+  it('BF-D5 [判别]: 子类型内置默认值不覆盖 Provider 基础配置', async () => {
+    const fields = [
+      { path: 'a', component: 'input' },
+      { path: 'b', component: 'input', type: 'password' },
+      { path: 'c', component: 'input', type: 'textarea' },
+    ] as any;
+    const form = useForm({}, fields);
+    const wrapper = mount(ProComponentProvider, {
+      props: { componentVars: { input: { maxlength: 50 } } as any },
+      slots: { default: () => h(ProForm, { form }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const props = (form.fields.value as any[]).map(f =>
+      f.getComponentComputedProps?.()
+    );
+    props.forEach(item => expect(item).toMatchObject({ maxlength: 50 }));
+    // 子类型额外默认值仍保留
+    expect(props[1]).toMatchObject({ showPassword: true });
+    expect(props[2]).toMatchObject({ showWordLimit: true });
+    wrapper.unmount();
+
+    // 无 Provider 时子类型默认值仍生效
+    const plainForm = useForm({}, fields);
+    const plainWrapper = mount(ProForm, {
+      props: { form: plainForm },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    const plainProps = (plainForm.fields.value as any[]).map(f =>
+      f.getComponentComputedProps?.()
+    );
+    expect(plainProps[0]).toMatchObject({ maxlength: 100 });
+    expect(plainProps[1]).toMatchObject({ maxlength: 100 });
+    expect(plainProps[2]).toMatchObject({ maxlength: 200 });
+    plainWrapper.unmount();
   });
 });

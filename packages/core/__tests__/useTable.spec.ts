@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { isReactive, toRaw } from 'vue';
+import { computed, isReactive, isRef, ref, toRaw } from 'vue';
 import useTable, {
   normalizeColumn,
   normalizeColumns,
@@ -987,5 +987,52 @@ describe('useTable', () => {
       searchFields: [{ prop: 'keyword' }],
     });
     expect(defaultKeys.searchForm.getField('keyword')).toBeUndefined();
+  });
+
+  // ----------------------------------------------------
+  // TT-48 [判别]: setColumn 写入只读 ref 配置的列属性时摘除 ref，可写 ref 保持绑定
+  // ----------------------------------------------------
+  it('TT-48 [判别]: setColumn 写入只读 ref 配置的列属性时摘除 ref，可写 ref 保持绑定', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const computedHidden = computed(() => false);
+      const refHidden = ref(false);
+      const table = useTable({
+        columns: [
+          { dataIndex: 'a', title: 'A', hidden: computedHidden },
+          { dataIndex: 'b', title: 'B', hidden: refHidden },
+          { dataIndex: 'c', title: 'C' },
+        ] as any,
+        dataSource: [],
+      });
+
+      // 只读 ref：摘除后写入普通值
+      table.setColumn('a', { hidden: true } as any);
+      const a = table.columns.value[0] as any;
+      expect(a.hidden).toBe(true);
+      expect(isRef(toRaw(a).hidden)).toBe(false);
+      expect(computedHidden.value).toBe(false);
+
+      // 可写 ref：保留 ref 绑定，写入落到 ref.value
+      table.setColumn('b', { hidden: true } as any);
+      const b = table.columns.value[1] as any;
+      expect(b.hidden).toBe(true);
+      expect(isRef(toRaw(b).hidden)).toBe(true);
+      expect(toRaw(b).hidden).toBe(refHidden);
+      expect(refHidden.value).toBe(true);
+
+      // 普通列照常合并写入
+      table.setColumn('c', { title: 'C2' } as any);
+      expect((table.columns.value[2] as any).title).toBe('C2');
+
+      // 只读 ref 写入不再触发 Vue 只读告警
+      expect(
+        warnSpy.mock.calls.some(call =>
+          String(call[0]).includes('Set operation on key')
+        )
+      ).toBe(false);
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });

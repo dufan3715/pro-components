@@ -29,8 +29,8 @@ import {
   ensureInjectConfig,
 } from '../constants';
 import type { ComponentVars } from '../types';
-import { computed, provide, toValue } from 'vue';
-import { getObject, omit } from '../../../shared/core';
+import { computed, inject, provide, toValue } from 'vue';
+import { getObject, mergeComponentVars, omit } from '../../../shared/core';
 import type { ComponentName } from '../../form/constants';
 import { LOCALE_INJECT_KEY, type ProLocale } from '../../../locale';
 
@@ -56,19 +56,21 @@ type Props = {
 const props = defineProps<Props>();
 
 /*
- * 内置组件名按各自注入 key 下发「默认值 + componentVars」的合并结果，不可注入键在注入层剔除；
+ * 内置组件名按各自注入 key 下发「默认值 + 祖先注入值 + componentVars」的合并结果，不可注入键在注入层剔除；
  * 合并结果为响应式，子组件按注入 key 读取
  */
 (Object.keys(INJECT_CONFIG) as Array<keyof typeof INJECT_CONFIG>).forEach(
   key => {
     const config = INJECT_CONFIG[key];
     const ignored = config.ignoreProps;
+    const parentConfig = inject(config.injectionKey as any, undefined);
     provide(
       config.injectionKey as any,
       computed(() =>
         omit(
           {
             ...config.default,
+            ...(toValue(parentConfig) || {}),
             ...getObject(
               toValue(props.componentVars)?.[key as keyof ComponentVars]
             ),
@@ -85,10 +87,11 @@ if (props.componentVars) {
   Object.keys(props.componentVars).forEach(key => {
     if (!(key in INJECT_CONFIG)) {
       const config = ensureInjectConfig(key);
+      const parentConfig = inject(config.injectionKey as any, undefined);
       provide(
         config.injectionKey as any,
         computed(() => ({
-          ...config.default,
+          ...(toValue(parentConfig) || {}),
           ...getObject((props.componentVars as any)?.[key]),
         }))
       );
@@ -96,22 +99,36 @@ if (props.componentVars) {
   });
 }
 
+const parentComponentVars = inject(INJECT_COMPONENT_VARS, undefined);
 // 全量 componentVars：自定义组件键在运行期新增后同样可被子组件读取
 provide(
   INJECT_COMPONENT_VARS,
-  computed(() => (props.componentVars as Record<string, any>) ?? {})
+  computed(() =>
+    mergeComponentVars(
+      toValue(parentComponentVars),
+      props.componentVars as Record<string, any>
+    )
+  )
 );
 
+const parentComponents = inject(INJECT_COMPONENTS, undefined);
 // 注入自定义组件映射，BaseField 在解析组件时会优先使用此映射
 provide(
   INJECT_COMPONENTS,
-  computed(() => props.componentMap)
+  computed(() => ({
+    ...(toValue(parentComponents) || {}),
+    ...(props.componentMap ?? {}),
+  }))
 );
 
+const parentLocale = inject(LOCALE_INJECT_KEY, undefined);
 // 注入内置文案覆盖，useLocale 在解析文案时会优先使用
 provide(
   LOCALE_INJECT_KEY,
-  computed(() => props.locale)
+  computed(() => ({
+    ...(toValue(parentLocale) || {}),
+    ...(props.locale ?? {}),
+  }))
 );
 </script>
 

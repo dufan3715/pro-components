@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, markRaw, ref } from 'vue';
+import { computed, defineComponent, h, isRef, markRaw, ref, toRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import SizeControl from '../src/components/table/components/SizeControl.vue';
 import ColumnControl from '../src/components/table/components/ColumnControl.vue';
@@ -494,5 +494,289 @@ describe('控制组件与全局 Provider 测试', () => {
       'middle'
     );
     explicit.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PC-A2 [判别]: 嵌套空 Provider 继承外层 componentVars / componentMap / locale
+  // ----------------------------------------------------
+  it('PC-A2 [判别]: 嵌套空 Provider 继承外层 componentVars、componentMap 与 locale', async () => {
+    const CustomInput = defineComponent({
+      props: ['value', 'placeholder'],
+      setup(props) {
+        return () =>
+          h('input', {
+            class: 'nested-brand-input',
+            value: props.value,
+            placeholder: props.placeholder,
+          });
+      },
+    });
+    const form = useForm({ title: '' }, [
+      { path: 'title', component: 'input' },
+    ]);
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+    const Inner = defineComponent({
+      setup:
+        (_, { slots }) =>
+        () =>
+          h(ProComponentProvider, null, slots),
+    });
+
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentMap: { input: markRaw(CustomInput) },
+        componentVars: { input: { placeholder: 'OUTER-PH' } },
+        locale: { 'table.query': 'OUTER-QUERY' },
+      },
+      slots: {
+        default: () =>
+          h(Inner, null, {
+            default: () => [h(ProForm, { form }), h(ProTable, { table })],
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const brandInput = wrapper.find('.nested-brand-input');
+    expect(brandInput.exists()).toBe(true);
+    expect(brandInput.attributes('placeholder')).toBe('OUTER-PH');
+    expect(wrapper.find('.pro-table_search-form_search-button').text()).toBe(
+      'OUTER-QUERY'
+    );
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PC-A3 [判别]: 嵌套 Provider 同名键覆盖外层，未覆盖键与外层映射继续生效
+  // ----------------------------------------------------
+  it('PC-A3 [判别]: 嵌套 Provider 覆盖同名键时保留兄弟键与外层 componentMap', async () => {
+    const CustomInput = defineComponent({
+      props: ['value', 'placeholder'],
+      setup(props) {
+        return () =>
+          h('input', {
+            class: 'nested-brand-input',
+            value: props.value,
+            placeholder: props.placeholder,
+          });
+      },
+    });
+    const form = useForm({ title: '' }, [
+      { path: 'title', component: 'input' },
+    ]);
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+    const Inner = defineComponent({
+      setup:
+        (_, { slots }) =>
+        () =>
+          h(
+            ProComponentProvider,
+            {
+              componentVars: { input: { placeholder: 'INNER-PH' } },
+              locale: { 'table.query': 'INNER-QUERY' },
+            },
+            slots
+          ),
+    });
+
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentMap: { input: markRaw(CustomInput) },
+        componentVars: { input: { placeholder: 'OUTER-PH' } },
+        locale: {
+          'table.query': 'OUTER-QUERY',
+          'table.reset': 'OUTER-RESET',
+        },
+      },
+      slots: {
+        default: () =>
+          h(Inner, null, {
+            default: () => [h(ProForm, { form }), h(ProTable, { table })],
+          }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const brandInput = wrapper.find('.nested-brand-input');
+    expect(brandInput.exists()).toBe(true);
+    expect(brandInput.attributes('placeholder')).toBe('INNER-PH');
+    expect(wrapper.find('.pro-table_search-form_search-button').text()).toBe(
+      'INNER-QUERY'
+    );
+    expect(wrapper.find('.pro-table_search-form_reset-button').text()).toBe(
+      'OUTER-RESET'
+    );
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // CC-A3 [判别]: 只读 ref 的 hidden 列经列控切换后写入生效
+  // ----------------------------------------------------
+  it('CC-A3 [判别]: hidden 为只读 ref 的列经列控取消勾选后真实隐藏', async () => {
+    const hiddenComputed = computed(() => false);
+    const table = useTable({
+      columns: [
+        {
+          dataIndex: 'name',
+          key: 'name',
+          title: '姓名',
+          hidden: hiddenComputed,
+        },
+        { dataIndex: 'age', key: 'age', title: '年龄' },
+      ] as any,
+      dataSource: [],
+    });
+    const wrapper = mount(ColumnControl, {
+      props: { columns: table.columns.value, table },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const vm = wrapper.vm as any;
+    expect(
+      vm.checkedColumnsOptions.find((opt: any) => opt.value === 'name')
+    ).toMatchObject({ checked: true });
+
+    // 取消勾选：ref 被普通值替换后写入
+    vm.checkedColumnKeys = ['age'];
+    await flushPromises();
+    const nameColumn = table.columns.value.find(
+      (item: any) => item.key === 'name'
+    ) as any;
+    expect(nameColumn.hidden).toBe(true);
+    expect(isRef(toRaw(nameColumn).hidden)).toBe(false);
+
+    // 再次勾选恢复展示
+    vm.checkedColumnKeys = ['name', 'age'];
+    await flushPromises();
+    expect(
+      (table.columns.value.find((item: any) => item.key === 'name') as any)
+        .hidden
+    ).toBe(false);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // CC-A4 [判别]: 列控菜单行整行点击切换列，disabled 列不响应
+  // ----------------------------------------------------
+  it('CC-A4 [判别]: 列控菜单行整行点击与勾选框均切换列，disabled 列不响应', async () => {
+    const table = useTable({ columns: createBasicColumns(), dataSource: [] });
+    const wrapper = mount(ColumnControl, {
+      props: {
+        columns: table.columns.value,
+        table,
+        columnControl: { disabledKeys: ['status'] },
+      },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // 分割线项与其他动态菜单项一样带唯一 key
+    expect(
+      (wrapper.vm as any).items.find((item: any) => item.type === 'divider')
+        ?.key
+    ).toBe('divider');
+
+    await wrapper
+      .find('.pro-table_column-control_button')
+      .trigger('mouseenter');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await flushPromises();
+
+    const menuRows = () =>
+      Array.from(
+        document.querySelectorAll<HTMLElement>('.ant-dropdown-menu-item')
+      );
+    const rowByText = (text: string) =>
+      menuRows().find(item => item.textContent?.includes(text));
+    const hiddenOf = (key: string) =>
+      (table.columns.value.find(c => c.key === key) as any)?.hidden;
+
+    // 行本体点击即可切换列
+    rowByText('姓名')?.click();
+    await flushPromises();
+    expect(hiddenOf('name')).toBe(true);
+
+    // 勾选框点击仍生效（事件冒泡到菜单行，不重复切换）
+    rowByText('姓名')
+      ?.querySelector<HTMLInputElement>('input[type="checkbox"]')
+      ?.click();
+    await flushPromises();
+    expect(hiddenOf('name')).toBe(false);
+
+    // disabled 列由 MenuItem 拦截，行点击不改变状态
+    rowByText('状态')?.click();
+    await flushPromises();
+    expect(hiddenOf('status')).toBe(false);
+
+    // 「全选」行本体点击切换全部可勾选列
+    rowByText('全选')?.click();
+    await flushPromises();
+    expect(hiddenOf('id')).toBe(true);
+    expect(hiddenOf('name')).toBe(true);
+    expect(hiddenOf('status')).toBe(false);
+
+    // 再次点击恢复全选
+    rowByText('全选')?.click();
+    await flushPromises();
+    expect(hiddenOf('id')).toBe(false);
+    expect(hiddenOf('name')).toBe(false);
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
+  });
+
+  // ----------------------------------------------------
+  // PC-A4 [判别]: 嵌套 Provider 同一组件键的兄弟属性逐属性继承
+  // ----------------------------------------------------
+  it('PC-A4 [判别]: 嵌套 Provider 同一组件键的兄弟属性逐属性继承，同名属性内层覆盖', async () => {
+    const mountNested = async (innerVars: Record<string, any>) => {
+      const form = useForm({}, [{ path: 'a', component: 'input' }]);
+      const wrapper = mount(ProComponentProvider, {
+        props: {
+          componentVars: { input: { placeholder: 'OUTER-PH' } } as any,
+        },
+        slots: {
+          default: () =>
+            h(
+              ProComponentProvider,
+              { componentVars: innerVars as any },
+              { default: () => h(ProForm, { form }) }
+            ),
+        },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      const merged = (
+        form.fields.value[0] as any
+      ).getComponentComputedProps?.();
+      wrapper.unmount();
+      return merged;
+    };
+
+    // 内层只覆盖 allowClear：外层的 placeholder 继续生效
+    expect(await mountNested({ input: { allowClear: false } })).toMatchObject({
+      placeholder: 'OUTER-PH',
+      allowClear: false,
+    });
+
+    // 内层同名属性覆盖外层
+    expect(
+      await mountNested({ input: { placeholder: 'INNER-PH' } })
+    ).toMatchObject({ placeholder: 'INNER-PH' });
   });
 });

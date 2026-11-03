@@ -1,10 +1,10 @@
 import type { Ref } from 'vue';
-import { isRef, ref, toRaw, toValue } from 'vue';
+import { ref, toValue } from 'vue';
 import type { Data, Path } from '../shared/types';
 import { get, normalizePathKey } from '../shared/path';
 import { isObjectItem } from '../shared/utils';
 import type { GroupMatch } from '../shared/internals';
-import { applyByGroupDesc } from '../shared/internals';
+import { applyByGroupDesc, writeObjectProps } from '../shared/internals';
 import type {
   AdditionalMethods as AM,
   BaseField,
@@ -49,34 +49,6 @@ export const resolveFieldIdentity = (
     if (value !== undefined && value !== null) return normalizePathKey(value);
   }
   return '';
-};
-
-/**
- * 就地写回字段配置
- *
- * @description `removeMissing` 为 true 时删除 `source` 未包含的键（rewrite 语义）；
- * 写入保留字段对象身份，只读 ref 字段可被新值替换，字段身份与渲染 key 保持稳定。
- *
- * @param target - 被写入的字段对象
- * @param source - 新配置
- * @param removeMissing - 是否删除新配置未包含的键
- */
-const writeFieldProps = <F extends object>(
-  target: F,
-  source: F,
-  removeMissing: boolean
-) => {
-  for (const key of Object.keys(target)) {
-    if (removeMissing && !(key in (source as any))) {
-      delete (target as any)[key];
-    }
-  }
-  for (const key of Object.keys(source)) {
-    if (isRef((toRaw(target) as any)[key]) && !isRef((source as any)[key])) {
-      delete (target as any)[key];
-    }
-    (target as any)[key] = (source as any)[key];
-  }
 };
 
 /** useFields 选项 */
@@ -344,7 +316,7 @@ const useFields = <
         }
         if (!value) return;
         // rewrite 就地重写（保留字段对象身份）；merge 仅覆盖新配置中的键
-        writeFieldProps(preField, value as F, updateType === 'rewrite');
+        writeObjectProps(preField, value as F, updateType === 'rewrite');
       },
       rest
     );

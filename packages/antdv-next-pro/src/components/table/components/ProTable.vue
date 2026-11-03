@@ -51,7 +51,7 @@
  * @slot search-form - 搜索区域插槽，作用域参数 form / search / reset
  * @slot button-bar - 表格头部按钮区插槽
  * @slot toolbar - 工具栏插槽
- * @slot default - 透传给宿主表格的默认插槽（可用于以宿主列组件声明列）
+ * @slot default - 透传给宿主表格的默认插槽；未显式绑定 `columns` 且表格实例无列时用于声明列，显式传入（含空数组）时以列配置为准
  * @slot table - 表格区域插槽，作用域参数 columns / dataSource / pagination / loading / size / onChange
  */
 
@@ -60,14 +60,17 @@ import type {
   TableProps,
   ColumnType,
 } from '../../../shared/ui';
-import { Table as ATable, tableProps } from '../../../shared/ui';
+import { Table as ATable, TableColumn, tableProps } from '../../../shared/ui';
 import {
   computed,
   nextTick,
   onMounted,
+  onUpdated,
   inject,
   ref,
+  shallowRef,
   toValue,
+  triggerRef,
   watch,
   type Slot,
 } from 'vue';
@@ -81,6 +84,7 @@ import { useLocale } from '../../../locale';
 import type { Path } from '../../../shared/core';
 import {
   camelizeProperties,
+  callListeners,
   getObject,
   isObjectItem,
   isPlainObject,
@@ -248,13 +252,33 @@ const hasExplicitColumns = computed(
   () => tableAttrs.value.columns !== undefined
 );
 
+/** 插槽序号列的单元格渲染：按有效分页偏移行号（第三参为同级组内下标） */
+const slotIndexRender = (_value: any, _record: any, index: number) =>
+  getIndex(index);
+
 // 列来源优先级：显式绑定 > table 实例（useTable 创建的 columns）；显式列原样透传，不补齐 key
-const computedColumns = computed<Columns<RecordType>>(() => {
-  const cols = (tableAttrs.value.columns ??
+const columnSource = computed<any[]>(() => {
+  return (tableAttrs.value.columns ??
     toValue(props.table?.columns) ??
-    []) as any;
-  const needIndex = props.addIndexColumn ?? injectProps.value.addIndexColumn;
-  return needIndex ? [indexColumn.value, ...cols] : cols;
+    []) as any[];
+});
+
+/* 无列源且存在默认插槽时由宿主消费插槽列，序号列改由插槽内的列组件提供 */
+const slotColumnsMode = computed(
+  () =>
+    !hasExplicitColumns.value &&
+    Boolean(slotsRef.value.default) &&
+    columnSource.value.length === 0
+);
+const indexEnabled = computed(() =>
+  Boolean(props.addIndexColumn ?? injectProps.value.addIndexColumn)
+);
+
+const computedColumns = computed<Columns<RecordType>>(() => {
+  if (slotColumnsMode.value) return [];
+  return indexEnabled.value
+    ? [indexColumn.value, ...columnSource.value]
+    : columnSource.value;
 });
 
 const ellipsisTooltipValue = computed(
@@ -276,6 +300,11 @@ const {
 } = useEllipsisTooltipColumns(
   () => computedColumns.value,
   () => ellipsisTooltipGlobal.value
+);
+
+/* 宿主列绑定：插槽列模式下不下发列配置，其余模式始终以列配置为准 */
+const hostColumns = computed(() =>
+  slotColumnsMode.value ? undefined : visibleComputedColumns.value
 );
 const rootRef = ref<HTMLElement | null>(null);
 
@@ -302,16 +331,21 @@ const _search = async () => {
   if (props.search && attrs.onSearch) {
     warnSearchConfig('duplicate');
   }
-  if (!search) return;
-  const searchPromise = search();
-  if (!isPromise(searchPromise)) {
+  const results = callListeners(search);
+  if (!results.length) return;
+  const promises = results.filter(isPromise);
+  if (!promises.length) {
     warnSearchConfig('not-promise');
     return;
   }
   const seq = ++searchSequence;
   loading.value = true;
   try {
-    await searchPromise;
+    const settled = await Promise.allSettled(promises);
+    const rejected = settled.find(item => item.status === 'rejected') as
+      | PromiseRejectedResult
+      | undefined;
+    if (rejected) throw rejected.reason;
   } finally {
     if (seq === searchSequence) {
       loading.value = false;
@@ -346,9 +380,17 @@ type TableSlots = Omit<ComponentSlots<typeof ATable>, 'bodyCell'> &
       column: Column<RecordType>;
     }) => void;
   }>;
-type Slots = Omit<TableSlots & CustomSlots, 'default'>;
+type Slots = Omit<TableSlots & CustomSlots, 'default'> & {
+  /** 透传宿主表格的默认插槽，用于以宿主列组件声明列 */
+  default?: Slot;
+};
 
 const slots = defineSlots<Slots>();
+/* 默认插槽存在性随父级重渲染更新：运行期增删插槽后插槽列模式可感知 */
+const slotsRef = shallowRef<Record<string, any>>(slots);
+onUpdated(() => {
+  triggerRef(slotsRef);
+});
 const forwardedSlotNames = () =>
   (Object.keys(slots) as Array<Extract<keyof Slots, string>>).filter(
     name => !customSlotNames.includes(name as any)
@@ -514,8 +556,11 @@ const onTableChange: TableProps['onChange'] = (...args) => {
   } else if (sorterArg) {
     nextArgs[2] = resolveSorterColumn(sorterArg);
   }
-  (attrs.onChange ?? injectProps.value.onChange)?.(...nextArgs);
-  _search();
+  try {
+    callListeners(attrs.onChange ?? injectProps.value.onChange, ...nextArgs);
+  } finally {
+    _search();
+  }
 };
 
 const searchFormVisible = computed(() => {
@@ -650,7 +695,7 @@ defineExpose({
           class="pro-table_content"
           v-bind="computedTableProps"
           :loading="loading"
-          :columns="visibleComputedColumns"
+          :columns="hostColumns"
           :data-source="computedDataSource"
           :pagination="computedPagination"
           @change="onTableChange"
@@ -661,8 +706,21 @@ defineExpose({
             :key="name"
             #[name]="scoped"
           >
+            <TableColumn
+              v-if="name === 'default' && slotColumnsMode && indexEnabled"
+              key="__INDEX__"
+              :title="t('table.index')"
+              :width="80"
+              data-index="__INDEX__"
+              :render="slotIndexRender"
+            />
             <slot
-              v-if="isSlotRenderable(name, scoped)"
+              v-if="name === 'default'"
+              name="default"
+              v-bind="scoped || {}"
+            />
+            <slot
+              v-else-if="isSlotRenderable(name, scoped)"
               :name="name"
               v-bind="scoped"
             />

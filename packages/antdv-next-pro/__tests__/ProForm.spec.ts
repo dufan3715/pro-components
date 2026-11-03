@@ -508,4 +508,38 @@ describe('ProForm 组件测试', () => {
     expect(disabled.find('.ant-col-12').exists()).toBe(false);
     disabled.unmount();
   });
+
+  // ----------------------------------------------------
+  // PF-A1 [判别]: 运行期替换 :form 后旧实例 formRef 清空，不悬挂在已卸载实例上
+  // ----------------------------------------------------
+  it('PF-A1 [判别]: 运行期替换 :form 后旧实例 formRef 清空，整树卸载后新实例同样清空', async () => {
+    const formA = useForm({ name: '' }, [{ path: 'name', component: 'input' }]);
+    const formB = useForm({ name: 'b' }, [
+      { path: 'name', component: 'input' },
+    ]);
+    const current = ref<any>(formA);
+    const Parent = defineComponent({
+      setup: () => () => h(ProForm as any, { form: current.value }),
+    });
+    const wrapper = mount(Parent as any, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    expect(formA.formRef.value).toBeTruthy();
+    expect(formB.formRef.value).toBeFalsy();
+
+    current.value = formB;
+    await flushPromises();
+
+    // 旧实例引用被清空，不再指向已卸载组件
+    expect(formA.formRef.value).toBeFalsy();
+    expect(formB.formRef.value).toBeTruthy();
+    expect((formB.formRef.value as any)?.$?.isUnmounted).not.toBe(true);
+
+    wrapper.unmount();
+    await flushPromises();
+    expect(formA.formRef.value).toBeFalsy();
+    expect(formB.formRef.value).toBeFalsy();
+  });
 });

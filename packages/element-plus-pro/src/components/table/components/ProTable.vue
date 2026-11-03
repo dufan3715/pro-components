@@ -87,6 +87,7 @@ import { useLocale } from '../../../locale';
 import type { Path } from '../../../shared/core';
 import {
   camelizeProperties,
+  callListeners,
   getObject,
   isObjectItem,
   isPlainObject,
@@ -243,16 +244,21 @@ const _search = async () => {
   if (props.search && attrs.onSearch) {
     warnSearchConfig('duplicate');
   }
-  if (!search) return;
-  const searchPromise = search();
-  if (!isPromise(searchPromise)) {
+  const results = callListeners(search);
+  if (!results.length) return;
+  const promises = results.filter(isPromise);
+  if (!promises.length) {
     warnSearchConfig('not-promise');
     return;
   }
   const seq = ++searchSequence;
   loading.value = true;
   try {
-    await searchPromise;
+    const settled = await Promise.allSettled(promises);
+    const rejected = settled.find(item => item.status === 'rejected') as
+      | PromiseRejectedResult
+      | undefined;
+    if (rejected) throw rejected.reason;
   } finally {
     if (seq === searchSequence) {
       loading.value = false;
@@ -472,7 +478,7 @@ const onSizeChange = (pageSize: number) => {
 
 const onPaginationChange = (currentPage: number, pageSize: number) => {
   // 透传 el-pagination change 回调
-  attrs.onChange?.(currentPage, pageSize);
+  callListeners(attrs.onChange, currentPage, pageSize);
 };
 
 const searchFormVisible = computed(() => {

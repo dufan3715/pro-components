@@ -92,6 +92,8 @@ const table = useTable<Row>({
 
 库本身不负责存储，使用方可通过 `table.columns` 与 `table.setColumn` 自行实现持久化（如按用户保存到数据库）：
 
+> `setColumn` 写入列上以只读 ref（如 `computed`）声明的属性时，会用新值替换该 ref；可写 ref 仍按 `ref.value` 写入并保持绑定。
+
 ```ts
 // 保存：监听列 hidden 变化
 watch(

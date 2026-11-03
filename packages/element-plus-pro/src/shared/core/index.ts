@@ -23,6 +23,7 @@ export {
   InjectionFormSlotsKey,
   // utils
   getObject,
+  mergeComponentVars,
   omitBy,
   get,
   set,
@@ -35,6 +36,7 @@ export {
   isPlainObject,
   isObjectItem,
   isPromise,
+  callListeners,
   // locale
   zhCN,
   zhTW,

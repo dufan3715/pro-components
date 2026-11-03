@@ -97,6 +97,7 @@ export type Column<D extends Data = Data> = Omit<
   /**
    * 列是否隐藏；支持布尔、Ref 与 ComputedRef 形式，渲染期按 `toValue` 取值。
    * 分组列的子列同样参与过滤（递归生效）。
+   * 只读 ref（如 `computed`）经 `setColumn` 写入时会被普通值替换，可写 ref 保持绑定。
    * @default false
    */
   hidden?: MaybeRefOrComputedRef<boolean>;

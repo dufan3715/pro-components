@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, inject, ref, toRaw } from 'vue';
+import { defineComponent, h, inject, mergeProps, ref, toRaw } from 'vue';
 import type { TableProps } from '../src/shared/ui';
 import type { Column } from '../src/components/table/types';
 import { tableProps as hostTableProps } from '../src/shared/ui';
@@ -12,7 +12,7 @@ import { useTable } from '../src/components/table/hooks/useTable';
 import type { ComponentVars } from '../src/components/component-provider';
 import { flushPromises, mountProTable, expectWarn } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
-import { Pagination } from 'ant-design-vue';
+import { Pagination, TableColumn } from 'ant-design-vue';
 import { INJECT_CONFIG } from '../src/components/component-provider/constants';
 
 describe('ProTable 组件测试', () => {
@@ -1487,6 +1487,7 @@ describe('ProTable 组件测试', () => {
     expect(wrapper.findAll('thead th').map(th => th.text())).toContain('姓名');
     wrapper.unmount();
   });
+
   // ----------------------------------------------------
   // PT-A35 [判别]: 分组列 children 在类型面可直接构造（无需断言）并参与递归过滤
   // ----------------------------------------------------
@@ -1916,5 +1917,429 @@ describe('ProTable 组件测试', () => {
 
     wrapper.unmount();
     noPager.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A41 [判别]: mergeProps 合并的 onChange 数组形态逐一回放，分页回写与查询链路不中断
+  // ----------------------------------------------------
+  it('PT-A41 [判别]: onChange 以数组形态到达时逐个调用监听器，分页回写与查询照常进行', async () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const search = vi.fn(async () => {});
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+      pageParam: { current: 1, pageSize: 10, total: 100 },
+    });
+
+    // 二次封装写法：<ProTable v-bind="$attrs" @change="second" />，同名 on* 由 Vue 合并为数组
+    const Wrapper = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProTable,
+            mergeProps({ table, search, onChange: first }, { onChange: second })
+          );
+      },
+    });
+
+    const wrapper = mount(Wrapper, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const aTable = wrapper.findComponent({ name: 'ATable' });
+    const pagination = { current: 2, pageSize: 10, total: 100 };
+    aTable.vm.$emit('change', pagination, {}, {});
+    await flushPromises();
+
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(first).toHaveBeenCalledWith(pagination, {}, {});
+    expect(second).toHaveBeenCalledWith(pagination, {}, {});
+    expect(table.pageParam.current).toBe(2);
+    expect(search).toHaveBeenCalledTimes(1);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A42 [判别]: mergeProps 合并的 onSearch 数组形态逐一调用，且不产生未处理异常
+  // ----------------------------------------------------
+  it('PT-A42 [判别]: onSearch 以数组形态到达时逐个调用监听器', async () => {
+    const first = vi.fn(async () => {});
+    const second = vi.fn(async () => {});
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+
+    const Wrapper = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProTable,
+            mergeProps({ table, onSearch: first }, { onSearch: second })
+          );
+      },
+    });
+
+    const wrapper = mount(Wrapper, {
+      global: { stubs: { transition: false } },
+      attachTo: document.body,
+    });
+    await flushPromises();
+
+    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+    expect(searchBtn.exists()).toBe(true);
+    await searchBtn.trigger('click');
+    await flushPromises();
+
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A43 [判别]: change 回放中业务监听器抛错时，查询链路仍继续发起
+  // ----------------------------------------------------
+  it('PT-A43 [判别]: change 回放中业务监听器抛错时查询仍发起', async () => {
+    const search = vi.fn(async () => {});
+    const table = useTable({
+      columns: [{ dataIndex: 'id', title: 'ID' }],
+      dataSource: [{ id: 1 }],
+      pageParam: { current: 1, pageSize: 10, total: 100 },
+    });
+    const { wrapper } = mountProTable({
+      table,
+      search,
+      props: {
+        onChange: () => {
+          throw new Error('business-listener-error');
+        },
+      },
+    });
+    await flushPromises();
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const aTable = wrapper.findComponent({ name: 'ATable' });
+      try {
+        aTable.vm.$emit('change', { current: 2, pageSize: 10 });
+      } catch {
+        // 开发环境 Vue 记录事件回调异常后向上重抛
+      }
+      await flushPromises();
+
+      expect(table.pageParam.current).toBe(2);
+      expect(search).toHaveBeenCalledTimes(1);
+    } finally {
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
+  // PT-A44 [判别]: 分组列子列全隐藏后分组整体移除，部分隐藏时保留分组
+  // ----------------------------------------------------
+  it('PT-A44 [判别]: 分组列子列全隐藏时整列移除，部分隐藏时仅渲染可见子列', async () => {
+    const allHidden = useTable({
+      columns: [
+        {
+          title: '分组',
+          key: 'group',
+          children: [{ dataIndex: 'a', title: 'A', hidden: true }],
+        },
+        { dataIndex: 'b', title: 'B' },
+      ],
+      dataSource: [{ a: 1, b: 2 }],
+    });
+    const { wrapper } = mountProTable({
+      table: allHidden,
+      props: { addIndexColumn: false },
+    });
+    await flushPromises();
+
+    // 分组整体消失：表头与单元格均只剩 B
+    expect(wrapper.findAll('thead th').map(th => th.text())).toEqual(['B']);
+    expect(
+      wrapper
+        .findAll('tbody tr')[0]
+        .findAll('td')
+        .map(td => td.text())
+    ).toEqual(['2']);
+    wrapper.unmount();
+
+    // 嵌套分组内子列全隐藏时，外层分组一并移除
+    const nestedHidden = useTable({
+      columns: [
+        {
+          title: '外层',
+          key: 'outer',
+          children: [
+            {
+              title: '内层',
+              key: 'inner',
+              children: [{ dataIndex: 'a', title: 'A', hidden: true }],
+            },
+          ],
+        },
+        { dataIndex: 'b', title: 'B' },
+      ],
+      dataSource: [{ a: 1, b: 2 }],
+    });
+    const { wrapper: nestedWrapper } = mountProTable({
+      table: nestedHidden,
+      props: { addIndexColumn: false },
+    });
+    await flushPromises();
+    expect(nestedWrapper.findAll('thead th').map(th => th.text())).toEqual([
+      'B',
+    ]);
+    nestedWrapper.unmount();
+
+    // 反向约束：仅部分子列隐藏时分组保留
+    const partialHidden = useTable({
+      columns: [
+        {
+          title: '分组',
+          key: 'group',
+          children: [
+            { dataIndex: 'a', title: 'A', hidden: true },
+            { dataIndex: 'c', title: 'C' },
+          ],
+        },
+        { dataIndex: 'b', title: 'B' },
+      ],
+      dataSource: [{ a: 1, b: 2, c: 3 }],
+    });
+    const { wrapper: partialWrapper } = mountProTable({
+      table: partialHidden,
+      props: { addIndexColumn: false },
+    });
+    await flushPromises();
+    const headerRows = partialWrapper
+      .findAll('thead tr')
+      .map(tr => tr.findAll('th').map(th => th.text()));
+    expect(headerRows[0]).toEqual(['分组', 'B']);
+    expect(headerRows[1]).toEqual(['C']);
+    expect(
+      partialWrapper
+        .findAll('tbody tr')[0]
+        .findAll('td')
+        .map(td => td.text())
+    ).toEqual(['3', '2']);
+    partialWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A46 [判别]: 默认序号列与默认插槽声明的宿主列共存
+  // ----------------------------------------------------
+  it('PT-A46 [判别]: 默认序号列与默认插槽声明的宿主列共存，关闭序号列后仅渲染插槽列', async () => {
+    const slotColumn = () =>
+      h(TableColumn as any, { dataIndex: 'a', title: 'SlotA' });
+
+    // 默认 addIndexColumn：序号列与插槽列共存，序号随分页偏移
+    const { wrapper } = mountProTable({
+      table: useTable({
+        columns: [],
+        dataSource: [{ a: 'x' }, { a: 'y' }],
+        pageParam: { current: 2, pageSize: 10, total: 20 },
+      }),
+      slots: { default: slotColumn },
+    });
+    await flushPromises();
+    expect(wrapper.findAll('thead th').map(th => th.text())).toEqual([
+      '序号',
+      'SlotA',
+    ]);
+    expect(
+      wrapper
+        .findAll('tbody tr')
+        .map(tr => tr.findAll('td').map(td => td.text()))
+    ).toEqual([
+      ['11', 'x'],
+      ['12', 'y'],
+    ]);
+    wrapper.unmount();
+
+    // 关闭序号列：仅渲染插槽列
+    const { wrapper: noIndexWrapper } = mountProTable({
+      table: useTable({ columns: [], dataSource: [{ a: 'x' }] }),
+      props: { addIndexColumn: false },
+      slots: { default: slotColumn },
+    });
+    await flushPromises();
+    expect(noIndexWrapper.findAll('thead th').map(th => th.text())).toEqual([
+      'SlotA',
+    ]);
+    noIndexWrapper.unmount();
+
+    // 显式列存在时以显式列为准，插槽列不参与渲染
+    const { wrapper: explicitWrapper } = mountProTable({
+      table: useTable({
+        columns: [{ dataIndex: 'a', title: '显式列' }],
+        dataSource: [{ a: 'x' }],
+      }),
+      slots: { default: slotColumn },
+    });
+    await flushPromises();
+    expect(explicitWrapper.findAll('thead th').map(th => th.text())).toEqual([
+      '序号',
+      '显式列',
+    ]);
+    explicitWrapper.unmount();
+
+    // 显式传入空数组时保持宿主语义：以列配置为准，插槽列不参与渲染
+    const { wrapper: emptyColumnsWrapper } = mountProTable({
+      table: useTable({ columns: [], dataSource: [{ a: 'x' }] }),
+      props: { columns: [] },
+      slots: { default: slotColumn },
+    });
+    await flushPromises();
+    expect(
+      emptyColumnsWrapper.findAll('thead th').map(th => th.text())
+    ).toEqual(['序号']);
+    emptyColumnsWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A47 [判别]: 任一查询监听器失败时 loading 等全部结束再复位
+  // ----------------------------------------------------
+  it('PT-A47 [判别]: 任一查询监听器失败时 loading 等全部结束再复位', async () => {
+    const first = () => Promise.reject(new Error('first-failed'));
+    let resolveSecond: any;
+    const second = () =>
+      new Promise(resolve => {
+        resolveSecond = resolve;
+      });
+    const table = useTable({
+      columns: [{ dataIndex: 'a', title: 'A' }],
+      dataSource: [{ a: 1 }],
+    });
+    const loading = ref(false);
+    const Wrapper = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProTable,
+            mergeProps(
+              { table, onSearch: first } as any,
+              {
+                onSearch: second,
+                loading: loading.value,
+                'onUpdate:loading': (val: boolean) => {
+                  loading.value = val;
+                },
+              } as any
+            )
+          );
+      },
+    });
+    const wrapper = mount(Wrapper as any, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const proTable = wrapper.findComponent(ProTable as any) as any;
+    const searchPromise = (
+      proTable.vm as any
+    ).$.exposed.search() as Promise<void>;
+    await flushPromises();
+
+    // 第一个监听器已 reject、第二个仍 pending：loading 保持
+    expect(loading.value).toBe(true);
+
+    resolveSecond();
+    await expect(searchPromise).rejects.toThrow('first-failed');
+    await flushPromises();
+    expect(loading.value).toBe(false);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A48 [判别]: 运行期增删默认插槽时插槽列模式跟随切换
+  // ----------------------------------------------------
+  it('PT-A48 [判别]: 运行期增删默认插槽时插槽列模式跟随切换', async () => {
+    const withSlot = ref(true);
+    const table = useTable({ columns: [], dataSource: [{ a: 'x' }] });
+    const Host = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProTable as any,
+            { table },
+            withSlot.value
+              ? {
+                  default: () =>
+                    h(TableColumn as any, { dataIndex: 'a', title: 'SlotA' }),
+                }
+              : undefined
+          );
+      },
+    });
+    const wrapper = mount(Host as any, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper.findAll('thead th').map(th => th.text())).toEqual([
+      '序号',
+      'SlotA',
+    ]);
+
+    // 移除默认插槽：回到列配置模式，序号列恢复注入
+    withSlot.value = false;
+    await flushPromises();
+    expect(wrapper.findAll('thead th').map(th => th.text())).toEqual(['序号']);
+
+    // 重新添加默认插槽：序号列与插槽列再次共存
+    withSlot.value = true;
+    await flushPromises();
+    expect(wrapper.findAll('thead th').map(th => th.text())).toEqual([
+      '序号',
+      'SlotA',
+    ]);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A49 [判别]: 列配置存在但全部隐藏时不消费默认插槽列
+  // ----------------------------------------------------
+  it('PT-A49 [判别]: 列配置存在但全部隐藏时不消费默认插槽列', async () => {
+    const slotColumn = () =>
+      h(TableColumn as any, { dataIndex: 'a', title: 'SlotA' });
+
+    // 关闭序号列：可见列为空仍以列配置为准（空表），插槽列不参与
+    const { wrapper } = mountProTable({
+      table: useTable({
+        columns: [{ dataIndex: 'a', title: 'A', hidden: true }],
+        dataSource: [{ a: 'x' }],
+      }),
+      props: { addIndexColumn: false },
+      slots: { default: slotColumn },
+    });
+    await flushPromises();
+    expect(wrapper.findAll('thead th').map(th => th.text())).toEqual(['']);
+    wrapper.unmount();
+
+    // 默认序号列：同样以列配置为准
+    const { wrapper: indexWrapper } = mountProTable({
+      table: useTable({
+        columns: [{ dataIndex: 'a', title: 'A', hidden: true }],
+        dataSource: [{ a: 'x' }],
+      }),
+      slots: { default: slotColumn },
+    });
+    await flushPromises();
+    expect(indexWrapper.findAll('thead th').map(th => th.text())).toEqual([
+      '序号',
+    ]);
+    indexWrapper.unmount();
   });
 });

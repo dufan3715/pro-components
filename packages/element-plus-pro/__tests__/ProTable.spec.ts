@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defineComponent, h, inject, ref } from 'vue';
+import { defineComponent, h, inject, mergeProps, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 import ProTable from '../src/components/table/components/ProTable.vue';
 import ProComponentProvider from '../src/components/component-provider/components/index.vue';
@@ -1840,5 +1840,140 @@ describe('ProTable 组件测试', () => {
 
     wrapper.unmount();
     noPager.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A43 [判别]: 分页 change 的数组形态监听器逐个回放
+  // ----------------------------------------------------
+  it('PT-A43 [判别]: onChange 以数组形态到达时逐个调用监听器', async () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const table = useTable({
+      columns: [{ prop: 'id', label: 'ID' }],
+      data: [{ id: 1 }],
+      pageParam: { current: 1, pageSize: 10, total: 100 },
+    });
+
+    // 二次封装写法：<ProTable v-bind="$attrs" @change="second" />，同名 on* 由 Vue 合并为数组
+    const Wrapper = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProTable,
+            mergeProps({ table, onChange: first }, { onChange: second })
+          );
+      },
+    });
+
+    const wrapper = mount(Wrapper, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const pagination = wrapper.findComponent({ name: 'ElPagination' });
+    expect(pagination.exists()).toBe(true);
+    pagination.vm.$emit('change', 2, 10);
+    await flushPromises();
+
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(first).toHaveBeenCalledWith(2, 10);
+    expect(second).toHaveBeenCalledWith(2, 10);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A44 [判别]: 查询监听的数组形态逐个调用，且不产生未处理异常
+  // ----------------------------------------------------
+  it('PT-A44 [判别]: onSearch 以数组形态到达时逐个调用监听器', async () => {
+    const first = vi.fn(async () => {});
+    const second = vi.fn(async () => {});
+    const table = useTable({
+      columns: [{ prop: 'id', label: 'ID' }],
+      data: [],
+      searchFields: [{ path: 'keyword', label: '关键词', component: 'input' }],
+    });
+
+    const Wrapper = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProTable,
+            mergeProps({ table, onSearch: first }, { onSearch: second })
+          );
+      },
+    });
+
+    const wrapper = mount(Wrapper, {
+      global: { stubs: { transition: false } },
+      attachTo: document.body,
+    });
+    await flushPromises();
+
+    const searchBtn = wrapper.find('.pro-table_search-form_search-button');
+    expect(searchBtn.exists()).toBe(true);
+    await searchBtn.trigger('click');
+    await flushPromises();
+
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A45 [判别]: 任一查询监听器失败时 loading 等全部结束再复位
+  // ----------------------------------------------------
+  it('PT-A45 [判别]: 任一查询监听器失败时 loading 等全部结束再复位', async () => {
+    const first = () => Promise.reject(new Error('first-failed'));
+    let resolveSecond: any;
+    const second = () =>
+      new Promise(resolve => {
+        resolveSecond = resolve;
+      });
+    const table = useTable({
+      columns: [{ prop: 'a', label: 'A' }],
+      data: [{ a: 1 }],
+    });
+    const loading = ref(false);
+    const Wrapper = defineComponent({
+      setup() {
+        return () =>
+          h(
+            ProTable,
+            mergeProps(
+              { table, onSearch: first } as any,
+              {
+                onSearch: second,
+                loading: loading.value,
+                'onUpdate:loading': (val: boolean) => {
+                  loading.value = val;
+                },
+              } as any
+            )
+          );
+      },
+    });
+    const wrapper = mount(Wrapper as any, {
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const proTable = wrapper.findComponent(ProTable as any) as any;
+    const searchPromise = (
+      proTable.vm as any
+    ).$.exposed.search() as Promise<void>;
+    await flushPromises();
+
+    // 第一个监听器已 reject、第二个仍 pending：loading 保持
+    expect(loading.value).toBe(true);
+
+    resolveSecond();
+    await expect(searchPromise).rejects.toThrow('first-failed');
+    await flushPromises();
+    expect(loading.value).toBe(false);
+
+    wrapper.unmount();
   });
 });

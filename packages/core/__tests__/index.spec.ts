@@ -5,6 +5,7 @@ const declaredApis = [
   'DEFAULT_FIELD_IDENTITY_KEYS',
   'InjectionFormKey',
   'InjectionFormSlotsKey',
+  'callListeners',
   'camelizeProperties',
   'cloneDeep',
   'createFormProxy',
@@ -16,6 +17,7 @@ const declaredApis = [
   'isPlainObject',
   'isPromise',
   'localePacks',
+  'mergeComponentVars',
   'normalizeColumn',
   'normalizeColumns',
   'normalizePathKey',
@@ -41,6 +43,7 @@ describe('index', () => {
   it('SX-01 公共 API 导出形态与常量值', () => {
     // 函数类导出：调用形态可用
     const functionApis = [
+      'callListeners',
       'camelizeProperties',
       'cloneDeep',
       'createFormProxy',
@@ -50,6 +53,7 @@ describe('index', () => {
       'isObjectItem',
       'isPlainObject',
       'isPromise',
+      'mergeComponentVars',
       'normalizeColumn',
       'normalizeColumns',
       'normalizePathKey',

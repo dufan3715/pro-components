@@ -91,4 +91,141 @@ describe('ProComponentProvider 配置控制测试 (vant-pro)', () => {
     expect(wrapper.find('.brand-new-vant-widget').exists()).toBe(true);
     wrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // PC-A2 [判别]: 嵌套空 Provider 继承外层 componentVars、componentMap 与 locale
+  // ----------------------------------------------------
+  it('PC-A2 [判别]: 嵌套空 Provider 继承外层 componentVars、componentMap 与 locale', async () => {
+    const CustomField = defineComponent({
+      props: ['modelValue', 'placeholder'],
+      setup(props) {
+        return () =>
+          h('input', {
+            class: 'nested-brand-field',
+            value: props.modelValue,
+            placeholder: props.placeholder,
+          });
+      },
+    });
+    const Inner = defineComponent({
+      setup:
+        (_, { slots }) =>
+        () =>
+          h(ProComponentProvider, null, slots),
+    });
+
+    const form = useForm({}, [{ path: 'name', component: 'field' }]);
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentMap: { field: CustomField },
+        componentVars: { field: { placeholder: 'OUTER-PH' } },
+      },
+      slots: {
+        default: () => h(Inner, null, { default: () => h(ProForm, { form }) }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const brandField = wrapper.find('.nested-brand-field');
+    expect(brandField.exists()).toBe(true);
+    expect(brandField.attributes('placeholder')).toBe('OUTER-PH');
+    wrapper.unmount();
+
+    // locale 通道：无 componentVars 占位符时按外层 locale 覆盖渲染
+    const form2 = useForm({}, [{ path: 'name', component: 'field' }]);
+    const wrapper2 = mount(ProComponentProvider, {
+      props: { locale: { 'input.placeholder': 'OUTER-LOCALE' } },
+      slots: {
+        default: () =>
+          h(Inner, null, { default: () => h(ProForm, { form: form2 }) }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(wrapper2.find('input').attributes('placeholder')).toBe(
+      'OUTER-LOCALE'
+    );
+    wrapper2.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PC-A3 [判别]: 嵌套 Provider 同名键覆盖外层，外层 componentMap 继续生效
+  // ----------------------------------------------------
+  it('PC-A3 [判别]: 嵌套 Provider 覆盖同名键时保留外层 componentMap', async () => {
+    const CustomField = defineComponent({
+      props: ['modelValue', 'placeholder'],
+      setup(props) {
+        return () =>
+          h('input', {
+            class: 'nested-brand-field',
+            value: props.modelValue,
+            placeholder: props.placeholder,
+          });
+      },
+    });
+    const Inner = defineComponent({
+      setup:
+        (_, { slots }) =>
+        () =>
+          h(
+            ProComponentProvider,
+            { componentVars: { field: { placeholder: 'INNER-PH' } } },
+            slots
+          ),
+    });
+
+    const form = useForm({}, [{ path: 'name', component: 'field' }]);
+    const wrapper = mount(ProComponentProvider, {
+      props: {
+        componentMap: { field: CustomField },
+        componentVars: { field: { placeholder: 'OUTER-PH' } },
+      },
+      slots: {
+        default: () => h(Inner, null, { default: () => h(ProForm, { form }) }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const brandField = wrapper.find('.nested-brand-field');
+    expect(brandField.exists()).toBe(true);
+    expect(brandField.attributes('placeholder')).toBe('INNER-PH');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PC-A4 [判别]: 嵌套 Provider 同一组件键的兄弟属性逐属性继承
+  // ----------------------------------------------------
+  it('PC-A4 [判别]: 嵌套 Provider 同一组件键的兄弟属性逐属性继承，同名属性内层覆盖', async () => {
+    const mountNested = async (innerVars: Record<string, any>) => {
+      const form = useForm({}, [{ path: 'a', component: 'field' }]);
+      const wrapper = mount(ProComponentProvider, {
+        props: {
+          componentVars: { field: { placeholder: 'OUTER-PH' } } as any,
+        },
+        slots: {
+          default: () =>
+            h(
+              ProComponentProvider,
+              { componentVars: innerVars as any },
+              { default: () => h(ProForm, { form }) }
+            ),
+        },
+        global: { stubs: { transition: false } },
+      });
+      await flushPromises();
+      const placeholder = wrapper.find('input').attributes('placeholder');
+      wrapper.unmount();
+      return placeholder;
+    };
+
+    // 内层只覆盖 clearable：外层的 placeholder 继续生效
+    expect(await mountNested({ field: { clearable: false } })).toBe('OUTER-PH');
+
+    // 内层同名属性覆盖外层
+    expect(await mountNested({ field: { placeholder: 'INNER-PH' } })).toBe(
+      'INNER-PH'
+    );
+  });
 });

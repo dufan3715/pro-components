@@ -1318,4 +1318,89 @@ describe('BaseField 组件测试 (vant-pro)', () => {
 
     wrapper.unmount();
   });
+  // ----------------------------------------------------
+  // BF-D4 [判别]: 字段级 undefined 不冲掉 Provider 默认值与 locale 占位符兜底
+  // ----------------------------------------------------
+  it('BF-D4 [判别]: 字段级 undefined 保留 Provider 默认值与 locale 占位符兜底', async () => {
+    const form = useForm({}, [
+      {
+        path: 'name',
+        component: 'field',
+        placeholder: undefined,
+        clearable: undefined,
+      } as any,
+    ]);
+    const providerWrapper = mount(ProComponentProvider, {
+      props: {
+        componentVars: {
+          field: { placeholder: 'PROVIDER-PH', clearable: true },
+        },
+      },
+      slots: { default: () => h(ProForm, { form }) },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const input = providerWrapper.findComponent(VanField);
+    expect(input.props('placeholder')).toBe('PROVIDER-PH');
+    expect(input.props('clearable')).toBe(true);
+    providerWrapper.unmount();
+
+    // 无 Provider 时保留 locale 占位符兜底
+    const localeForm = useForm({}, [
+      { path: 'name', component: 'field', placeholder: undefined } as any,
+    ]);
+    const localeWrapper = mount(ProForm, {
+      props: { form: localeForm },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(localeWrapper.findComponent(VanField).props('placeholder')).toBe(
+      '请输入'
+    );
+    localeWrapper.unmount();
+
+    // 反向约束：显式空字符串仍按字段值下发
+    const explicitForm = useForm({}, [
+      { path: 'name', component: 'field', placeholder: '' },
+    ]);
+    const explicitWrapper = mount(ProForm, {
+      props: { form: explicitForm },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(explicitWrapper.findComponent(VanField).props('placeholder')).toBe(
+      ''
+    );
+    explicitWrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // VP-B10 [判别]: 数组形态的 onUpdate:modelValue 监听器逐个回放
+  // ----------------------------------------------------
+  it('VP-B10 [判别]: 数组形态的 onUpdate:modelValue 监听器逐个回放且参数为组件原始 emit 值', async () => {
+    const form = useForm({ title: 'init' });
+    const first = vi.fn();
+    const second = vi.fn();
+    const wrapper = mount(BaseField, {
+      props: { path: 'title', component: 'field' },
+      attrs: { 'onUpdate:modelValue': [first, second] },
+      global: {
+        provide: { [InjectionFormKey as symbol]: form },
+        stubs: { transition: false },
+      },
+    });
+    await flushPromises();
+
+    await wrapper.find('input').setValue('next');
+    await flushPromises();
+
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(first).toHaveBeenCalledWith('next');
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledWith('next');
+    expect(form.getFormData('title')).toBe('next');
+
+    wrapper.unmount();
+  });
 });

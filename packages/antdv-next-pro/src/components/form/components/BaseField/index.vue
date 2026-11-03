@@ -40,6 +40,7 @@ import {
 import {
   cloneDeep,
   getObject,
+  omitBy,
   useReactiveAttrs,
 } from '../../../../shared/core';
 import { useDisabledContext } from '../../../../shared/ui';
@@ -83,20 +84,23 @@ const componentRef = ref<any>();
 const attrs: any = useReactiveAttrs();
 
 /**
- * 全局默认配置注入：key = 组件名 + picker 修饰段，inject 须在 setup 同步期调用。
+ * 全局默认配置注入：按组件名与 picker 修饰段分别解析注入通道，inject 须在 setup 同步期调用。
  * 组件名与 `picker` 仅取 setup 期初始值——运行期变更不会切换 Provider 的默认值预设
  * （`date-picker.month` 等子类型预设需在初始渲染前确定）。
+ * `date-picker` 的 picker 缺省时按 `date` 段解析子类型预设。
  */
 const pickerVal = attrs.picker;
-const injectConfigKey =
-  typeof props.component === 'string'
-    ? [props.component, pickerVal].filter(Boolean).join('.')
-    : '';
-const componentInjectConfig = injectConfigKey
-  ? getInjectConfig(injectConfigKey)
+const baseConfigKey =
+  typeof props.component === 'string' ? props.component : '';
+const pickerConfigKey =
+  pickerVal || (baseConfigKey === 'date-picker' ? 'date' : '');
+const subtypeConfigKey =
+  baseConfigKey && pickerConfigKey ? `${baseConfigKey}.${pickerConfigKey}` : '';
+const baseInjectConfig = baseConfigKey
+  ? getInjectConfig(baseConfigKey)
   : undefined;
-const rawInjectComponentProps = componentInjectConfig
-  ? inject(componentInjectConfig.injectionKey, componentInjectConfig.default)
+const subtypeInjectConfig = subtypeConfigKey
+  ? getInjectConfig(subtypeConfigKey)
   : undefined;
 // 全量 componentVars：运行期新增的自定义组件键由此兜底读取
 const componentVars = inject(INJECT_COMPONENT_VARS, undefined);
@@ -151,9 +155,12 @@ const parentDisabled = useDisabledContext();
  * 属性分为三类：绑定属性（v-model）、组件属性（传递给组件）、插槽（动态渲染）
  */
 const groupedAttrs = computed(() => {
+  // 库内置默认（基础键 → 子类型键）之后再铺项目配置，项目配置始终覆盖库默认
   const currentInjectProps = {
-    ...(toValue(rawInjectComponentProps) || {}),
-    ...getObject(toValue(componentVars)?.[injectConfigKey]),
+    ...getObject(baseInjectConfig?.default),
+    ...getObject(subtypeInjectConfig?.default),
+    ...getObject(toValue(componentVars)?.[baseConfigKey]),
+    ...getObject(toValue(componentVars)?.[subtypeConfigKey]),
   };
   const initProps = getInitProps(
     {
@@ -171,7 +178,8 @@ const groupedAttrs = computed(() => {
   );
   const mergedProps = mergeProps(
     initProps,
-    attrs,
+    // 未赋值（undefined）的键不作为显式值下发，保留注入默认值与占位符兜底
+    omitBy(attrs, value => value === undefined),
     { class: attrs.componentClass, style: attrs.componentStyle },
     { disabled: effectiveDisabled },
     { modelProp: effectiveModelProp }

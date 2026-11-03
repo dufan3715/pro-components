@@ -8,6 +8,7 @@ export {
   Row as Grid,
   Col as GridItem,
   Table,
+  TableColumn,
   Space,
   Dropdown,
   Menu,

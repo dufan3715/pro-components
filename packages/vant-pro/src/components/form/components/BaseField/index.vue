@@ -41,8 +41,10 @@ import {
   toValue,
 } from 'vue';
 import {
+  callListeners,
   cloneDeep,
   getObject,
+  omitBy,
   useReactiveAttrs,
 } from '../../../../shared/core';
 import type { Field as FieldType } from '../../types';
@@ -56,7 +58,6 @@ import {
 } from '../../../component-provider/constants';
 import { useForm } from '../../hooks/useForm';
 import { getInitProps, warnUnknownComponent } from './utils';
-import { dispatchListeners } from '../../utils/listeners';
 import { useLocale } from '../../../../locale';
 import { Field as VanField } from '../../../../shared/ui';
 
@@ -131,7 +132,7 @@ const value = computed({
      * 字段配置/attrs 传入的 onUpdate:* 监听器与内部写值组合回放，参数为组件原始 emit 值
      * popup 字段在 confirm 提交时经此 setter 触发，滚动选择过程的中间值不会误触监听器
      */
-    dispatchListeners(groupedAttrs.value.onUpdateValue, val);
+    callListeners(groupedAttrs.value.onUpdateValue, val);
   },
 });
 
@@ -273,7 +274,8 @@ const groupedAttrs = computed(() => {
       : normalizeDisabled(initProps.disabled);
   const mergedProps = mergeProps(
     initProps,
-    attrs,
+    // 未赋值（undefined）的键不作为显式值下发，保留注入默认值与占位符兜底
+    omitBy(attrs, value => value === undefined),
     { disabled: effectiveDisabled },
     { class: attrs.componentClass, style: attrs.componentStyle },
     { modelProp: modelPropName }
@@ -300,11 +302,11 @@ const groupedAttrs = computed(() => {
             : form?.formPopup?.popupFieldValue?.value;
         value.value = nextValue;
         form?.formPopup?.close();
-        dispatchListeners(confirmEvent, ...args);
+        callListeners(confirmEvent, ...args);
       },
       [popupCloseEventName.value.cancel]: (...args: any[]) => {
         form?.formPopup?.close();
-        dispatchListeners(cancelEvent, ...args);
+        callListeners(cancelEvent, ...args);
       },
     });
   }

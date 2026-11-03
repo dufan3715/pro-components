@@ -6,6 +6,8 @@ type ColumnTransformResult = {
   columns: any[];
   changed: boolean;
   hasTooltip: boolean;
+  // 本层是否有列因环状引用被剔除
+  cycleSkipped: boolean;
 };
 
 /**
@@ -57,6 +59,7 @@ export function useEllipsisTooltipColumns(
     const list: any[] = [];
     let changed = false;
     let hasTooltip = false;
+    let cycleSkipped = false;
 
     for (const column of columns) {
       if (!isObjectItem(column) || toValue(column.hidden)) {
@@ -71,6 +74,7 @@ export function useEllipsisTooltipColumns(
       if (Array.isArray(column.children) && column.children.length > 0) {
         if (ancestors.has(column)) {
           changed = true;
+          cycleSkipped = true;
           continue;
         }
         ancestors.add(column);
@@ -79,6 +83,12 @@ export function useEllipsisTooltipColumns(
         childChanged = child.changed;
         childColumns = child.columns;
         childHasTooltip = child.hasTooltip;
+        cycleSkipped = cycleSkipped || child.cycleSkipped;
+        // 子列全部被过滤后分组列整体移除；环状引用剔除时保留为叶子列
+        if (childColumns.length === 0 && !child.cycleSkipped) {
+          changed = true;
+          continue;
+        }
       }
 
       const ellipsis = column.ellipsis;
@@ -120,7 +130,12 @@ export function useEllipsisTooltipColumns(
       list.push(next);
     }
 
-    return { columns: changed ? list : columns, changed, hasTooltip };
+    return {
+      columns: changed ? list : columns,
+      changed,
+      hasTooltip,
+      cycleSkipped,
+    };
   };
 
   const state = computed(() => transformColumns(getColumns(), globalEnabled()));

@@ -10,6 +10,8 @@ import {
   omitBy,
   cloneDeep,
   isPromise,
+  callListeners,
+  mergeComponentVars,
 } from '../src/shared/utils';
 import {
   isPlainObject as lodashIsPlainObject,
@@ -610,5 +612,47 @@ describe('utils', () => {
     expect(Object.prototype.hasOwnProperty.call(polluted, '__proto__')).toBe(
       false
     );
+  });
+
+  it('SU-16 组件配置按组件键逐属性合并，非普通对象整体覆盖', () => {
+    const parent = {
+      input: { placeholder: 'OUTER', allowClear: true },
+      select: { placeholder: 'SELECT' },
+    };
+    const own = {
+      input: { allowClear: false },
+      select: 'custom-select',
+      table: { size: 'small' },
+    };
+
+    expect(mergeComponentVars(parent, own)).toEqual({
+      input: { placeholder: 'OUTER', allowClear: false },
+      select: 'custom-select',
+      table: { size: 'small' },
+    });
+    // 单侧缺省时保留另一侧
+    expect(mergeComponentVars(undefined, own)).toEqual(own);
+    expect(mergeComponentVars(parent, undefined)).toEqual(parent);
+    // 不修改入参
+    expect(parent.input.allowClear).toBe(true);
+  });
+
+  describe('callListeners', () => {
+    it('SU-15 函数、函数数组与未绑定形态按序调用并收集返回值', () => {
+      const first = vi.fn((value: number) => value + 1);
+      const second = vi.fn((value: number) => value + 2);
+
+      expect(callListeners(first, 1)).toEqual([2]);
+      expect(callListeners([first, second], 1)).toEqual([2, 3]);
+      expect(first).toHaveBeenCalledTimes(2);
+      expect(second).toHaveBeenCalledTimes(1);
+      expect(second).toHaveBeenCalledWith(1);
+
+      // 未绑定与非函数项不参与调用，也不占位
+      expect(callListeners(undefined)).toEqual([]);
+      expect(callListeners(null)).toEqual([]);
+      expect(callListeners([undefined, first, 'nope'], 2)).toEqual([3]);
+      expect(callListeners('nope' as any)).toEqual([]);
+    });
   });
 });
