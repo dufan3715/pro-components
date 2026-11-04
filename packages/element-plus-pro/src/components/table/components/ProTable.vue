@@ -621,13 +621,10 @@ defineExpose({
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    margin-bottom: 8px;
 
     &:empty {
       display: none;
-    }
-
-    & + &_content {
-      margin-top: 16px;
     }
 
     &_button-bar {

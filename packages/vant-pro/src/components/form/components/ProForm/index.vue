@@ -24,7 +24,18 @@
  * @param {...VanFormProps} ...attrs - Vant Form 的其余属性，经 attrs 透传
  *
  * @slot default - 默认插槽
- * @slot [path] - 以字段 path 命名的动态插槽
+ * @slot [path] - 以字段 path 命名的动态插槽，优先于 component 渲染；作用域含字段值 modelValue、回写通道 onUpdate:modelValue、disabled、path 与合并后的控件属性，可直接 v-bind 给控件；component 为 field 或未配置时替换整行控件，其余组件仅替换内层控件
+ *
+ * @example
+ * ```vue
+ * <template>
+ *   <ProForm :form="form" @submit="handleSubmit">
+ *     <template #name="scoped">
+ *       <van-field v-bind="scoped" />
+ *     </template>
+ *   </ProForm>
+ * </template>
+ * ```
  *
  * @public
  */

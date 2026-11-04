@@ -1,4 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
 import {
   defineComponent,
   h,
@@ -21,6 +24,10 @@ import type { ComponentVars } from '../src/components/component-provider';
 import { expectWarn, flushPromises, mountProTable } from './helpers/mount';
 import { createBasicColumns } from './helpers/fixtures';
 import type { Column } from '../src/components/table/types';
+/* Less 编译器无类型声明，经 createRequire 从工作区依赖读取 */
+const requireFromTest = createRequire(resolve(__dirname, 'index.js')) as (
+  id: string
+) => { render: (input: string) => Promise<{ css: string }> };
 
 describe('ProTable 组件测试', () => {
   // ----------------------------------------------------
@@ -2515,5 +2522,54 @@ describe('ProTable 组件测试', () => {
     } finally {
       warnSpy.mockRestore();
     }
+  });
+  // ----------------------------------------------------
+  // PT-A71 [判别]: 表头间距归属于表头自身（编译产物），空表头无元素子节点
+  // ----------------------------------------------------
+  it('PT-A71 [判别]: 表头间距归属于表头自身（编译产物），空表头无元素子节点', async () => {
+    const source = readFileSync(
+      resolve(__dirname, '../src/components/table/components/ProTable.vue'),
+      'utf-8'
+    );
+    const styleBlock =
+      source.match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1] ?? '';
+    const { css } = await requireFromTest('less').render(styleBlock);
+
+    // 间距是 .pro-table_header 这条规则自身的声明（而非某个嵌套规则）
+    const headerRule =
+      /(?:^|\n)\.pro-table_header \{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(headerRule).toContain('margin-bottom: 8px');
+
+    // 空表头由既有 :empty 隐藏，其外边距随盒子一并消失
+    expect(css).toMatch(/\.pro-table_header:empty \{[^}]*display: none;/);
+
+    // 不再依赖相邻兄弟选择器，也不存在指向不存在的 header_content 节点的规则
+    expect(css).not.toMatch(/\.pro-table_header\s*\+\s*[^{]+/);
+    expect(css).not.toContain('pro-table_header_content');
+
+    // display:none 的前提：未声明表头插槽与控件时表头无元素子节点
+    const { wrapper: emptyHeader } = mountProTable({
+      table: useTable({}),
+      props: { control: false, addIndexColumn: false },
+    });
+    await flushPromises();
+    const emptyHeaderEl = emptyHeader.find('.pro-table_header');
+    expect(emptyHeaderEl.exists()).toBe(true);
+    expect(emptyHeaderEl.element.children.length).toBe(0);
+    emptyHeader.unmount();
+
+    // 渲染出表头内容时表头具备元素子节点，间距生效
+    const { wrapper: withHeader } = mountProTable({
+      table: useTable({}),
+      props: { control: false, addIndexColumn: false },
+      slots: {
+        toolbar: () => h('span', { class: 'probe-toolbar' }, 'toolbar'),
+      },
+    });
+    await flushPromises();
+    expect(
+      withHeader.find('.pro-table_header').element.children.length
+    ).toBeGreaterThan(0);
+    withHeader.unmount();
   });
 });

@@ -30,14 +30,14 @@
  * @param {...FormProps} ...attrs - antdv-next Form 组件的其他属性
  *
  * @slot default - 默认插槽，可用于添加额外内容
- * @slot [path] - 以字段 path 命名的动态插槽，可用于自定义字段渲染
+ * @slot [path] - 以字段 path 命名的动态插槽，优先于 component 渲染；作用域含字段值 value、回写通道 onUpdate:value、disabled、path 与合并后的控件属性，可直接 v-bind 给控件
  *
  * @example
  * ```vue
  * <template>
  *   <ProForm :form="form" @submit="handleSubmit">
- *     <template #name="{ value, disabled }">
- *       <a-input :value="value" :disabled="disabled" />
+ *     <template #name="scoped">
+ *       <a-input v-bind="scoped" />
  *     </template>
  *   </ProForm>
  * </template>

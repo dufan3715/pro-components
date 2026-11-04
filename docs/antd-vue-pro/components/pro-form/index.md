@@ -78,6 +78,34 @@ const form = useForm<FormData>({ name: '' }, [
 | ------ | --------------------------------------- | ----------------------------------------------------------------------- |
 | ...    | 继承 Ant Design Vue Form 组件的所有方法 | [FormMethods](https://antdv.com/components/form-cn/#%E6%96%B9%E6%B3%95) |
 
+## 插槽
+
+以字段 `path` 命名的插槽优先于 `component` 渲染，作用域为字段当前的绑定值与合并后的控件属性。
+
+| 作用域参数       | 说明                                                                 |
+| ---------------- | -------------------------------------------------------------------- |
+| `value`          | 字段当前值（已应用 `valueFormatter.get`）                            |
+| `onUpdate:value` | 回写字段值；写入后触发该字段的变更校验（`autoLink: false` 时不触发） |
+| `disabled`       | 合并后的禁用状态（字段 > 表单 > Provider）                           |
+| `path`           | 字段标识                                                             |
+| 其余键           | 合并后的控件属性（Provider 注入的 `placeholder` / `maxlength` 等）   |
+
+作用域对象可直接 `v-bind` 给控件，控件自身的 v-model 事件即完成回写：
+
+```vue
+<template>
+  <ProForm :form="form" @submit="handleSubmit">
+    <template #name="scoped">
+      <a-input v-bind="scoped" />
+    </template>
+  </ProForm>
+</template>
+```
+
+> `scoped` 同时携带 `path` 等上下文键，`v-bind` 会一并下发；只读展示场景可直接取 `value` 渲染。
+>
+> 键名随字段 `modelProp` 变化（默认 `value` / `onUpdate:value`）；Provider 注入的控件属性按字段的字符串 `component` 解析，仅用插槽而未配置 `component` 时仅字段级属性生效。
+
 ## Field 配置
 
 `Field` 是 ProForm 的字段配置入口，单个字段的属性会被拆分到 FormItem / GridItem / 具体组件等层级。

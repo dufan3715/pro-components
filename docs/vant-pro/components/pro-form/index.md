@@ -115,3 +115,33 @@ const form = useForm<FormData>({}, [
 - `signature` (签名)
 - `button` (按钮)
 - `custom` (完全自定义)
+
+## 插槽
+
+以字段 `path` 命名的插槽优先于 `component` 渲染，作用域为字段当前的绑定值与合并后的控件属性。
+
+| 作用域参数            | 说明                                                                        |
+| --------------------- | --------------------------------------------------------------------------- |
+| `modelValue`          | 字段当前值（已应用 `valueFormatter.get`）                                   |
+| `onUpdate:modelValue` | 回写字段值；校验时机由 Form 级 `validateTrigger` 决定（vant 默认 `onBlur`） |
+| `disabled`            | 合并后的禁用状态（字段 > 表单 > Provider）                                  |
+| `path`                | 字段标识                                                                    |
+| 其余键                | 合并后的控件属性（Provider 注入的 `clearable` / `placeholder` 等）          |
+
+作用域对象可直接 `v-bind` 给控件，控件自身的 v-model 事件即完成回写：
+
+```vue
+<template>
+  <ProForm :form="form" @submit="handleSubmit">
+    <template #name="scoped">
+      <van-field v-bind="scoped" />
+    </template>
+  </ProForm>
+</template>
+```
+
+> 插槽替换的是整行控件，字段配置为 `component: 'field'`（或不配置 `component`）时使用本写法。
+
+> `scoped` 同时携带 `path` 等上下文键，`v-bind` 会一并下发；只读展示场景可直接取 `modelValue` 渲染。
+>
+> 键名随字段 `modelProp` 变化（默认 `modelValue` / `onUpdate:modelValue`）；Provider 注入的控件属性按字段的字符串 `component` 解析，仅用插槽而未配置 `component` 时仅字段级属性生效。

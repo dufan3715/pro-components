@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { mount, flushPromises } from '@vue/test-utils';
 import { defineComponent, h, shallowRef, nextTick, ref } from 'vue';
 import ProForm from '../src/components/form/components/ProForm/index.vue';
@@ -619,5 +621,101 @@ describe('ProForm 组件测试 (vant-pro)', () => {
     await flushPromises();
     expect(formA.formRef.value).toBeFalsy();
     expect(formB.formRef.value).toBeFalsy();
+  });
+  // ----------------------------------------------------
+  // PF-A5 [判别]: 以 path 命名的插槽经 v-bind="scoped" 透传后回写表单数据
+  // ----------------------------------------------------
+  it('PF-A5 [判别]: 以 path 命名的插槽经 v-bind="scoped" 透传后回写表单数据', async () => {
+    const form = useForm({ name: 'old-name' }, [
+      { path: 'name', label: '姓名', component: 'field' },
+    ]);
+    let scoped: any;
+    const wrapper = mount(ProForm as any, {
+      props: { form },
+      slots: {
+        // 等价于 <template #name="scoped"><van-field v-bind="scoped" /></template>
+        name: (slotScope: any) => {
+          scoped = slotScope;
+          return h(VanField as any, { ...slotScope });
+        },
+      },
+      attachTo: document.body,
+    });
+    await flushPromises();
+
+    // 作用域键：字段标识与禁用状态随插槽下发
+    expect(scoped.path).toBe('name');
+    expect(Object.prototype.hasOwnProperty.call(scoped, 'disabled')).toBe(true);
+
+    const input = wrapper.find('input');
+    expect((input.element as HTMLInputElement).value).toBe('old-name');
+    await input.setValue('new-name');
+    await flushPromises();
+    expect(form.getFormData('name')).toBe('new-name');
+    wrapper.unmount();
+    document.body.innerHTML = '';
+  });
+  // ----------------------------------------------------
+  // PF-A6 [判别]: 插槽作用域透传 Provider 控件默认值与 valueFormatter.get
+  // ----------------------------------------------------
+  it('PF-A6 [判别]: 插槽作用域透传 Provider 控件默认值与 valueFormatter.get', async () => {
+    const form = useForm({ name: 'old-name' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'field',
+        valueFormatter: { get: (val: any) => `G:${val}` },
+      },
+    ]);
+    let scoped: any;
+    const wrapper = mount(ProComponentProvider as any, {
+      props: {
+        componentVars: { field: { placeholder: 'PROVIDER-PH' } },
+      },
+      slots: {
+        default: () =>
+          h(
+            ProForm as any,
+            { form },
+            {
+              name: (slotScope: any) => {
+                scoped = slotScope;
+                return h(VanField as any, { ...slotScope });
+              },
+            }
+          ),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    // Provider 的控件默认值经合并后进入插槽作用域
+    expect(scoped.placeholder).toBe('PROVIDER-PH');
+    // 作用域取值已应用 valueFormatter.get
+    expect(scoped.modelValue).toBe('G:old-name');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PF-A7 [判别]: JSDoc 与组件文档的插槽示例统一为作用域整体透传
+  // ----------------------------------------------------
+  it('PF-A7 [判别]: JSDoc 与组件文档的插槽示例统一为作用域整体透传', () => {
+    const componentSrc = readFileSync(
+      resolve(__dirname, '../src/components/form/components/ProForm/index.vue'),
+      'utf-8'
+    );
+    const docSrc = readFileSync(
+      resolve(__dirname, '../../../docs/vant-pro/components/pro-form/index.md'),
+      'utf-8'
+    );
+
+    // 示例：作用域整体透传，控件自身的 v-model 完成回写
+    expect(componentSrc).toContain('<van-field v-bind="scoped" />');
+    expect(docSrc).toContain('<van-field v-bind="scoped" />');
+    expect(docSrc).toContain('## 插槽');
+
+    // 文档表格的回写通道键名与本包默认 modelProp 一致
+    expect(docSrc).toContain('| `onUpdate:modelValue` |');
+    expect(docSrc).not.toContain('| `onUpdate:value` |');
   });
 });
