@@ -621,7 +621,7 @@ defineExpose({
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
 
     &:empty {
       display: none;

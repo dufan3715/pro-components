@@ -2538,7 +2538,7 @@ describe('ProTable 组件测试', () => {
     // 间距是 .pro-table_header 这条规则自身的声明（而非某个嵌套规则）
     const headerRule =
       /(?:^|\n)\.pro-table_header \{([^}]*)\}/.exec(css)?.[1] ?? '';
-    expect(headerRule).toContain('margin-bottom: 8px');
+    expect(headerRule).toContain('margin-bottom: 16px');
 
     // 空表头由既有 :empty 隐藏，其外边距随盒子一并消失
     expect(css).toMatch(/\.pro-table_header:empty \{[^}]*display: none;/);
