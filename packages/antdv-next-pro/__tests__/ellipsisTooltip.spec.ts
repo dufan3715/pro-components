@@ -15,8 +15,10 @@ const waitForOpenDelay = () => new Promise(resolve => setTimeout(resolve, 220));
 const waitForCloseDelay = () =>
   new Promise(resolve => setTimeout(resolve, 120));
 
-/** 让单元格呈现横向溢出与有效尺寸 */
+/** 让单元格呈现横向溢出与有效尺寸，并清除宿主内边距与边框 */
 const mockOverflow = (cell: Element) => {
+  (cell as HTMLElement).style.padding = '0';
+  (cell as HTMLElement).style.border = '0';
   Object.defineProperty(cell, 'clientWidth', {
     configurable: true,
     value: 100,
@@ -1083,6 +1085,311 @@ describe('ProTable 共享省略 Tooltip', () => {
     await flushPromises();
 
     expect(wrapper.findAll('td[data-pro-table-ellipsis]').length).toBe(0);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A70 [判别]: 锚点按内容盒定位，排除单元格 padding 与边框
+  // ----------------------------------------------------
+  it('PT-A70 [判别]: 锚点按内容盒定位，排除单元格 padding 与边框', async () => {
+    const { wrapper } = mountWithEllipsis();
+    await flushPromises();
+
+    const cell = wrapper.find('td[data-pro-table-ellipsis]');
+    mockOverflow(cell.element);
+    const element = cell.element as HTMLElement;
+    element.style.padding = '6px 12px';
+    element.style.border = '1px solid';
+
+    await cell.trigger('mouseover');
+    await waitForOpenDelay();
+    await flushPromises();
+
+    const anchor = document.body.querySelector(
+      '.pro-table_ellipsis-tooltip-anchor'
+    ) as HTMLElement;
+    expect(anchor.style.left).toBe('23px');
+    expect(anchor.style.top).toBe('27px');
+    expect(anchor.style.width).toBe('74px');
+    expect(anchor.style.height).toBe('16px');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A70b [判别]: 文本行矩形优先并裁剪到内容盒
+  // ----------------------------------------------------
+  it('PT-A70b [判别]: 文本行矩形优先并裁剪到内容盒', async () => {
+    const { wrapper } = mountWithEllipsis();
+    await flushPromises();
+
+    const cell = wrapper.find('td[data-pro-table-ellipsis]');
+    mockOverflow(cell.element);
+    const element = cell.element as HTMLElement;
+    element.style.padding = '6px 12px';
+    element.style.border = '1px solid';
+
+    vi.spyOn(window.Range.prototype, 'getBoundingClientRect').mockReturnValue({
+      left: 5,
+      top: 10,
+      right: 300,
+      bottom: 40,
+      width: 295,
+      height: 30,
+      x: 5,
+      y: 10,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    await cell.trigger('mouseover');
+    await waitForOpenDelay();
+    await flushPromises();
+
+    const anchor = document.body.querySelector(
+      '.pro-table_ellipsis-tooltip-anchor'
+    ) as HTMLElement;
+    expect(anchor.style.left).toBe('23px');
+    expect(anchor.style.top).toBe('27px');
+    expect(anchor.style.width).toBe('74px');
+    expect(anchor.style.height).toBe('13px');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A70c [判别]: 文本行矩形完全位于内容盒内时直接采用
+  // ----------------------------------------------------
+  it('PT-A70c [判别]: 文本行矩形完全位于内容盒内时直接采用', async () => {
+    const { wrapper } = mountWithEllipsis();
+    await flushPromises();
+
+    const cell = wrapper.find('td[data-pro-table-ellipsis]');
+    mockOverflow(cell.element);
+    const element = cell.element as HTMLElement;
+    element.style.padding = '6px 12px';
+    element.style.border = '1px solid';
+
+    vi.spyOn(window.Range.prototype, 'getBoundingClientRect').mockReturnValue({
+      left: 40,
+      top: 30,
+      right: 90,
+      bottom: 42,
+      width: 50,
+      height: 12,
+      x: 40,
+      y: 30,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    await cell.trigger('mouseover');
+    await waitForOpenDelay();
+    await flushPromises();
+
+    const anchor = document.body.querySelector(
+      '.pro-table_ellipsis-tooltip-anchor'
+    ) as HTMLElement;
+    expect(anchor.style.left).toBe('40px');
+    expect(anchor.style.top).toBe('30px');
+    expect(anchor.style.width).toBe('50px');
+    expect(anchor.style.height).toBe('12px');
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A72 [判别]: 移入浮层保持展示，移出浮层后关闭
+  // ----------------------------------------------------
+  it('PT-A72 [判别]: 移入浮层保持展示，移出浮层后关闭', async () => {
+    const { wrapper } = mountWithEllipsis();
+    await flushPromises();
+
+    const cell = wrapper.find('td[data-pro-table-ellipsis]');
+    mockOverflow(cell.element);
+    await cell.trigger('mouseover');
+    await waitForOpenDelay();
+    await flushPromises();
+
+    const tooltip = wrapper.findComponent(Tooltip);
+    const popup = document.querySelector('.ant-tooltip') as HTMLElement;
+    expect(tooltip.props('open')).toBe(true);
+    expect(popup).not.toBeNull();
+
+    // 单元格 -> 浮层：不关闭
+    await cell.trigger('mouseout', { relatedTarget: popup });
+    popup.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    await waitForCloseDelay();
+    await flushPromises();
+    expect(tooltip.props('open')).toBe(true);
+
+    // 浮层 -> 页面：延迟后关闭
+    popup.dispatchEvent(
+      new MouseEvent('mouseout', {
+        bubbles: true,
+        relatedTarget: document.body,
+      })
+    );
+    await waitForCloseDelay();
+    await flushPromises();
+    expect(tooltip.props('open')).toBe(false);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A72b [判别]: 从浮层移回单元格保持展示
+  // ----------------------------------------------------
+  it('PT-A72b [判别]: 从浮层移回单元格保持展示', async () => {
+    const { wrapper } = mountWithEllipsis();
+    await flushPromises();
+
+    const cell = wrapper.find('td[data-pro-table-ellipsis]');
+    mockOverflow(cell.element);
+    await cell.trigger('mouseover');
+    await waitForOpenDelay();
+    await flushPromises();
+
+    const tooltip = wrapper.findComponent(Tooltip);
+    const popup = document.querySelector('.ant-tooltip') as HTMLElement;
+    expect(tooltip.props('open')).toBe(true);
+
+    // 单元格 -> 浮层
+    await cell.trigger('mouseout', { relatedTarget: popup });
+    popup.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    await flushPromises();
+
+    // 浮层 -> 单元格：不关闭
+    popup.dispatchEvent(
+      new MouseEvent('mouseout', {
+        bubbles: true,
+        relatedTarget: cell.element,
+      })
+    );
+    await cell.trigger('mouseover');
+    await waitForCloseDelay();
+    await flushPromises();
+    expect(tooltip.props('open')).toBe(true);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A72c [判别]: 多表同文本时按实例浮层隔离
+  // ----------------------------------------------------
+  it('PT-A72c [判别]: 多表同文本时按实例浮层隔离', async () => {
+    const createTable = () =>
+      useTable({
+        columns: [
+          {
+            dataIndex: 'name',
+            title: '姓名',
+            ellipsis: { showTooltip: true },
+          },
+        ],
+        dataSource: [{ name: '同名' }],
+      });
+    const tableA = createTable();
+    const tableB = createTable();
+
+    const wrapper = mount(
+      defineComponent({
+        setup: () => () =>
+          h('div', [
+            h(ProTable, { table: tableA, addIndexColumn: false }),
+            h(ProTable, { table: tableB, addIndexColumn: false }),
+          ]),
+      }),
+      { attachTo: document.body, global: { stubs: { transition: false } } }
+    );
+    await flushPromises();
+
+    const cells = wrapper.findAll('td[data-pro-table-ellipsis]');
+    expect(cells).toHaveLength(2);
+    mockOverflow(cells[0].element);
+    mockOverflow(cells[1].element);
+
+    await cells[0].trigger('mouseover');
+    await waitForOpenDelay();
+    await flushPromises();
+
+    // 直接触发 B 的 mouseover，保留 A 已打开的浮层
+    await cells[1].trigger('mouseover');
+    await waitForOpenDelay();
+    await flushPromises();
+
+    const tooltips = wrapper.findAllComponents(Tooltip);
+    expect(tooltips).toHaveLength(2);
+    expect(tooltips[0].props('open')).toBe(true);
+    expect(tooltips[1].props('open')).toBe(true);
+
+    const popups = document.querySelectorAll('.ant-tooltip');
+    expect(popups).toHaveLength(2);
+
+    // 从 A 浮层移入 B 浮层：A 立即关闭，B 保持
+    popups[0].dispatchEvent(
+      new MouseEvent('mouseout', {
+        bubbles: true,
+        relatedTarget: popups[1],
+      })
+    );
+    await flushPromises();
+    expect(tooltips[0].props('open')).toBe(false);
+    expect(tooltips[1].props('open')).toBe(true);
+
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // PT-A73 [判别]: 切换单元格时关闭动画不展示下一格内容
+  // ----------------------------------------------------
+  it('PT-A73 [判别]: 切换单元格时关闭动画不展示下一格内容', async () => {
+    const { wrapper } = mountWithEllipsis();
+    await flushPromises();
+
+    const cells = wrapper.findAll('td[data-pro-table-ellipsis]');
+    mockOverflow(cells[0].element);
+    mockOverflow(cells[1].element);
+    cells[1].element.getBoundingClientRect = () =>
+      ({
+        left: 50,
+        top: 60,
+        width: 100,
+        height: 30,
+        right: 150,
+        bottom: 90,
+        x: 50,
+        y: 60,
+        toJSON: () => ({}),
+      }) as DOMRect;
+
+    await cells[0].trigger('mouseover');
+    await waitForOpenDelay();
+    await flushPromises();
+
+    const tooltip = wrapper.findComponent(Tooltip);
+    const anchor = document.body.querySelector(
+      '.pro-table_ellipsis-tooltip-anchor'
+    ) as HTMLElement;
+    expect(tooltip.props('open')).toBe(true);
+    expect(tooltip.props('title')).toBe('张三');
+    expect(anchor.style.left).toBe('10px');
+
+    await cells[0].trigger('mouseout', {
+      relatedTarget: cells[1].element,
+    });
+    await cells[1].trigger('mouseover');
+    await flushPromises();
+
+    // enter delay 未到：旧浮层关闭中，内容与锚点都不应提前切到下一格
+    expect(tooltip.props('open')).toBe(false);
+    expect(tooltip.props('title')).toBe('张三');
+    expect(anchor.style.left).toBe('10px');
+
+    await waitForOpenDelay();
+    await flushPromises();
+    expect(tooltip.props('open')).toBe(true);
+    expect(tooltip.props('title')).toBe('李四');
+    expect(anchor.style.left).toBe('50px');
 
     wrapper.unmount();
   });

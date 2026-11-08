@@ -489,6 +489,11 @@ const ellipsisTooltipProps = computed(() => {
   return rest;
 });
 
+const ellipsisTooltipOverlay = shallowRef<HTMLElement | null>(null);
+const setEllipsisTooltipOverlay = (element: HTMLElement | null) => {
+  ellipsisTooltipOverlay.value = element;
+};
+
 const {
   open: ellipsisTooltipOpen,
   content: ellipsisTooltipContent,
@@ -500,7 +505,8 @@ const {
   rootRef,
   ellipsisTooltipEnabled,
   ellipsisTooltipDelay,
-  ellipsisTooltipLeaveDelay
+  ellipsisTooltipLeaveDelay,
+  ellipsisTooltipOverlay
 );
 
 // 数据源优先级：显式绑定 > table 实例（useTable 创建的 dataSource）
@@ -746,6 +752,7 @@ defineExpose({
       :anchor-style="ellipsisTooltipAnchorStyle"
       :container="ellipsisTooltipContainer"
       v-bind="ellipsisTooltipProps"
+      :set-overlay-element="setEllipsisTooltipOverlay"
     />
   </div>
 </template>
