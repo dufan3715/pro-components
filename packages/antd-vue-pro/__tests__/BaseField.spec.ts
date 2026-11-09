@@ -1032,4 +1032,79 @@ describe('BaseField 组件测试', () => {
     ).toMatchObject({ allowClear: true, style: { width: '100%' } });
     plainWrapper.unmount();
   });
+
+  // ----------------------------------------------------
+  // BF-A26 [判别]: 自定义控件与插槽控件接收 FormItem 下发的 id，scrollToField 命中控件
+  // ----------------------------------------------------
+  it('BF-A26 [判别]: 自定义控件与插槽控件透传 FormItem id，scrollToField 可定位控件', async () => {
+    const RawInput = defineComponent({
+      name: 'RawInput',
+      props: { value: { type: String, default: '' } },
+      emits: ['update:value'],
+      setup(props, { emit }) {
+        return () =>
+          h('input', {
+            class: 'raw-input',
+            value: props.value,
+            onInput: (e: any) => emit('update:value', e.target.value),
+          });
+      },
+    });
+
+    const form = useForm({ name: '', slotField: '' }, [
+      { path: 'name', label: '姓名', component: RawInput },
+      { path: 'slotField', label: '插槽', component: 'input' },
+    ] as any);
+    const wrapper = mount(ProForm, {
+      props: { form },
+      attachTo: document.body,
+      slots: {
+        slotField: (slotProps: any) =>
+          h('input', { ...slotProps, class: 'slot-input' }),
+      },
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+
+    const labels = wrapper.findAll('label');
+    const customInput = wrapper.find('input.raw-input');
+    const customId = customInput.attributes('id');
+    expect(customId).toBe(labels[0].attributes('for'));
+    expect(document.getElementById(customId!)).toBe(customInput.element);
+
+    const slotInput = wrapper.find('input.slot-input');
+    const slotId = slotInput.attributes('id');
+    expect(slotId).toBe(labels[1].attributes('for'));
+    expect(document.getElementById(slotId!)).toBe(slotInput.element);
+
+    // 判别点：scrollToField 经 FormItem fieldId 定位到控件节点
+    const idSpy = vi.spyOn(document, 'getElementById');
+    form.formRef.value?.scrollToField('name');
+    expect(idSpy).toHaveBeenCalledWith(customId);
+    expect(idSpy.mock.results.some(r => r.value === customInput.element)).toBe(
+      true
+    );
+
+    wrapper.unmount();
+    document.body.innerHTML = '';
+
+    // 字段显式 id 仍优先于 FormItem id
+    const overrideForm = useForm({ name: '' }, [
+      {
+        path: 'name',
+        label: '姓名',
+        component: 'input',
+        id: 'custom-id',
+      } as any,
+    ]);
+    const overrideWrapper = mount(ProForm, {
+      props: { form: overrideForm },
+      attachTo: document.body,
+      global: { stubs: { transition: false } },
+    });
+    await flushPromises();
+    expect(overrideWrapper.find('input').attributes('id')).toBe('custom-id');
+    overrideWrapper.unmount();
+    document.body.innerHTML = '';
+  });
 });

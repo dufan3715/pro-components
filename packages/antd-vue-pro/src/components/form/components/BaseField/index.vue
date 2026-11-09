@@ -104,6 +104,9 @@ useProvideFormItemContext({
   clearValidate: formItemContext.clearValidate,
 });
 
+// 宿主 FormItem 下发的字段 id，作为控件 id 的默认值
+const formItemId = computed(() => toValue(formItemContext.id));
+
 /*
  * 值变更通知按微任务合并：同一 tick 多次写入只回传最后一次；
  * 组件卸载时未发送的通知不再发出
@@ -217,6 +220,7 @@ const groupedAttrs = computed(() => {
   // 未赋值（undefined）的键不作为显式值下发，保留注入默认值与占位符兜底
   const definedAttrs = omitBy(attrs, value => value === undefined);
   const mergedProps = mergeProps(
+    formItemId.value ? { id: formItemId.value } : {},
     initProps,
     definedAttrs,
     { class: attrs.componentClass, style: attrs.componentStyle },
