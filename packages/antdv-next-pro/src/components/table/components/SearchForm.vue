@@ -60,7 +60,7 @@ export type SearchFormProps = {
  *
  * ## 展开/折叠行为
  *
- * 1. 内容高度超出折叠高度（由 minExpandRows 决定，默认 2 行）时显示展开/折叠按钮
+ * 1. 实际行数超过 minExpandRows（默认 2 行）时显示展开/折叠按钮
  * 2. 隐藏区域存在搜索值时自动展开
  * 3. 用户手动切换后保持手动状态，不随重新测量回退
  *
@@ -119,6 +119,7 @@ const layoutProps = computed(() => {
         },
         style: {
           display: 'flex',
+          alignItems: 'flex-start',
           overflow: 'hidden',
           height: heightStyle.value,
         },

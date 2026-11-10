@@ -4,7 +4,7 @@
  *
  * 取值链：`heightStyle`（当前应施加的高度）← `currentHeight` ← `expandStatus`（展开/折叠）× 测量结果；
  * 测量经 rAF 合帧，读布局盒属性（`scrollHeight` / `offsetTop` / `offsetHeight`）不受祖先 transform 缩放影响；
- * 折叠高度优先取第 `minExpandRows` 行真实底部，行边界不可测时回退行高算术。
+ * 自然高度与行边界在移除内联高度的布局下读取；折叠高度优先取第 `minExpandRows` 行真实底部，行边界不可测时回退行高算术。
  * 尺寸变化（ResizeObserver）与字段增减触发重测；用户手动切换后自动测量不再覆盖其状态。
  */
 import {
@@ -42,13 +42,13 @@ export interface UseSearchFormExpandProps {
  * useSearchFormExpand 返回值：跨包统一的高度状态与操作句柄
  */
 export interface UseSearchFormExpandReturn {
-  /** 表单自然展开高度（px）；首次测量前为 `'unset'` */
+  /** 表单自然展开高度（px），在不受折叠高度约束的布局下测量；首次测量前为 `'unset'` */
   proFormHeight: Ref<'unset' | number>;
   /** 折叠态高度（px），取第 minExpandRows 行底部或行高算术值 */
   collapseHeight: Ref<number>;
   /** 行高（px），取首个顶层行元素的布局盒高度；默认 32 */
   rowHeight: Ref<number>;
-  /** 是否存在溢出行（自然高度 - 折叠高度 > 1px） */
+  /** 是否存在溢出行：行边界可测时按行数超过 minExpandRows 判定，不可测时按自然高度与折叠高度差判定 */
   showExpandToggle: Ref<boolean>;
   /** 当前展开状态（受 expand 配置、初值自动展开与用户手动切换共同影响） */
   expandStatus: Ref<boolean>;
@@ -276,6 +276,39 @@ export function useSearchFormExpand(
     observer.observe(formEl);
   };
 
+  /*
+   * 自然布局读取：测量期间临时移除内联高度，读取后恢复，
+   * 高度与行边界取自不受折叠高度约束的布局
+   */
+  const readNaturalLayout = (proFormEl: any, itemEls: Element[]) => {
+    const style = proFormEl?.style;
+    const previousHeight = style?.height;
+    const previousTransition = style?.transition;
+    const resetHeight = !!previousHeight && previousHeight !== 'auto';
+    if (resetHeight) {
+      style.height = 'auto';
+      style.transition = 'none';
+    }
+    try {
+      return {
+        naturalHeight:
+          proFormEl.scrollHeight ||
+          proFormEl.getBoundingClientRect?.()?.height ||
+          0,
+        boundaries: measureRowBoundaries(proFormEl, itemEls),
+      };
+    } finally {
+      if (resetHeight) {
+        style.height = previousHeight;
+        if (previousTransition === undefined) {
+          style.removeProperty?.('transition');
+        } else {
+          style.transition = previousTransition;
+        }
+      }
+    }
+  };
+
   const updateHeights = () => {
     if (!props.expand || !props.form?.formRef?.value) return;
     const proFormEl = (props.form.formRef.value as any)?.$el;
@@ -309,11 +342,8 @@ export function useSearchFormExpand(
       lastAppliedRowHeight = itemHeight;
     }
 
-    // 测量自然展开高度
-    const naturalHeight =
-      proFormEl.scrollHeight ||
-      proFormEl.getBoundingClientRect?.()?.height ||
-      0;
+    // 自然高度与行边界在自然布局下读取
+    const { naturalHeight, boundaries } = readNaturalLayout(proFormEl, itemEls);
     if (
       naturalHeight > 0 &&
       (lastAppliedNaturalHeight === undefined ||
@@ -325,7 +355,6 @@ export function useSearchFormExpand(
     }
 
     // 行边界不可测时清空基线，折叠高度回退行高算术
-    const boundaries = measureRowBoundaries(proFormEl, itemEls);
     if (boundaries) {
       const prev = lastAppliedRowBoundaries;
       if (
@@ -480,8 +509,7 @@ export function useSearchFormExpand(
   /*
    * 计算折叠高度和是否显示展开按钮
    * 行边界可测且行数充足时折叠高度取第 minExpandRows 行的真实底部；行数不足 minExpandRows 时折叠高度为自然高度（无溢出行）
-   * 行边界不可测时回退行高算术（minExpandRows * 行高 + 行间距）
-   * 自然高度与折叠高度差异 > 1px，说明有字段溢出，显示展开按钮
+   * 行边界可测时按行数是否超过 minExpandRows 判定溢出行；不可测时回退高度差（自然高度与折叠高度差异 > 1px）
    */
   watchEffect(
     () => {
@@ -499,7 +527,9 @@ export function useSearchFormExpand(
             : arithmeticHeight;
         collapseHeight.value = Math.min(candidate, +proFormHeight.value);
         showExpandToggle.value =
-          +proFormHeight.value - collapseHeight.value > 1;
+          rows.length > 0
+            ? rows.length > minExpandRows
+            : +proFormHeight.value - collapseHeight.value > 1;
         if (showExpandToggle.value) {
           setInitExpandStatus();
         }

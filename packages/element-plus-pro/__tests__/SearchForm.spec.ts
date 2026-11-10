@@ -67,6 +67,72 @@ describe('SearchForm 组件测试', () => {
   });
 
   // ----------------------------------------------------
+  // SF-A20 [判别]: 收起后重测不把自然高度降为收起高度，按钮保持可用
+  // ----------------------------------------------------
+  it('SF-A20 [判别]: 收起后重测保持自然高度，按钮可再次展开', async () => {
+    const scrollHeightSpy = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        const constrained = this.style.height && this.style.height !== 'auto';
+        return constrained ? 80 : 120;
+      });
+
+    const form = useForm({}, [
+      { path: 'f1', label: '字段1', component: 'input' },
+      { path: 'f2', label: '字段2', component: 'input' },
+      { path: 'f3', label: '字段3', component: 'input' },
+      { path: 'f4', label: '字段4', component: 'input' },
+    ]);
+
+    const wrapper = mount(SearchForm, {
+      props: {
+        form,
+        expand: { minExpandRows: 2, expandStatus: true },
+      },
+      global: { stubs: { transition: false } },
+    });
+
+    try {
+      await flushPromises();
+
+      const formEl = (form.formRef.value as any)?.$el as HTMLElement;
+      expect(formEl).toBeTruthy();
+      expect(
+        (wrapper.find('.pro-table_search-form').element as HTMLElement).style
+          .height
+      ).toBe('120px');
+
+      const toggle = () =>
+        wrapper.find('.pro-table_search-form_expand-toggle-button');
+      expect(toggle().exists()).toBe(true);
+      expect(toggle().text()).toContain('收起');
+
+      // 收起后触发 RO 重测：测量期间临时移除内联高度，自然高度不得被收起高度覆盖
+      await toggle().trigger('click');
+      await flushPromises();
+      expect(formEl.style.height).toBe('80px');
+      triggerResize(formEl);
+      await new Promise<void>(resolve =>
+        requestAnimationFrame(() => resolve())
+      );
+      await flushPromises();
+
+      expect(toggle().exists()).toBe(true);
+      expect(toggle().text()).toContain('展开');
+
+      await toggle().trigger('click');
+      await flushPromises();
+      expect(
+        (wrapper.find('.pro-table_search-form').element as HTMLElement).style
+          .height
+      ).toBe('120px');
+    } finally {
+      scrollHeightSpy.mockRestore();
+      wrapper.unmount();
+    }
+  });
+
+  // ----------------------------------------------------
   // SF-A5 [判别]: 隐藏字段有值时自动展开
   // ----------------------------------------------------
   it('SF-A5 [判别]: 初始存在溢出隐藏字段且有搜索值时，自动展开搜索区', async () => {

@@ -66,6 +66,32 @@ const buildFakeForm = (state: {
   return { el, items };
 };
 
+/**
+ * 构造带内联高度状态的假表单：内联高度存在时按 constrainedHeight 返回 scrollHeight，
+ * 模拟折叠高度约束下的布局读数
+ */
+const buildConstrainedFakeForm = (state: {
+  itemLayouts: FakeItemLayout[];
+  naturalHeight: number;
+  constrainedHeight: number;
+}) => {
+  const items = state.itemLayouts.map(createFakeItemEl);
+  const el: any = {
+    style: { height: '', transition: '' },
+    get scrollHeight() {
+      return this.style.height && this.style.height !== 'auto'
+        ? state.constrainedHeight
+        : state.naturalHeight;
+    },
+    getBoundingClientRect: () => ({ height: state.naturalHeight }),
+    offsetTop: 0,
+    offsetParent: null,
+    querySelectorAll: (selector: string) =>
+      selector.includes('[path]') ? [] : items,
+  };
+  return { el, items };
+};
+
 /** 用可控队列替换全局 rAF：flush 手动执行待执行帧，pending 返回帧数 */
 const stubRafQueue = () => {
   const queue: Array<() => void> = [];
@@ -716,7 +742,7 @@ describe('useSearchFormExpand', () => {
     };
     const { api, wrapper } = mountHook({
       form: form as any,
-      expand: true,
+      expand: { minExpandRows: 1 },
       layout: 'grid',
       rowGap: 16,
     });
@@ -762,7 +788,7 @@ describe('useSearchFormExpand', () => {
     };
     const { api, wrapper } = mountHook({
       form: form as any,
-      expand: true,
+      expand: { minExpandRows: 1 },
       layout: 'grid',
       rowGap: 16,
     });
@@ -903,7 +929,7 @@ describe('useSearchFormExpand', () => {
     };
     const { api, wrapper } = mountHook({
       form: form as any,
-      expand: true,
+      expand: { minExpandRows: 1 },
       layout: 'grid',
       rowGap: 16,
     });
@@ -1016,5 +1042,310 @@ describe('useSearchFormExpand', () => {
     await nextTick();
     expect(withColumnGap.api.collapseHeight.value).toBe(84);
     withColumnGap.wrapper.unmount();
+  });
+  // ----------------------------------------------------
+  // SE-18 [判别]: 恰好 minExpandRows 行时行尾留白不触发展开按钮
+  // ----------------------------------------------------
+  it('SE-18 [判别]: 行数恰好为 minExpandRows 时行尾留白不触发按钮', async () => {
+    const state = {
+      itemLayouts: [
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+      ],
+      naturalHeight: 88,
+    };
+    const form = { formRef: ref<any>({ $el: buildFakeForm(state).el }) };
+
+    const expanded = mountHook({
+      form,
+      expand: { minExpandRows: 2, expandStatus: true },
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+    expect(expanded.api.collapseHeight.value).toBe(80);
+    expect(expanded.api.showExpandToggle.value).toBe(false);
+    expanded.wrapper.unmount();
+
+    const collapsed = mountHook({
+      form,
+      expand: { minExpandRows: 2 },
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+    expect(collapsed.api.showExpandToggle.value).toBe(false);
+    expect(collapsed.api.currentHeight.value).toBe(80);
+    collapsed.wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SE-19 [判别]: 折叠高度约束下的重测不覆盖自然高度
+  // ----------------------------------------------------
+  it('SE-19 [判别]: 折叠高度约束下的重测不覆盖自然高度', async () => {
+    const state = {
+      itemLayouts: [
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 96, height: 32 },
+        { top: 96, height: 32 },
+        { top: 96, height: 32 },
+      ],
+      naturalHeight: 128,
+      constrainedHeight: 80,
+    };
+    const { el } = buildConstrainedFakeForm(state);
+    const form = { formRef: ref<any>({ $el: el }) };
+    const { api, wrapper } = mountHook({
+      form,
+      expand: { minExpandRows: 2 },
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+
+    expect(api.proFormHeight.value).toBe(128);
+    expect(api.currentHeight.value).toBe(80);
+    expect(api.showExpandToggle.value).toBe(true);
+
+    // 模拟收起后内联高度为折叠高度，再触发重测
+    el.style.height = '80px';
+    api.updateHeights();
+    await nextTick();
+
+    expect(api.proFormHeight.value).toBe(128);
+    expect(api.currentHeight.value).toBe(80);
+    expect(api.showExpandToggle.value).toBe(true);
+    expect(el.style.height).toBe('80px');
+
+    api.changeExpandStatus();
+    await nextTick();
+    expect(api.currentHeight.value).toBe(128);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SE-20 [判别]: 行数随布局变化时展开按钮双向切换
+  // ----------------------------------------------------
+  it('SE-20 [判别]: 行数随布局变化时展开按钮双向切换', async () => {
+    const roInstances = stubResizeObserver();
+    const raf = stubRafQueue();
+    const twoRows = [
+      { top: 0, height: 32 },
+      { top: 0, height: 32 },
+      { top: 0, height: 32 },
+      { top: 48, height: 32 },
+      { top: 48, height: 32 },
+      { top: 48, height: 32 },
+    ];
+    const threeRows = [
+      ...twoRows,
+      { top: 96, height: 32 },
+      { top: 96, height: 32 },
+      { top: 96, height: 32 },
+    ];
+    const state: { items: any[]; naturalHeight: number } = {
+      items: twoRows.map(createFakeItemEl),
+      naturalHeight: 88,
+    };
+    const el = {
+      get scrollHeight() {
+        return state.naturalHeight;
+      },
+      getBoundingClientRect: () => ({ height: state.naturalHeight }),
+      offsetTop: 0,
+      offsetParent: null,
+      querySelectorAll: (selector: string) =>
+        selector.includes('[path]') ? [] : state.items,
+    };
+    const form = { formRef: ref<any>({ $el: el }) };
+    const { api, wrapper } = mountHook({
+      form,
+      expand: { minExpandRows: 2, expandStatus: true },
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+
+    expect(api.showExpandToggle.value).toBe(false);
+
+    // 容器 reflow 后变成 3 行
+    state.items = threeRows.map(createFakeItemEl);
+    state.naturalHeight = 136;
+    roInstances[0]!.callback();
+    raf.flush();
+    await nextTick();
+    expect(api.showExpandToggle.value).toBe(true);
+    expect(api.collapseHeight.value).toBe(80);
+
+    // 行数回落到恰好 2 行
+    state.items = twoRows.map(createFakeItemEl);
+    state.naturalHeight = 88;
+    roInstances[0]!.callback();
+    raf.flush();
+    await nextTick();
+    expect(api.showExpandToggle.value).toBe(false);
+    expect(api.currentHeight.value).toBe(88);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SE-24 [判别]: 收起态可见行变高后折叠高度跟随增长
+  // ----------------------------------------------------
+  it('SE-24 [判别]: 收起态可见行变高后折叠高度跟随增长', async () => {
+    const state = {
+      itemLayouts: [
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 96, height: 32 },
+        { top: 96, height: 32 },
+        { top: 96, height: 32 },
+      ],
+      naturalHeight: 128,
+      constrainedHeight: 80,
+    };
+    const { el } = buildConstrainedFakeForm(state);
+    const form = { formRef: ref<any>({ $el: el }) };
+    const { api, wrapper } = mountHook({
+      form,
+      expand: { minExpandRows: 2 },
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+    expect(api.collapseHeight.value).toBe(80);
+    expect(api.currentHeight.value).toBe(80);
+
+    // 第 2 行由 32 长到 64，第三行顺延
+    state.itemLayouts[3]!.height = 64;
+    state.itemLayouts[4]!.height = 64;
+    state.itemLayouts[5]!.height = 64;
+    state.itemLayouts[6]!.top = 128;
+    state.itemLayouts[7]!.top = 128;
+    state.itemLayouts[8]!.top = 128;
+    state.naturalHeight = 160;
+
+    el.style.height = '80px';
+    api.updateHeights();
+    await nextTick();
+
+    expect(api.collapseHeight.value).toBe(112);
+    expect(api.heightStyle.value).toBe('112px');
+    expect(api.proFormHeight.value).toBe(160);
+    expect(api.showExpandToggle.value).toBe(true);
+    expect(el.style.height).toBe('80px');
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SE-25 [判别]: 收起态隐藏行变高只更新自然高度
+  // ----------------------------------------------------
+  it('SE-25 [判别]: 收起态隐藏行变高只更新自然高度', async () => {
+    const state = {
+      itemLayouts: [
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 96, height: 32 },
+        { top: 96, height: 32 },
+        { top: 96, height: 32 },
+      ],
+      naturalHeight: 128,
+      constrainedHeight: 80,
+    };
+    const { el } = buildConstrainedFakeForm(state);
+    const form = { formRef: ref<any>({ $el: el }) };
+    const { api, wrapper } = mountHook({
+      form,
+      expand: { minExpandRows: 2 },
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+    expect(api.collapseHeight.value).toBe(80);
+    expect(api.showExpandToggle.value).toBe(true);
+
+    state.itemLayouts[6]!.height = 64;
+    state.itemLayouts[7]!.height = 64;
+    state.itemLayouts[8]!.height = 64;
+    state.naturalHeight = 160;
+
+    el.style.height = '80px';
+    api.updateHeights();
+    await nextTick();
+
+    expect(api.collapseHeight.value).toBe(80);
+    expect(api.proFormHeight.value).toBe(160);
+    expect(api.currentHeight.value).toBe(80);
+    expect(api.showExpandToggle.value).toBe(true);
+
+    api.changeExpandStatus();
+    await nextTick();
+    expect(api.currentHeight.value).toBe(160);
+    wrapper.unmount();
+  });
+
+  // ----------------------------------------------------
+  // SE-26 [判别]: 展开态行高变化后高度跟随自然高度
+  // ----------------------------------------------------
+  it('SE-26 [判别]: 展开态行高变化后高度跟随自然高度', async () => {
+    const state = {
+      itemLayouts: [
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 0, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 48, height: 32 },
+        { top: 96, height: 32 },
+        { top: 96, height: 32 },
+        { top: 96, height: 32 },
+      ],
+      naturalHeight: 128,
+      constrainedHeight: 128,
+    };
+    const { el } = buildConstrainedFakeForm(state);
+    const form = { formRef: ref<any>({ $el: el }) };
+    const { api, wrapper } = mountHook({
+      form,
+      expand: { minExpandRows: 2, expandStatus: true },
+      layout: 'grid',
+      rowGap: 16,
+    });
+    await nextTick();
+    expect(api.currentHeight.value).toBe(128);
+
+    state.itemLayouts[3]!.height = 64;
+    state.itemLayouts[4]!.height = 64;
+    state.itemLayouts[5]!.height = 64;
+    state.itemLayouts[6]!.top = 128;
+    state.itemLayouts[7]!.top = 128;
+    state.itemLayouts[8]!.top = 128;
+    state.naturalHeight = 160;
+
+    el.style.height = '128px';
+    api.updateHeights();
+    await nextTick();
+
+    expect(api.proFormHeight.value).toBe(160);
+    expect(api.currentHeight.value).toBe(160);
+    expect(api.showExpandToggle.value).toBe(true);
+    expect(el.style.height).toBe('128px');
+    wrapper.unmount();
   });
 });

@@ -153,7 +153,7 @@ describe('注释规范契约 · antdv-next-pro', () => {
 
     const searchFormLines = [
       ' * ## 展开/折叠行为',
-      ' * 1. 内容高度超出折叠高度（由 minExpandRows 决定，默认 2 行）时显示展开/折叠按钮',
+      ' * 1. 实际行数超过 minExpandRows（默认 2 行）时显示展开/折叠按钮',
       ' * @param {Form} form - 搜索表单实例，由 table.searchForm 提供',
       ' * @slot reset-button - 重置按钮插槽，作用域参数 onReset',
       ' * @slot search-button - 搜索按钮插槽，作用域参数 onSearch',

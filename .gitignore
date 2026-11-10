@@ -42,3 +42,8 @@ packages/*/bin/init-ai.mjs
 .zcode
 
 .pnpm-store/*
+
+# Playwright
+test-results
+playwright-report
+blob-report
